@@ -213,7 +213,7 @@
         .to(heroEls.eyebrow, { autoAlpha: 1, duration: 0.8 }, 0.5)
         .to(heroEls.sub, { autoAlpha: 1, duration: 0.8 }, 0.7)
         .to('[data-hero-actions]', { autoAlpha: 1, duration: 0.7 }, 0.85)
-        .fromTo('[data-hero-card]', { y: 24 }, { autoAlpha: 1, y: 0, duration: 0.9 }, 0.9)
+        .fromTo('[data-hero-card]', { y: 24 }, { autoAlpha: 1, y: 0, duration: 0.9, onComplete: () => $('[data-hero-card]')?.classList.add('is-in') }, 0.9)
         .to(nav, { autoAlpha: 1, duration: 0.8 }, 0.6)
         .to([heroEls.caption, heroEls.scroll], { autoAlpha: 1, duration: 0.8 }, 1.0);
     });
@@ -288,7 +288,7 @@
       /* 7b. Text-Reveals */
       $$('[data-reveal]').forEach((el) => {
         const type = el.dataset.reveal;
-        const st = { trigger: el, start: 'top 88%', once: true };
+        const st = { trigger: el, start: 'top 88%', once: true, onEnter: () => el.classList.add('is-in') };
         if (type === 'words') {
           const words = splitWords(el);
           gsap.from(words, { yPercent: 110, duration: 1, stagger: 0.035, ease: 'power4.out', scrollTrigger: { ...st, start: 'top 85%' } });
@@ -407,6 +407,85 @@
           });
         }
       }
+
+      /* 7i. Ambient: Hero-Parallax + Lichtschein, Spotlight, Tilt, Cursor, Hintergrund-Temperatur */
+      if (isDesktop && !isTouch && hero) {
+        const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+        if (fine) {
+          const artX = gsap.quickTo(heroEls.art, 'x', { duration: 0.9, ease: 'power3.out' });
+          const artY = gsap.quickTo(heroEls.art, 'y', { duration: 0.9, ease: 'power3.out' });
+          const discX = gsap.quickTo(heroEls.disc, 'x', { duration: 1.1, ease: 'power3.out' });
+          const discY = gsap.quickTo(heroEls.disc, 'y', { duration: 1.1, ease: 'power3.out' });
+          const card = $('[data-hero-card]');
+          const cardX = card && gsap.quickTo(card, 'x', { duration: 0.8, ease: 'power3.out' });
+          const cardY = card && gsap.quickTo(card, 'y', { duration: 0.8, ease: 'power3.out' });
+          const cardRX = card && gsap.quickTo(card, 'rotateX', { duration: 0.8, ease: 'power3.out' });
+          const cardRY = card && gsap.quickTo(card, 'rotateY', { duration: 0.8, ease: 'power3.out' });
+          const glow = $('[data-hero-glow]');
+          const glowX = glow && gsap.quickTo(glow, 'x', { duration: 1.4, ease: 'power2.out' });
+          const glowY = glow && gsap.quickTo(glow, 'y', { duration: 1.4, ease: 'power2.out' });
+          if (card) gsap.set(card, { transformPerspective: 900 });
+          hero.addEventListener('pointermove', (e) => {
+            const nx = (e.clientX / window.innerWidth) * 2 - 1;
+            const ny = (e.clientY / window.innerHeight) * 2 - 1;
+            artX(nx * 14); artY(ny * 10);
+            discX(nx * -26); discY(ny * -18);
+            if (card) { cardX(nx * 8); cardY(ny * 6); cardRY(nx * 3); cardRX(ny * -3); }
+            if (glow) { glowX(e.clientX); glowY(e.clientY); }
+          }, { passive: true });
+          hero.addEventListener('pointerleave', () => { artX(0); artY(0); discX(0); discY(0); if (card) { cardX(0); cardY(0); cardRX(0); cardRY(0); } });
+
+          /* Spotlight auf Glas-Karten */
+          $$('.glass').forEach((g) => {
+            g.addEventListener('pointermove', (e) => {
+              const r = g.getBoundingClientRect();
+              g.style.setProperty('--mx', `${((e.clientX - r.left) / r.width) * 100}%`);
+              g.style.setProperty('--my', `${((e.clientY - r.top) / r.height) * 100}%`);
+            }, { passive: true });
+          });
+
+          /* 3D-Tilt auf Projekt-Karten */
+          $$('[data-ventures-card]').forEach((c) => {
+            const rx = gsap.quickTo(c, 'rotateX', { duration: 0.5, ease: 'power2.out' });
+            const ry = gsap.quickTo(c, 'rotateY', { duration: 0.5, ease: 'power2.out' });
+            const media = $('.card__media img', c);
+            const mx = media && gsap.quickTo(media, 'x', { duration: 0.5, ease: 'power2.out' });
+            const my = media && gsap.quickTo(media, 'y', { duration: 0.5, ease: 'power2.out' });
+            c.addEventListener('pointerenter', () => gsap.to(c, { y: -8, duration: 0.28, ease: 'power3.out', overwrite: 'auto' }));
+            c.addEventListener('pointermove', (e) => {
+              const r = c.getBoundingClientRect();
+              const px = (e.clientX - r.left) / r.width - 0.5; const py = (e.clientY - r.top) / r.height - 0.5;
+              ry(px * 8); rx(py * -8);
+              if (media) { mx(px * -6); my(py * -6); }
+            }, { passive: true });
+            c.addEventListener('pointerleave', () => { rx(0); ry(0); if (media) { mx(0); my(0); } gsap.to(c, { y: 0, duration: 0.5, ease: 'power2.out', overwrite: 'auto' }); });
+          });
+
+          /* Cursor */
+          const cur = $('[data-cursor]');
+          if (cur) {
+            doc.classList.add('cursor-on');
+            const dot = $('.cursor__dot', cur); const ring = $('.cursor__ring', cur);
+            const dx = gsap.quickTo(dot, 'x', { duration: 0.12, ease: 'power3.out' });
+            const dy = gsap.quickTo(dot, 'y', { duration: 0.12, ease: 'power3.out' });
+            const rx = gsap.quickTo(ring, 'x', { duration: 0.35, ease: 'power3.out' });
+            const ry = gsap.quickTo(ring, 'y', { duration: 0.35, ease: 'power3.out' });
+            window.addEventListener('pointermove', (e) => { dx(e.clientX); dy(e.clientY); rx(e.clientX); ry(e.clientY); }, { passive: true });
+            document.addEventListener('pointerover', (e) => { cur.classList.toggle('is-hover', !!e.target.closest('a, button, .card, .glass')); });
+            document.addEventListener('mouseleave', () => gsap.to(cur, { autoAlpha: 0, duration: 0.2 }));
+            document.addEventListener('mouseenter', () => gsap.to(cur, { autoAlpha: 1, duration: 0.2 }));
+          }
+        }
+      }
+
+      /* Hintergrund-Temperatur folgt den Sections */
+      const BG = { paper: '#F6F3EC', sky: '#E4EEF8' };
+      $$('[data-bg]').forEach((sec) => {
+        ScrollTrigger.create({
+          trigger: sec, start: 'top 60%', end: 'bottom 60%',
+          onToggle: (self) => { if (self.isActive) gsap.to(body, { backgroundColor: BG[sec.dataset.bg] || BG.paper, duration: 0.9, ease: 'power2.out', overwrite: 'auto' }); },
+        });
+      });
 
       /* 7h. Magnetic Button */
       if (isDesktop && !isTouch) {
