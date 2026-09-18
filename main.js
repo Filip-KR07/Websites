@@ -29,7 +29,7 @@
   const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
   const themeMeta = $('meta[name="theme-color"]');
   const setThemeColor = (hex) => { if (themeMeta && themeMeta.content !== hex) themeMeta.content = hex; };
-  const THEME = { light: '#F6F3EC', dark: '#0F1420' };
+  const THEME = { light: '#F6F3EC', dark: '#0F1420', hero: '#DCEAF7' };
 
   const splitWords = (el) => {
     if (el.dataset.splitDone) return $$('.w-in', el);
@@ -103,7 +103,7 @@
         trigger: sec,
         start: 'top 56px',
         end: 'bottom 56px',
-        onToggle: (self) => { if (self.isActive) applyTheme(sec.dataset.navTheme); },
+        onToggle: (self) => { if (self.isActive) { applyTheme(sec.dataset.navTheme); if (sec.hasAttribute('data-hero')) setThemeColor(THEME.hero); } },
       });
     });
   } else {
@@ -201,7 +201,7 @@
     window.scrollTo(0, 0);
     const chars = heroEls.words.flatMap(splitChars);
     gsap.set(chars, { yPercent: 110 });
-    gsap.set([heroEls.eyebrow, heroEls.sub, heroEls.caption, heroEls.scroll, nav], { autoAlpha: 0 });
+    gsap.set([heroEls.eyebrow, heroEls.sub, heroEls.caption, heroEls.scroll, nav, '[data-hero-actions]', '[data-hero-card]'], { autoAlpha: 0 });
     gsap.set(heroEls.art, { autoAlpha: 0, scale: 1.08, transformOrigin: '50% 100%' });
     gsap.set(heroEls.disc, { autoAlpha: 0, scale: 0.7 });
 
@@ -212,6 +212,8 @@
         .to(chars, { yPercent: 0, duration: 1.2, stagger: 0.035 }, 0.15)
         .to(heroEls.eyebrow, { autoAlpha: 1, duration: 0.8 }, 0.5)
         .to(heroEls.sub, { autoAlpha: 1, duration: 0.8 }, 0.7)
+        .to('[data-hero-actions]', { autoAlpha: 1, duration: 0.7 }, 0.85)
+        .fromTo('[data-hero-card]', { y: 24 }, { autoAlpha: 1, y: 0, duration: 0.9 }, 0.9)
         .to(nav, { autoAlpha: 1, duration: 0.8 }, 0.6)
         .to([heroEls.caption, heroEls.scroll], { autoAlpha: 1, duration: 0.8 }, 1.0);
     });
