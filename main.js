@@ -140,12 +140,12 @@
     if (main) main.setAttribute('inert', '');
     lenis?.stop();
     if (motion) {
-      gsap.fromTo(menuLinks, { y: 48, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: 0.06, duration: 0.9, delay: 0.3, ease: 'power3.out', overwrite: true });
+      gsap.fromTo(menuLinks, { y: 32, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: 0.045, duration: 0.55, delay: 0.18, ease: 'expo.out', overwrite: true });
       const art = $('[data-menu-art]'); const foot = $('[data-menu-foot]');
-      if (art) gsap.fromTo(art, { scale: 1.12, autoAlpha: 0 }, { scale: 1, autoAlpha: 0.9, duration: 1.2, delay: 0.35, ease: 'power2.out', overwrite: true });
-      if (foot) gsap.fromTo(foot, { y: 20, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.8, delay: 0.6, ease: 'power3.out', overwrite: true });
+      if (art) gsap.fromTo(art, { scale: 1.06, autoAlpha: 0 }, { scale: 1, autoAlpha: 0.9, duration: 0.8, delay: 0.25, ease: 'expo.out', overwrite: true });
+      if (foot) gsap.fromTo(foot, { y: 14, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.5, delay: 0.4, ease: 'expo.out', overwrite: true });
     }
-    setTimeout(() => menuLinks[0]?.focus(), 350);
+    setTimeout(() => menuLinks[0]?.focus(), 250);
   };
   const closeMenu = () => {
     if (!menu || !menuOpen) return;
@@ -181,7 +181,7 @@
       if (!target) return;
       e.preventDefault();
       const go = () => scrollToTarget(target);
-      if (menuOpen) { closeMenu(); setTimeout(go, 500); } else go();
+      if (menuOpen) { closeMenu(); setTimeout(go, 300); } else go();
     });
   });
 
@@ -234,11 +234,15 @@
           resolve();
         },
       });
-      tl.fromTo(words, { yPercent: 110 }, { yPercent: 0, duration: 1, stagger: 0.12, ease: 'power4.out' }, 0)
-        .fromTo(rule, { scaleX: 0 }, { scaleX: 1, duration: seen ? 0.6 : 1.4, ease: 'power2.inOut' }, 0.2)
-        .to(counter, { v: 100, duration: seen ? 0.6 : 1.4, ease: 'power2.inOut', onUpdate: () => { if (count) count.textContent = String(Math.round(counter.v)).padStart(2, '0'); } }, 0.2)
-        .to(preloader, { yPercent: -100, duration: 1, ease: 'power4.inOut' }, '+=0.15')
-        .to('.preloader__inner', { yPercent: 40, autoAlpha: 0, duration: 0.6, ease: 'power2.in' }, '<');
+      if (seen) {
+        tl.to(preloader, { autoAlpha: 0, duration: 0.35, ease: 'power2.out' });
+        return;
+      }
+      tl.fromTo(words, { yPercent: 110 }, { yPercent: 0, duration: 0.9, stagger: 0.1, ease: 'expo.out' }, 0)
+        .fromTo(rule, { scaleX: 0 }, { scaleX: 1, duration: 1.2, ease: 'power2.inOut' }, 0.15)
+        .to(counter, { v: 100, duration: 1.2, ease: 'power2.inOut', onUpdate: () => { if (count) count.textContent = String(Math.round(counter.v)).padStart(2, '0'); } }, 0.15)
+        .to(preloader, { yPercent: -100, duration: 0.8, ease: 'expo.inOut' }, '+=0.1')
+        .to('.preloader__inner', { yPercent: 30, autoAlpha: 0, duration: 0.4, ease: 'power2.in' }, '<');
     });
 
     introDone = runPreloader().then(heroIntro);
@@ -412,7 +416,7 @@
             gsap.to(btn, { x: x * 0.3, y: y * 0.3, duration: 0.6, ease: 'power3.out' });
             gsap.to(inner, { x: x * 0.12, y: y * 0.12, duration: 0.6, ease: 'power3.out' });
           };
-          const leave = () => { gsap.to([btn, inner], { x: 0, y: 0, duration: 0.9, ease: 'elastic.out(1, .45)' }); };
+          const leave = () => { gsap.to([btn, inner], { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, .5)' }); };
           btn.addEventListener('pointermove', move);
           btn.addEventListener('pointerleave', leave);
         });
