@@ -513,6 +513,530 @@
   };
   fkSectionsCore(fkEnv);
 
+/* ---------- 2b. Hero-Szene: Shader-Quellen ---------- */
+
+  const HERO_SCENE_VERT = [
+    'attribute vec2 aPos;',
+    'void main(){ gl_Position = vec4(aPos, 0.0, 1.0); }',
+  ].join('\n');
+
+  /* Octaves als #define, damit die Schleifengrenze in GLSL ES 1.0 konstant ist. */
+  const heroSceneFragSource = (octaves) => [
+    '#ifdef GL_FRAGMENT_PRECISION_HIGH',
+    'precision highp float;',
+    '#else',
+    'precision mediump float;',
+    '#endif',
+    '#define OCTAVES ' + octaves,
+    '#define PI 3.14159265',
+    '',
+    'uniform vec2  uRes;    // Buffergroesse in Pixel',
+    'uniform float uTime;   // Sekunden, laeuft nur waehrend die Szene sichtbar ist',
+    'uniform vec2  uLight;  // Lichtposition 0..1, y nach oben',
+    'uniform float uScroll; // 0..1 Scroll-Fortschritt durch den Hero',
+    'uniform float uPower;  // 0..1 Bewegungsstaerke (0 = Standbild)',
+    '',
+    'float hash21(vec2 p){',
+    '  vec3 p3 = fract(vec3(p.xyx) * 0.1031);',
+    '  p3 += dot(p3, p3.yzx + 33.33);',
+    '  return fract((p3.x + p3.y) * p3.z);',
+    '}',
+    '',
+    'float vnoise(vec2 p){',
+    '  vec2 i = floor(p);',
+    '  vec2 f = fract(p);',
+    '  vec2 u = f * f * (3.0 - 2.0 * f);',
+    '  float a = hash21(i);',
+    '  float b = hash21(i + vec2(1.0, 0.0));',
+    '  float c = hash21(i + vec2(0.0, 1.0));',
+    '  float d = hash21(i + vec2(1.0, 1.0));',
+    '  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);',
+    '}',
+    '',
+    '/* billige 2-Oktaven-Variante fuer die Warp-Felder */',
+    'float fbmLow(vec2 p){',
+    '  float v = 0.0;',
+    '  float a = 0.58;',
+    '  for (int i = 0; i < 2; i++){',
+    '    v += a * vnoise(p);',
+    '    p = mat2(0.80, 0.60, -0.60, 0.80) * p * 2.02;',
+    '    a *= 0.5;',
+    '  }',
+    '  return v;',
+    '}',
+    '',
+    'float fbm(vec2 p){',
+    '  float v = 0.0;',
+    '  float a = 0.55;',
+    '  for (int i = 0; i < OCTAVES; i++){',
+    '    v += a * vnoise(p);',
+    '    p = mat2(0.80, 0.60, -0.60, 0.80) * p * 2.03;',
+    '    a *= 0.5;',
+    '  }',
+    '  return v;',
+    '}',
+    '',
+    'void main(){',
+    '  vec2 uv = gl_FragCoord.xy / uRes;',
+    '  float aspect = uRes.x / max(uRes.y, 1.0);',
+    '  vec2 p = vec2(uv.x * aspect, uv.y);',
+    '',
+    '  float t = uTime * 0.035 * uPower;',
+    '  float s = clamp(uScroll, 0.0, 1.0);',
+    '',
+    '  /* Scroll schiebt die Struktur nach oben und leicht zur Seite */',
+    '  vec2 ps = p + vec2(s * 0.06, s * 0.22);',
+    '',
+    '  /* zweistufiges Domain-Warping: ergibt Adern statt Wolkenmatsch */',
+    '  vec2 q = vec2(fbmLow(ps * 1.55 + vec2(0.0, t * 1.30)),',
+    '                fbmLow(ps * 1.55 + vec2(3.7, 1.20 - t * 1.05)));',
+    '  vec2 r = vec2(fbmLow(ps * 2.05 + 2.9 * q + vec2(1.7 + t * 0.85, 9.2)),',
+    '                fbmLow(ps * 2.05 + 2.9 * q + vec2(8.3, 2.80 - t * 0.65)));',
+    '  float f = fbm(ps * 1.85 + 3.1 * r + vec2(0.0, -t * 0.55));',
+    '',
+    '  /* Aderung: grobe Hauptader + feine Haarader */',
+    '  float vein = 0.5 + 0.5 * sin((ps.x * 2.20 + ps.y * 1.05 + f * 5.6 + s * 0.8) * PI);',
+    '  vein = pow(clamp(vein, 0.0, 1.0), 3.2);',
+    '  float fein = 0.5 + 0.5 * sin((ps.y * 3.40 - ps.x * 0.80 + f * 8.4) * PI);',
+    '  fein = pow(clamp(fein, 0.0, 1.0), 9.0);',
+    '',
+    '  /* Grundverlauf, nachgebaut aus linear-gradient(165deg,#EEF4FA,#DCEAF7,#BFD9F2,#A9CBEC) */',
+    '  float grad = clamp(uv.y * 0.86 + uv.x * 0.14, 0.0, 1.0);',
+    '  vec3 base = mix(vec3(0.662, 0.796, 0.925), vec3(0.749, 0.850, 0.949), smoothstep(0.0, 0.42, grad));',
+    '  base = mix(base, vec3(0.862, 0.917, 0.968), smoothstep(0.34, 0.76, grad));',
+    '  base = mix(base, vec3(0.933, 0.956, 0.980), smoothstep(0.70, 1.00, grad));',
+    '',
+    '  /* Ruhezone links und unten: dort stehen Glas-Karte, Titel und Buttons. */',
+    '  float calm = mix(0.30, 1.0, smoothstep(0.05, 0.52, uv.x));',
+    '  calm *= mix(0.55, 1.0, smoothstep(0.00, 0.34, uv.y));',
+    '',
+    '  /* Licht */',
+    '  vec2 lp = vec2(uLight.x * aspect, uLight.y);',
+    '  float d = distance(p, lp);',
+    '  float core = exp(-d * d * 4.2);',
+    '  float halo = exp(-d * 1.45);',
+    '',
+    '  float wash = clamp(vein * (0.55 + 0.75 * core) * calm, 0.0, 1.0);',
+    '  vec3 col = base;',
+    '  col = mix(col, vec3(0.964, 0.953, 0.925), wash * 0.55);',
+    '  col = mix(col, vec3(0.913, 0.901, 0.878), fein * 0.34 * calm);',
+    '  col = mix(col, vec3(0.298, 0.561, 0.839), smoothstep(0.60, 1.00, f) * 0.15 * calm * (1.0 - core * 0.7));',
+    '  /* Gegenzug: flache Zonen leicht vertiefen, damit die Flaeche Spannweite behaelt */',
+    '  col = mix(col, vec3(0.690, 0.804, 0.921), (1.0 - smoothstep(0.20, 0.58, f)) * 0.18 * calm);',
+    '',
+    '  /* Licht als Screen-Blend: nutzt nur den vorhandenen Spielraum nach oben,',
+    '     clippt also nie zu einem harten weissen Fleck. */',
+    '  vec3 lightCol = vec3(1.000, 0.988, 0.960) * core * 0.34',
+    '                + vec3(0.862, 0.917, 0.968) * halo * 0.14;',
+    '  lightCol = clamp(lightCol, 0.0, 1.0);',
+    '  col = 1.0 - (1.0 - col) * (1.0 - lightCol);',
+    '',
+    '  /* Scroll kuehlt ab und nimmt Helligkeit - passt zum Wechsel auf #DCEAF7 */',
+    '  col = mix(col, col * vec3(0.93, 0.965, 1.02), s);',
+    '  col *= 1.0 - 0.07 * s;',
+    '',
+    '  /* Vignette */',
+    '  float vig = length((uv - 0.5) * vec2(aspect, 1.0));',
+    '  col *= 1.0 - 0.085 * smoothstep(0.35, 1.05, vig);',
+    '',
+    '  /* Dither gegen Banding in den weiten Blauflaechen */',
+    '  col += (hash21(gl_FragCoord.xy + fract(uTime) * 64.0) - 0.5) * 0.009;',
+    '',
+    '  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);',
+    '}',
+  ].join('\n');
+
+  /* ---------- 2c. Hero-Szene: Aufbau, Schleife, Abbau ----------
+     initHeroScene(hero, { reduced }) -> Handle | null
+     Handle: { refresh(), pause(), resume(), destroy(), isRunning() }
+     Gibt null zurück, wenn kein Hero, kein Canvas-Support oder kein
+     WebGL-Kontext da ist. Dann bleibt der bestehende CSS-Verlauf stehen. */
+  const initHeroScene = (heroEl, options) => {
+    if (!heroEl || typeof window.WebGLRenderingContext === 'undefined') return null;
+
+    const cfg = options || {};
+    const reduced = !!cfg.reduced;
+    const frame = $('[data-hero-frame]', heroEl) || heroEl;
+
+    /* --- DOM sicherstellen (Markup ist optional, siehe shader-hero.html) --- */
+    let canvas = $('[data-hero-canvas]', heroEl);
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.className = 'hero__canvas';
+      canvas.setAttribute('data-hero-canvas', '');
+      canvas.setAttribute('aria-hidden', 'true');
+      const sky = $('.hero__sky', frame);
+      frame.insertBefore(canvas, sky ? sky.nextSibling : frame.firstChild);
+    }
+    if (!$('[data-hero-veil]', heroEl)) {
+      const veil = document.createElement('div');
+      veil.className = 'hero__veil';
+      veil.setAttribute('data-hero-veil', '');
+      veil.setAttribute('aria-hidden', 'true');
+      canvas.insertAdjacentElement('afterend', veil);
+    }
+
+    const GL_ATTRS = {
+      alpha: false, antialias: false, depth: false, stencil: false,
+      premultipliedAlpha: false, preserveDrawingBuffer: false,
+      powerPreference: 'low-power', failIfMajorPerformanceCaveat: true,
+    };
+
+    let gl = null;
+    try {
+      gl = canvas.getContext('webgl', GL_ATTRS) || canvas.getContext('experimental-webgl', GL_ATTRS);
+    } catch (err) { gl = null; }
+    if (!gl) { heroEl.classList.add('scene-off'); return null; }
+
+    /* --- Qualitätsstufen --------------------------------------------------
+       Die Szene wird absichtlich unter CSS-Auflösung gerendert und vom
+       Browser glatt hochskaliert; für ein weiches Marmorfeld ist das nicht
+       sichtbar und spart den Großteil der Füllrate. */
+    const DPR_CAP = 2;
+    const mqMobile = window.matchMedia('(max-width: 899px)');
+    const mqFine = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+    let mobile = mqMobile.matches;
+    let quality = mobile ? 0.36 : 0.50;        // Anteil der CSS-Pixel (bewusst sparsam: weiche Marmorflaeche braucht keine Schaerfe)
+    let maxPixels = mobile ? 420000 : 1250000; // harte Obergrenze pro Frame
+    let frameBudget = mobile ? 1000 / 30 : 1000 / 40; // Bildrate deckeln
+    let downgrades = 0;
+    let givenUp = false;
+
+    const applyMediaState = () => {
+      mobile = mqMobile.matches;
+      maxPixels = mobile ? 420000 : 1250000;
+      frameBudget = mobile ? 1000 / 30 : 1000 / 40;
+      const target = mobile ? 0.40 : 0.58;
+      const factor = Math.pow(0.78, downgrades);
+      quality = Math.max(0.26, target * factor);
+    };
+
+    /* --- Shader / Programm ------------------------------------------------ */
+    const compile = (type, src) => {
+      const sh = gl.createShader(type);
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+        gl.deleteShader(sh);
+        return null;
+      }
+      return sh;
+    };
+
+    const vs = compile(gl.VERTEX_SHADER, HERO_SCENE_VERT);
+    const fs = compile(gl.FRAGMENT_SHADER, heroSceneFragSource(mobile ? 3 : 4));
+    let program = null;
+    if (vs && fs) {
+      program = gl.createProgram();
+      gl.attachShader(program, vs);
+      gl.attachShader(program, fs);
+      gl.bindAttribLocation(program, 0, 'aPos');
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        gl.deleteProgram(program);
+        program = null;
+      }
+    }
+    if (!program) {
+      if (vs) gl.deleteShader(vs);
+      if (fs) gl.deleteShader(fs);
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      heroEl.classList.add('scene-off');
+      return null;
+    }
+    gl.deleteShader(vs);
+    gl.deleteShader(fs);
+
+    /* Fullscreen-Dreieck (ein Dreieck, kein Quad — spart die Diagonale) */
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+    gl.useProgram(program);
+    const uRes = gl.getUniformLocation(program, 'uRes');
+    const uTime = gl.getUniformLocation(program, 'uTime');
+    const uLight = gl.getUniformLocation(program, 'uLight');
+    const uScroll = gl.getUniformLocation(program, 'uScroll');
+    const uPower = gl.getUniformLocation(program, 'uPower');
+
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.BLEND);
+    gl.disable(gl.CULL_FACE);
+
+    /* --- Zustand ---------------------------------------------------------- */
+    let destroyed = false;
+    let contextLost = false;
+    let running = false;
+    let rafId = 0;
+    let inView = true;
+    let firstFrameDone = false;
+
+    let elapsed = 0;        // Shader-Zeit, wächst nur während die Szene läuft
+    let lastTs = 0;
+    let acc = 0;            // Frame-Budget-Akkumulator
+    let power = reduced ? 0 : 0.0001; // rampt nach dem ersten Bild auf 1
+
+    let lightX = 0.72, lightY = 0.66;   // geglättete Lichtposition
+    let aimX = 0.72, aimY = 0.66;       // Ziel (Zeiger oder Eigenbewegung)
+    let pointerActive = false;
+
+    let scrollY = 0;
+    let scrollRange = 1;    // wird im Build/Refresh gemessen
+    let viewW = window.innerWidth || 1;
+    let viewH = window.innerHeight || 1;
+    let scrollProgress = 0;
+
+    /* Perf-Governor */
+    let sampleCount = 0;
+    let sampleSum = 0;
+    let lastDrawTs = 0;
+
+    /* --- Größe ------------------------------------------------------------
+       Einziger Ort (neben refresh()), an dem gemessen wird. */
+    const sizeTo = (cssW, cssH) => {
+      const w = Math.max(1, Math.round(cssW));
+      const h = Math.max(1, Math.round(cssH));
+      const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP);
+      let q = quality;
+      const wanted = w * h * dpr * dpr * q * q;
+      if (wanted > maxPixels) q *= Math.sqrt(maxPixels / wanted);
+      const bw = Math.max(2, Math.round(w * dpr * q));
+      const bh = Math.max(2, Math.round(h * dpr * q));
+      if (bw === canvas.width && bh === canvas.height) return false;
+      canvas.width = bw;
+      canvas.height = bh;
+      gl.viewport(0, 0, bw, bh);
+      return true;
+    };
+
+    const measure = () => {
+      // offsetWidth/offsetHeight ignorieren CSS-Transforms. Wichtig, weil der
+      // Hero-Rahmen in der gepinnten Timeline von scale 1 auf 0.76 gescrubbt
+      // wird und getBoundingClientRect dadurch die verkleinerte Box liefert.
+      const w = frame.offsetWidth || window.innerWidth || 1;
+      const hh = frame.offsetHeight || window.innerHeight || 1;
+      viewW = window.innerWidth || w;
+      viewH = window.innerHeight || hh;
+      scrollRange = Math.max(200, hh * 1.6);
+      return sizeTo(w, hh);
+    };
+
+    /* --- Zeichnen --------------------------------------------------------- */
+    const draw = () => {
+      if (destroyed || gl.isContextLost()) return;
+      gl.useProgram(program);
+      gl.uniform2f(uRes, canvas.width, canvas.height);
+      gl.uniform1f(uTime, elapsed);
+      gl.uniform2f(uLight, lightX, lightY);
+      gl.uniform1f(uScroll, scrollProgress);
+      gl.uniform1f(uPower, power);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      if (!firstFrameDone) {
+        firstFrameDone = true;
+        heroEl.classList.add('has-scene');
+      }
+    };
+
+    /* --- Schleife --------------------------------------------------------- */
+    const tick = (ts) => {
+      if (destroyed) return;
+      rafId = requestAnimationFrame(tick);
+
+      if (!lastTs) lastTs = ts;
+      const raw = ts - lastTs;
+      lastTs = ts;
+      acc += raw;
+      if (acc < frameBudget) return;
+      const dt = Math.min(acc, 120) / 1000;
+      acc = 0;
+
+      elapsed += dt;
+
+      /* Bewegungsstärke sanft hochfahren (ambiente Motion, darf lang sein) */
+      if (power < 1) power = Math.min(1, power + dt / 1.6);
+
+      /* Licht: Zeiger oder Eigenbewegung */
+      if (!pointerActive) {
+        aimX = 0.66 + 0.26 * Math.sin(elapsed * 0.11) + 0.07 * Math.sin(elapsed * 0.037);
+        aimY = 0.62 + 0.17 * Math.cos(elapsed * 0.083) + 0.05 * Math.cos(elapsed * 0.029);
+      }
+      const k = 1 - Math.exp(-dt * 3.2);
+      lightX += (aimX - lightX) * k;
+      lightY += (aimY - lightY) * k;
+
+      /* Scroll-Fortschritt (nur Rechnen, kein DOM-Lesen) */
+      const target = Math.min(1, Math.max(0, scrollY / scrollRange));
+      scrollProgress += (target - scrollProgress) * Math.min(1, dt * 6);
+
+      draw();
+
+      /* Governor: bleibt die Bildrate 90 Frames lang deutlich unter dem
+         Budget, die Auflösung einmalig bzw. zweimalig senken. Das Nachmessen
+         läuft über `relayout()` (debounced, außerhalb dieses rAF-Callbacks) —
+         hier drin wird bewusst nichts aus dem Layout gelesen. */
+      if (!givenUp) {
+        // Abstand zwischen zwei GEZEICHNETEN Bildern messen, nicht zwischen
+        // rAF-Aufrufen: sonst steht hier immer ~16 ms und der Governor
+        // kann auf langsamer Hardware nie ausloesen.
+        if (lastDrawTs) { sampleSum += ts - lastDrawTs; sampleCount++; }
+        lastDrawTs = ts;
+        // Erste Entscheidung schon nach 24 Bildern, damit der Einstieg in
+        // den Hero nicht sekundenlang ruckelt; danach ruhiger nachmessen.
+        if (sampleCount >= (downgrades === 0 ? 24 : 48)) {
+          const avg = sampleSum / sampleCount;
+          sampleSum = 0;
+          sampleCount = 0;
+          // Schwelle bewusst streng: die Szene darf die Seite nicht unter
+          // etwa 50 Bilder pro Sekunde druecken, solange der Hero sichtbar ist.
+          if (avg > frameBudget * 1.35) {
+            if (downgrades < 2) { downgrades++; relayout(); }
+            else { givenUp = true; giveUp(); }   // Hardware traegt die Szene nicht
+          } else if (avg < frameBudget * 1.1) {
+            sampleSum = 0; sampleCount = 0;      // laeuft rund, nicht weiter pruefen
+          }
+        }
+      }
+    };
+
+    const start = () => {
+      if (destroyed || contextLost || reduced || running) return;
+      if (!inView || document.hidden) return;
+      running = true;
+      lastTs = 0;
+      acc = frameBudget;              // erstes Bild sofort
+      /* Nach einer langen Pause die Shader-Zeit zurückfalten, damit mediump
+         nicht wegdriftet. Passiert nur, wenn gerade nichts zu sehen ist. */
+      if (elapsed > 900) elapsed -= 900;
+      rafId = requestAnimationFrame(tick);
+    };
+
+    const stop = () => {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = 0;
+    };
+
+    /* --- Eingaben --------------------------------------------------------- */
+    const onScroll = () => { scrollY = window.scrollY || window.pageYOffset || 0; };
+
+    const onPointerMove = (e) => {
+      if (e.pointerType === 'touch') return;
+      pointerActive = true;
+      aimX = e.clientX / viewW;              // viewW/viewH sind gecacht
+      aimY = 1 - e.clientY / viewH;          // GL: y zeigt nach oben
+    };
+    const onPointerLeave = () => { pointerActive = false; };
+
+    const onVisibility = () => { if (document.hidden) stop(); else start(); };
+
+    const onLost = (e) => {
+      e.preventDefault();
+      contextLost = true;          // sperrt jeden Neustart durch IO/visibility
+      stop();
+      firstFrameDone = false;
+      heroEl.classList.remove('has-scene');
+      heroEl.classList.add('scene-off');
+    };
+
+    // Letzte Stufe, wenn auch die kleinste Aufloesung zu teuer ist: Szene
+    // abbauen und den bestehenden CSS-Verlauf allein stehen lassen.
+    let giveUp = () => {};
+
+    const relayout = debounce(() => {
+      if (destroyed) return;
+      applyMediaState();
+      measure();
+      if (reduced || !running) draw();
+    }, 150);
+
+    /* --- Beobachter ------------------------------------------------------- */
+    let io = null;
+    if (typeof IntersectionObserver !== 'undefined') {
+      io = new IntersectionObserver((entries) => {
+        inView = entries.some((en) => en.isIntersecting);
+        // Ausserhalb des Sichtbereichs die Flaeche komplett aus dem Malpfad
+        // nehmen. Das Pausieren der Zeichenschleife allein genuegt nicht:
+        // eine grosse Canvas-Ebene kostet auch im Leerlauf jeden Frame
+        // Compositing-Zeit, besonders auf Geraeten ohne echte Grafikeinheit.
+        heroEl.classList.toggle('scene-idle', !inView);
+        if (inView) start(); else stop();
+      }, { rootMargin: '10% 0px 10% 0px', threshold: 0 });
+      io.observe(heroEl);
+    }
+
+    let ro = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(() => relayout());
+      ro.observe(frame);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', relayout);
+    window.addEventListener('orientationchange', relayout);
+    document.addEventListener('visibilitychange', onVisibility);
+    canvas.addEventListener('webglcontextlost', onLost, false);
+    if (mqFine.matches && !reduced) {
+      heroEl.addEventListener('pointermove', onPointerMove, { passive: true });
+      heroEl.addEventListener('pointerleave', onPointerLeave, { passive: true });
+    }
+
+    /* --- Start ------------------------------------------------------------ */
+    measure();
+    onScroll();
+    if (reduced) {
+      /* Genau ein Standbild: keine Schleife, keine Reaktion auf irgendwas. */
+      power = 0;
+      elapsed = 0;
+      scrollProgress = 0;
+      lightX = 0.70; lightY = 0.66;
+      draw();
+    } else {
+      start();
+    }
+
+    /* --- Handle ----------------------------------------------------------- */
+    const handle = {
+      isRunning: () => running,
+      refresh: () => { if (!destroyed) { applyMediaState(); measure(); if (reduced || !running) draw(); } },
+      pause: stop,
+      resume: start,
+      destroy: () => {
+        if (destroyed) return;
+        destroyed = true;
+        stop();
+        io?.disconnect();
+        ro?.disconnect();
+        window.removeEventListener('scroll', onScroll);
+        window.removeEventListener('resize', relayout);
+        window.removeEventListener('orientationchange', relayout);
+        document.removeEventListener('visibilitychange', onVisibility);
+        canvas.removeEventListener('webglcontextlost', onLost, false);
+        heroEl.removeEventListener('pointermove', onPointerMove);
+        heroEl.removeEventListener('pointerleave', onPointerLeave);
+        heroEl.classList.remove('has-scene');
+        heroEl.classList.add('scene-off');
+        if (!gl.isContextLost()) {
+          gl.bindBuffer(gl.ARRAY_BUFFER, null);
+          gl.deleteBuffer(buffer);
+          gl.useProgram(null);
+          gl.deleteProgram(program);
+        }
+        gl.getExtension('WEBGL_lose_context')?.loseContext();
+        canvas.width = 1;
+        canvas.height = 1;
+        gl = null;
+      },
+    };
+
+    // Notbremse verdrahten: baut die Szene ab und laesst den CSS-Verlauf stehen.
+    giveUp = () => { try { handle.destroy(); } catch (e) { /* egal */ } };
+
+    return handle;
+  };
+
   /* ---------- 3. Smooth Scroll (Lenis) ---------- */
   let lenis = null;
   if (motion && hasLenis && !isTouch) {
@@ -699,6 +1223,18 @@
   } else if (preloader) {
     preloader.classList.add('is-done');
   }
+
+  /* ---------- 6b. Hero-Szene (WebGL-Marmor) ---------- */
+  // Bewusst NACH dem Intro und in einem Leerlauf-Slot: das Kompilieren der
+  // Shader kostet einmalig Hauptthread-Zeit und darf die Intro-Timeline nicht
+  // ins Stocken bringen.
+  let heroScene = null;
+  const sceneOff = /[?&]scene=off\b/.test(location.search); // Diagnose-Schalter
+  const startHeroScene = () => { if (!heroScene && !sceneOff) heroScene = initHeroScene(hero, { reduced: motionOff() }); };
+  introDone.then(() => {
+    if (window.requestIdleCallback) requestIdleCallback(startHeroScene, { timeout: 1200 });
+    else setTimeout(startHeroScene, 60);
+  });
 
   /* ---------- 7. Scroll-Module (nur mit Motion) ---------- */
   if (motion) {
@@ -918,7 +1454,10 @@
             const dy = gsap.quickTo(dot, 'y', { duration: 0.12, ease: 'power3.out' });
             const rx = gsap.quickTo(ring, 'x', { duration: 0.35, ease: 'power3.out' });
             const ry = gsap.quickTo(ring, 'y', { duration: 0.35, ease: 'power3.out' });
-            window.addEventListener('pointermove', (e) => { dx(e.clientX); dy(e.clientY); rx(e.clientX); ry(e.clientY); }, { passive: true });
+            window.addEventListener('pointermove', (e) => {
+              if (!cur.classList.contains('is-live')) { gsap.set([dot, ring], { x: e.clientX, y: e.clientY }); cur.classList.add('is-live'); }
+              dx(e.clientX); dy(e.clientY); rx(e.clientX); ry(e.clientY);
+            }, { passive: true });
             document.addEventListener('pointerover', (e) => { cur.classList.toggle('is-hover', !!e.target.closest('a, button, .card, .glass')); });
             document.addEventListener('mouseleave', () => gsap.to(cur, { autoAlpha: 0, duration: 0.2 }));
             document.addEventListener('mouseenter', () => gsap.to(cur, { autoAlpha: 1, duration: 0.2 }));
@@ -956,7 +1495,7 @@
     });
 
     /* ---------- 8. Refresh nach späten Loads ---------- */
-    const refresh = debounce(() => { ScrollTrigger.refresh(); lenis?.resize(); }, 200);
+    const refresh = debounce(() => { ScrollTrigger.refresh(); lenis?.resize(); heroScene?.refresh(); }, 200);
     window.addEventListener('load', refresh);
     document.fonts?.ready.then(refresh);
     $$('img').forEach((img) => { if (!img.complete) img.addEventListener('load', refresh, { once: true }); });

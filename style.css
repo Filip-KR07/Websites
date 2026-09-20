@@ -438,7 +438,8 @@ html.motion .weg__item.is-active .weg__anchor::after{animation:ring 700ms var(--
 .cursor{display:none}
 html.cursor-on{cursor:none}
 html.cursor-on a,html.cursor-on button{cursor:none}
-html.cursor-on .cursor{display:block;position:fixed;left:0;top:0;z-index:130;pointer-events:none}
+html.cursor-on .cursor{display:block;position:fixed;left:0;top:0;z-index:130;pointer-events:none;opacity:0;transition:opacity 200ms ease}
+html.cursor-on .cursor.is-live{opacity:1}
 .cursor__dot,.cursor__ring{position:absolute;left:0;top:0;border-radius:50%;transform:translate(-50%,-50%)}
 .cursor__dot{width:8px;height:8px;background:var(--ink);margin:-4px 0 0 -4px;transform:none}
 .cursor__ring{width:36px;height:36px;margin:-18px 0 0 -18px;border:1px solid rgba(20,22,28,.5);transform:none;transition:width 240ms var(--ease-out),height 240ms var(--ease-out),margin 240ms var(--ease-out),border-color 240ms ease,background-color 240ms ease}
@@ -854,3 +855,128 @@ html.no-js .frage__btn{grid-template-columns:1fr;pointer-events:none;cursor:defa
 
 /* Korrektur: Glas-Folien im bewegten Slider ohne backdrop-filter (Compositing-Kosten) */
 .stimmen__track .glass{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(255,255,255,.62)}
+
+
+/* ============================================================================
+   shader-hero — Lebende Marmor-/Licht-Szene im Hero
+   ----------------------------------------------------------------------------
+   EINBAU: kompletten Block ans ENDE von style.css anhängen (nach Abschnitt 18,
+   also nach der bestehenden `@media (prefers-reduced-motion:reduce)`-Regel,
+   Zeile 523). Der Block steht bewusst ganz am Ende, damit die beiden
+   Reduced-Motion-Regeln unten die bestehenden überschreiben dürfen.
+
+   Es werden KEINE bestehenden Selektoren überschrieben oder umdefiniert.
+   Alle neuen Selektoren sind:
+     .hero__canvas      (neu)
+     .hero__veil        (neu)
+     .hero.has-scene    (neuer State, wird von JS gesetzt)
+     .hero.scene-off    (neuer State, wird von JS gesetzt)
+
+   Animiert werden ausschließlich `opacity` und `transform`.
+   Die Canvas-Buffergröße setzt JS über die width/height-ATTRIBUTE —
+   das ist kein CSS-Layout und löst kein Reflow-Thrashing aus.
+   ============================================================================ */
+
+/* --- 19a. Die Szene selbst ------------------------------------------------ */
+
+/* Startzustand: unsichtbar. Darunter liegt unverändert der bestehende
+   CSS-Verlauf von `.hero__frame` + `.hero__sky` — das ist der Fallback,
+   wenn kein WebGL-Kontext zustande kommt. */
+.hero__canvas{
+  position:absolute;
+  inset:0;
+  display:block;
+  width:100%;
+  height:100%;
+  z-index:0;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 1100ms var(--ease-out);
+  /* Die Szene wird bewusst unterhalb der CSS-Auflösung gerendert und wieder
+     hochskaliert. Glatt interpolieren, nicht pixelig. */
+  image-rendering:auto;
+  /* Eigene Paint-Ebene: verhindert, dass der Canvas-Repaint Geschwister
+     (Statue, Glas-Karte, Typo) mit neu zeichnen lässt. */
+  contain:paint;
+  transform:translateZ(0);
+  backface-visibility:hidden;
+}
+
+/* JS setzt `.has-scene` auf `.hero`, sobald das erste Bild wirklich steht. */
+.hero.has-scene .hero__canvas{opacity:1}
+
+/* Kein WebGL / Kontext verloren: Canvas komplett aus dem Weg räumen,
+   der CSS-Verlauf bleibt allein stehen. */
+.hero.scene-off .hero__canvas{display:none}
+
+
+/* --- 19b. Lese-Schleier ---------------------------------------------------
+   Die Szene ist links oben (Glas-Karte) und links unten (Titel, Sub, Buttons)
+   ohnehin schon flach gehalten (im Shader über die "calm"-Maske). Der Schleier
+   legt zusätzlich einen sehr weichen Papierton darüber, damit `--ink` auf
+   `--paper` den Kontrast behält, egal wo gerade das Licht steht. */
+.hero__veil{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 1100ms var(--ease-out);
+  background:
+    linear-gradient(100deg,
+      rgba(246,243,236,.56) 0%,
+      rgba(246,243,236,.30) 24%,
+      rgba(246,243,236,.08) 42%,
+      rgba(246,243,236,0) 58%),
+    radial-gradient(78% 42% at 14% 92%, rgba(246,243,236,.52), rgba(246,243,236,0) 72%),
+    radial-gradient(60% 34% at 12% 10%, rgba(246,243,236,.34), rgba(246,243,236,0) 70%);
+}
+.hero.has-scene .hero__veil{opacity:1}
+.hero.scene-off .hero__veil{display:none}
+
+
+/* --- 19c. Mobil (< 900px) -------------------------------------------------
+   Auf dem Smartphone sitzt die Statue oben rechts und der Text unten (siehe
+   bestehende Regeln .hero__art / .hero__content in @media (max-width:899px)).
+   Der Schleier dreht deshalb nach unten statt nach links.
+   Die Renderauflösung wird zusätzlich in JS gesenkt. */
+@media (max-width:899px){
+  .hero__veil{
+    background:
+      linear-gradient(to top,
+        rgba(246,243,236,.62) 0%,
+        rgba(246,243,236,.34) 26%,
+        rgba(246,243,236,.06) 48%,
+        rgba(246,243,236,0) 64%),
+      radial-gradient(90% 40% at 50% 100%, rgba(246,243,236,.42), rgba(246,243,236,0) 74%);
+  }
+}
+
+
+/* --- 19d. Reduced Motion --------------------------------------------------
+   Der Shader rendert dann genau EIN Standbild (kein requestAnimationFrame,
+   keine Zeit-, Zeiger- oder Scroll-Reaktion). Sichtbar ist er trotzdem:
+   das Standbild ist das ruhigere, aber nicht leere Bild. Nur das Einblenden
+   wird auf ein kurzes Aufblenden gekürzt. */
+@media (prefers-reduced-motion:reduce){
+  .hero__canvas,
+  .hero__veil{transition-duration:220ms}
+}
+
+
+/* --- 19e. Ohne JS ---------------------------------------------------------
+   `html.no-js` wird bereits im <head> gesetzt und von main.js auf `js`
+   umgeschaltet. Ohne JS gibt es keine Szene — Canvas und Schleier dürfen dann
+   gar nicht erst Platz oder Farbe beanspruchen. */
+html.no-js .hero__canvas,
+html.no-js .hero__veil{display:none}
+
+
+/* --- 19f. Druck ----------------------------------------------------------- */
+@media print{
+  .hero__canvas,
+  .hero__veil{display:none}
+}
+
+/* Korrektur: Hero-Canvas ausserhalb des Sichtbereichs nicht mitkomponieren */
+.hero.scene-idle .hero__canvas{visibility:hidden}
