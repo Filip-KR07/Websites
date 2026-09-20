@@ -521,3 +521,336 @@ html.cursor-on .cursor{display:block;position:fixed;left:0;top:0;z-index:130;poi
   .preloader{display:none}
   .hero__scroll i::after{display:none}
 }
+
+
+/* ==========================================================================
+   AUSBAUSTUFE: sections — Zahlen / Stimmen / Jetzt / Fragen
+   ANHANG an /home/user/Websites/style.css — komplett ans DATEIENDE (nach Z. 523)
+   anhaengen. Der Block muss NACH dem bestehenden
+   @media (prefers-reduced-motion:reduce) (Z. 517–523) stehen, damit die
+   Reduced-Motion-Ergaenzungen am Ende greifen.
+
+   Verwendet ausschliesslich bestehende Tokens aus :root (Z. 23–46).
+   Neu genutzt, bisher tot: --r-lg, --gold, --night (fuer .jetzt__card),
+   --fs-small wird bewusst NICHT verwendet (zu unflexibel).
+
+   Regeln, die hier eingehalten werden:
+   - Animiert/transitioniert werden nur transform, opacity, filter, clip-path,
+     color/background-color, border-color, stroke — plus die vom Auftrag
+     ausdruecklich vorgesehene grid-template-rows-Transition des Akkordeons.
+   - KEINE Startzustaende fuer Scroll-Reveals in CSS (die setzt sections.js
+     per gsap.set). Alle Inhalte sind ohne JS und ohne Motion sichtbar.
+   - Hover-Effekte ausschliesslich in @media (hover:hover) and (pointer:fine).
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   19. ZAHLEN
+   -------------------------------------------------------------------------- */
+.zahlen{padding:var(--section) 0}
+.zahlen__head{margin-bottom:clamp(2rem,5vw,3.5rem)}
+.zahlen__lead{margin-top:1.2rem;max-width:52ch}
+
+.zahlen__band{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(.75rem,1.4vw,1.5rem)}
+
+.zahl{
+  padding:clamp(1.25rem,2vw,1.9rem);
+  display:grid;align-content:start;gap:.55rem;
+  min-height:clamp(230px,20vw,300px);
+  transition:transform 280ms var(--ease-out),box-shadow 280ms var(--ease-out);
+}
+.zahl--accent{background:linear-gradient(160deg,rgba(191,217,242,.72),rgba(255,255,255,.45))}
+
+.zahl__label{
+  font:500 .68rem/1.4 var(--body);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+  min-height:2.8em;
+}
+.zahl__value{display:flex;align-items:baseline;gap:.06em;margin-top:auto}
+.zahl__num{
+  font:300 clamp(2.6rem,1.8rem + 2.2vw,4.4rem)/1 var(--display);letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1;
+}
+.zahl__suffix{font:300 clamp(1.4rem,1rem + 1.1vw,2.2rem)/1 var(--display);color:var(--azure)}
+
+.zahl__spark{display:block;margin-top:.3rem}
+.zahl__spark svg{display:block;width:100%;height:clamp(38px,3.2vw,52px)}
+.zahl__spark-area{fill:rgba(76,143,214,.13);stroke:none}
+.zahl__spark-line{
+  fill:none;stroke:var(--ink);stroke-opacity:.7;stroke-width:1.1;
+  stroke-linecap:round;stroke-linejoin:round;
+  transition:stroke 280ms ease,stroke-opacity 280ms ease;
+}
+.zahl__spark-tick{fill:none;stroke:var(--azure);stroke-opacity:.8;stroke-width:1.1;stroke-dasharray:2 3}
+.zahl--accent .zahl__spark-area{fill:rgba(20,22,28,.09)}
+
+.zahl__note{font-size:.8rem;line-height:1.45;color:var(--muted);max-width:28ch}
+.zahlen__foot{margin-top:clamp(1.5rem,3vw,2.5rem);font-size:.82rem;color:var(--muted)}
+
+@media (hover:hover) and (pointer:fine){
+  .zahl:hover{transform:translateY(-6px);box-shadow:0 50px 80px -50px rgba(20,22,28,.4)}
+  .zahl:hover .zahl__spark-line{stroke:var(--azure);stroke-opacity:1}
+}
+
+/* --------------------------------------------------------------------------
+   20. STIMMEN (Slider)
+   -------------------------------------------------------------------------- */
+.stimmen{padding:var(--section) 0}
+.stimmen__head{position:relative;margin-bottom:clamp(2rem,5vw,3.5rem)}
+.stimmen__mark{
+  position:absolute;right:0;top:-.34em;z-index:-1;
+  font:400 clamp(7rem,14vw,15rem)/.7 var(--display);color:var(--sky);opacity:.6;
+  pointer-events:none;user-select:none;-webkit-user-select:none;
+}
+.stimmen__shell{display:grid;gap:clamp(1rem,2vw,1.5rem)}
+
+.stimmen__viewport{
+  /* Fallback ohne JS: natives horizontales Scrollen mit Snap. */
+  overflow-x:auto;overflow-y:hidden;
+  scroll-snap-type:x mandatory;scroll-padding-inline-start:.5rem;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  padding:.5rem .5rem 2.75rem;margin:-.5rem -.5rem -2.75rem;
+  overscroll-behavior-x:contain;
+}
+.stimmen__viewport::-webkit-scrollbar{display:none}
+.stimmen__viewport:focus-visible{outline:2px solid var(--azure);outline-offset:2px;border-radius:var(--r)}
+
+/* Wird von sections.js gesetzt, sobald der Pointer-Drag aktiv ist. */
+.stimmen.is-drag .stimmen__viewport{overflow:hidden;scroll-snap-type:none;touch-action:pan-y;cursor:grab}
+.stimmen.is-drag.is-dragging .stimmen__viewport{cursor:grabbing}
+.stimmen.is-drag .stimmen__track{will-change:transform;width:max-content} /* Spur so breit wie Inhalt, sonst klemmt minX auf 0 */
+
+.stimmen__track{display:flex;align-items:stretch;gap:clamp(1rem,2vw,1.75rem)}
+
+.stimme{
+  flex:0 0 min(560px,82%);scroll-snap-align:start;
+  padding:clamp(1.75rem,3vw,2.75rem);
+  display:grid;align-content:space-between;gap:clamp(1.5rem,3vw,2.5rem);
+  min-height:clamp(260px,32vw,380px);
+  transition:opacity 320ms var(--ease-out);
+}
+html.js .stimmen.is-ready .stimme:not(.is-active){opacity:.86}
+.stimme__quote{
+  font:300 clamp(1.3rem,1.05rem + 1.1vw,2rem)/1.35 var(--display);letter-spacing:-.01em;
+  color:var(--ink);text-wrap:pretty;
+}
+.stimme__by{display:grid;gap:.2rem;padding-top:1.1rem;border-top:1px solid var(--line)}
+.stimme__name{font:500 .92rem/1.25 var(--body)}
+.stimme__role{font-size:.82rem;color:var(--muted)}
+
+.stimmen__bar{position:relative;height:2px;border-radius:2px;background:var(--line);overflow:hidden}
+.stimmen__bar i{
+  position:absolute;inset:0;display:block;background:var(--ink);
+  transform:scaleX(0);transform-origin:left center;
+  transition:transform 420ms var(--ease-out);
+}
+.stimmen__controls{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.stimmen__dots{display:flex;gap:.1rem;margin-left:-.5rem}
+.stimmen__dot{width:44px;height:44px;display:grid;place-items:center}
+.stimmen__dot i{
+  display:block;width:8px;height:8px;border-radius:50%;background:var(--line);
+  transition:transform 260ms var(--ease-out),background-color 260ms ease;
+}
+.stimmen__dot[aria-current="true"] i{background:var(--ink);transform:scale(1.4)}
+.stimmen__dot:active i{transform:scale(.75)}
+.stimmen__nav{display:flex;gap:.5rem}
+.stimmen__btn{
+  width:48px;height:48px;border:1px solid var(--line);border-radius:50%;
+  display:grid;place-items:center;
+  transition:transform 160ms var(--ease-out),background-color 200ms ease,color 200ms ease,border-color 200ms ease,opacity 200ms ease;
+}
+.stimmen__btn svg{width:20px;height:20px}
+.stimmen__btn:active{transform:scale(.9)}
+.stimmen__btn[disabled]{opacity:.28;pointer-events:none}
+@media (hover:hover) and (pointer:fine){
+  .stimmen__btn:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .stimmen__btn:hover:active{transform:scale(.9)}
+  .stimmen__dot:hover i{background:var(--ink-2)}
+}
+/* Ohne JS taugen Punkte, Pfeile und Fortschritt nichts — dann nur nativ scrollen. */
+html.no-js .stimmen__controls,html.no-js .stimmen__bar{display:none}
+
+/* --------------------------------------------------------------------------
+   21. JETZT (Status-Karte)
+   -------------------------------------------------------------------------- */
+.jetzt{padding:var(--section) 0}
+.jetzt__grid{display:grid;grid-template-columns:5fr 7fr;gap:clamp(2rem,6vw,6rem);align-items:start}
+.jetzt__intro{position:sticky;top:calc(var(--nav-h) + 2rem)}
+.jetzt__intro .h2{margin-bottom:1.2rem}
+.jetzt__art{width:min(70%,320px);margin-top:2.5rem;opacity:.85}
+
+.jetzt__card{
+  position:relative;isolation:isolate;overflow:hidden;
+  border-radius:var(--r-lg);background:var(--night);color:var(--paper);
+  padding:clamp(1.75rem,3.2vw,3rem);
+  box-shadow:0 60px 100px -60px rgba(15,20,32,.65);
+  display:grid;gap:clamp(1.25rem,2.4vw,2rem);
+}
+.jetzt__card::before{
+  content:"";position:absolute;inset:-30%;z-index:0;pointer-events:none;opacity:.55;
+  background:radial-gradient(42% 42% at 24% 18%,rgba(76,143,214,.55),transparent 70%),
+             radial-gradient(38% 38% at 84% 84%,rgba(200,169,106,.3),transparent 70%);
+  animation:jetzt-aura 26s var(--ease-in-out) infinite alternate;
+}
+.jetzt__card>*{position:relative;z-index:1}
+
+.jetzt__status{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.jetzt__dot{position:relative;flex:0 0 10px;width:10px;height:10px}
+.jetzt__dot i{position:absolute;inset:0;border-radius:50%;transform-origin:center}
+.jetzt__dot i:first-child{background:var(--sky);box-shadow:0 0 12px rgba(191,217,242,.85)}
+.jetzt__dot i:last-child{border:1px solid var(--sky);animation:jetzt-pulse 2.6s var(--ease-out) infinite}
+.jetzt__state{font:500 .72rem/1 var(--body);letter-spacing:.18em;text-transform:uppercase;color:var(--sky)}
+.jetzt__meta{
+  margin-left:auto;display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;
+  font-size:.8rem;color:rgba(246,243,236,.6);
+}
+.jetzt__meta time{font-variant-numeric:tabular-nums}
+.jetzt__since:not(:empty)::before{content:"·";margin-right:.6rem;color:var(--gold)}
+
+.jetzt__focus{font:300 clamp(1.3rem,1.05rem + 1.1vw,2rem)/1.3 var(--display);letter-spacing:-.01em;max-width:30ch}
+
+.jetzt__rows{display:grid}
+.jetzt__row{display:grid;grid-template-columns:10rem 1fr;gap:1rem;padding:.9rem 0;border-top:1px solid var(--line-light)}
+.jetzt__row:last-child{border-bottom:1px solid var(--line-light)}
+.jetzt__k{font:500 .72rem/1.5 var(--body);letter-spacing:.14em;text-transform:uppercase;color:rgba(246,243,236,.72)}
+.jetzt__v{margin:0;font-size:.98rem;color:rgba(246,243,236,.92)}
+
+.jetzt__tags{display:flex;flex-wrap:wrap;gap:.5rem}
+.jetzt__tags li{
+  border:1px solid var(--line-light);border-radius:999px;padding:.4rem .85rem;
+  font-size:.78rem;color:rgba(246,243,236,.75);
+}
+.jetzt__cta{
+  display:inline-flex;align-items:center;gap:.5rem;width:max-content;min-height:44px;
+  font:500 .88rem/1 var(--body);color:var(--sky);
+  border-bottom:1px solid transparent;
+  transition:border-color 200ms ease,transform 160ms var(--ease-out);
+}
+.jetzt__cta span{display:inline-block;transition:transform 240ms var(--ease-out)}
+.jetzt__cta:active{transform:scale(.97)}
+@media (hover:hover) and (pointer:fine){
+  .jetzt__cta:hover{border-color:var(--sky)}
+  .jetzt__cta:hover span{transform:translateX(4px)}
+}
+
+@keyframes jetzt-pulse{0%{transform:scale(1);opacity:.9}70%,100%{transform:scale(3.4);opacity:0}}
+@keyframes jetzt-aura{from{transform:translate3d(-2%,-1%,0) scale(1)}to{transform:translate3d(3%,2%,0) scale(1.08)}}
+
+/* --------------------------------------------------------------------------
+   22. FRAGEN (Akkordeon)
+   Hoehe ueber grid-template-rows 0fr -> 1fr, nie ueber height.
+   Startzustand steht als data-open="false" im HTML, damit beim Laden nichts
+   auf- und wieder zuklappt; html.no-js laesst alle Panels offen.
+   -------------------------------------------------------------------------- */
+.fragen{padding:var(--section) 0}
+.fragen__grid{display:grid;grid-template-columns:5fr 7fr;gap:clamp(2rem,6vw,6rem);align-items:start}
+.fragen__side{position:sticky;top:calc(var(--nav-h) + 2rem)}
+.fragen__side .h2{margin-bottom:1.2rem}
+.fragen__cta{margin-top:2rem}
+.fragen__list{display:grid}
+
+.frage{border-top:1px solid var(--line)}
+.frage:last-child{border-bottom:1px solid var(--line)}
+.frage__head{margin:0;font:inherit}
+.frage__btn{
+  width:100%;display:grid;grid-template-columns:1fr auto;align-items:center;gap:1.5rem;
+  text-align:left;padding:1.5rem 0;min-height:64px;
+  font:500 clamp(1.05rem,.95rem + .5vw,1.35rem)/1.35 var(--display);letter-spacing:-.005em;
+  transition:color 200ms ease,transform 180ms var(--ease-out);
+}
+.frage__btn:active{transform:translateX(.08em)}
+.frage__q{display:block}
+.frage__icon{
+  position:relative;width:34px;height:34px;border:1px solid var(--line);border-radius:50%;
+  transition:border-color 200ms ease,transform 300ms var(--ease-out);
+}
+.frage__icon i{
+  position:absolute;left:50%;top:50%;width:12px;height:1.5px;margin:-.75px 0 0 -6px;
+  background:currentColor;
+  transition:transform 280ms var(--ease-in-out),opacity 200ms ease;
+}
+.frage__icon i:last-child{transform:rotate(90deg)}
+.frage.is-open .frage__icon{transform:rotate(180deg)}
+.frage.is-open .frage__icon i:last-child{transform:rotate(90deg) scaleX(0);opacity:0}
+@media (hover:hover) and (pointer:fine){
+  .frage__btn:hover{color:var(--azure)}
+  .frage__btn:hover .frage__icon{border-color:var(--azure)}
+}
+
+.frage__panel{display:grid;grid-template-rows:1fr;overflow:hidden}
+.frage__inner{
+  min-height:0;overflow:hidden;
+  padding-bottom:1.75rem;max-width:58ch;color:var(--ink-2);
+}
+.fragen.is-ready .frage__panel{transition:grid-template-rows 280ms var(--ease-out)}
+.fragen.is-ready .frage__panel[data-open="false"]{grid-template-rows:0fr}
+.fragen.is-ready .frage__inner{transition:opacity 200ms var(--ease-out) 60ms,transform 260ms var(--ease-out) 60ms,visibility 0s}
+.fragen.is-ready .frage__panel[data-open="false"] .frage__inner{
+  opacity:0;transform:translateY(-8px);visibility:hidden;
+  transition:opacity 160ms var(--ease-out),transform 200ms var(--ease-out),visibility 0s linear 280ms;
+}
+/* Ohne JS: alles offen, Button ist nur noch Ueberschrift. */
+html.no-js .frage__icon{display:none}
+html.no-js .frage__btn{grid-template-columns:1fr;pointer-events:none;cursor:default}
+
+/* --------------------------------------------------------------------------
+   23. MENUE mit 10 Eintraegen
+   Gehoert zur Klasse .menu__links--dense aus sections.html (Block A).
+   -------------------------------------------------------------------------- */
+.menu__links--dense{gap:.04em}
+.menu__links--dense a{font-size:clamp(1.5rem,4.4vh,3rem);line-height:1.06;gap:1rem;padding:.06em 0}
+.menu__links--dense small{min-width:2.4ch}
+
+/* --------------------------------------------------------------------------
+   24. Breakpoints
+   -------------------------------------------------------------------------- */
+@media (max-width:1024px){
+  .zahlen__band{grid-template-columns:repeat(2,1fr)}
+  .jetzt__grid,.fragen__grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:899px){
+  .zahlen__band{grid-template-columns:repeat(2,1fr)}
+  .zahl{min-height:clamp(190px,44vw,240px)}
+  .zahl__label{min-height:0}
+
+  .stimmen__mark{display:none}
+  .stimme{flex:0 0 86%;min-height:0}
+
+  .jetzt__grid{grid-template-columns:1fr}
+  .jetzt__intro{position:static}
+  .jetzt__art{display:none}
+  .jetzt__meta{margin-left:0;flex-basis:100%}
+  .jetzt__row{grid-template-columns:1fr;gap:.15rem;padding:.8rem 0}
+
+  .fragen__grid{grid-template-columns:1fr}
+  .fragen__side{position:static}
+  .fragen__cta{margin-top:1.5rem;margin-bottom:.5rem}
+
+  .menu__links--dense a{font-size:clamp(1.25rem,3.9vh,2.1rem)}
+}
+@media (max-width:560px){
+  .zahlen__band{grid-template-columns:1fr}
+  .zahl{min-height:0}
+  .stimme{flex:0 0 89%}
+  .stimmen__controls{gap:.5rem}
+  .frage__btn{gap:1rem;padding:1.25rem 0}
+}
+
+/* --------------------------------------------------------------------------
+   25. Reduced Motion — weniger Bewegung, nicht null
+   (Der globale Block in Z. 517–523 drosselt bereits alle @keyframes.)
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion:reduce){
+  .jetzt__card::before{animation:none}
+  html.js .stimmen.is-ready .stimme:not(.is-active){transform:none;opacity:.7}
+  .stimme{transition:opacity 160ms linear}
+  .stimmen__bar i{transition:transform 160ms linear}
+  .zahl{transition:box-shadow 200ms ease}
+  html.js .frage__panel{transition:grid-template-rows 160ms linear}
+  html.js .frage__inner{transition:opacity 140ms linear,visibility 0s}
+  .fragen.is-ready .frage__panel[data-open="false"] .frage__inner{
+    transform:none;transition:opacity 120ms linear,visibility 0s linear 160ms;
+  }
+  .frage.is-open .frage__icon{transform:none}
+}
+
+/* Korrektur: Glas-Folien im bewegten Slider ohne backdrop-filter (Compositing-Kosten) */
+.stimmen__track .glass{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(255,255,255,.62)}
