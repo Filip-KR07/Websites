@@ -472,7 +472,21 @@ html.cursor-on .cursor.is-live{opacity:1}
   .hero__sub{max-width:30ch;font-size:1.05rem}
   .hero__content{bottom:clamp(4.5rem,12vh,7rem);max-width:calc(100vw - 2*var(--gutter))}
   .hero__title{font-size:clamp(3.4rem,17vw,7rem)}
-  .hero__caption,.hero__card{display:none}
+  .hero__caption{display:none}
+  /* Kurzprofil bleibt auf dem Handy sichtbar, nur kompakter: die Kennzahlen
+     sind Inhalt und duerfen nicht verschwinden. */
+  /* Kurzprofil bleibt sichtbar, kompakt unter der Navigation; bei langen
+     Werten laesst es sich seitlich schieben statt den Text zu ueberdecken. */
+  .hero__card{left:var(--gutter);right:var(--gutter);top:calc(var(--nav-h) + .5rem);bottom:auto;
+    width:auto;max-width:none;padding:.6rem .2rem .6rem .8rem;overflow:hidden}
+  .hero__card-label{display:none}
+  .hero__card-list{gap:1.1rem;margin-top:0;overflow-x:auto;scrollbar-width:none;
+    scroll-snap-type:x proximity;padding-right:.8rem}
+  .hero__card-list::-webkit-scrollbar{display:none}
+  .hero__card-list li{padding-left:1.1rem;flex:0 0 auto;max-width:9.5rem;scroll-snap-align:start}
+  .hero__card-list strong{font-size:1.05rem;display:block;overflow-wrap:anywhere}
+  .hero__card-list span{font-size:.64rem;line-height:1.25}
+  .hero__scroll{display:none}
   .pillars__grid{grid-template-columns:1fr}
   .pillar{min-height:280px}
   .process__grid{grid-template-columns:1fr}
