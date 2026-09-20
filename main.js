@@ -1514,23 +1514,6 @@
             c.addEventListener('pointerleave', () => { rx(0); ry(0); if (media) { mx(0); my(0); } gsap.to(c, { y: 0, duration: 0.5, ease: 'power2.out', overwrite: 'auto' }); });
           });
 
-          /* Cursor */
-          const cur = $('[data-cursor]');
-          if (cur) {
-            doc.classList.add('cursor-on');
-            const dot = $('.cursor__dot', cur); const ring = $('.cursor__ring', cur);
-            const dx = gsap.quickTo(dot, 'x', { duration: 0.12, ease: 'power3.out' });
-            const dy = gsap.quickTo(dot, 'y', { duration: 0.12, ease: 'power3.out' });
-            const rx = gsap.quickTo(ring, 'x', { duration: 0.35, ease: 'power3.out' });
-            const ry = gsap.quickTo(ring, 'y', { duration: 0.35, ease: 'power3.out' });
-            window.addEventListener('pointermove', (e) => {
-              if (!cur.classList.contains('is-live')) { gsap.set([dot, ring], { x: e.clientX, y: e.clientY }); cur.classList.add('is-live'); }
-              dx(e.clientX); dy(e.clientY); rx(e.clientX); ry(e.clientY);
-            }, { passive: true });
-            document.addEventListener('pointerover', (e) => { cur.classList.toggle('is-hover', !!e.target.closest('a, button, .card, .glass')); });
-            document.addEventListener('mouseleave', () => gsap.to(cur, { autoAlpha: 0, duration: 0.2 }));
-            document.addEventListener('mouseenter', () => gsap.to(cur, { autoAlpha: 1, duration: 0.2 }));
-          }
         }
       }
 
