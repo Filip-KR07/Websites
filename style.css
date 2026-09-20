@@ -1090,3 +1090,38 @@ html.no-js .hero__veil{display:none}
   .swap__art{display:none}
   .swap__rail{width:100%}
 }
+
+
+/* ==========================================================================
+   19. Fortschrittsanzeige + Abschnitts-Navigation
+   ========================================================================== */
+.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:115;pointer-events:none;background:transparent}
+.progress i{display:block;height:100%;width:100%;transform:scaleX(0);transform-origin:0 50%;
+  background:linear-gradient(90deg,var(--azure),var(--sky));box-shadow:0 0 12px rgba(76,143,214,.5)}
+html:not(.motion) .progress{display:none}
+
+.sidenav{position:fixed;right:clamp(.75rem,1.6vw,1.6rem);top:50%;transform:translateY(-50%);z-index:108;display:none}
+html.motion .sidenav{display:block}
+.sidenav ol{display:grid;gap:.15rem}
+.sidenav button{
+  display:flex;align-items:center;justify-content:flex-end;gap:.6rem;
+  width:100%;min-height:26px;padding:.2rem .1rem;color:var(--ink);
+}
+.sidenav .lbl{
+  font:500 .64rem/1 var(--body);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;
+  opacity:0;transform:translateX(6px);transition:opacity 200ms var(--ease-out),transform 200ms var(--ease-out);
+  pointer-events:none; /* faengt keine Klicks ab */
+}
+.sidenav .dot{position:relative;flex:0 0 7px;width:7px;height:7px;border-radius:50%;
+  background:currentColor;opacity:.32;transition:opacity 220ms var(--ease-out),transform 220ms var(--ease-out)}
+.sidenav button[aria-current="true"] .dot{opacity:1;transform:scale(1.5);background:var(--azure)}
+.sidenav button[aria-current="true"] .lbl{opacity:.85;transform:none}
+.sidenav button:focus-visible .lbl{opacity:1;transform:none}
+.nav.is-dark ~ .sidenav,body.menu-open .sidenav{color:var(--paper)}
+body.menu-open .sidenav{opacity:0;pointer-events:none;transition:opacity 200ms ease}
+@media (hover:hover) and (pointer:fine){
+  .sidenav button:hover .lbl{opacity:.85;transform:none}
+  .sidenav button:hover .dot{opacity:.8}
+}
+@media (max-width:1100px){ .sidenav{display:none!important} }
+@media (prefers-reduced-motion:reduce){ .progress i{transition:none} }

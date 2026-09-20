@@ -1546,6 +1546,47 @@
       /* 7k. Wort-Tausch im Abschnitt Fokus (nur Desktop, gepinnt) */
       typoSwap({ isDesktop, scrub });
 
+      /* 7l. Fortschrittsanzeige + Abschnitts-Navigation */
+      (() => {
+        const bar = $('[data-progress] i');
+        if (bar) {
+          const set = gsap.quickSetter(bar, 'scaleX');
+          ScrollTrigger.create({
+            start: 0, end: 'max', onUpdate: (self) => set(self.progress), onRefresh: (self) => set(self.progress),
+          });
+        }
+
+        const sidenav = $('[data-sidenav]');
+        if (!sidenav || !isDesktop) return;
+        const list = $('ol', sidenav);
+        const items = $$('main section[id]').map((sec) => {
+          const link = document.querySelector('[data-menu-link][href="#' + sec.id + '"] span');
+          return { sec, label: link ? link.textContent.trim() : (sec.id.charAt(0).toUpperCase() + sec.id.slice(1)) };
+        });
+        if (items.length < 3) return;
+        list.innerHTML = '';
+        const btns = items.map(({ sec, label }) => {
+          const li = document.createElement('li');
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.setAttribute('aria-label', 'Zum Abschnitt ' + label);
+          b.innerHTML = '<span class="lbl">' + label + '</span><span class="dot"></span>';
+          b.addEventListener('click', () => scrollToTarget(sec));
+          li.appendChild(b); list.appendChild(li);
+          return b;
+        });
+        const setActive = (i) => btns.forEach((b, k) => {
+          if (k === i) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+        });
+        items.forEach(({ sec }, i) => {
+          ScrollTrigger.create({
+            trigger: sec, start: 'top 45%', end: 'bottom 45%',
+            onToggle: (self) => { if (self.isActive) setActive(i); },
+          });
+        });
+      })();
+
+
       /* 7j. Neue Abschnitte: Zahlen-Scrub + Stimmen-Ambient */
       fkSectionsScroll({ ...fkEnv, isDesktop, scrub });
 
