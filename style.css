@@ -58,8 +58,8 @@ body{
   overflow-x:clip;
 }
 body.is-loading,body.menu-open{overflow:hidden}
-body::after{ /* feines Papierkorn */
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:90;opacity:.05;mix-blend-mode:multiply;
+body::after{ /* feines Papierkorn – ohne Blend-Modus, der kostet die halbe Bildrate */
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:90;opacity:.035;contain:strict;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 img,svg,video{max-width:100%;height:auto;display:block}
@@ -202,7 +202,7 @@ body.menu-open .nav__cta{opacity:0;pointer-events:none}
 .hero__disc::before{content:"";position:absolute;inset:0;border-radius:50%;
   background:radial-gradient(circle at 40% 35%,#FFFFFF,var(--sky-2) 55%,#BFD9F2);
   box-shadow:0 60px 120px -40px rgba(76,143,214,.35);animation:drift 14s ease-in-out infinite alternate}
-.hero__glow{position:absolute;left:0;top:0;width:60vw;height:60vw;margin:-30vw 0 0 -30vw;pointer-events:none;mix-blend-mode:screen}
+.hero__glow{position:absolute;left:0;top:0;width:52vw;height:52vw;margin:-26vw 0 0 -26vw;pointer-events:none;opacity:.6;will-change:transform}
 .hero__glow::before{content:"";position:absolute;inset:0;border-radius:50%;opacity:.7;
   background:radial-gradient(circle,rgba(255,255,255,.9),rgba(220,234,247,.35) 40%,transparent 70%);animation:orbit 22s ease-in-out infinite}
 .hero__art img{animation:breathe 9s ease-in-out infinite}
@@ -243,7 +243,7 @@ body.menu-open .nav__cta{opacity:0;pointer-events:none}
 .hero.is-framed .hero__frame{box-shadow:0 80px 120px -60px rgba(20,22,28,.35)}
 
 /* Glas-Karten (yunicorn-Schema) */
-.glass{background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.7);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+.glass{background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   box-shadow:0 30px 60px -40px rgba(20,22,28,.35),inset 0 1px 0 rgba(255,255,255,.8);border-radius:var(--r);position:relative;overflow:hidden;isolation:isolate}
 .glass::before{content:"";position:absolute;inset:0;z-index:-1;opacity:0;transition:opacity 200ms ease;pointer-events:none;
   background:radial-gradient(360px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.75),rgba(191,217,242,.25) 45%,transparent 70%)}
