@@ -980,3 +980,113 @@ html.no-js .hero__veil{display:none}
 
 /* Korrektur: Hero-Canvas ausserhalb des Sichtbereichs nicht mitkomponieren */
 .hero.scene-idle .hero__canvas{visibility:hidden}
+
+
+/* ==== Typografie: gepinnter Wort-Tausch (aus dem Entwurf typo-motion, gekuerzt) ==== */
+/* --------------------------------------------------------------------------
+   T0. Zusatz-Token (nur neue Namen, :root wird ergaenzt, nicht ersetzt)
+   -------------------------------------------------------------------------- */
+:root{
+  /* Maskenluft: wie weit Ober-/Unterlaengen ueber die Zeilenbox ragen duerfen.
+     Wird von .tline und vom Wort-Tausch-Slot genutzt. */
+  --line-bleed:.16em;
+}
+
+/* --------------------------------------------------------------------------
+   T3. Gepinnter Wort-Tausch  (Section .swap)
+   Ohne JS: alle Varianten stehen als lesbare Liste untereinander.
+   Mit JS (Desktop): .is-swapping stapelt sie in EINE Gridzelle und maskiert.
+   -------------------------------------------------------------------------- */
+.swap{
+  position:relative;
+  padding:var(--section) 0;
+  overflow:hidden;
+}
+.swap__inner{display:grid;justify-items:start;gap:0}
+.swap__head{
+  font:400 clamp(2.4rem,6.4vw + .4rem,7.2rem)/1.02 var(--display);
+  letter-spacing:-.03em;
+  margin:0;
+  display:grid;
+  justify-items:start;
+  gap:.02em;
+  max-width:14ch;
+}
+.swap__static{display:block}
+.swap__slot{display:block}                 /* Fallback: Liste */
+.swap__word{
+  display:block;
+  font-style:italic;font-weight:300;
+  color:var(--azure);
+}
+/* Fallback-Liste bekommt eine dezente Aufzaehlungs-Optik, damit sie nicht
+   wie ein Fehler aussieht, wenn kein JS laeuft. */
+.swap__slot:not(.is-swapping) .swap__word + .swap__word{
+  border-top:1px solid var(--line);
+  margin-top:.08em;padding-top:.08em;
+}
+/* Aktiver Stapel-Modus (nur vom JS gesetzt) */
+.swap__slot.is-swapping{
+  display:inline-grid;
+  grid-template-areas:"word";
+  overflow:hidden;
+  padding-bottom:var(--line-bleed);
+  margin-bottom:calc(var(--line-bleed) * -1);
+  max-width:100%;
+}
+.swap__slot.is-swapping .swap__word{
+  grid-area:word;
+  border-top:0;margin-top:0;padding-top:0;
+  will-change:transform;
+}
+.swap__meta{
+  display:flex;align-items:center;gap:1rem;
+  margin-top:clamp(2rem,5vh,3.5rem);
+  font:500 .72rem/1 var(--body);letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+.swap__rail{
+  display:block;position:relative;overflow:hidden;
+  width:min(46vw,420px);height:1px;background:var(--line);
+}
+.swap__rail i{
+  display:block;position:absolute;inset:0;
+  background:linear-gradient(90deg,var(--azure),var(--gold));
+  transform:scaleX(0);transform-origin:left center;
+}
+.swap__count b{font-weight:500;color:var(--ink)}
+.swap__count i{font-style:normal;opacity:.5;margin:0 .35em}
+.swap__note{
+  margin-top:clamp(1.5rem,4vh,2.5rem);
+  max-width:44ch;font-size:var(--fs-lead);line-height:1.5;color:var(--ink-2);
+}
+/* Dekoratives Fragment im Hintergrund */
+.swap__art{
+  position:absolute;right:-6%;top:50%;width:min(38vw,460px);
+  transform:translateY(-50%);opacity:.35;pointer-events:none;
+}
+
+/* Pin braucht eine volle Viewporthoehe — nur mit Motion und ab 900px. */
+@media (min-width:900px){
+  html.motion .swap{
+    min-height:100svh;
+    display:grid;align-items:center;
+    padding-block:calc(var(--nav-h) + 2rem) 2rem;
+  }
+}
+
+@media (hover:hover) and (pointer:fine){
+  .swap__word{transition:color 200ms ease}
+  .swap__slot:not(.is-swapping) .swap__word:hover{color:var(--ink)}
+}
+@media (hover:none),(pointer:coarse){
+  .swap__slot:not(.is-swapping) .swap__word:active{color:var(--ink)}
+}
+@media (max-width:899px){
+  .swap{padding:var(--section) 0}
+  .swap__head{font-size:clamp(2.2rem,11vw,4.2rem);max-width:none}
+  .swap__slot.is-swapping{display:block;overflow:visible;padding-bottom:0;margin-bottom:0}
+  .swap__slot.is-swapping .swap__word{grid-area:auto}
+  .swap__art{display:none}
+  .swap__rail{width:100%}
+}

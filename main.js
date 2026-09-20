@@ -1037,6 +1037,75 @@
     return handle;
   };
 
+  /* ---------- 2c. Gepinnter Wort-Tausch (Abschnitt Fokus) ---------- */
+  const typoSwap = (o) => {
+    const sec = $('[data-typo-swap]');
+    if (!sec) return;
+    const slot = $('[data-typo-swap-slot]', sec);
+    const words = $$('[data-typo-swap-word]', sec);
+    if (!slot || words.length < 2) return;
+  
+    const railInner = $('[data-typo-swap-rail] i', sec);
+    const meter = $('[data-typo-swap-meter]', sec);
+    const totalEl = $('[data-typo-swap-total]', sec);
+    const total = words.length;
+    if (totalEl) totalEl.textContent = String(total).padStart(2, '0');
+    const setRail = railInner ? gsap.quickSetter(railInner, 'scaleX') : null;
+  
+    if (!o.isDesktop) {
+      /* Mobil: KEIN Pin. Die Varianten bleiben als lesbare Liste stehen und
+         kommen gestaffelt herein. */
+      gsap.set(words, { yPercent: 28, opacity: 0 });
+      gsap.to(words, {
+        yPercent: 0, opacity: 1, duration: 0.85, stagger: 0.09, ease: 'power3.out',
+        scrollTrigger: { trigger: slot, start: 'top 90%', once: true },
+      });
+      if (railInner) {
+        gsap.fromTo(railInner, { scaleX: 0 }, {
+          scaleX: 1, ease: 'none',
+          scrollTrigger: { trigger: sec, start: 'top 80%', end: 'bottom 60%', scrub: true },
+        });
+      }
+      if (meter) meter.textContent = String(total).padStart(2, '0');
+      return;
+    }
+  
+    /* Desktop: gestapelt, maskiert, gescrubbt im Pin. */
+    slot.classList.add('is-swapping');
+    gsap.set(words, { yPercent: 125 });
+    gsap.set(words[0], { yPercent: 0 });
+  
+    let shown = 0;
+    const tl = gsap.timeline({
+      defaults: { ease: 'power3.inOut' },
+      scrollTrigger: {
+        trigger: sec,
+        start: 'top top',
+        end: () => `+=${Math.round(total * 58)}%`,
+        pin: true,
+        scrub: o.scrub,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => {
+          if (setRail) setRail(self.progress);
+          if (meter) {
+            const i = Math.min(total, Math.floor(self.progress * total) + 1);
+            if (i !== shown) { shown = i; meter.textContent = String(i).padStart(2, '0'); }
+          }
+        },
+      },
+    });
+  
+    tl.to({}, { duration: 0.4 }); // Ruhe, bevor der erste Tausch startet
+    for (let i = 1; i < total; i++) {
+      const label = `swap-${i}`;
+      tl.to(words[i - 1], { yPercent: -125, duration: 0.5 }, label)
+        .fromTo(words[i], { yPercent: 125 }, { yPercent: 0, duration: 0.55 }, `${label}+=0.12`)
+        .to({}, { duration: 0.45 });
+    }
+    tl.to({}, { duration: 0.35 }); // Nachlauf, damit der letzte Begriff stehen bleibt
+  };
+
   /* ---------- 3. Smooth Scroll (Lenis) ---------- */
   let lenis = null;
   if (motion && hasLenis && !isTouch) {
@@ -1473,6 +1542,9 @@
           onToggle: (self) => { if (self.isActive) gsap.to(body, { backgroundColor: BG[sec.dataset.bg] || BG.paper, duration: 0.9, ease: 'power2.out', overwrite: 'auto' }); },
         });
       });
+
+      /* 7k. Wort-Tausch im Abschnitt Fokus (nur Desktop, gepinnt) */
+      typoSwap({ isDesktop, scrub });
 
       /* 7j. Neue Abschnitte: Zahlen-Scrub + Stimmen-Ambient */
       fkSectionsScroll({ ...fkEnv, isDesktop, scrub });
