@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo-Webseite</title>
+<!--
+  Demo-Vorlage für Döner/Imbiss und Umzugsfirmen.
+  Alles über die URL einstellbar, z. B.:
+  index.html?typ=doener&name=Bosporus%20Grill&strasse=Steindamm%2012&plz=20099%20Hamburg&tel=040%20123456&zeiten=Mo–So%2011–23%20Uhr
+  index.html?typ=umzug&name=Nord%20Umzüge&tel=0176%201234567&gebiet=Hamburg%20und%20Umland
+  Parameter: typ (doener|umzug), name, strasse, plz, tel, zeiten, gebiet, farbe (z. B. %23c0392b)
+-->
+<style>
+  :root { --akzent: #c0392b; --text: #1d1d1f; --grau: #6b6b70; --hell: #f6f4f1; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--text); background: #fff; line-height: 1.5; }
+  a { color: inherit; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+  header { position: sticky; top: 0; background: #fff; border-bottom: 1px solid #eee; z-index: 2; }
+  header .wrap { display: flex; justify-content: space-between; align-items: center; height: 60px; }
+  .logo { font-weight: 800; font-size: 1.15rem; }
+  .btn { display: inline-block; background: var(--akzent); color: #fff; text-decoration: none; font-weight: 700; padding: 12px 20px; border-radius: 999px; }
+  .btn.klein { padding: 8px 14px; font-size: .9rem; }
+  .btn.hell { background: #fff; color: var(--akzent); }
+  .hero { background: var(--akzent); color: #fff; padding: 64px 0; }
+  .hero h1 { font-size: clamp(2rem, 7vw, 3.4rem); line-height: 1.1; margin-bottom: 12px; }
+  .hero p { font-size: 1.15rem; opacity: .92; max-width: 34ch; margin-bottom: 24px; }
+  section { padding: 48px 0; }
+  h2 { font-size: 1.6rem; margin-bottom: 20px; }
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .karte { background: var(--hell); border-radius: 14px; padding: 18px; }
+  .karte h3 { font-size: 1.05rem; display: flex; justify-content: space-between; gap: 8px; }
+  .karte p { color: var(--grau); font-size: .95rem; margin-top: 4px; }
+  .preis { color: var(--akzent); white-space: nowrap; }
+  .vorteile { list-style: none; padding: 0; display: grid; gap: 10px; }
+  .vorteile li::before { content: "✓ "; color: var(--akzent); font-weight: 800; }
+  .kontakt { background: var(--hell); }
+  .kontakt dl { display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; margin-bottom: 20px; }
+  dt { font-weight: 700; }
+  footer { padding: 24px 0; color: var(--grau); font-size: .85rem; }
+  .demo-hinweis { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; font-size: .8rem; padding: 6px 12px; border-radius: 999px; opacity: .85; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header><div class="wrap"><span class="logo" data-f="name"></span><a class="btn klein" data-tel>Anrufen</a></div></header>
+
+<div class="hero"><div class="wrap">
+  <h1 data-f="name"></h1>
+  <p data-f="claim"></p>
+  <a class="btn hell" data-tel data-f="cta"></a>
+</div></div>
+
+<section><div class="wrap">
+  <h2 data-f="liste_titel"></h2>
+  <div class="grid" id="liste"></div>
+</div></section>
+
+<section style="padding-top:0"><div class="wrap">
+  <h2>Warum zu uns?</h2>
+  <ul class="vorteile" id="vorteile"></ul>
+</div></section>
+
+<section class="kontakt"><div class="wrap">
+  <h2>Kontakt</h2>
+  <dl>
+    <dt>Telefon</dt><dd><a data-tel data-f="tel"></a></dd>
+    <dt data-zeile="strasse">Adresse</dt><dd data-zeile="strasse"><span data-f="strasse"></span>, <span data-f="plz"></span></dd>
+    <dt data-zeile="zeiten">Öffnungszeiten</dt><dd data-zeile="zeiten" data-f="zeiten"></dd>
+    <dt data-zeile="gebiet">Einsatzgebiet</dt><dd data-zeile="gebiet" data-f="gebiet"></dd>
+  </dl>
+  <a class="btn" id="route" target="_blank" rel="noopener" hidden>Route planen</a>
+</div></section>
+
+<footer><div class="wrap">© <span id="jahr"></span> <span data-f="name"></span> · Impressum · Datenschutz</div></footer>
+<div class="demo-hinweis">Demo – so könnte Ihre Webseite aussehen</div>
+
+<script>
+const VORLAGEN = {
+  doener: {
+    name: "Ihr Döner-Laden", farbe: "#c0392b",
+    claim: "Frisch vom Spieß – knuspriges Brot, hausgemachte Soßen.",
+    cta: "Jetzt bestellen", liste_titel: "Unsere Karte",
+    liste: [
+      ["Döner im Brot", "7,00 €", "Kalb oder Hähnchen, Salat, Soße nach Wahl"],
+      ["Dürüm", "8,00 €", "Im Yufka gerollt"],
+      ["Döner-Teller", "12,50 €", "Mit Pommes oder Reis und Salat"],
+      ["Lahmacun", "6,50 €", "Mit Salat und Zitrone"],
+      ["Falafel im Brot", "6,50 €", "Vegetarisch, mit Hummus"],
+      ["Pommes", "3,50 €", "Klein / groß"],
+    ],
+    vorteile: ["Fleisch täglich frisch", "Brot aus der eigenen Backstube", "Schnell und fair im Preis", "Auch zum Mitnehmen"],
+  },
+  umzug: {
+    name: "Ihre Umzugsfirma", farbe: "#1f5fae",
+    claim: "Stressfrei umziehen in Hamburg – zum Festpreis.",
+    cta: "Kostenloses Angebot", liste_titel: "Unsere Leistungen",
+    liste: [
+      ["Privatumzug", "", "Wohnung oder Haus, inkl. Tragen und Transport"],
+      ["Firmenumzug", "", "Büros und Praxen, auch am Wochenende"],
+      ["Möbelmontage", "", "Ab- und Aufbau, Küchenmontage"],
+      ["Entrümpelung", "", "Keller, Dachboden, Wohnungsauflösung"],
+      ["Halteverbotszone", "", "Beantragen wir für Sie"],
+      ["Verpackung", "", "Kartons und Einpackservice"],
+    ],
+    vorteile: ["Festpreis nach kostenloser Besichtigung", "Versichert und zuverlässig", "Kurzfristige Termine möglich", "Freundliches, erfahrenes Team"],
+  },
+};
+
+const q = new URLSearchParams(location.search);
+const v = VORLAGEN[q.get("typ")] || VORLAGEN.doener;
+const d = { ...v, tel: "040 000 000", strasse: "", plz: "", zeiten: "", gebiet: "" };
+for (const k of ["name", "claim", "cta", "tel", "strasse", "plz", "zeiten", "gebiet", "farbe"]) if (q.get(k)) d[k] = q.get(k);
+
+document.title = d.name;
+document.documentElement.style.setProperty("--akzent", d.farbe);
+document.querySelectorAll("[data-f]").forEach(el => el.textContent = d[el.dataset.f] || "");
+document.querySelectorAll("[data-tel]").forEach(el => el.href = "tel:" + d.tel.replace(/[^\d+]/g, ""));
+document.querySelectorAll("[data-zeile]").forEach(el => el.hidden = !d[el.dataset.zeile]);
+document.getElementById("jahr").textContent = new Date().getFullYear();
+
+const liste = document.getElementById("liste");
+for (const [titel, preis, text] of v.liste) {
+  const k = document.createElement("div"); k.className = "karte";
+  const h = document.createElement("h3"); h.textContent = titel;
+  if (preis) { const p = document.createElement("span"); p.className = "preis"; p.textContent = preis; h.append(p); }
+  const t = document.createElement("p"); t.textContent = text;
+  k.append(h, t); liste.append(k);
+}
+const ul = document.getElementById("vorteile");
+for (const x of v.vorteile) { const li = document.createElement("li"); li.textContent = x; ul.append(li); }
+
+if (d.strasse) {
+  const r = document.getElementById("route");
+  r.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(d.name + " " + d.strasse + " " + d.plz);
+  r.hidden = false;
+}
+</script>
+</body>
+</html>

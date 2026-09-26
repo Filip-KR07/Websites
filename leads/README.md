@@ -10,3 +10,10 @@ Name, Adresse, PLZ, Telefon, Öffnungszeiten, Google-Maps-Link und leeren Spalte
 
 Quelle: OpenStreetMap. Fehlender Webseiten-Eintrag in OSM ist nur ein Indiz –
 vor dem Besuch kurz googeln. Kategorien in `CATEGORIES` im Skript anpassen.
+
+## Demo-Vorlage und Verkaufsgespräch
+
+- `vorlage/index.html` – fertige Demo-Seite für Döner/Imbiss oder Umzugsfirmen, alles per URL einstellbar
+  (Beispiele oben in der Datei), z. B.
+  `vorlage/index.html?typ=umzug&name=Nord%20Umzüge&tel=0176%201234567&gebiet=Hamburg`
+- `leads/verkaufsgespraech.md` – Gesprächsleitfaden „Ist der Chef da?“ mit Einwandbehandlung
