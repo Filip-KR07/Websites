@@ -10,6 +10,7 @@
   index.html?typ=doener&name=Bosporus%20Grill&strasse=Steindamm%2012&plz=20099%20Hamburg&tel=040%20123456&zeiten=Mo–So%2011–23%20Uhr
   index.html?typ=umzug&name=Nord%20Umzüge&tel=0176%201234567&gebiet=Hamburg%20und%20Umland
   Parameter: typ (doener|umzug), name, strasse, plz, tel, zeiten, gebiet, farbe (z. B. %23c0392b)
+  Oder auf dem iPad: unten rechts auf ✎ tippen und die Daten im Formular eintragen (bleibt auf dem Gerät gespeichert).
 -->
 <style>
   :root { --akzent: #c0392b; --text: #1d1d1f; --grau: #6b6b70; --hell: #f6f4f1; }
@@ -17,7 +18,7 @@
   body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--text); background: #fff; line-height: 1.5; }
   a { color: inherit; }
   .wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
-  header { position: sticky; top: 0; background: #fff; border-bottom: 1px solid #eee; z-index: 2; }
+  header { position: sticky; top: env(safe-area-inset-top, 0px); background: #fff; border-bottom: 1px solid #eee; z-index: 2; }
   header .wrap { display: flex; justify-content: space-between; align-items: center; height: 60px; }
   .logo { font-weight: 800; font-size: 1.15rem; }
   .btn { display: inline-block; background: var(--akzent); color: #fff; text-decoration: none; font-weight: 700; padding: 12px 20px; border-radius: 999px; }
@@ -41,6 +42,14 @@
   footer { padding: 24px 0; color: var(--grau); font-size: .85rem; }
   .demo-hinweis { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; font-size: .8rem; padding: 6px 12px; border-radius: 999px; opacity: .85; }
   [hidden] { display: none !important; }
+  .stift { position: fixed; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); width: 44px; height: 44px; border-radius: 50%; border: 0; background: #111; color: #fff; font-size: 1.2rem; opacity: .35; z-index: 5; }
+  .editor { position: fixed; inset: auto 0 0 0; background: #fff; box-shadow: 0 -8px 30px rgba(0,0,0,.2); padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 6; max-height: 80vh; overflow: auto; }
+  .editor form { max-width: 720px; margin: 0 auto; display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .editor label { display: grid; gap: 4px; font-size: .85rem; font-weight: 600; color: var(--grau); }
+  .editor input, .editor select { font: inherit; font-size: 16px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; color: var(--text); background: #fff; }
+  .editor .knoepfe { grid-column: 1 / -1; display: flex; gap: 10px; }
+  .editor button { font: inherit; font-weight: 700; padding: 12px 18px; border-radius: 999px; border: 0; background: var(--akzent); color: #fff; }
+  .editor button.zweit { background: #eee; color: var(--text); }
 </style>
 </head>
 <body>
@@ -75,6 +84,20 @@
 
 <footer><div class="wrap">© <span id="jahr"></span> <span data-f="name"></span> · Impressum · Datenschutz</div></footer>
 <div class="demo-hinweis">Demo – so könnte Ihre Webseite aussehen</div>
+<button class="stift" id="stift" type="button" aria-label="Demo bearbeiten">✎</button>
+<div class="editor" id="editor" hidden>
+  <form id="form">
+    <label>Branche<select id="f-typ" name="typ"><option value="doener">Döner / Imbiss</option><option value="umzug">Umzugsfirma</option></select></label>
+    <label>Name<input id="f-name" name="name" placeholder="Bosporus Grill"></label>
+    <label>Straße + Nr.<input id="f-strasse" name="strasse" placeholder="Steindamm 12"></label>
+    <label>PLZ + Ort<input id="f-plz" name="plz" placeholder="20099 Hamburg"></label>
+    <label>Telefon<input id="f-tel" name="tel" inputmode="tel" placeholder="040 123456"></label>
+    <label>Öffnungszeiten<input id="f-zeiten" name="zeiten" placeholder="Mo–So 11–23 Uhr"></label>
+    <label>Einsatzgebiet (Umzug)<input id="f-gebiet" name="gebiet" placeholder="Hamburg und Umland"></label>
+    <label>Farbe<input id="f-farbe" name="farbe" type="color"></label>
+    <div class="knoepfe"><button type="submit">Übernehmen</button><button type="button" class="zweit" id="leeren">Zurücksetzen</button></div>
+  </form>
+</div>
 
 <script>
 const VORLAGEN = {
@@ -108,34 +131,68 @@ const VORLAGEN = {
   },
 };
 
-const q = new URLSearchParams(location.search);
-const v = VORLAGEN[q.get("typ")] || VORLAGEN.doener;
-const d = { ...v, tel: "040 000 000", strasse: "", plz: "", zeiten: "", gebiet: "" };
-for (const k of ["name", "claim", "cta", "tel", "strasse", "plz", "zeiten", "gebiet", "farbe"]) if (q.get(k)) d[k] = q.get(k);
-
-document.title = d.name;
-document.documentElement.style.setProperty("--akzent", d.farbe);
-document.querySelectorAll("[data-f]").forEach(el => el.textContent = d[el.dataset.f] || "");
-document.querySelectorAll("[data-tel]").forEach(el => el.href = "tel:" + d.tel.replace(/[^\d+]/g, ""));
-document.querySelectorAll("[data-zeile]").forEach(el => el.hidden = !d[el.dataset.zeile]);
-document.getElementById("jahr").textContent = new Date().getFullYear();
-
-const liste = document.getElementById("liste");
-for (const [titel, preis, text] of v.liste) {
-  const k = document.createElement("div"); k.className = "karte";
-  const h = document.createElement("h3"); h.textContent = titel;
-  if (preis) { const p = document.createElement("span"); p.className = "preis"; p.textContent = preis; h.append(p); }
-  const t = document.createElement("p"); t.textContent = text;
-  k.append(h, t); liste.append(k);
+const FELDER = ["typ", "name", "claim", "cta", "tel", "strasse", "plz", "zeiten", "gebiet", "farbe"];
+const SPEICHER = "demo-vorlage";
+function laden() {
+  const q = new URLSearchParams(location.search), e = {};
+  try { Object.assign(e, JSON.parse(localStorage.getItem(SPEICHER) || "{}")); } catch (_) {}
+  for (const k of FELDER) if (q.get(k)) e[k] = q.get(k);
+  return e;
 }
-const ul = document.getElementById("vorteile");
-for (const x of v.vorteile) { const li = document.createElement("li"); li.textContent = x; ul.append(li); }
+function speichern(e) { try { localStorage.setItem(SPEICHER, JSON.stringify(e)); } catch (_) {} }
 
-if (d.strasse) {
+function render(e) {
+  const v = VORLAGEN[e.typ] || VORLAGEN.doener;
+  const d = { ...v, tel: "040 000 000", strasse: "", plz: "", zeiten: "", gebiet: "" };
+  for (const k of FELDER) if (e[k]) d[k] = e[k];
+
+  document.title = d.name;
+  document.documentElement.style.setProperty("--akzent", d.farbe);
+  document.querySelectorAll("[data-f]").forEach(el => el.textContent = d[el.dataset.f] || "");
+  document.querySelectorAll("[data-tel]").forEach(el => el.href = "tel:" + d.tel.replace(/[^\d+]/g, ""));
+  document.querySelectorAll("[data-zeile]").forEach(el => el.hidden = !d[el.dataset.zeile]);
+  document.getElementById("jahr").textContent = new Date().getFullYear();
+
+  const liste = document.getElementById("liste"); liste.replaceChildren();
+  for (const [titel, preis, text] of v.liste) {
+    const k = document.createElement("div"); k.className = "karte";
+    const h = document.createElement("h3"); h.textContent = titel;
+    if (preis) { const p = document.createElement("span"); p.className = "preis"; p.textContent = preis; h.append(p); }
+    const t = document.createElement("p"); t.textContent = text;
+    k.append(h, t); liste.append(k);
+  }
+  const ul = document.getElementById("vorteile"); ul.replaceChildren();
+  for (const x of v.vorteile) { const li = document.createElement("li"); li.textContent = x; ul.append(li); }
+
   const r = document.getElementById("route");
-  r.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(d.name + " " + d.strasse + " " + d.plz);
-  r.hidden = false;
+  r.hidden = !d.strasse;
+  if (d.strasse) r.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(d.name + " " + d.strasse + " " + d.plz);
+
+  const form = document.getElementById("form");
+  form.typ.value = e.typ || "doener";
+  for (const k of ["name", "strasse", "plz", "tel", "zeiten", "gebiet"]) form[k].value = e[k] || "";
+  form.farbe.value = d.farbe;
 }
+
+let eingabe = laden();
+render(eingabe);
+
+const editor = document.getElementById("editor");
+document.getElementById("stift").addEventListener("click", () => { editor.hidden = !editor.hidden; });
+document.getElementById("form").addEventListener("submit", ev => {
+  ev.preventDefault();
+  const f = ev.target, alt = eingabe;
+  eingabe = { typ: f.typ.value };
+  for (const k of ["name", "strasse", "plz", "tel", "zeiten", "gebiet"]) if (f[k].value.trim()) eingabe[k] = f[k].value.trim();
+  // Farbe nur übernehmen, wenn sie bewusst geändert wurde (sonst Branchenfarbe)
+  const standard = (VORLAGEN[alt.typ] || VORLAGEN.doener).farbe;
+  if (f.typ.value === (alt.typ || "doener") && f.farbe.value.toLowerCase() !== (alt.farbe || standard).toLowerCase()) eingabe.farbe = f.farbe.value;
+  else if (alt.farbe && f.typ.value === (alt.typ || "doener")) eingabe.farbe = alt.farbe;
+  speichern(eingabe); render(eingabe); editor.hidden = true; scrollTo(0, 0);
+});
+document.getElementById("leeren").addEventListener("click", () => {
+  eingabe = {}; speichern(eingabe); render(eingabe); editor.hidden = true;
+});
 </script>
 </body>
 </html>
