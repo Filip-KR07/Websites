@@ -61,13 +61,15 @@
 
   <main id="main">
     <!-- ============ Hero mit Hintergrundvideo ============ -->
-    <section class="hero" id="top" data-hero>
+    <!-- Bildausschnitt des Videos: --video-pos (Desktop) / --video-pos-mobile (Handy), z. B. "72% 50%" = Besitzer rechts von der Schrift -->
+    <section class="hero" id="top" data-hero style="--video-pos: 72% 50%; --video-pos-mobile: 62% 30%">
       <div class="hero__media" aria-hidden="true">
         <!-- Fallback, solange kein Video da ist: animierte Glut -->
         <canvas class="hero__embers" data-embers></canvas>
         <!--
           HINTERGRUNDVIDEO: Datei nach doener/assets/video/hero.mp4 legen.
           Optional: hero-mobile.mp4 (kleiner, Hochformat) und hero-poster.jpg (erstes Standbild).
+          Im Video schneidet der Besitzer Fleisch am Spieß, die Schrift steht davor.
           Anleitung + ffmpeg-Befehle: doener/README.md
         -->
         <video class="hero__video" data-hero-video muted loop playsinline autoplay preload="metadata" disablepictureinpicture disableremoteplayback>
@@ -87,8 +89,8 @@
         </p>
 
         <h1 class="hero__title">
-          <span class="line"><span data-hero-in style="--i:1">Frisch</span></span>
-          <span class="line"><span data-hero-in style="--i:2">vom <em>Spieß.</em></span></span>
+          <span class="line"><span class="cut" style="--i:1"><span class="cut__text" data-hero-in>Frisch</span><span class="cut__blade" aria-hidden="true"></span></span></span>
+          <span class="line"><span class="cut" style="--i:2"><span class="cut__text" data-hero-in>vom <em>Spieß.</em></span><span class="cut__blade" aria-hidden="true"></span></span></span>
         </h1>
 
         <p class="hero__lead" data-hero-in style="--i:3">

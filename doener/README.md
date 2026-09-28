@@ -25,6 +25,23 @@ Pause-Knopf unten rechts anhalten.
 
 Empfehlung: 10–20 Sekunden, ohne Ton, 1080p, möglichst unter 6 MB.
 
+### Besitzer im Video, Schrift davor
+
+Im Video schneidet der Besitzer Fleisch am Spieß, die Schrift steht im Vordergrund:
+
+- Abgedunkelt wird nur hinter der Schrift (unten links, auf dem Handy unten).
+  Der Rest vom Bild bleibt klar, damit man den Besitzer beim Schneiden sieht.
+- Die Schlagzeile „Frisch vom Spieß.“ wird beim Laden **angeschnitten**: Eine schräge,
+  leuchtende Messerkante zieht durch jede Zeile und legt die Schrift frei.
+- **Bildausschnitt einstellen:** Im `<section class="hero" …>` in `index.html` stehen
+  `--video-pos` (Desktop) und `--video-pos-mobile` (Handy), Werte wie bei
+  `object-position`. `72% 50%` heißt: Der Bildausschnitt rückt nach rechts, sodass der
+  Besitzer rechts neben der Schrift steht. Steht er im Video weiter links, den ersten
+  Wert verkleinern.
+- Tipp zum Drehen: Besitzer und Spieß im rechten Drittel, links etwas Ruhe (Wand, Theke).
+  Fürs Handy am besten eine Hochformat-Version (`hero-mobile.mp4`), in der er
+  in der oberen Bildhälfte steht, weil unten die Schrift sitzt.
+
 ```bash
 # Desktop (1920 px breit, ohne Ton, schnell startend)
 ffmpeg -i original.mov -an -vf "scale=1920:-2" -c:v libx264 -crf 26 -preset slow -pix_fmt yuv420p -movflags +faststart assets/video/hero.mp4

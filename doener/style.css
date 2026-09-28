@@ -414,8 +414,13 @@ button, .btn, [role="tab"], .burger, .round-btn, .media-toggle {
 }
 .hero__video {
   object-fit: cover;
+  /* Bildausschnitt: der Besitzer am Spieß bleibt neben bzw. über der Schrift sichtbar */
+  object-position: var(--video-pos, 72% 50%);
   opacity: 0;
   transition: opacity 900ms ease;
+}
+@media (max-width: 767px) {
+  .hero__video { object-position: var(--video-pos-mobile, 62% 30%); }
 }
 .hero.has-video .hero__video { opacity: 1; }
 .hero.has-video .hero__embers { visibility: hidden; }
@@ -427,6 +432,21 @@ button, .btn, [role="tab"], .burger, .round-btn, .media-toggle {
     linear-gradient(180deg, rgba(18, 16, 14, 0.55) 0%, rgba(18, 16, 14, 0) 26%),
     linear-gradient(0deg, rgba(18, 16, 14, 0.92) 0%, rgba(18, 16, 14, 0.35) 45%, rgba(18, 16, 14, 0.05) 70%),
     linear-gradient(90deg, rgba(18, 16, 14, 0.5) 0%, rgba(18, 16, 14, 0) 60%);
+}
+/* Mit Video: nur hinter der Schrift abdunkeln, der Rest vom Bild bleibt klar */
+.hero__shade { transition: opacity 900ms ease; }
+.hero.has-video .hero__shade {
+  background:
+    linear-gradient(180deg, rgba(18, 16, 14, 0.5) 0%, rgba(18, 16, 14, 0) 18%),
+    linear-gradient(0deg, rgba(18, 16, 14, 0.88) 0%, rgba(18, 16, 14, 0.3) 34%, rgba(18, 16, 14, 0) 58%),
+    radial-gradient(75% 85% at 0% 100%, rgba(18, 16, 14, 0.62) 0%, rgba(18, 16, 14, 0) 70%);
+}
+@media (max-width: 767px) {
+  .hero.has-video .hero__shade {
+    background:
+      linear-gradient(180deg, rgba(18, 16, 14, 0.5) 0%, rgba(18, 16, 14, 0) 16%),
+      linear-gradient(0deg, rgba(18, 16, 14, 0.94) 0%, rgba(18, 16, 14, 0.6) 45%, rgba(18, 16, 14, 0) 72%);
+  }
 }
 .hero__grain {
   position: absolute;
@@ -455,6 +475,7 @@ button, .btn, [role="tab"], .burger, .round-btn, .media-toggle {
   line-height: 0.88;
   letter-spacing: -0.018em;
   text-transform: none;
+  text-shadow: 0 2px 40px rgba(18, 16, 14, 0.35);
 }
 .hero__title .line {
   display: block;
@@ -462,7 +483,9 @@ button, .btn, [role="tab"], .burger, .round-btn, .media-toggle {
   padding-bottom: 0.06em;
   margin-bottom: -0.06em;
 }
-.hero__title .line > span { display: inline-block; }
+.hero__title .cut { position: relative; display: inline-block; }
+.hero__title .cut__text { display: inline-block; }
+.hero__lead, .hero__place { text-shadow: 0 1px 18px rgba(18, 16, 14, 0.6); }
 
 .hero__lead {
   max-width: 30em;
@@ -541,17 +564,42 @@ button, .btn, [role="tab"], .burger, .round-btn, .media-toggle {
   animation: heroIn 1000ms var(--ease-out) both;
   animation-delay: calc(150ms + var(--i, 0) * 90ms);
 }
-.js .hero__title [data-hero-in] {
-  animation-name: heroTitleIn;
-  animation-duration: 1100ms;
-}
 @keyframes heroIn {
   from { opacity: 0; transform: translateY(18px); }
   to { opacity: 1; transform: none; }
 }
-@keyframes heroTitleIn {
-  from { transform: translateY(105%); }
-  to { transform: none; }
+
+/* Schlagzeile wird „angeschnitten“ – eine schräge Messerkante zieht durch jede Zeile,
+   passend zum Besitzer, der im Video am Spieß schneidet */
+.js .hero__title .cut__text {
+  animation: heroSlice 950ms var(--ease-in-out) backwards;
+  animation-delay: calc(250ms + (var(--i, 1) - 1) * 320ms);
+}
+.cut__blade {
+  position: absolute;
+  top: -0.06em;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(180deg, rgba(255, 244, 220, 0) 0%, #fff4dc 30%, var(--saffron) 70%, rgba(255, 194, 71, 0) 100%) no-repeat 0 0 / 3px 100%;
+  filter: drop-shadow(0 0 6px rgba(255, 170, 60, 0.9));
+  transform-origin: 0 100%;
+  pointer-events: none;
+  opacity: 0;
+}
+.js .hero__title .cut__blade {
+  animation: heroBlade 950ms var(--ease-in-out) both;
+  animation-delay: calc(250ms + (var(--i, 1) - 1) * 320ms);
+}
+@keyframes heroSlice {
+  from { clip-path: polygon(-1em -20%, 0.1em -20%, -0.25em 120%, -1em 120%); }
+  to { clip-path: polygon(-1em -20%, calc(100% + 0.6em) -20%, calc(100% + 0.25em) 120%, -1em 120%); }
+}
+@keyframes heroBlade {
+  0% { opacity: 0; transform: translateX(-0.1em) skewX(-14deg); }
+  12% { opacity: 1; }
+  82% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(calc(100% + 0.2em)) skewX(-14deg); }
 }
 
 /* ---------- Laufband ---------- */
@@ -1116,6 +1164,7 @@ button, .btn, [role="tab"], .burger, .round-btn, .media-toggle {
     animation: fadeOnly 400ms ease both;
     animation-delay: 0ms;
   }
+  .js .hero__title .cut__blade { display: none; }
   .js [data-reveal] { transform: none; transition: opacity 400ms ease; }
   .marquee__track,
   .spit__bands,
