@@ -118,8 +118,10 @@ def main():
             "notiz": "",
         })
 
-    # Mit Adresse zuerst, dann nach PLZ -> gut für Laufrouten
-    rows.sort(key=lambda r: (r["strasse"] == "", r["plz"] or "99999", r["strasse"]))
+    # Wichtigste Branchen zuerst, darin mit Adresse zuerst und nach PLZ -> gut für Laufrouten
+    prio = ["Döner/Imbiss", "Umzug", "Pizza", "Imbiss", "Friseur/Barber", "Kiosk"]
+    rang = lambda k: prio.index(k) if k in prio else len(prio)
+    rows.sort(key=lambda r: (rang(r["kategorie"]), r["strasse"] == "", r["plz"] or "99999", r["strasse"]))
     rows = rows[: args.limit]
 
     with open(args.out, "w", newline="", encoding="utf-8-sig") as f:
