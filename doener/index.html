@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>ATEŞ Döner &amp; Grill – Frisch vom Spieß</title>
+  <meta name="description" content="ATEŞ Döner &amp; Grill: Kalbfleisch täglich von Hand geschichtet, Pide aus dem eigenen Ofen, Soßen nach Familienrezept. Speisekarte, Öffnungszeiten und Anfahrt." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#12100e" />
+  <meta name="color-scheme" content="dark light" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preload" href="assets/fonts/bricolage-grotesque-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="style.css" />
+  <script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+  <a class="skip" href="#main">Zum Inhalt springen</a>
+
+  <!-- ============ Header ============ -->
+  <header class="header" data-header>
+    <div class="header__inner">
+      <a class="logo" href="#top" aria-label="ATEŞ Döner &amp; Grill – nach oben">
+        <svg class="logo__mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2c1.6 5.2 7.6 7.8 7.6 15.4A7.6 7.6 0 0 1 16 25a7.6 7.6 0 0 1-7.6-7.6c0-3.3 1.6-5.4 3.2-7 .2 2.4 1.3 4 2.9 4.6C13.6 10 14.8 6 16 2Z" fill="currentColor"/><path d="M16 30c-4.4 0-8-1-8-2.4S11.6 25 16 25s8 1.2 8 2.6S20.4 30 16 30Z" fill="currentColor" opacity=".35"/></svg>
+        <span class="logo__word">ATEŞ</span>
+      </a>
+
+      <nav class="nav" aria-label="Hauptnavigation">
+        <a href="#karte">Speisekarte</a>
+        <a href="#handwerk">Handwerk</a>
+        <a href="#stimmen">Stimmen</a>
+        <a href="#besuch">Besuch</a>
+      </nav>
+
+      <div class="header__actions">
+        <span class="status status--compact" data-open-status aria-live="polite">
+          <span class="status__dot"></span><span data-open-label>Öffnungszeiten</span>
+        </span>
+        <a class="btn btn--fire btn--sm" href="tel:+4930123456789">Bestellen</a>
+        <button class="burger" type="button" aria-expanded="false" aria-controls="mobile-menu" data-burger>
+          <span class="sr-only">Menü öffnen</span>
+          <span class="burger__line burger__line--a"></span><span class="burger__line burger__line--b"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile-Menü -->
+  <div class="mobile-menu" id="mobile-menu" data-mobile-menu hidden>
+    <nav class="mobile-menu__nav" aria-label="Mobile Navigation">
+      <a href="#karte">Speisekarte</a>
+      <a href="#handwerk">Handwerk</a>
+      <a href="#stimmen">Stimmen</a>
+      <a href="#besuch">Besuch</a>
+    </nav>
+    <div class="mobile-menu__foot">
+      <a class="btn btn--fire" href="tel:+4930123456789">030 123 456 789 anrufen</a>
+      <p>Musterstraße 12 · 10115 Berlin</p>
+    </div>
+  </div>
+
+  <main id="main">
+    <!-- ============ Hero mit Hintergrundvideo ============ -->
+    <section class="hero" id="top" data-hero>
+      <div class="hero__media" aria-hidden="true">
+        <!-- Fallback, solange kein Video da ist: animierte Glut -->
+        <canvas class="hero__embers" data-embers></canvas>
+        <!--
+          HINTERGRUNDVIDEO: Datei nach doener/assets/video/hero.mp4 legen.
+          Optional: hero-mobile.mp4 (kleiner, Hochformat) und hero-poster.jpg (erstes Standbild).
+          Anleitung + ffmpeg-Befehle: doener/README.md
+        -->
+        <video class="hero__video" data-hero-video muted loop playsinline autoplay preload="metadata" disablepictureinpicture disableremoteplayback>
+          <source src="assets/video/hero-mobile.mp4" type="video/mp4" media="(max-width: 767px)" />
+          <source src="assets/video/hero.mp4" type="video/mp4" />
+        </video>
+        <div class="hero__shade"></div>
+        <div class="hero__grain"></div>
+      </div>
+
+      <div class="hero__content container">
+        <p class="eyebrow hero__eyebrow" data-hero-in style="--i:0">
+          <span class="status" data-open-status>
+            <span class="status__dot"></span><span data-open-label>Öffnungszeiten</span>
+          </span>
+          <span class="hero__place">Berlin-Mitte · seit 2009</span>
+        </p>
+
+        <h1 class="hero__title">
+          <span class="line"><span data-hero-in style="--i:1">Frisch</span></span>
+          <span class="line"><span data-hero-in style="--i:2">vom <em>Spieß.</em></span></span>
+        </h1>
+
+        <p class="hero__lead" data-hero-in style="--i:3">
+          Kalbfleisch, jeden Morgen von Hand geschichtet. Pide aus dem eigenen Ofen.
+          Drei Soßen nach Familienrezept – seit 15&nbsp;Jahren.
+        </p>
+
+        <div class="hero__cta" data-hero-in style="--i:4">
+          <a class="btn btn--fire" href="#karte">
+            Zur Speisekarte
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12m0 0 5-5m-5 5-5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="btn btn--glass" href="tel:+4930123456789">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 2.8 7.6 5a1.5 1.5 0 0 1 .1 2L6.6 8.3a10 10 0 0 0 5.1 5.1l1.3-1.1a1.5 1.5 0 0 1 2-.1l2.2 2.1a1.5 1.5 0 0 1 0 2.1l-1 1c-1 1-2.5 1.3-3.8.8A16 16 0 0 1 2.1 8.1c-.5-1.3-.2-2.8.8-3.8l1-1a1.5 1.5 0 0 1 1.6-.5Z" fill="currentColor"/></svg>
+            Anrufen &amp; abholen
+          </a>
+        </div>
+      </div>
+
+      <div class="hero__foot container">
+        <a class="scroll-hint" href="#klassiker" aria-label="Weiter nach unten scrollen">
+          <span class="scroll-hint__track"><span class="scroll-hint__thumb"></span></span>
+          Scroll
+        </a>
+        <button class="media-toggle" type="button" data-media-toggle aria-pressed="false">
+          <svg class="icon-pause" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4h2.5v12H6zM11.5 4H14v12h-2.5z" fill="currentColor"/></svg>
+          <svg class="icon-play" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.2v11.6a.6.6 0 0 0 .9.5l9-5.8a.6.6 0 0 0 0-1L6.9 3.7a.6.6 0 0 0-.9.5Z" fill="currentColor"/></svg>
+          <span class="sr-only" data-media-label>Hintergrund-Animation pausieren</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============ Laufband ============ -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <span>Döner</span><i>✦</i><span>Dürüm</span><i>✦</i><span>Iskender</span><i>✦</i><span>Lahmacun</span><i>✦</i><span>Falafel</span><i>✦</i><span>Ayran</span><i>✦</i><span>Baklava</span><i>✦</i>
+        <span>Döner</span><i>✦</i><span>Dürüm</span><i>✦</i><span>Iskender</span><i>✦</i><span>Lahmacun</span><i>✦</i><span>Falafel</span><i>✦</i><span>Ayran</span><i>✦</i><span>Baklava</span><i>✦</i>
+      </div>
+    </div>
+
+    <!-- ============ Klassiker ============ -->
+    <section class="signature section section--cream" id="klassiker">
+      <div class="container signature__grid">
+        <div class="signature__art" data-reveal>
+          <div class="spit" aria-hidden="true">
+            <div class="spit__glow"></div>
+            <svg class="spit__svg" viewBox="0 0 240 360">
+              <defs>
+                <linearGradient id="shade" x1="0" x2="1">
+                  <stop offset="0" stop-color="#1a0802" stop-opacity=".75"/>
+                  <stop offset=".3" stop-color="#1a0802" stop-opacity=".2"/>
+                  <stop offset=".62" stop-color="#ffb060" stop-opacity=".12"/>
+                  <stop offset=".86" stop-color="#ffc070" stop-opacity=".42"/>
+                  <stop offset="1" stop-color="#2a0c03" stop-opacity=".5"/>
+                </linearGradient>
+                <linearGradient id="streak" x1="0" x2="1">
+                  <stop offset="0" stop-color="#2a0c03" stop-opacity="0"/>
+                  <stop offset=".5" stop-color="#2a0c03" stop-opacity=".38"/>
+                  <stop offset="1" stop-color="#2a0c03" stop-opacity="0"/>
+                </linearGradient>
+                <pattern id="bands" width="56" height="64" patternUnits="userSpaceOnUse">
+                  <rect x="4" width="22" height="64" fill="url(#streak)"/>
+                  <ellipse cx="40" cy="14" rx="4" ry="1.6" fill="#2a0c03" opacity=".55"/>
+                  <ellipse cx="12" cy="40" rx="3" ry="1.3" fill="#2a0c03" opacity=".5"/>
+                  <ellipse cx="46" cy="52" rx="2.4" ry="1.1" fill="#ffd08a" opacity=".35"/>
+                  <ellipse cx="30" cy="30" rx="2" ry="1" fill="#ffd08a" opacity=".3"/>
+                </pattern>
+                <clipPath id="cone"><path d="M38 58 Q120 42 202 58 Q200 150 170 300 Q120 312 70 300 Q40 150 38 58 Z"/></clipPath>
+              </defs>
+              <rect x="116" y="6" width="8" height="348" rx="4" fill="#2a2522"/>
+              <ellipse cx="120" cy="54" rx="88" ry="12" fill="#3b3430"/>
+              <g clip-path="url(#cone)">
+                <rect width="240" height="360" fill="#8f4419"/>
+                <path d="M30 50.0 L30 49.3 L45 49.1 L60 50.7 L75 50.1 L90 49.5 L105 50.8 L120 50.8 L135 50.1 L150 50.6 L165 50.4 L180 51.0 L195 49.2 L210 49.6 L210 53.7 L195 53.6 L180 51.6 L165 53.6 L150 52.9 L135 54.4 L120 54.0 L105 51.8 L90 53.0 L75 54.4 L60 53.6 L45 53.5 L30 53.2 Z" fill="#94481c"/>
+                  <path d="M30 52.4 L30 52.0 L45 51.9 L60 53.5 L75 51.9 L90 51.3 L105 51.8 L120 52.2 L135 51.7 L150 53.8 L165 52.6 L180 53.1 L195 53.6 L210 51.0 L210 60.1 L195 61.1 L180 60.9 L165 60.6 L150 59.9 L135 62.2 L120 59.4 L105 60.4 L90 60.4 L75 61.4 L60 62.2 L45 60.9 L30 59.8 Z" fill="#94481c"/>
+                  <path d="M30 60.3 L30 59.8 L45 60.0 L60 59.7 L75 60.4 L90 60.6 L105 59.4 L120 61.6 L135 60.1 L150 61.4 L165 60.7 L180 60.7 L195 60.3 L210 60.3 L210 66.3 L195 67.1 L180 65.4 L165 66.4 L150 64.9 L135 66.0 L120 65.2 L105 65.2 L90 65.4 L75 66.6 L60 66.9 L45 64.5 L30 66.7 Z" fill="#8f4419"/>
+                  <path d="M30 65.1 L30 64.0 L45 63.8 L60 66.7 L75 64.2 L90 65.5 L105 64.0 L120 65.0 L135 65.4 L150 63.9 L165 66.5 L180 66.3 L195 66.4 L210 66.3 L210 69.9 L195 69.4 L180 67.9 L165 67.0 L150 67.8 L135 67.2 L120 67.0 L105 68.9 L90 67.7 L75 69.3 L60 68.5 L45 69.2 L30 67.7 Z" fill="#a4521f"/>
+                  <path d="M30 68.0 L30 67.6 L45 69.2 L60 66.8 L75 67.9 L90 66.4 L105 69.3 L120 68.4 L135 69.3 L150 66.4 L165 69.3 L180 67.0 L195 69.5 L210 68.2 L210 76.8 L195 75.5 L180 75.4 L165 75.3 L150 76.5 L135 74.8 L120 77.1 L105 76.9 L90 76.9 L75 76.3 L60 74.8 L45 75.0 L30 77.6 Z" fill="#8f4419"/>
+                  <path d="M30 75.7 L30 76.9 L45 74.2 L60 76.9 L75 76.8 L90 77.2 L105 77.1 L120 76.5 L135 75.4 L150 74.9 L165 76.4 L180 76.9 L195 75.3 L210 74.8 L210 79.1 L195 80.7 L180 79.6 L165 79.0 L150 79.8 L135 80.2 L120 78.9 L105 80.2 L90 79.2 L75 78.5 L60 78.8 L45 81.0 L30 81.0 Z" fill="#6a2e10"/>
+                  <path d="M30 78.8 L30 80.2 L45 77.9 L60 79.3 L75 77.7 L90 78.8 L105 79.0 L120 79.7 L135 80.3 L150 78.8 L165 77.8 L180 78.7 L195 77.8 L210 79.4 L210 85.7 L195 85.8 L180 85.7 L165 86.5 L150 85.2 L135 86.4 L120 84.1 L105 85.0 L90 85.8 L75 84.7 L60 86.4 L45 85.0 L30 84.8 Z" fill="#94481c"/>
+                  <path d="M30 85.0 L30 83.7 L45 85.9 L60 86.1 L75 86.4 L90 86.4 L105 85.6 L120 86.5 L135 83.5 L150 85.9 L165 85.4 L180 85.8 L195 86.3 L210 83.6 L210 90.8 L195 90.7 L180 90.7 L165 90.7 L150 90.4 L135 92.3 L120 93.4 L105 91.0 L90 90.8 L75 91.0 L60 92.6 L45 91.2 L30 91.9 Z" fill="#b8612a"/>
+                  <path d="M30 91.4 L30 92.0 L45 92.3 L60 91.1 L75 91.1 L90 90.0 L105 90.5 L120 92.4 L135 92.9 L150 90.3 L165 92.8 L180 91.4 L195 90.2 L210 90.5 L210 100.7 L195 99.3 L180 99.0 L165 99.6 L150 100.8 L135 100.5 L120 100.3 L105 101.9 L90 99.0 L75 100.1 L60 99.8 L45 98.8 L30 98.8 Z" fill="#a4521f"/>
+                  <path d="M30 99.8 L30 98.9 L45 101.1 L60 100.7 L75 100.6 L90 99.6 L105 100.9 L120 101.2 L135 100.7 L150 100.3 L165 100.0 L180 99.3 L195 99.5 L210 99.8 L210 105.2 L195 105.5 L180 106.0 L165 105.8 L150 105.7 L135 106.0 L120 106.5 L105 106.4 L90 106.8 L75 105.0 L60 105.2 L45 106.7 L30 106.8 Z" fill="#7a3714"/>
+                  <path d="M30 104.6 L30 104.1 L45 105.9 L60 105.3 L75 105.4 L90 106.1 L105 105.6 L120 103.7 L135 103.8 L150 105.6 L165 103.4 L180 106.0 L195 105.6 L210 105.1 L210 110.5 L195 109.9 L180 109.6 L165 111.0 L150 110.0 L135 111.0 L120 109.1 L105 110.4 L90 109.6 L75 109.5 L60 108.8 L45 110.1 L30 108.9 Z" fill="#7a3714"/>
+                  <path d="M30 109.2 L30 108.7 L45 109.8 L60 110.4 L75 108.0 L90 108.6 L105 110.5 L120 107.6 L135 108.0 L150 108.9 L165 107.7 L180 109.8 L195 110.5 L210 108.1 L210 116.7 L195 119.0 L180 118.2 L165 116.5 L150 116.4 L135 118.0 L120 116.0 L105 118.6 L90 117.9 L75 118.4 L60 116.4 L45 117.0 L30 118.3 Z" fill="#c46f34"/>
+                  <path d="M30 117.0 L30 117.3 L45 117.9 L60 117.6 L75 117.7 L90 117.3 L105 115.7 L120 115.5 L135 117.3 L150 116.1 L165 117.2 L180 116.2 L195 116.1 L210 117.4 L210 126.1 L195 126.7 L180 124.9 L165 127.0 L150 124.3 L135 126.3 L120 125.4 L105 126.7 L90 126.2 L75 126.7 L60 124.5 L45 127.1 L30 125.7 Z" fill="#b8612a"/>
+                  <path d="M30 125.1 L30 126.3 L45 126.0 L60 125.8 L75 126.4 L90 126.3 L105 124.1 L120 125.8 L135 124.0 L150 123.9 L165 126.6 L180 126.6 L195 123.7 L210 123.8 L210 132.3 L195 134.5 L180 134.2 L165 134.5 L150 132.3 L135 132.1 L120 131.5 L105 133.0 L90 133.2 L75 131.9 L60 132.5 L45 133.0 L30 132.2 Z" fill="#a4521f"/>
+                  <path d="M30 132.5 L30 131.2 L45 132.9 L60 132.4 L75 133.4 L90 133.2 L105 132.5 L120 133.1 L135 132.1 L150 132.8 L165 133.9 L180 133.3 L195 133.9 L210 133.1 L210 136.1 L195 136.8 L180 134.7 L165 134.4 L150 136.5 L135 136.3 L120 135.6 L105 135.9 L90 135.4 L75 135.8 L60 134.6 L45 134.4 L30 134.4 Z" fill="#7a3714"/>
+                  <path d="M30 135.2 L30 134.2 L45 135.6 L60 134.0 L75 133.8 L90 133.6 L105 136.3 L120 136.4 L135 133.7 L150 136.0 L165 134.6 L180 134.9 L195 136.5 L210 136.1 L210 138.7 L195 141.9 L180 139.4 L165 140.8 L150 140.1 L135 138.8 L120 139.3 L105 141.1 L90 141.1 L75 139.5 L60 141.5 L45 141.3 L30 139.7 Z" fill="#a4521f"/>
+                  <path d="M30 139.7 L30 138.9 L45 140.9 L60 140.9 L75 140.3 L90 139.7 L105 140.9 L120 140.7 L135 140.7 L150 140.5 L165 141.2 L180 140.3 L195 139.0 L210 140.4 L210 144.9 L195 146.6 L180 144.4 L165 146.6 L150 146.0 L135 146.5 L120 145.4 L105 146.4 L90 146.5 L75 144.0 L60 144.6 L45 144.5 L30 143.9 Z" fill="#a4521f"/>
+                  <path d="M30 144.9 L30 145.3 L45 146.0 L60 146.0 L75 145.9 L90 143.9 L105 145.1 L120 144.7 L135 144.5 L150 145.0 L165 145.7 L180 144.9 L195 144.5 L210 144.9 L210 150.5 L195 152.0 L180 152.2 L165 150.7 L150 150.5 L135 151.7 L120 151.5 L105 152.7 L90 151.5 L75 150.7 L60 151.7 L45 151.6 L30 151.8 Z" fill="#c46f34"/>
+                  <path d="M30 150.7 L30 149.8 L45 149.5 L60 150.2 L75 151.2 L90 151.9 L105 151.2 L120 150.4 L135 150.2 L150 150.4 L165 149.5 L180 149.6 L195 149.3 L210 150.7 L210 156.8 L195 155.8 L180 157.6 L165 156.8 L150 157.0 L135 155.9 L120 158.2 L105 156.4 L90 156.5 L75 155.9 L60 156.2 L45 157.0 L30 156.2 Z" fill="#8f4419"/>
+                  <path d="M30 156.6 L30 157.4 L45 157.5 L60 156.5 L75 157.7 L90 157.1 L105 155.3 L120 157.0 L135 157.3 L150 157.8 L165 156.8 L180 158.1 L195 155.9 L210 158.1 L210 161.7 L195 161.9 L180 162.6 L165 164.3 L150 164.5 L135 163.9 L120 163.4 L105 162.4 L90 163.3 L75 164.1 L60 162.2 L45 164.2 L30 163.8 Z" fill="#6a2e10"/>
+                  <path d="M30 162.6 L30 162.0 L45 161.1 L60 163.4 L75 162.6 L90 163.0 L105 163.2 L120 163.2 L135 161.1 L150 163.3 L165 164.1 L180 163.7 L195 163.2 L210 162.8 L210 168.2 L195 169.5 L180 169.3 L165 168.9 L150 167.6 L135 170.3 L120 169.6 L105 170.6 L90 168.5 L75 169.9 L60 170.5 L45 169.3 L30 169.5 Z" fill="#94481c"/>
+                  <path d="M30 168.5 L30 168.3 L45 168.3 L60 167.0 L75 168.7 L90 169.4 L105 169.6 L120 167.2 L135 167.9 L150 168.9 L165 168.2 L180 167.9 L195 167.8 L210 167.1 L210 172.3 L195 172.5 L180 173.1 L165 172.7 L150 172.8 L135 172.5 L120 173.1 L105 174.0 L90 174.1 L75 172.6 L60 173.7 L45 174.2 L30 173.2 Z" fill="#8f4419"/>
+                  <path d="M30 172.1 L30 170.6 L45 171.4 L60 170.6 L75 173.2 L90 170.8 L105 171.2 L120 172.6 L135 171.2 L150 171.4 L165 170.9 L180 172.9 L195 171.5 L210 172.5 L210 178.3 L195 176.0 L180 178.5 L165 178.8 L150 178.4 L135 179.0 L120 176.1 L105 176.5 L90 176.0 L75 179.1 L60 177.4 L45 176.8 L30 177.6 Z" fill="#6a2e10"/>
+                  <path d="M30 176.9 L30 177.8 L45 175.3 L60 175.7 L75 177.3 L90 177.7 L105 175.6 L120 176.2 L135 176.6 L150 177.8 L165 177.5 L180 177.3 L195 175.8 L210 178.3 L210 186.5 L195 185.3 L180 185.6 L165 183.8 L150 186.2 L135 183.8 L120 184.4 L105 185.5 L90 184.7 L75 184.8 L60 186.5 L45 184.8 L30 185.1 Z" fill="#6a2e10"/>
+                  <path d="M30 184.3 L30 183.3 L45 183.3 L60 185.4 L75 183.8 L90 185.9 L105 184.5 L120 183.1 L135 184.3 L150 184.3 L165 182.8 L180 184.5 L195 185.3 L210 184.1 L210 190.4 L195 189.9 L180 191.7 L165 191.1 L150 190.1 L135 192.3 L120 189.7 L105 192.6 L90 192.0 L75 192.5 L60 191.8 L45 191.9 L30 192.4 Z" fill="#7a3714"/>
+                  <path d="M30 190.7 L30 190.6 L45 189.1 L60 189.5 L75 189.4 L90 189.3 L105 190.7 L120 189.5 L135 189.8 L150 190.2 L165 191.2 L180 189.9 L195 189.9 L210 191.4 L210 196.1 L195 195.9 L180 196.5 L165 194.3 L150 194.6 L135 195.5 L120 195.0 L105 195.6 L90 195.0 L75 195.5 L60 196.5 L45 196.5 L30 195.0 Z" fill="#6a2e10"/>
+                  <path d="M30 194.7 L30 195.5 L45 196.1 L60 193.9 L75 196.2 L90 196.1 L105 195.4 L120 195.0 L135 195.2 L150 196.0 L165 193.7 L180 194.7 L195 194.5 L210 195.6 L210 200.7 L195 200.5 L180 200.2 L165 198.3 L150 199.2 L135 200.7 L120 200.1 L105 198.4 L90 200.1 L75 201.3 L60 198.3 L45 201.3 L30 200.4 Z" fill="#94481c"/>
+                  <path d="M30 199.3 L30 200.6 L45 200.6 L60 197.9 L75 200.1 L90 198.8 L105 199.9 L120 198.0 L135 199.0 L150 197.9 L165 198.7 L180 198.9 L195 198.7 L210 198.9 L210 204.0 L195 205.2 L180 205.3 L165 206.5 L150 206.6 L135 204.1 L120 205.4 L105 205.8 L90 206.0 L75 204.4 L60 204.3 L45 205.3 L30 204.1 Z" fill="#94481c"/>
+                  <path d="M30 205.0 L30 204.0 L45 206.5 L60 206.2 L75 205.2 L90 203.9 L105 204.7 L120 205.6 L135 204.3 L150 204.8 L165 204.4 L180 204.6 L195 204.0 L210 203.4 L210 208.7 L195 210.0 L180 210.1 L165 208.1 L150 211.0 L135 208.3 L120 208.4 L105 210.4 L90 210.2 L75 210.2 L60 209.9 L45 211.0 L30 208.2 Z" fill="#6a2e10"/>
+                  <path d="M30 209.0 L30 208.6 L45 208.5 L60 208.1 L75 207.5 L90 207.9 L105 209.1 L120 210.5 L135 207.9 L150 209.1 L165 209.4 L180 207.8 L195 210.4 L210 209.6 L210 214.2 L195 214.9 L180 214.1 L165 212.4 L150 213.1 L135 213.3 L120 212.8 L105 212.4 L90 213.2 L75 214.4 L60 214.0 L45 214.1 L30 214.5 Z" fill="#8f4419"/>
+                  <path d="M30 212.9 L30 211.3 L45 212.4 L60 214.4 L75 213.4 L90 213.7 L105 214.0 L120 212.6 L135 213.8 L150 212.5 L165 213.0 L180 211.3 L195 213.1 L210 211.3 L210 221.1 L195 221.0 L180 220.6 L165 219.9 L150 221.0 L135 220.0 L120 221.1 L105 219.7 L90 219.5 L75 221.9 L60 221.2 L45 222.0 L30 222.2 Z" fill="#b8612a"/>
+                  <path d="M30 220.4 L30 221.5 L45 220.0 L60 221.7 L75 220.0 L90 220.0 L105 218.9 L120 219.1 L135 219.1 L150 218.9 L165 220.7 L180 221.0 L195 219.5 L210 218.8 L210 226.0 L195 228.0 L180 228.9 L165 228.7 L150 228.4 L135 228.8 L120 228.2 L105 227.6 L90 227.8 L75 226.0 L60 227.0 L45 227.3 L30 227.5 Z" fill="#c46f34"/>
+                  <path d="M30 226.8 L30 227.3 L45 226.8 L60 227.5 L75 226.3 L90 228.0 L105 225.3 L120 225.4 L135 227.4 L150 228.4 L165 225.9 L180 225.3 L195 225.9 L210 225.3 L210 232.7 L195 233.5 L180 233.3 L165 232.6 L150 234.0 L135 231.4 L120 234.0 L105 234.1 L90 232.7 L75 232.4 L60 232.0 L45 233.3 L30 231.6 Z" fill="#6a2e10"/>
+                  <path d="M30 232.3 L30 231.0 L45 232.5 L60 233.7 L75 230.8 L90 233.6 L105 231.5 L120 232.6 L135 230.8 L150 233.6 L165 232.7 L180 231.5 L195 232.7 L210 231.8 L210 237.1 L195 236.8 L180 238.5 L165 238.1 L150 238.5 L135 238.3 L120 235.6 L105 236.3 L90 237.1 L75 237.2 L60 235.9 L45 237.3 L30 236.2 Z" fill="#6a2e10"/>
+                  <path d="M30 236.5 L30 237.5 L45 236.0 L60 235.2 L75 235.4 L90 235.6 L105 235.0 L120 237.8 L135 237.2 L150 237.0 L165 237.5 L180 235.1 L195 236.8 L210 237.7 L210 240.6 L195 241.7 L180 241.4 L165 242.7 L150 242.3 L135 243.3 L120 240.3 L105 240.6 L90 243.0 L75 242.9 L60 242.2 L45 240.6 L30 241.8 Z" fill="#6a2e10"/>
+                  <path d="M30 241.2 L30 241.7 L45 240.5 L60 239.9 L75 239.9 L90 241.0 L105 242.6 L120 241.7 L135 242.2 L150 242.5 L165 242.4 L180 242.0 L195 240.7 L210 241.8 L210 247.7 L195 247.6 L180 246.9 L165 247.4 L150 247.6 L135 247.2 L120 245.9 L105 248.1 L90 247.6 L75 246.0 L60 246.5 L45 245.8 L30 248.0 Z" fill="#c46f34"/>
+                  <path d="M30 246.3 L30 247.5 L45 246.9 L60 247.1 L75 245.0 L90 246.9 L105 247.3 L120 244.7 L135 247.0 L150 246.0 L165 245.3 L180 244.8 L195 245.4 L210 246.2 L210 252.2 L195 250.9 L180 251.0 L165 249.1 L150 250.3 L135 249.7 L120 252.1 L105 249.3 L90 249.8 L75 251.1 L60 249.9 L45 252.0 L30 249.5 Z" fill="#a4521f"/>
+                  <path d="M30 250.0 L30 249.7 L45 251.6 L60 249.3 L75 248.5 L90 251.0 L105 249.8 L120 249.6 L135 251.3 L150 250.4 L165 250.7 L180 250.6 L195 249.5 L210 251.3 L210 255.1 L195 252.8 L180 254.5 L165 252.9 L150 254.3 L135 253.9 L120 255.1 L105 254.4 L90 252.8 L75 255.9 L60 255.7 L45 255.3 L30 254.4 Z" fill="#c46f34"/>
+                  <path d="M30 253.8 L30 254.4 L45 254.8 L60 253.2 L75 254.4 L90 255.2 L105 254.5 L120 254.6 L135 254.8 L150 254.4 L165 255.0 L180 252.5 L195 253.9 L210 253.5 L210 261.7 L195 259.2 L180 261.1 L165 259.7 L150 260.4 L135 260.2 L120 258.8 L105 260.9 L90 259.0 L75 260.2 L60 259.1 L45 258.9 L30 259.3 Z" fill="#b8612a"/>
+                  <path d="M30 259.7 L30 260.8 L45 258.8 L60 258.3 L75 259.4 L90 258.3 L105 261.0 L120 260.8 L135 259.9 L150 261.2 L165 261.3 L180 260.9 L195 258.7 L210 260.5 L210 266.2 L195 267.7 L180 265.3 L165 267.3 L150 265.0 L135 267.7 L120 265.9 L105 266.1 L90 264.7 L75 265.3 L60 266.2 L45 266.9 L30 267.3 Z" fill="#6a2e10"/>
+                  <path d="M30 265.5 L30 266.5 L45 265.5 L60 267.1 L75 266.1 L90 265.4 L105 265.5 L120 265.0 L135 264.9 L150 264.0 L165 265.5 L180 265.1 L195 265.2 L210 266.5 L210 270.9 L195 272.0 L180 269.6 L165 269.9 L150 271.7 L135 270.0 L120 271.0 L105 270.5 L90 271.3 L75 270.8 L60 270.2 L45 269.6 L30 270.5 Z" fill="#b8612a"/>
+                  <path d="M30 270.2 L30 268.9 L45 271.2 L60 269.0 L75 271.5 L90 269.9 L105 270.5 L120 270.3 L135 270.1 L150 270.4 L165 268.6 L180 270.0 L195 271.5 L210 270.0 L210 276.9 L195 276.2 L180 274.7 L165 276.1 L150 276.0 L135 277.7 L120 276.0 L105 275.8 L90 275.2 L75 274.9 L60 276.0 L45 277.0 L30 275.5 Z" fill="#c46f34"/>
+                  <path d="M30 275.6 L30 274.8 L45 276.8 L60 275.9 L75 277.0 L90 276.6 L105 276.8 L120 275.3 L135 274.8 L150 275.6 L165 274.6 L180 276.3 L195 276.0 L210 275.2 L210 285.4 L195 284.7 L180 286.0 L165 283.1 L150 285.6 L135 285.0 L120 284.8 L105 283.9 L90 284.2 L75 285.4 L60 286.0 L45 284.8 L30 284.8 Z" fill="#8f4419"/>
+                  <path d="M30 283.9 L30 284.1 L45 283.5 L60 285.2 L75 284.5 L90 285.1 L105 283.0 L120 284.7 L135 284.9 L150 282.5 L165 284.5 L180 285.0 L195 284.4 L210 282.3 L210 290.4 L195 291.8 L180 291.9 L165 290.1 L150 290.5 L135 292.8 L120 291.7 L105 290.5 L90 291.9 L75 292.1 L60 290.1 L45 291.8 L30 290.9 Z" fill="#8f4419"/>
+                  <path d="M30 291.0 L30 291.3 L45 291.1 L60 292.0 L75 290.0 L90 292.3 L105 290.9 L120 291.0 L135 292.4 L150 291.5 L165 292.1 L180 289.9 L195 292.5 L210 289.8 L210 296.9 L195 295.6 L180 295.0 L165 296.2 L150 296.1 L135 296.6 L120 294.7 L105 297.2 L90 295.6 L75 296.9 L60 296.9 L45 296.6 L30 296.2 Z" fill="#a4521f"/>
+                  <path d="M30 295.4 L30 295.3 L45 296.5 L60 296.0 L75 294.7 L90 294.9 L105 296.4 L120 295.4 L135 294.6 L150 295.8 L165 295.8 L180 295.7 L195 294.7 L210 296.6 L210 305.1 L195 302.7 L180 304.7 L165 305.1 L150 304.8 L135 302.6 L120 302.7 L105 302.4 L90 303.2 L75 304.3 L60 305.0 L45 302.1 L30 304.8 Z" fill="#7a3714"/>
+                  <path d="M30 303.0 L30 301.6 L45 302.8 L60 303.3 L75 301.4 L90 302.7 L105 302.8 L120 302.4 L135 302.9 L150 303.7 L165 302.2 L180 301.5 L195 304.5 L210 304.0 L210 309.7 L195 310.4 L180 308.7 L165 308.0 L150 308.6 L135 307.6 L120 309.8 L105 310.6 L90 310.6 L75 308.0 L60 308.8 L45 309.3 L30 308.7 Z" fill="#7a3714"/>
+                  <path d="M30 308.4 L30 309.2 L45 308.1 L60 306.9 L75 308.7 L90 307.6 L105 307.6 L120 309.8 L135 308.7 L150 309.6 L165 306.9 L180 309.2 L195 308.9 L210 309.1 L210 311.0 L195 312.1 L180 313.4 L165 312.6 L150 314.0 L135 311.5 L120 312.1 L105 311.1 L90 311.7 L75 313.1 L60 313.7 L45 311.3 L30 313.9 Z" fill="#c46f34"/>
+                <g class="spit__bands"><rect x="-56" width="352" height="360" fill="url(#bands)"/></g>
+                <rect width="240" height="360" fill="url(#shade)"/>
+              </g>
+              <path d="M202 58 Q200 150 170 300" fill="none" stroke="#ffb35c" stroke-width="2.5" stroke-linecap="round" opacity=".55"/>
+              <ellipse cx="120" cy="304" rx="52" ry="8" fill="#2a2522"/>
+              <rect x="92" y="330" width="56" height="10" rx="5" fill="#2a2522"/>
+            </svg>
+          </div>
+          <span class="sticker">Hausrezept<br />seit 2009</span>
+        </div>
+
+        <div class="signature__copy">
+          <p class="eyebrow" data-reveal>Unser Klassiker</p>
+          <h2 class="h2" data-reveal>Der Döner, für den man <em>Schlange</em> steht.</h2>
+          <p class="lead" data-reveal>
+            Knusprige Pide, außen goldbraun und innen fluffig. Zartes Kalbfleisch direkt vom Spieß,
+            dazu Salat, Tomate, Zwiebel, Rotkohl – und unsere drei Soßen: Knoblauch, Kräuter, scharf.
+          </p>
+          <ul class="chips" data-reveal>
+            <li>Kalb aus der Region</li>
+            <li>Pide aus dem Ofen</li>
+            <li>3 hausgemachte Soßen</li>
+            <li>Halal</li>
+          </ul>
+          <div class="price-row" data-reveal>
+            <p class="price-tag"><span class="price-tag__label">Döner Klassik</span><span class="price-tag__value">7,50&nbsp;€</span></p>
+            <a class="btn btn--dark" href="#karte">Ganze Karte</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Speisekarte ============ -->
+    <section class="menu section section--cream" id="karte">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow" data-reveal>Speisekarte</p>
+          <h2 class="h2" data-reveal>Alles, was vom <em>Grill</em> kommt.</h2>
+        </div>
+
+        <div class="tabs" data-tabs data-reveal>
+          <div class="tabs__scroller">
+            <div class="tabs__list" role="tablist" aria-label="Kategorien">
+              <button class="tabs__tab" role="tab" id="tab-doener" aria-controls="panel-doener" aria-selected="true">Döner</button>
+              <button class="tabs__tab" role="tab" id="tab-duerum" aria-controls="panel-duerum" aria-selected="false" tabindex="-1">Dürüm</button>
+              <button class="tabs__tab" role="tab" id="tab-teller" aria-controls="panel-teller" aria-selected="false" tabindex="-1">Teller &amp; Box</button>
+              <button class="tabs__tab" role="tab" id="tab-veggie" aria-controls="panel-veggie" aria-selected="false" tabindex="-1">Veggie &amp; Vegan</button>
+              <button class="tabs__tab" role="tab" id="tab-extras" aria-controls="panel-extras" aria-selected="false" tabindex="-1">Extras &amp; Getränke</button>
+            </div>
+            <!-- Aktive Kopie, per clip-path auf den aktiven Tab zugeschnitten -->
+            <div class="tabs__list tabs__list--active" aria-hidden="true" data-tabs-active>
+              <span class="tabs__tab">Döner</span>
+              <span class="tabs__tab">Dürüm</span>
+              <span class="tabs__tab">Teller &amp; Box</span>
+              <span class="tabs__tab">Veggie &amp; Vegan</span>
+              <span class="tabs__tab">Extras &amp; Getränke</span>
+            </div>
+          </div>
+
+          <div class="tabs__panel" role="tabpanel" id="panel-doener" aria-labelledby="tab-doener" tabindex="0">
+            <ul class="dishes">
+              <li class="dish"><div class="dish__main"><h3>Döner Kebap Klassik</h3><p>Kalbfleisch, Salat, Tomate, Zwiebel, Rotkohl, drei Soßen</p></div><span class="dish__price">7,50&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Hähnchen-Döner</h3><p>Über Nacht in Joghurt &amp; Paprika mariniert</p></div><span class="dish__price">7,00&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Döner Spezial <span class="tag tag--hot">Beliebt</span></h3><p>Mit Hirtenkäse und gegrilltem Gemüse</p></div><span class="dish__price">8,50&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Ateş Feuer-Döner <span class="tag tag--chili">Scharf</span></h3><p>Hausgemachte Chilipaste, Jalapeños, Acuka</p></div><span class="dish__price">8,50&nbsp;€</span></li>
+            </ul>
+          </div>
+          <div class="tabs__panel" role="tabpanel" id="panel-duerum" aria-labelledby="tab-duerum" tabindex="0" hidden>
+            <ul class="dishes">
+              <li class="dish"><div class="dish__main"><h3>Dürüm Kalb</h3><p>Im hauchdünnen Yufka gerollt, mit Salat &amp; Soße</p></div><span class="dish__price">8,50&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Dürüm Hähnchen</h3><p>Mariniertes Hähnchen, Salat, Knoblauchsoße</p></div><span class="dish__price">8,00&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Dürüm Falafel <span class="tag tag--herb">Vegan</span></h3><p>Frische Falafel, Hummus, Petersilie, Granatapfel</p></div><span class="dish__price">7,50&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Dürüm Halloumi <span class="tag tag--herb">Vegetarisch</span></h3><p>Gegrillter Halloumi, Rucola, Minz-Joghurt</p></div><span class="dish__price">8,00&nbsp;€</span></li>
+            </ul>
+          </div>
+          <div class="tabs__panel" role="tabpanel" id="panel-teller" aria-labelledby="tab-teller" tabindex="0" hidden>
+            <ul class="dishes">
+              <li class="dish"><div class="dish__main"><h3>Dönerteller mit Pommes</h3><p>Große Portion Fleisch, Salat, zwei Soßen</p></div><span class="dish__price">12,90&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Dönerteller mit Reis</h3><p>Bulgur-Reis, Salat, Cacık</p></div><span class="dish__price">12,90&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Iskender <span class="tag tag--new">Neu</span></h3><p>Auf Pide, mit Tomatenbutter und Joghurt</p></div><span class="dish__price">14,50&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Dönerbox</h3><p>Fleisch, Pommes, Soße – für unterwegs</p></div><span class="dish__price">6,50&nbsp;€</span></li>
+            </ul>
+          </div>
+          <div class="tabs__panel" role="tabpanel" id="panel-veggie" aria-labelledby="tab-veggie" tabindex="0" hidden>
+            <ul class="dishes">
+              <li class="dish"><div class="dish__main"><h3>Falafel im Brot <span class="tag tag--herb">Vegan</span></h3><p>Sechs Falafel, Hummus, Salat, Sesamsoße</p></div><span class="dish__price">6,50&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Halloumi im Brot <span class="tag tag--herb">Vegetarisch</span></h3><p>Gegrillter Halloumi, Gemüse, Kräutersoße</p></div><span class="dish__price">7,50&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Gemüse-Döner <span class="tag tag--new">Neu</span></h3><p>Seitan vom Spieß, vegane Knoblauchsoße</p></div><span class="dish__price">7,50&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Mercimek <span class="tag tag--herb">Vegan</span></h3><p>Rote Linsensuppe mit Zitrone und Pide</p></div><span class="dish__price">4,50&nbsp;€</span></li>
+            </ul>
+          </div>
+          <div class="tabs__panel" role="tabpanel" id="panel-extras" aria-labelledby="tab-extras" tabindex="0" hidden>
+            <ul class="dishes">
+              <li class="dish"><div class="dish__main"><h3>Pommes</h3><p>Mit Ketchup, Mayo oder Knoblauchsoße</p></div><span class="dish__price">3,50&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Ayran, hausgemacht</h3><p>Frisch aufgeschäumt, 0,3&nbsp;l</p></div><span class="dish__price">2,50&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Çay</h3><p>Schwarzer Tee im Tulpenglas</p></div><span class="dish__price">1,50&nbsp;€</span></li>
+              <li class="dish"><div class="dish__main"><h3>Baklava</h3><p>Drei Stück, mit Pistazie</p></div><span class="dish__price">4,00&nbsp;€</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="menu__note" data-reveal>Alle Preise inkl. MwSt. · Allergene und Zusatzstoffe auf Nachfrage an der Theke.</p>
+      </div>
+    </section>
+
+    <!-- ============ Handwerk ============ -->
+    <section class="craft section section--dark" id="handwerk">
+      <div class="container">
+        <div class="section-head section-head--split">
+          <div>
+            <p class="eyebrow" data-reveal>Handwerk</p>
+            <h2 class="h2" data-reveal>Kein Fertigspieß. <em>Niemals.</em></h2>
+          </div>
+          <p class="lead" data-reveal>Jeden Morgen um sechs steht bei uns jemand an der Theke und schichtet den Spieß – Lage für Lage. So schmeckt man den Unterschied.</p>
+        </div>
+
+        <ol class="steps">
+          <li class="step" data-reveal>
+            <span class="step__num">01</span>
+            <h3>Über Nacht mariniert</h3>
+            <p>Kalbfleisch aus der Region, 24&nbsp;Stunden in Joghurt, Zwiebel und unserer Gewürzmischung.</p>
+          </li>
+          <li class="step" data-reveal>
+            <span class="step__num">02</span>
+            <h3>Von Hand geschichtet</h3>
+            <p>Scheibe für Scheibe auf den Spieß. Ohne Hackfleisch-Füllung, ohne Abkürzung.</p>
+          </li>
+          <li class="step" data-reveal>
+            <span class="step__num">03</span>
+            <h3>Pide aus dem Ofen</h3>
+            <p>Alle 30&nbsp;Minuten frisch gebacken – außen knusprig, innen weich und warm.</p>
+          </li>
+        </ol>
+
+        <dl class="stats">
+          <div class="stat" data-reveal><dt>Döner pro Woche</dt><dd><span data-count="1200" data-format="thousand">1.200</span>+</dd></div>
+          <div class="stat" data-reveal><dt>Google-Bewertung</dt><dd><span data-count="4.8" data-decimals="1">4,8</span><small>★</small></dd></div>
+          <div class="stat" data-reveal><dt>Hausgemachte Soßen</dt><dd><span data-count="3">3</span></dd></div>
+          <div class="stat" data-reveal><dt>Jahre am Spieß</dt><dd><span data-count="15">15</span></dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ============ Stimmen ============ -->
+    <section class="reviews section section--cream" id="stimmen">
+      <div class="container">
+        <div class="section-head section-head--split">
+          <div>
+            <p class="eyebrow" data-reveal>Stimmen</p>
+            <h2 class="h2" data-reveal>Was unsere Gäste <em>sagen.</em></h2>
+          </div>
+          <div class="reviews__nav" data-reveal>
+            <button class="round-btn" type="button" data-carousel-prev aria-label="Vorherige Bewertung">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4 6 10l6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="round-btn" type="button" data-carousel-next aria-label="Nächste Bewertung">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 4 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <ul class="carousel" data-carousel tabindex="0" aria-label="Bewertungen">
+        <li class="review">
+          <p class="review__stars" aria-label="5 von 5 Sternen">★★★★★</p>
+          <blockquote>„Bester Döner der Stadt, und ich habe viele probiert. Das Brot allein ist den Weg wert.“</blockquote>
+          <p class="review__who">Lena M. <span>· Google</span></p>
+        </li>
+        <li class="review">
+          <p class="review__stars" aria-label="5 von 5 Sternen">★★★★★</p>
+          <blockquote>„Man sieht morgens, wie der Spieß geschichtet wird. Schmeckt man. Der Feuer-Döner ist brutal gut.“</blockquote>
+          <p class="review__who">Murat K. <span>· Google</span></p>
+        </li>
+        <li class="review">
+          <p class="review__stars" aria-label="5 von 5 Sternen">★★★★★</p>
+          <blockquote>„Endlich ein richtig guter veganer Döner. Die Seitan-Variante ist kein Kompromiss.“</blockquote>
+          <p class="review__who">Aylin S. <span>· Instagram</span></p>
+        </li>
+        <li class="review">
+          <p class="review__stars" aria-label="4 von 5 Sternen">★★★★<span class="dim">★</span></p>
+          <blockquote>„Freitagabend lange Schlange, aber es geht schnell. Und der Ayran ist wirklich selbst gemacht.“</blockquote>
+          <p class="review__who">Jonas B. <span>· Google</span></p>
+        </li>
+        <li class="review">
+          <p class="review__stars" aria-label="5 von 5 Sternen">★★★★★</p>
+          <blockquote>„Iskender wie in Bursa. Hätte ich in Berlin nicht erwartet. Komme jede Woche.“</blockquote>
+          <p class="review__who">Tobias R. <span>· Google</span></p>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ============ Besuch ============ -->
+    <section class="visit section section--dark" id="besuch">
+      <div class="container visit__grid">
+        <div class="visit__info">
+          <p class="eyebrow" data-reveal>Besuch uns</p>
+          <h2 class="h2" data-reveal>Hunger? Wir haben <em>offen.</em></h2>
+
+          <address class="visit__address" data-reveal>
+            ATEŞ Döner &amp; Grill<br />
+            Musterstraße 12<br />
+            10115 Berlin
+          </address>
+
+          <table class="hours" data-hours data-reveal>
+            <caption class="sr-only">Öffnungszeiten</caption>
+            <tbody>
+              <tr data-days="1"><th scope="row">Montag</th><td>10:00 – 01:00</td></tr>
+              <tr data-days="2"><th scope="row">Dienstag</th><td>10:00 – 01:00</td></tr>
+              <tr data-days="3"><th scope="row">Mittwoch</th><td>10:00 – 01:00</td></tr>
+              <tr data-days="4"><th scope="row">Donnerstag</th><td>10:00 – 01:00</td></tr>
+              <tr data-days="5"><th scope="row">Freitag</th><td>10:00 – 03:00</td></tr>
+              <tr data-days="6"><th scope="row">Samstag</th><td>10:00 – 03:00</td></tr>
+              <tr data-days="0"><th scope="row">Sonntag</th><td>11:00 – 00:00</td></tr>
+            </tbody>
+          </table>
+
+          <div class="visit__cta" data-reveal>
+            <a class="btn btn--fire" href="https://www.google.com/maps/search/?api=1&amp;query=Musterstra%C3%9Fe+12+10115+Berlin" target="_blank" rel="noopener">Route planen</a>
+            <a class="btn btn--glass" href="tel:+4930123456789">030 123 456 789</a>
+          </div>
+        </div>
+
+        <div class="map" data-reveal aria-hidden="true">
+          <svg class="map__svg" viewBox="0 0 400 440" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="440" fill="#1d1a17"/>
+            <g fill="#26221e">
+              <rect x="18" y="20" width="120" height="96" rx="6"/><rect x="160" y="20" width="96" height="96" rx="6"/><rect x="278" y="20" width="104" height="150" rx="6"/>
+              <rect x="18" y="138" width="120" height="130" rx="6"/><rect x="160" y="138" width="96" height="60" rx="6"/>
+              <rect x="18" y="290" width="70" height="130" rx="6"/><rect x="110" y="290" width="146" height="130" rx="6"/><rect x="278" y="192" width="104" height="228" rx="6"/>
+            </g>
+            <rect x="160" y="220" width="96" height="48" rx="6" fill="#2a3a2c"/>
+            <path d="M-10 280 C 120 270, 260 290, 410 250" stroke="#3a332d" stroke-width="14" fill="none"/>
+            <path d="M-10 280 C 120 270, 260 290, 410 250" stroke="#4a4038" stroke-width="2" stroke-dasharray="8 10" fill="none"/>
+          </svg>
+          <div class="map__pin">
+            <span class="map__pulse"></span>
+            <svg viewBox="0 0 32 32"><path d="M16 2c1.6 5.2 7.6 7.8 7.6 15.4A7.6 7.6 0 0 1 16 25a7.6 7.6 0 0 1-7.6-7.6c0-3.3 1.6-5.4 3.2-7 .2 2.4 1.3 4 2.9 4.6C13.6 10 14.8 6 16 2Z" fill="currentColor"/></svg>
+          </div>
+          <p class="map__label">3 Min. vom U-Bahnhof<br />Musterplatz</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ Footer ============ -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p class="footer__word" aria-hidden="true">ATEŞ</p>
+      <div class="footer__row">
+        <p>© <span data-year>2026</span> ATEŞ Döner &amp; Grill · Demo-Website, alle Inhalte sind Platzhalter.</p>
+        <nav class="footer__links" aria-label="Rechtliches">
+          <a href="#">Impressum</a>
+          <a href="#">Datenschutz</a>
+          <a href="https://www.instagram.com/" target="_blank" rel="noopener">Instagram</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile Aktionsleiste -->
+  <div class="action-bar" data-action-bar>
+    <a class="btn btn--glass" href="https://www.google.com/maps/search/?api=1&amp;query=Musterstra%C3%9Fe+12+10115+Berlin" target="_blank" rel="noopener">Route</a>
+    <a class="btn btn--fire" href="tel:+4930123456789">Anrufen &amp; bestellen</a>
+  </div>
+
+  <script src="main.js" defer></script>
+</body>
+</html>
