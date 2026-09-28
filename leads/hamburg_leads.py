@@ -12,6 +12,7 @@ import argparse
 import csv
 import json
 import sys
+import time
 import urllib.parse
 import urllib.request
 
@@ -26,7 +27,7 @@ CATEGORIES = {
     "Pizza": '["amenity"~"^(fast_food|restaurant)$"]["cuisine"~"pizza",i]',
     "Imbiss sonstige": '["amenity"="fast_food"][!"cuisine"]',
     "Umzug": '["office"="moving_company"]',
-    "Umzug (Name)": '["name"~"umz(u|ü)g|transport|entrümpel",i]["shop"!~"."]',
+    "Umzug (Name)": '["name"~"umz(u|ü)g|entrümpel",i]["office"]',
     "Friseur/Barber": '["shop"="hairdresser"]',
     "Kiosk": '["shop"="kiosk"]',
     "Handwerker": '["craft"]',
@@ -38,17 +39,14 @@ area["name"="Hamburg"]["admin_level"="4"]->.hh;
 out center tags;"""
 
 
-def build_query():
-    parts = []
-    for flt in CATEGORIES.values():
-        parts.append(f'nwr(area.hh){flt}["name"][!"website"][!"contact:website"][!"url"];')
-    return QUERY.format(parts="\n".join(parts))
+def build_query(flt):
+    return QUERY.format(parts=f'nwr(area.hh){flt}["name"][!"website"][!"contact:website"][!"url"];')
 
 
 def fetch(query):
     data = urllib.parse.urlencode({"data": query}).encode()
     last = None
-    for url in ENDPOINTS:
+    for url in ENDPOINTS * 3:
         try:
             req = urllib.request.Request(url, data=data, headers={"User-Agent": "hamburg-leads/1.0"})
             with urllib.request.urlopen(req, timeout=240) as r:
@@ -56,7 +54,9 @@ def fetch(query):
         except Exception as e:  # nächsten Server probieren
             last = e
             print(f"{url} fehlgeschlagen: {e}", file=sys.stderr)
-    raise SystemExit(f"Kein Overpass-Server erreichbar: {last}")
+            time.sleep(15)
+    print(f"Übersprungen, kein Server erreichbar: {last}", file=sys.stderr)
+    return []
 
 
 def category(tags):
@@ -84,7 +84,12 @@ def main():
     args = ap.parse_args()
 
     rows, seen = [], set()
-    for el in fetch(build_query()):
+    elements = []
+    for name, flt in CATEGORIES.items():
+        found = fetch(build_query(flt))
+        print(f"{name}: {len(found)}", file=sys.stderr)
+        elements += found
+    for el in elements:
         t = el.get("tags", {})
         key = (t.get("name", "").lower(), t.get("addr:street", ""), t.get("addr:housenumber", ""))
         if key in seen:
