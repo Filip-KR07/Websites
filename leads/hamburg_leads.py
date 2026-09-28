@@ -11,6 +11,7 @@ vor dem Besuch kurz googeln.
 import argparse
 import csv
 import json
+import os
 import sys
 import time
 import urllib.parse
@@ -86,7 +87,14 @@ def main():
     rows, seen = [], set()
     elements = []
     for name, flt in CATEGORIES.items():
-        found = fetch(build_query(flt))
+        cache = os.path.join(os.path.dirname(__file__), ".cache", name.replace("/", "_") + ".json")
+        if os.path.exists(cache):
+            found = json.load(open(cache, encoding="utf-8"))
+        else:
+            found = fetch(build_query(flt))
+            if found:  # nur Erfolge merken, damit ein Neustart dort weitermacht
+                os.makedirs(os.path.dirname(cache), exist_ok=True)
+                json.dump(found, open(cache, "w", encoding="utf-8"))
         print(f"{name}: {len(found)}", file=sys.stderr)
         elements += found
     for el in elements:
