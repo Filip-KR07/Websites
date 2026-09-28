@@ -1,0 +1,54 @@
+:root{--red:#e2001a;--navy:#0a2463;--grey:#e4e4e4;--ink:#1b1b1b;--ease-out:cubic-bezier(.23,1,.32,1)}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--navy);background:#fff;line-height:1.5}
+a{color:inherit}
+.wrap{max-width:1160px;margin:0 auto;padding:0 16px}
+.nav{display:flex;align-items:center;gap:32px;box-shadow:0 2px 8px rgba(0,0,0,.08);position:sticky;top:0;background:#fff;z-index:10}
+.logo{background:var(--red);color:#fff;font-weight:900;font-size:1.6rem;letter-spacing:.04em;text-decoration:none;padding:14px 56px 14px 24px;clip-path:polygon(0 0,100% 0,82% 100%,0 100%)}
+.nav nav{display:flex;gap:24px;font-weight:700;font-size:.9rem}
+.nav nav a,.phone{text-decoration:none}
+.phone{margin-left:auto;padding-right:24px;font-size:.85rem;font-weight:600}
+h1,.title{color:var(--red);font-weight:900;letter-spacing:-.01em}
+h1{font-size:clamp(2rem,5vw,3rem);margin:.2em 0}
+.hero{display:grid;grid-template-columns:1fr 1.1fr;gap:32px;align-items:center;padding-top:24px;padding-bottom:48px}
+.back{font-weight:700;font-size:.9rem}
+.lead{font-size:1.1rem;color:#333;max-width:34ch}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+.btn{display:inline-block;padding:12px 22px;font-weight:700;text-decoration:none;border:2px solid var(--navy);transition:transform 160ms ease-out,background-color 200ms ease}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--navy);color:#fff}
+.btn-ghost{color:var(--navy)}
+@media (hover:hover) and (pointer:fine){.btn-ghost:hover{background:#eef1f8}}
+.hero-visual{background:linear-gradient(#cfd9e6,#f4f1ee);border-radius:0;clip-path:polygon(18% 0,100% 0,100% 100%,0 100%,0 40%);overflow:hidden}
+.hero-visual svg{display:block;width:100%}
+.info{background:var(--red);color:#fff;padding:28px 0}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.info h2{font-size:1rem;margin:0 0 4px}
+.info p{margin:0 0 12px}
+.status{display:inline-block;background:#fff;color:var(--ink);padding:2px 10px;border-radius:99px;font-size:.85rem;font-weight:700}
+.status.open{color:#137a2f}.status.closed{color:var(--red)}
+.title{font-size:1.6rem;margin:36px 0 16px}
+.prices{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
+.prices li{background:var(--red);color:#fff;text-align:center;padding:10px;box-shadow:0 2px 6px rgba(0,0,0,.15);opacity:0;transform:translateY(8px);animation:in 300ms var(--ease-out) forwards}
+.prices li:nth-child(2){animation-delay:50ms}.prices li:nth-child(3){animation-delay:100ms}.prices li:nth-child(4){animation-delay:150ms}.prices li:nth-child(5){animation-delay:200ms}.prices li:nth-child(6){animation-delay:250ms}
+.prices span{display:block;font-size:.85rem}
+.prices b{font-size:1.7rem;font-weight:900}
+@keyframes in{to{opacity:1;transform:none}}
+.fine{font-size:.75rem;color:#555;margin-top:14px}
+.bistro{margin-top:40px;min-height:380px;padding:32px;background:radial-gradient(circle at 40% 70%,#e0703a 0 22%,#f3e6cf 23% 30%,transparent 31%),radial-gradient(circle at 75% 45%,#d71f1f 0 5%,transparent 6%),radial-gradient(circle at 82% 60%,#3f8f35 0 7%,transparent 8%),#ece8f3}
+.bistro-card{background:var(--navy);color:#fff;max-width:420px;padding:24px 28px;border-radius:12px}
+.bistro-card h2{font-size:1.8rem;line-height:1.15;margin:0 0 8px;font-weight:900}
+.services{background:var(--grey);margin-top:40px;padding:8px 0 40px;clip-path:polygon(4% 0,100% 0,96% 100%,0 100%)}
+.services-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.list{list-style:none;padding:0;margin:0}
+.list.two{columns:2;column-gap:24px}
+.list li{padding:4px 0;break-inside:avoid}
+.footer{background:var(--grey);margin-top:32px;padding:32px 0;border-bottom:48px solid var(--red)}
+.footer h3{margin:0 0 6px}
+.footer-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;font-size:.9rem}
+@media (max-width:760px){
+  .nav nav{display:none}
+  .hero,.info-grid,.services-grid,.footer-grid{grid-template-columns:1fr}
+  .services{clip-path:none}
+}
+@media (prefers-reduced-motion:reduce){.prices li{animation:none;opacity:1;transform:none}}
