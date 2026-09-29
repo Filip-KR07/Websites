@@ -38,6 +38,12 @@ html:not(.motion) .marquee.kin{overflow:hidden} /* style.css erlaubt sonst horiz
 html:not(.motion) .kin__row--line .kin__track{transform:translateX(-22%)}
 
 html.motion .kin__track,html.motion .kin__row{will-change:transform}
+/* Drehung im Compositor: das breite Band wird dafuer nicht neu gerastert.
+   Zeile 2 dreht gegenlaeufig, Tempo und Richtung setzt kinetik.js (playbackRate). */
+html.motion .kin__sep svg{animation:kin-spin 22.5s linear infinite paused}
+html.motion .kin__row--line .kin__sep svg{animation-direction:reverse}
+html.motion .kin.is-live .kin__sep svg{animation-play-state:running}
+@keyframes kin-spin{to{transform:rotate(360deg)}}
 
 @media (max-width:899px){
   .marquee.kin{--kin-fs:clamp(3rem,15vw,5.6rem);padding:clamp(3.5rem,14vw,5rem) 0 clamp(2.25rem,9vw,3rem)}
