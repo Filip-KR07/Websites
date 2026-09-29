@@ -531,7 +531,7 @@
   /* ---------- 2b. Neue Abschnitte: Zahlen / Stimmen / Jetzt / Fragen (Kern, laeuft immer) ---------- */
   const fkEnv = {
     $, $$, debounce, motion, isTouch, hasGSAP,
-    onLayoutChange: () => { if (window.ScrollTrigger && typeof ScrollTrigger.refresh === 'function') ScrollTrigger.refresh(); },
+    onLayoutChange: () => { if (window.ScrollTrigger && typeof ScrollTrigger.refresh === 'function') ScrollTrigger.refresh(true); },
   };
   fkSectionsCore(fkEnv);
 
