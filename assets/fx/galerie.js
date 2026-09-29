@@ -131,7 +131,7 @@
           defaults: { ease: 'none' },
           scrollTrigger: {
             trigger: section, start: 'top top', end: '+=150%',
-            pin: true, scrub, anticipatePin: 1, invalidateOnRefresh: true,
+            pin: true, scrub, invalidateOnRefresh: true,
             // refreshPriority schaltet das Sortieren bei jedem Refresh ein: der Hero-Pin
             // entsteht erst nach dem Intro, ohne Sortierung starten alle spaeteren Pins zu frueh
             refreshPriority: 0,

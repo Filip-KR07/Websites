@@ -187,7 +187,7 @@
     if (pinIt) {
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
-        scrollTrigger: { trigger: sec, start: 'top top', end: () => `+=${pinDist()}`, pin: true, scrub, anticipatePin: 1, invalidateOnRefresh: true },
+        scrollTrigger: { trigger: sec, start: 'top top', end: () => `+=${pinDist()}`, pin: true, scrub, invalidateOnRefresh: true },
       });
       light(tl, 0.03, 0.8);
       if (by) tl.fromTo(by, { opacity: 0.15, y: 16 }, { opacity: 1, y: 0, duration: 0.1, ease: 'power2.out' }, 0.86);

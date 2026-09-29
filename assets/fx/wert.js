@@ -332,7 +332,7 @@
         defaults: { ease: 'none' },
         onUpdate: () => sync(tl.progress()),
         scrollTrigger: isDesktop
-          ? { trigger: el.pin, start: 'top top', end: '+=180%', pin: true, scrub, anticipatePin: 1, invalidateOnRefresh: true }
+          ? { trigger: el.pin, start: 'top top', end: '+=180%', pin: true, scrub, invalidateOnRefresh: true }
           : { trigger: el.scale, start: 'top 62%', end: 'bottom 22%', scrub, invalidateOnRefresh: true },
       });
       tl.to({}, { duration: 1 }, 0);

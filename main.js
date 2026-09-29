@@ -1084,7 +1084,7 @@
         end: () => `+=${Math.round(total * 58)}%`,
         pin: true,
         scrub: o.scrub,
-        anticipatePin: 1,
+       
         invalidateOnRefresh: true,
         onUpdate: (self) => {
           if (setRail) setRail(self.progress);
@@ -1336,7 +1336,7 @@
         if (isDesktop) {
           gsap.timeline({
             scrollTrigger: {
-              trigger: hero, start: 'top top', end: '+=110%', pin: true, scrub, anticipatePin: 1, invalidateOnRefresh: true,
+              trigger: hero, start: 'top top', end: '+=110%', pin: true, scrub, invalidateOnRefresh: true,
               refreshPriority: 0, // schaltet das Sortieren nach Position bei jedem Refresh ein
               onUpdate: (self) => hero.classList.toggle('is-framed', self.progress > 0.45),
             },
@@ -1448,7 +1448,7 @@
         const dist = () => Math.max(0, vTrack.scrollWidth - window.innerWidth);
         const tl = gsap.to(vTrack, {
           x: () => -dist(), ease: 'none',
-          scrollTrigger: { trigger: ventures, start: 'top top', end: () => `+=${dist()}`, pin: true, scrub, anticipatePin: 1, invalidateOnRefresh: true },
+          scrollTrigger: { trigger: ventures, start: 'top top', end: () => `+=${dist()}`, pin: true, scrub, invalidateOnRefresh: true },
         });
         $$('[data-ventures-card]', vTrack).forEach((card, i) => {
           gsap.from(card, {
@@ -1564,7 +1564,7 @@
         const list = $('ol', sidenav);
         const items = $$('main section[id]').map((sec) => {
           const link = document.querySelector('[data-menu-link][href="#' + sec.id + '"] span');
-          return { sec, label: link ? link.textContent.trim() : (sec.id.charAt(0).toUpperCase() + sec.id.slice(1)) };
+          return { sec, label: sec.dataset.navLabel || (link ? link.textContent.trim() : (sec.id.charAt(0).toUpperCase() + sec.id.slice(1))) };
         });
         if (items.length < 3) return;
         list.innerHTML = '';
@@ -1612,9 +1612,7 @@
 
     /* ---------- 8. Refresh nach späten Loads ---------- */
     const refresh = debounce(() => { ScrollTrigger.refresh(); lenis?.resize(); heroScene?.refresh(); }, 200);
-    window.addEventListener('load', refresh);
     document.fonts?.ready.then(refresh);
-    $$('img').forEach((img) => { if (!img.complete) img.addEventListener('load', refresh, { once: true }); });
     window.addEventListener('resize', refresh);
     introDone.then(refresh);
   } else {

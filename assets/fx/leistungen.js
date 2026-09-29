@@ -61,7 +61,7 @@
         defaults: { ease: 'none' },
         scrollTrigger: {
           trigger: stage, start: 'top top', end: () => '+=' + pinLen(),
-          pin: true, scrub, anticipatePin: 1, invalidateOnRefresh: true,
+          pin: true, scrub, invalidateOnRefresh: true,
           refreshPriority: 0, // schaltet das Sortieren nach Position bei jedem Refresh ein
         },
       });
