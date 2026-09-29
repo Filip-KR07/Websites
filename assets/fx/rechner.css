@@ -109,6 +109,8 @@ button.rx-chip:active{transform:scale(.97)}
   background:linear-gradient(90deg,transparent,var(--gold),transparent);
 }
 .rx-field:focus-within,.rx-field.is-dragging,.rx-field.is-moving{border-color:rgba(76,143,214,.55)}
+/* Fokussierte Felder bleiben frei von Navigation und Ergebnis-Dock */
+.rx-field,.rx-field input{scroll-margin:calc(var(--nav-h) + 1rem) 0 6.5rem}
 .rx-field__text{grid-area:text;display:grid;gap:.28rem;align-content:start;min-width:0}
 .rx-field__num{font:italic 400 1rem/1 var(--display);color:var(--rx-azure-ink);transition:color 220ms ease}
 .rx-field.is-dragging .rx-field__num,.rx-field.is-moving .rx-field__num{color:var(--rx-gold-ink)}
@@ -175,7 +177,7 @@ button.rx-chip:active{transform:scale(.97)}
   font:500 .64rem/1 var(--body);letter-spacing:.06em;color:var(--rx-muted);font-variant-numeric:tabular-nums;
 }
 
-/* Mobiles Ergebnis-Dock (nur wenn die Tafel aus dem Bild ist) */
+/* Mobiles Ergebnis-Dock (sobald das Urteil nicht mehr lesbar ist; beim Tippen weg) */
 .rx-dock{
   position:sticky;bottom:calc(.75rem + env(safe-area-inset-bottom,0px));z-index:3;
   display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-top:1rem;
@@ -185,9 +187,14 @@ button.rx-chip:active{transform:scale(.97)}
   transition:opacity 240ms var(--ease-out),transform 320ms var(--ease-out);
 }
 .rx-dock.is-shown{opacity:1;transform:none;pointer-events:auto}
-.rx-dock__text{display:flex;flex-wrap:wrap;align-items:baseline;gap:.1rem .5rem;margin:0;min-width:0;font-size:.82rem;line-height:1.3}
+.rechner.is-typing .rx-dock{opacity:0;transform:translateY(16px);pointer-events:none}
+.rx-dock__text{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .6rem;margin:0;min-width:0;font-size:.82rem;line-height:1.3}
 .rx-dock__text>*{white-space:nowrap}
-.rx-dock__text i{font-style:normal;color:var(--gold)}
+.rx-dock__tag{
+  padding:.28rem .5rem .24rem;border:1px solid rgba(200,169,106,.55);border-radius:999px;
+  font:500 .7rem/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);
+}
+.rx-dock__roi{color:var(--rx-soft)}
 .rx-dock__text b{font:500 1.05rem/1 var(--display);color:var(--gold);font-variant-numeric:lining-nums tabular-nums}
 .rx-dock__btn{
   flex:0 0 auto;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;
@@ -220,11 +227,13 @@ html.motion .rx-panel__aura{will-change:transform}
 .rx-legend__item{display:flex;align-items:center;gap:.5rem}
 .rx-legend__gain{width:18px;height:2px;border-radius:2px;background:var(--gold)}
 .rx-legend__inv{width:18px;height:0;border-top:1.5px dashed rgba(246,243,236,.75)}
+.rx-legend__band{width:18px;height:10px;border-radius:2px;border:1px dashed rgba(246,243,236,.4);background:linear-gradient(180deg,rgba(246,243,236,.24),rgba(246,243,236,.06))}
 .rx-legend b{font-weight:500;color:var(--paper);font-variant-numeric:tabular-nums}
 
 /* Urteil + Medaille */
-.rx-verdict{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:1rem 1.5rem;margin-top:clamp(1.1rem,2.4vw,1.8rem)}
-.rx-verdict__text{min-width:0}
+/* Kleingedrucktes steht im Raster direkt unter dem Satz, neben der Medaille */
+.rx-verdict{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"text medal" "fine medal";align-items:end;gap:1rem 1.5rem;margin-top:clamp(1.1rem,2vw,1.6rem)}
+.rx-verdict__text{grid-area:text;min-width:0}
 .rx-verdict__pre,.rx-verdict__post{margin:0;font:italic 400 clamp(1.02rem,.92rem + .4vw,1.3rem)/1.3 var(--display);color:var(--rx-soft)}
 .rx-verdict__big{
   margin:.1rem 0 .25rem;
@@ -244,24 +253,39 @@ html.motion .rx-panel__aura{will-change:transform}
 .rx-odo__strip>span{display:block;height:1em;line-height:1}
 .rx-odo__sep{display:inline-block}
 
-.rx-medal{display:grid;justify-items:center;gap:.65rem;text-align:center}
+.rx-medal{grid-area:medal;align-self:center;display:grid;justify-items:center;gap:.65rem;text-align:center}
 .rx-medal__coin{
   position:relative;display:grid;place-items:center;width:clamp(6.2rem,4.6rem + 3vw,8.6rem);aspect-ratio:1;border-radius:50%;
   background:radial-gradient(circle at 36% 30%,rgba(200,169,106,.24),rgba(200,169,106,.05) 58%,transparent 72%);
   border:1px solid rgba(200,169,106,.45);
 }
 .rx-medal__ring{position:absolute;inset:5px;width:calc(100% - 10px);height:calc(100% - 10px);transition:transform 1400ms var(--ease-out)}
-.rx-medal__val{position:relative;font:300 clamp(1.6rem,1.2rem + 1vw,2.3rem)/1 var(--display);color:var(--paper);font-variant-numeric:lining-nums tabular-nums;letter-spacing:-.02em}
-.rx-medal__cap{margin:0;max-width:11ch;font:500 .62rem/1.35 var(--body);letter-spacing:.16em;text-transform:uppercase;color:var(--rx-soft)}
+.rx-medal__val{position:relative;font:300 clamp(1.6rem,1.2rem + 1vw,2.3rem)/1 var(--display);font-size:calc(clamp(1.6rem,1.2rem + 1vw,2.3rem) * var(--k,.84));color:var(--paper);font-variant-numeric:lining-nums tabular-nums;letter-spacing:-.02em;white-space:nowrap}
+.rx-medal__cap{margin:0;max-width:9rem;font:500 .62rem/1.35 var(--body);letter-spacing:.16em;text-transform:uppercase;color:var(--rx-soft)}
+.rx-medal__cap small{display:block;margin-top:.3rem;font:400 .72rem/1.3 var(--body);letter-spacing:0;text-transform:none}
+
+/* Kleingedrucktes direkt unter dem Ergebnis; Auftraege bis zur Deckung ueber dem Diagramm */
+.rx-panel__fine{grid-area:fine;margin:0;max-width:62ch;font-size:.84rem;line-height:1.5;color:var(--rx-soft)}
+.rx-stage{position:relative;margin-top:clamp(1.25rem,2.2vw,1.6rem)}
+.rx-orders{
+  display:flex;align-items:center;gap:.8rem 1.1rem;margin:0 0 1.25rem;padding:.8rem 1.1rem;
+  border-radius:var(--r);border:1px solid rgba(200,169,106,.34);
+  background:linear-gradient(100deg,rgba(200,169,106,.14),rgba(200,169,106,.02) 72%);
+}
+.rx-orders__n{flex:0 0 auto;font:300 clamp(2.3rem,1.7rem + 1.6vw,3.1rem)/1 var(--display);letter-spacing:-.02em;color:var(--gold);font-variant-numeric:lining-nums tabular-nums}
+.rx-orders__text{display:grid;gap:.2rem;min-width:0;font:400 .95rem/1.35 var(--body);color:var(--paper)}
+.rx-orders__text small{font-size:.84rem;line-height:1.45;color:var(--rx-soft)}
+.rx-orders__text b{font-weight:500;color:var(--paper);white-space:nowrap}
 
 /* Diagramm: SVG im festen Koordinatenraum 720x360, Beschriftungen als HTML darueber */
-.rx-chart{position:relative;aspect-ratio:2/1;margin-top:clamp(1.25rem,2.6vw,2rem)}
+.rx-chart{position:relative;aspect-ratio:2/1}
 .rx-chart__svg{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
 .rx-chart__svg path{vector-effect:non-scaling-stroke}
 .rx-chart__grid{fill:none;stroke:rgba(246,243,236,.08);stroke-width:1}
 .rx-chart__base{fill:none;stroke:rgba(246,243,236,.3);stroke-width:1}
 .rx-chart__glow{fill:none;stroke:var(--gold);stroke-opacity:.2;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
 .rx-chart__line{fill:none;stroke:var(--gold);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rx-chart__band{stroke:rgba(246,243,236,.26);stroke-width:1;stroke-dasharray:2 5;stroke-linejoin:round}
 .rx-chart__dots{fill:none;stroke:var(--paper);stroke-opacity:.55;stroke-width:3.5;stroke-linecap:round}
 .rx-chart__inv{fill:none;stroke:var(--paper);stroke-opacity:.7;stroke-width:1.3;stroke-dasharray:5 6}
 .rx-chart__drop{fill:none;stroke:var(--gold);stroke-opacity:.55;stroke-width:1;stroke-dasharray:2 4}
@@ -320,9 +344,21 @@ html.motion .rx-panel__aura{will-change:transform}
 .rx-metric dd{margin:.5rem 0 0;font:300 clamp(1.45rem,1.1rem + .9vw,2rem)/1 var(--display);color:var(--paper);font-variant-numeric:lining-nums tabular-nums;letter-spacing:-.01em}
 .rx-metric small{display:block;margin-top:.4rem;font:400 .74rem/1.3 var(--body);letter-spacing:0;color:var(--rx-soft)}
 
+/* Breite Tafel: die Auftraege liegen als Notiz in der leeren Ecke oben links im Diagramm */
+@container (min-width:560px){
+  .rx-orders{
+    position:absolute;left:0;top:0;z-index:3;margin:0;max-width:min(25rem,62%);padding:.7rem 1rem;
+    background:linear-gradient(100deg,rgba(33,33,40,.94),rgba(15,20,32,.86));box-shadow:0 20px 40px -26px rgba(0,0,0,.7);
+  }
+  .rx-orders__n{font-size:clamp(2rem,1.5rem + 1.2vw,2.6rem)}
+  .rx-orders__text{font-size:.9rem}
+  .rx-orders__text small{font-size:.8rem}
+}
 @container (max-width:540px){
+  .rx-verdict{grid-template-areas:"text medal" "fine fine"}
+  .rx-medal{align-self:end}
   .rx-medal__coin{width:5.8rem}
-  .rx-medal__val{font-size:1.55rem}
+  .rx-medal__val{font-size:calc(1.55rem * var(--k,.84))}
   .rx-verdict{gap:.75rem 1rem}
 }
 @container (max-width:470px){
@@ -334,9 +370,9 @@ html.motion .rx-panel__aura{will-change:transform}
   .rx-axis span:nth-child(4){display:none}
 }
 @container (max-width:380px){
-  .rx-legend{font-size:.7rem}
-  .rx-chart__pill-in{font-size:.66rem;padding:.4rem .6rem}
-  .rx-chart__end-in>span{display:none}
+  .rx-legend{font-size:.72rem}
+  .rx-chart__pill-in{font-size:.72rem;padding:.4rem .6rem}
+  .rx-orders{padding:.75rem .9rem}
 }
 
 /* ---------- Fuss ---------- */
@@ -359,12 +395,14 @@ html.motion .rx-panel__aura{will-change:transform}
 }
 @media (min-width:1100px) and (min-height:780px){
   .rx-panel{position:sticky;top:calc(var(--nav-h) + 1rem)}
+  .rx-chart{aspect-ratio:2.3/1} /* etwas flacher, damit die Tafel ins Bild passt */
 }
 @media (max-width:1099px){
   .rx-panel{order:-1}
 }
 @media (min-width:700px) and (max-width:1099px){
   .rx-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rx-field--invest{grid-column:1 / -1}
 }
 @media (min-width:1280px){
   .rx-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
@@ -372,6 +410,11 @@ html.motion .rx-panel__aura{will-change:transform}
   .rx-field__text{min-height:5.5rem}
   .rx-value{width:100%;margin-top:.5rem}
   .rx-value__input{font-size:2.35rem;text-align:left}
+  /* Investition ueber beide Spalten, kompakt: Text links, Wert rechts */
+  .rx-field--invest{grid-column:1 / -1;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"text value" "range range" "scale scale";column-gap:1.5rem}
+  .rx-field--invest .rx-field__text{min-height:0}
+  .rx-field--invest .rx-value{width:11rem;margin-top:0}
+  .rx-field--invest .rx-value__input{text-align:right}
 }
 @media (max-width:899px){
   .rx-presets{width:100%}
@@ -386,6 +429,12 @@ html.motion .rx-panel__aura{will-change:transform}
   .rx-chip{padding:.7rem 1rem;font-size:.8rem}
   .rechner__foot{align-items:stretch}
   .rechner__cta{justify-content:space-between}
+}
+
+/* Telefone: kleine Beschriftungen nicht unter ~11,5 px, dafuer etwas enger gesperrt */
+@media (max-width:560px){
+  .rx-metric dt,.rx-axis,.rx-range__scale,.rx-panel__kicker,.rx-medal__cap,.rx-chart__end-in>span,
+  .rx-formula__cap,.rx-presets__label,.rechner__legend{font-size:.72rem;letter-spacing:.08em}
 }
 
 /* ---------- Hover nur mit feinem Zeiger ---------- */
@@ -403,7 +452,7 @@ html.motion .rx-panel__aura{will-change:transform}
 html:not(.motion) .rx-odo__strip,
 html:not(.motion) .rx-medal__ring{transition:none}
 html:not(.motion) .rx-presets__hl{transition:opacity 160ms linear}
-html:not(.motion) .rx-dock{transform:none;transition:opacity 160ms linear}
+html:not(.motion) .rx-dock,html:not(.motion) .rechner.is-typing .rx-dock{transform:none;transition:opacity 160ms linear}
 html:not(.motion) .rx-chart__ring{display:none}
 @media (prefers-reduced-motion:reduce){
   .rx-value::after{transition:none}

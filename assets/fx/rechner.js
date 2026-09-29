@@ -2,7 +2,16 @@
    Regler + Zahlenfeld je Annahme, Rechnung live, Diagramm ueber 24 Monate.
    Jeder Wert gleitet mit --ease-out auf sein Ziel und laesst sich jederzeit
    umlenken (wie gsap.quickTo). Spaetere Monatspunkte brauchen etwas laenger:
-   die Linie biegt sich kurz und legt sich wieder gerade. Ohne Motion sofort. */
+   die Linie biegt sich kurz und legt sich wieder gerade. Ohne Motion sofort.
+
+   Schnittstelle (liest u. a. fx/finale): Hat sich eine Eingabe gesetzt (Zahlenfeld
+   bestaetigt, Regler losgelassen, Beispiel fertig geladen; 300 ms entprellt, nie
+   beim Laden und nie pro Zieh-Frame), feuert
+   document 'fk:rechner' mit detail = { paybackText: 'bezahlt nach 5,6 Monaten' |
+   'nach 36 Monaten noch nicht bezahlt', roiPct (Rendite 1. Jahr nach Abzug der
+   Investition, ganze %), ordersToPayback, inputs: { visitors, inquiryRate,
+   closeRate, orderValue, margin, running, invest }, summary (Klartext-Zeilen
+   mit allen Annahmen und Ergebnissen, z. B. fuer eine E-Mail) }. */
 (() => {
   'use strict';
   if (!window.FK) return;
@@ -38,10 +47,11 @@
     /* ---------- Zahlen de-DE ---------- */
     const NF = [0, 1, 2].map((d) => new Intl.NumberFormat('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d }));
     const fmt = (v, d = 0) => NF[d].format(v);
-    const euro = (v) => `${fmt(v, Math.abs(v) < 1000 ? 2 : 0)} €`;
-    const euro0 = (v) => `${fmt(v, 0)} €`;
+    // Schaetzungen nur in ganzen Euro, Minus als echtes Minuszeichen
+    const euro = (v) => `${fmt(Math.round(v), 0).replace('-', '−')} €`;
     const amount = (v) => fmt(v, v < 100 ? 1 : 0);
-    const times = (v) => `×${fmt(v, v < 10 ? 2 : (v < 100 ? 1 : 0))}`;
+    // Rendite als Prozent mit Vorzeichen: +113 %, −52 %
+    const pct = (v) => { const p = Math.round(v * 100); return `${p > 0 ? '+' : p < 0 ? '−' : ''}${fmt(Math.abs(p))} %`; };
     const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
     const roundTo = (v, d) => { const k = 10 ** d; return Math.round(v * k) / k; };
     const r2 = (v) => Math.round(v * 100) / 100;
@@ -64,14 +74,18 @@
       close: { min: 1, max: 100, step: 1, dec: 0, say: 'Prozent', def: 25 },
       value: { min: 50, max: 50000, log: true, dec: 0, say: 'Euro', def: 1000 },
       margin: { min: 5, max: 100, step: 1, dec: 0, say: 'Prozent', def: 30 },
+      running: { min: 0, max: 500, step: 5, dec: 0, say: 'Euro im Monat', def: 30 },
       invest: { min: 500, max: 30000, log: true, dec: 0, say: 'Euro', def: 3000 },
     };
-    // Beispielwerte (ohne Investition: die bleibt deine)
+    // Beispielwerte (ohne laufende Kosten und Investition: die bleiben deine).
+    // Im Shop ist jeder Kauf schon ein Auftrag: Kaufquote statt Anfragequote.
     const PRESETS = {
+      vorsichtig: { visitors: 200, inquiry: 1, close: 25, value: 1000, margin: 30 },
       handwerk: { visitors: 300, inquiry: 1.5, close: 30, value: 3500, margin: 20 },
       beratung: { visitors: 600, inquiry: 1, close: 20, value: 1500, margin: 60 },
-      shop: { visitors: 4000, inquiry: 2, close: 50, value: 60, margin: 25 },
+      shop: { visitors: 4000, inquiry: 1, close: 100, value: 60, margin: 25 },
     };
+    const SHOP = 'shop';
     // Log-Regler rasten auf runde Werte ein
     const niceStep = (v) => (v < 200 ? 10 : v < 1000 ? 50 : v < 5000 ? 100 : v < 20000 ? 500 : 1000);
     const snapLog = (f, v) => { const s = niceStep(v); return clamp(Math.round(v / s) * s, f.min, f.max); };
@@ -89,14 +103,20 @@
       return snapLog(f, clamp(x, f.min, f.max));
     };
 
+    // Gewinn pro Monat = Rohgewinn der Auftraege minus laufende Kosten.
+    // Rendite im 1. Jahr netto: (12 Monatsgewinne - Investition) / Investition.
+    // Spanne: halbe bis 1,5-fache Anfragequote verschiebt den Rohgewinn um je die Haelfte.
     const calc = (v) => {
       const inquiries = v.visitors * v.inquiry / 100;
       const orders = inquiries * v.close / 100;
       const revMonth = orders * v.value;
-      const profitMonth = revMonth * v.margin / 100;
+      const gross = revMonth * v.margin / 100;
+      const profitMonth = gross - v.running;
       const payback = profitMonth > 0 ? v.invest / profitMonth : Infinity;
-      const roi = profitMonth * 12 / v.invest;
-      return { inquiries, orders, revMonth, profitMonth, payback, roi };
+      const roi = (profitMonth * 12 - v.invest) / v.invest;
+      const perOrder = v.value * v.margin / 100;
+      const ordersToPay = Math.max(1, Math.ceil(v.invest / perOrder - 1e-9));
+      return { inquiries, orders, revMonth, profitMonth, payback, roi, perOrder, ordersToPay, spread: gross * 0.5 };
     };
 
     /* ---------- Elemente ---------- */
@@ -112,6 +132,8 @@
       odo: pick('odo'), roi: pick('roi'), ring: pick('ring'), dock: pick('dock'), dockPay: pick('dock-pay'),
       dockRoi: pick('dock-roi'), dockBtn: pick('dock-btn'), guide: pick('guide'), guideText: pick('guide-text'),
       hl: pick('hl'), chipbox: pick('chipbox'), reset: pick('reset'), grid: pick('grid'), fields: pick('fields'),
+      band: pick('band'), endCap: pick('endcap'), orders: pick('orders'), ordersWord: pick('orders-word'),
+      per: pick('per'), verdict: pick('verdict'),
     };
     if (!panel || !chart || !E.line || !E.odo) return;
     const outs = ['inquiries', 'orders', 'revYear', 'revMonth', 'profitYear', 'profitMonth'].map((k) => $(`[data-rx-out="${k}"]`, root));
@@ -147,16 +169,18 @@
     };
     const odoPay = odometer(E.odo);
     const odoRoi = E.roi ? odometer(E.roi) : () => {};
+    const odoOrd = E.orders ? odometer(E.orders) : () => {};
     const zeroed = (s) => s.replace(/\d/g, '0');
 
     /* ---------- Werte-Motor: Ziel (T) und Anzeige (C) ---------- */
-    const NP = 25; const I_INV = 25; const I_MAX = 26; const I_M = 27; const N = 33;
+    const NP = 25; const I_INV = 25; const I_MAX = 26; const I_M = 27; const I_BAND = 33; const N = 34;
     // C Anzeige, T Ziel, S Start der laufenden Bewegung, T0 Startzeit, DUR Dauer in ms
     const C = new Float64Array(N); const T = new Float64Array(N); const S = new Float64Array(N);
     const T0 = new Float64Array(N); const DUR = new Float64Array(N);
     for (let i = 0; i < NP; i++) DUR[i] = 520 + i * 18;
     DUR[I_INV] = 560; DUR[I_MAX] = 700;
-    for (let i = I_M; i < N; i++) DUR[i] = 760;
+    for (let i = I_M; i < I_BAND; i++) DUR[i] = 760;
+    DUR[I_BAND] = 900; // die Spanne atmet etwas langsamer nach als die Linie
 
     const W0 = 720; const H0 = 360; const DX = W0 / 24; const HEAD = 1.3;
     let bw = chart.clientWidth || 1; let bh = chart.clientHeight || 1; // px, danach per ResizeObserver
@@ -173,12 +197,17 @@
 
     const render = () => {
       const k = H0 / (C[I_MAX] > 0 ? C[I_MAX] : 1);
-      let line = ''; let dots = '';
+      let line = ''; let dots = ''; let hi = ''; let lo = '';
       for (let i = 0; i < NP; i++) {
         const y = r2(yOf(C[i], k));
         line += `${i ? 'L' : 'M'}${i * DX} ${y}`;
         if (i) dots += `M${i * DX} ${y}h.01`;
+        // Spanne um die Linie: oben optimistisch, unten vorsichtig
+        const d = C[I_BAND] * i;
+        hi += `${i ? 'L' : 'M'}${i * DX} ${r2(yOf(C[i] + d, k))}`;
+        lo = `L${i * DX} ${r2(yOf(C[i] - d, k))}${lo}`;
       }
+      if (E.band) E.band.setAttribute('d', `${hi}${lo}Z`);
       const invY = r2(clamp(H0 - C[I_INV] * k, 0, H0));
       const area = `${line}L${W0} ${invY}L0 ${invY}Z`;
       E.line.setAttribute('d', line);
@@ -211,7 +240,8 @@
         move(E.pill, clamp(mx, half, Math.max(half, bw - half)), my, pillBelow ? ' translate(-50%,14px)' : ' translate(-50%,calc(-100% - 14px))');
       }
       const endY = yOf(C[NP - 1], k) * sy;
-      move(E.end, 0, endY, C[NP - 1] >= C[I_INV] ? ' translateY(calc(-100% - 16px))' : ' translateY(16px)');
+      const net = C[NP - 1] - C[I_INV];
+      move(E.end, 0, endY, net >= 0 || endY > bh - 56 ? ' translateY(calc(-100% - 16px))' : ' translateY(16px)');
       if (drawP < 1) {
         // Stift an der Spitze der wachsenden Linie
         const xi = drawP * 24; const i0 = Math.floor(xi); const i1 = Math.min(24, i0 + 1);
@@ -219,8 +249,10 @@
         move(E.pen, drawP * bw, yOf(v, k) * sy);
       } else move(E.pen, bw, endY);
 
-      setText(E.endVal, euro0(C[NP - 1]));
-      setText(E.invVal, euro0(C[I_INV]));
+      // Ende der Linie: was nach Abzug der Investition bleibt (oder noch fehlt)
+      setText(E.endVal, `${net < 0 ? '−' : '+'}${euro(Math.abs(net))}`);
+      setText(E.endCap, net < 0 ? 'Nach 24 Monaten noch offen' : 'Überschuss nach 24 Monaten');
+      setText(E.invVal, euro(C[I_INV]));
       const m = (i) => C[I_M + i] * countK;
       setText(outs[0], amount(m(0)));
       setText(outs[1], amount(m(1)));
@@ -231,7 +263,7 @@
 
       if (readMonth >= 0 && E.guide) {
         move(E.guide, readMonth * DX * sx, 0);
-        setText(E.guideText, `Monat ${readMonth} · ${euro0(C[readMonth])}`);
+        setText(E.guideText, `Monat ${readMonth} · ${euro(C[readMonth])}`);
       }
     };
 
@@ -261,29 +293,46 @@
 
     /* ---------- Urteil, Medaille, Pille, Dock, Ansage ---------- */
     let curPay = E.odo.textContent.trim() || '0';
-    let curRoi = E.roi ? E.roi.textContent.trim() : '×0';
-    let lastRoi = null; let rot = 0; let liveTimer = 0; let booted = false;
+    let curRoi = E.roi ? E.roi.textContent.trim() : '0';
+    let curOrd = E.orders ? E.orders.textContent.trim() : '1';
+    let lastRoi = null; let rot = 0; let liveTimer = 0; let booted = false; let roiLen = 0;
     let odoLive = true; // false, solange der Auftritt die Ziffern noch auf 0 haelt
 
+    // Amortisation in Worten: unter 2 Monaten in Wochen, ueber 36 Monaten null
+    const payParts = (r) => {
+      if (!(r.payback <= 36)) return null;
+      if (r.payback < 2) { const w = Math.max(1, Math.round(r.payback * 52 / 12)); return { num: String(w), unit: w === 1 ? 'Woche' : 'Wochen' }; }
+      return { num: fmt(r.payback, 1), unit: 'Monaten' };
+    };
+
+    // Modellergebnis im Konjunktiv: "haette sich ... selbst bezahlt"
     const verdict = (r) => {
-      let pre = 'Die Website hat sich nach'; let post = 'bezahlt.'; let num; let unit; let say;
-      const roiStr = times(r.roi);
-      if (r.payback <= 36) {
-        if (r.payback < 2) {
-          const w = Math.max(1, Math.round(r.payback * 52 / 12));
-          num = String(w); unit = w === 1 ? 'Woche' : 'Wochen';
-        } else { num = fmt(r.payback, 1); unit = 'Monaten'; }
-        say = `Die Website hat sich nach ${num} ${unit} bezahlt, Rendite im ersten Jahr ${roiStr}.`;
+      let pre = 'Mit deinen Annahmen hätte sich die Website nach'; let post = 'selbst bezahlt.'; let num; let unit; let say;
+      const roiStr = pct(r.roi);
+      const n = r.ordersToPay;
+      const ordSay = `${fmt(n)} ${n === 1 ? 'Auftrag deckt' : 'Aufträge decken'} die Investition, pro Auftrag bleiben im Schnitt ${euro(r.perOrder)} Gewinn.`;
+      const pp = payParts(r);
+      if (pp) {
+        num = pp.num; unit = pp.unit;
+        say = `Mit deinen Annahmen hätte sich die Website nach ${num} ${unit} selbst bezahlt.`;
         setText(E.dockPay, `Bezahlt nach ${num} ${unit}`);
       } else {
-        pre = 'Mit diesen Werten braucht sie länger als'; num = '36'; unit = 'Monate,'; post = 'bis sie sich bezahlt hat.';
-        say = `Mit diesen Werten hat sich die Website nach 36 Monaten noch nicht bezahlt, Rendite im ersten Jahr ${roiStr}.`;
-        setText(E.dockPay, 'Nicht in 36 Monaten bezahlt');
+        pre = 'Mit deinen Annahmen dauert es länger als'; num = '36'; unit = 'Monate,'; post = 'bis sie sich selbst bezahlt.';
+        say = 'Mit deinen Annahmen hätte sich die Website auch nach 36 Monaten noch nicht selbst bezahlt.';
+        setText(E.dockPay, 'Nach 36 Monaten nicht bezahlt');
       }
+      say += ` Rendite im ersten Jahr nach Abzug der Investition: ${roiStr}. ${ordSay}`;
       setText(E.pre, pre); setText(E.post, post); setText(E.unit, unit);
       setText(E.dockRoi, roiStr);
-      curPay = num; curRoi = roiStr;
-      if (odoLive) { odoPay(num); odoRoi(roiStr); }
+      setText(E.ordersWord, n === 1 ? 'Auftrag deckt' : 'Aufträge decken');
+      setText(E.per, euro(r.perOrder));
+      // Lange Prozentzahlen werden kleiner, damit sie in der Medaille bleiben
+      if (E.roi && roiStr.length !== roiLen) {
+        roiLen = roiStr.length;
+        E.roi.parentElement.style.setProperty('--k', String(Math.max(0.4, Math.min(1, 5 / roiLen))));
+      }
+      curPay = num; curRoi = roiStr; curOrd = fmt(n);
+      if (odoLive) { odoPay(num); odoRoi(roiStr); odoOrd(curOrd); }
       // Medaille dreht sich mit der Rendite
       if (motion && E.ring && lastRoi !== null && r.roi !== lastRoi) {
         rot += clamp((r.roi - lastRoi) * 36, -110, 110);
@@ -303,6 +352,7 @@
       aim(I_INV, vals.invest);
       aim(I_MAX, Math.max(r.profitMonth * 24, vals.invest) * HEAD);
       [r.inquiries, r.orders, r.revMonth * 12, r.revMonth, r.profitMonth * 12, r.profitMonth].forEach((v, i) => aim(I_M + i, v));
+      aim(I_BAND, r.spread);
       late = r.payback <= 24 ? 0 : (r.payback <= 36 ? 1 : 2);
       pillBelow = r.payback > 17 && r.payback <= 24;
       chart.classList.toggle('is-late', late === 1);
@@ -334,6 +384,44 @@
       u.range.setAttribute('aria-valuetext', `${fmt(v, u.f.dec)} ${u.f.say}`);
       queueRecalc();
     };
+
+    /* ---------- Ergebnis fuer andere Module: Event fk:rechner (siehe Kopf) ---------- */
+    let shop = false; // Shop-Wortlaut aktiv (Kaufquote statt Anfragequote)
+    let sent = '';
+    const announce = FK.debounce(() => {
+      const v = { ...vals };
+      const key = JSON.stringify(v);
+      if (key === sent) return; // nichts geaendert (z. B. abgebrochene Wischgeste)
+      sent = key;
+      const r = calc(v);
+      const pp = payParts(r);
+      const roiPct = Math.round(r.roi * 100);
+      const q = (k) => fmt(v[k], FIELDS[k].dec);
+      const summary = [
+        'Meine Annahmen im Rendite-Rechner:',
+        `Besucher pro Monat: ${q('visitors')}`,
+        `${shop ? 'Kaufquote' : 'Anfragequote'}: ${q('inquiry')} %`,
+        `Abschlussquote: ${q('close')} %`,
+        `Durchschnittlicher Auftragswert: ${euro(v.value)}`,
+        `Marge: ${q('margin')} %`,
+        `Laufende Kosten pro Monat: ${euro(v.running)}`,
+        `Investition in die Website: ${euro(v.invest)}`,
+        '',
+        'Ergebnis der Beispielrechnung (keine Zusage):',
+        `Gewinn pro Monat nach laufenden Kosten: ${euro(r.profitMonth)}`,
+        pp ? `Die Website hätte sich nach ${pp.num} ${pp.unit} selbst bezahlt.` : 'Die Website hätte sich nach 36 Monaten noch nicht selbst bezahlt.',
+        `Rendite im 1. Jahr nach Abzug der Investition: ${pct(r.roi)}`,
+        `Aufträge, die die Investition decken: ${fmt(r.ordersToPay)}`,
+      ].join('\n').replace(/\u00a0/g, ' ');
+      document.dispatchEvent(new CustomEvent('fk:rechner', {
+        detail: {
+          paybackText: pp ? `bezahlt nach ${pp.num} ${pp.unit}` : 'nach 36 Monaten noch nicht bezahlt',
+          roiPct, ordersToPayback: r.ordersToPay,
+          inputs: { visitors: v.visitors, inquiryRate: v.inquiry, closeRate: v.close, orderValue: v.value, margin: v.margin, running: v.running, invest: v.invest },
+          summary,
+        },
+      }));
+    }, 300);
 
     // Chip-Hervorhebung: die dunkle Kopie wird per clip-path auf den aktiven Chip gezogen
     const hlTo = (chip) => {
@@ -373,8 +461,8 @@
     const animateTo = (target) => {
       stopPreset();
       const keys = Object.keys(target).filter((k) => ui[k] && target[k] !== vals[k]);
-      if (!motion) { keys.forEach((k) => setValue(k, target[k], 'set')); return; }
-      presetTl = gsap.timeline({ onComplete: () => { presetTl = null; } });
+      if (!motion) { keys.forEach((k) => setValue(k, target[k], 'set')); announce(); return; }
+      presetTl = gsap.timeline({ onComplete: () => { presetTl = null; announce(); } });
       keys.forEach((k, i) => {
         const u = ui[k]; const o = { u: toUnit(u.f, vals[k]) };
         presetTl.to(o, {
@@ -389,6 +477,18 @@
     // Formel-Begriff leuchtet, solange seine Karte aktiv ist
     const hot = (key, on) => { const t = $(`[data-rx-term="${key}"]`, root); if (t) t.classList.toggle('is-hot', on); };
 
+    // Shop-Beispiel: Kaufquote statt Anfragequote. Gilt, bis ein anderes Beispiel
+    // oder Zuruecksetzen gewaehlt wird (Beschriftung wechselt nicht unter dem Finger).
+    const setShop = (on) => {
+      if (on === shop) return;
+      shop = on;
+      $$('[data-rx-shop]', root).forEach((el) => {
+        if (el.dataset.rxDef == null) el.dataset.rxDef = el.textContent;
+        el.textContent = on ? el.dataset.rxShop : el.dataset.rxDef;
+        if (motion && el.animate) el.animate([{ opacity: 0, filter: 'blur(3px)' }, { opacity: 1, filter: 'blur(0)' }], { duration: 320, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+      });
+    };
+
     $$('[data-rx-field]', root).forEach((card) => {
       const key = card.dataset.rxField;
       const f = FIELDS[key];
@@ -401,7 +501,14 @@
       vals[key] = start == null ? f.def : roundTo(clamp(start, f.min, f.max), f.dec);
       num.disabled = false; range.disabled = false;
 
-      range.addEventListener('input', () => { userEdit(); setValue(key, fromPos(f, parseFloat(range.value)), 'range'); });
+      // Touch: erst eine klar waagrechte Bewegung verstellt den Regler. Tippen auf die
+      // Schiene oder senkrechtes Wischen (Browser scrollt: pointercancel) aendert nichts.
+      let tg = null;
+      range.addEventListener('input', () => {
+        if (tg && !tg.live) { tg.pending = range.value; range.value = String(toPos(f, vals[key])); return; }
+        userEdit(); setValue(key, fromPos(f, parseFloat(range.value)), 'range');
+      });
+      range.addEventListener('change', () => { if (!tg) announce(); });
       if (f.log) {
         // Pfeiltasten springen auf den naechsten runden Wert statt auf 1/1000 der Skala
         range.addEventListener('keydown', (e) => {
@@ -411,18 +518,48 @@
           else if (e.key === 'Home') n = f.min;
           else if (e.key === 'End') n = f.max;
           if (n === null) return;
-          e.preventDefault(); userEdit(); setValue(key, n, 'key');
+          e.preventDefault(); userEdit(); setValue(key, n, 'key'); announce();
         });
       }
       card.addEventListener('focusin', () => hot(key, true));
       card.addEventListener('focusout', () => hot(key, false));
-      range.addEventListener('pointerdown', () => {
+      range.addEventListener('pointerdown', (e) => {
         card.classList.add('is-dragging'); hot(key, true);
-        const up = () => {
+        const touchy = e.pointerType !== 'mouse';
+        const g = touchy ? { id: e.pointerId, x: e.clientX, y: e.clientY, from: vals[key], chip: activeChip, live: false, pending: null } : null;
+        tg = g;
+        const horiz = (x, y) => { const dx = Math.abs(x - g.x); return dx > 8 && dx > Math.abs(y - g.y) * 1.5; };
+        const move = (ev) => {
+          if (!g || g.live) return;
+          const pt = ev.touches ? ev.touches[0] : (ev.pointerId === g.id ? ev : null);
+          if (pt && horiz(pt.clientX, pt.clientY)) g.live = true;
+        };
+        const up = (ev) => {
+          if (g && ev.pointerId !== g.id) return;
           card.classList.remove('is-dragging');
           if (!card.contains(document.activeElement)) hot(key, false);
+          window.removeEventListener('pointermove', move); window.removeEventListener('touchmove', move);
           window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+          if (!g) return;
+          tg = null;
+          if (ev.type === 'pointercancel') {
+            // Seite hat gescrollt: alten Wert und aktives Beispiel zurueck
+            if (g.live && g.from !== vals[key]) setValue(key, g.from, 'set');
+            else range.value = String(toPos(f, vals[key]));
+            if (g.chip && activeChip !== g.chip) {
+              activeChip = g.chip;
+              chips.forEach((c) => c.setAttribute('aria-pressed', String(c === g.chip)));
+              hlTo(g.chip);
+            }
+            return;
+          }
+          // Ohne pointermove (manche Browser): waagrechtes Loslassen zaehlt trotzdem
+          if (!g.live && g.pending != null && horiz(ev.clientX, ev.clientY)) {
+            userEdit(); setValue(key, fromPos(f, parseFloat(g.pending)), 'set');
+          } else if (!g.live) range.value = String(toPos(f, vals[key]));
+          announce();
         };
+        if (g) { window.addEventListener('pointermove', move, { passive: true }); window.addEventListener('touchmove', move, { passive: true }); }
         window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
       });
 
@@ -436,6 +573,7 @@
         const next = v === null ? vals[key] : roundTo(clamp(v, f.min, f.max), f.dec);
         if (next !== vals[key]) userEdit();
         setValue(key, next, 'commit');
+        announce();
       };
       num.addEventListener('change', commit);
       num.addEventListener('blur', commit);
@@ -444,10 +582,10 @@
         if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
         e.preventDefault();
         const n = (e.key === 'ArrowUp' ? 1 : -1) * (e.shiftKey ? 10 : 1);
-        userEdit(); setValue(key, stepBy(f, vals[key], n), 'commit');
+        userEdit(); setValue(key, stepBy(f, vals[key], n), 'commit'); announce();
       });
     });
-    if (Object.keys(ui).length !== 6) return;
+    if (Object.keys(ui).length !== 7) return;
     const DEFAULTS = { ...vals };
 
     chips.forEach((chip) => chip.addEventListener('click', () => {
@@ -456,9 +594,10 @@
       chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
       activeChip = chip;
       hlTo(chip);
+      setShop(chip.dataset.rxPreset === SHOP);
       animateTo(p);
     }));
-    E.reset?.addEventListener('click', () => { userEdit(); animateTo(DEFAULTS); });
+    E.reset?.addEventListener('click', () => { userEdit(); setShop(false); animateTo(DEFAULTS); });
 
     /* ---------- Groessen, Sichtbarkeit, Dock ---------- */
     ['marker', 'pill', 'pen', 'end'].forEach((k) => { if (E[k]) { E[k].style.left = ''; E[k].style.top = ''; E[k].style.transform = ''; } });
@@ -480,12 +619,28 @@
     }
 
     if ('IntersectionObserver' in window) {
-      // Puls nur im Bild; Dock nur, wenn die Tafel nicht zu sehen ist
+      // Puls nur im Bild
       new IntersectionObserver((entries) => entries.forEach((en) => {
         root.classList.toggle('is-visible', en.isIntersecting);
-        E.dock?.classList.toggle('is-shown', !en.isIntersecting);
       })).observe(panel);
+      // Dock, sobald das Urteil nicht mehr lesbar ist (unter der Navigation oder aus dem Bild)
+      let dockIO = null; let navH = -1;
+      const watchDock = () => {
+        const h = Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68);
+        if (!E.dock || h === navH) return;
+        navH = h;
+        dockIO?.disconnect();
+        dockIO = new IntersectionObserver((entries) => entries.forEach((en) => {
+          E.dock.classList.toggle('is-shown', en.intersectionRatio < 0.75);
+        }), { rootMargin: `-${h + 8}px 0px 0px 0px`, threshold: [0, 0.75] });
+        dockIO.observe(E.verdict || panel);
+      };
+      watchDock();
+      window.addEventListener('resize', FK.debounce(watchDock, 200));
     }
+    // Beim Tippen (Tastatur offen) macht das Dock Platz fuer das Feld
+    E.fields?.addEventListener('focusin', (e) => { if (e.target.matches('[data-rx-num]')) root.classList.add('is-typing'); });
+    E.fields?.addEventListener('focusout', (e) => { if (e.target.matches('[data-rx-num]')) root.classList.remove('is-typing'); });
     E.dockBtn?.addEventListener('click', () => {
       const nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
       FK.scrollToTarget(panel, -(nav + 12));
@@ -516,6 +671,7 @@
     });
     recalc();
     booted = true;
+    sent = JSON.stringify(vals); // Startwerte nicht melden
 
     if (!motion) return;
 
@@ -534,7 +690,7 @@
       draw.p = 1; draw.q = 1; count.k = 1; countK = 1;
       applyDraw();
       odoLive = true;
-      odoPay(curPay); odoRoi(curRoi);
+      odoPay(curPay); odoRoi(curRoi); odoOrd(curOrd);
     };
 
     const mm = gsap.matchMedia();
@@ -564,9 +720,9 @@
       const formula = pick('formula');
       if (formula) {
         const fST = { trigger: formula, start: 'top 90%', once: true };
-        gsap.from(formula, { y: 40, autoAlpha: 0, duration: 1.1, ease: easeOut, clearProps: 'transform,opacity,visibility', scrollTrigger: fST });
+        gsap.from(formula, { y: 40, opacity: 0, duration: 1.1, ease: easeOut, clearProps: 'transform,opacity', scrollTrigger: fST });
         gsap.from($$('.rx-formula__cap, .rx-formula__row', formula), {
-          y: 16, autoAlpha: 0, duration: 0.9, stagger: 0.09, delay: 0.2, ease: easeOut, clearProps: 'transform,opacity,visibility', scrollTrigger: { ...fST },
+          y: 16, opacity: 0, duration: 0.9, stagger: 0.09, delay: 0.2, ease: easeOut, clearProps: 'transform,opacity', scrollTrigger: { ...fST },
         });
       }
 
@@ -583,7 +739,7 @@
 
       // Ergebnis-Tafel: Rahmen, Urteil, Linie zeichnet sich, Zahlen zaehlen hoch
       const headBits = $$('.rx-panel__head > *', panel);
-      const verdictBits = $$('.rx-verdict__text > *, .rx-medal', panel);
+      const verdictBits = $$('.rx-verdict__text > *, .rx-medal, .rx-panel__fine, .rx-orders', panel);
       const axisBits = $$('.rx-axis span', panel);
       const metricBits = $$('.rx-metric', panel);
       const markerIn = E.marker && E.marker.firstElementChild;
@@ -593,34 +749,34 @@
       draw.p = 0; draw.q = 0; count.k = 0; countK = 0;
       applyDraw();
       odoLive = false;
-      odoPay(zeroed(curPay)); odoRoi(zeroed(curRoi));
-      gsap.set([markerIn, pillIn, endIn, E.pen].filter(Boolean), { autoAlpha: 0 });
+      odoPay(zeroed(curPay)); odoRoi(zeroed(curRoi)); odoOrd(zeroed(curOrd));
+      gsap.set([markerIn, pillIn, endIn, E.pen].filter(Boolean), { opacity: 0 });
 
       const tl = gsap.timeline({ paused: true, defaults: { ease: easeOut } });
-      tl.from(panel, { y: 90, autoAlpha: 0, duration: 1.2, clearProps: 'transform,opacity,visibility' }, 0)
-        .from(headBits, { y: 14, autoAlpha: 0, duration: 0.8, stagger: 0.06, clearProps: 'transform,opacity,visibility' }, 0.25)
-        .from(verdictBits, { y: 28, autoAlpha: 0, duration: 1, stagger: 0.08, clearProps: 'transform,opacity,visibility' }, 0.32)
-        .from(axisBits, { y: 8, autoAlpha: 0, duration: 0.7, stagger: 0.05, clearProps: 'transform,opacity,visibility' }, 0.55)
+      tl.from(panel, { y: 90, opacity: 0, duration: 1.2, clearProps: 'transform,opacity' }, 0)
+        .from(headBits, { y: 14, opacity: 0, duration: 0.8, stagger: 0.06, clearProps: 'transform,opacity' }, 0.25)
+        .from(verdictBits, { y: 28, opacity: 0, duration: 1, stagger: 0.08, clearProps: 'transform,opacity' }, 0.32)
+        .from(axisBits, { y: 8, opacity: 0, duration: 0.7, stagger: 0.05, clearProps: 'transform,opacity' }, 0.55)
         .to(draw, { q: 1, duration: 0.9, ease: easeInOut, onUpdate: applyDraw }, 0.45)
-        .to(E.pen, { autoAlpha: 1, duration: 0.3 }, 0.62)
+        .to(E.pen, { opacity: 1, duration: 0.3 }, 0.62)
         .to(draw, { p: 1, duration: 1.7, ease: easeInOut, onUpdate: applyDraw }, 0.62)
         .to(count, { k: 1, duration: 1.8, onUpdate: () => { countK = count.k; requestRender(); } }, 0.7)
-        .from(metricBits, { y: 18, autoAlpha: 0, duration: 0.9, stagger: 0.07, clearProps: 'transform,opacity,visibility' }, 0.72)
+        .from(metricBits, { y: 18, opacity: 0, duration: 0.9, stagger: 0.07, clearProps: 'transform,opacity' }, 0.72)
         .call(() => {
           odoLive = true;
-          odoPay(curPay); odoRoi(curRoi);
+          odoPay(curPay); odoRoi(curRoi); odoOrd(curOrd);
           if (E.ring) { rot += 120; E.ring.style.transform = `rotate(${rot}deg)`; }
         }, null, 0.85)
-        .fromTo(markerIn, { scale: 0.4, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.8, clearProps: 'transform' }, 1.3)
-        .fromTo(pillIn, { y: 10, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.7, clearProps: 'transform' }, 1.4)
-        .to(endIn, { autoAlpha: 1, duration: 0.6 }, 2.05);
+        .fromTo(markerIn, { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.8, clearProps: 'transform' }, 1.3)
+        .fromTo(pillIn, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, clearProps: 'transform' }, 1.4)
+        .to(endIn, { opacity: 1, duration: 0.6 }, 2.05);
 
       ScrollTrigger.create({ trigger: E.grid || panel, start: 'top 72%', once: true, onEnter: () => tl.play() });
 
       return () => {
         tl.kill();
         finish();
-        gsap.set([markerIn, pillIn, endIn, E.pen].filter(Boolean), { clearProps: 'opacity,visibility,transform' });
+        gsap.set([markerIn, pillIn, endIn, E.pen].filter(Boolean), { clearProps: 'opacity,transform' });
       };
     });
   });
