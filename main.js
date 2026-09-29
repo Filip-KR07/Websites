@@ -1439,9 +1439,14 @@
 
   document.addEventListener('DOMContentLoaded', async () => {
     // Module einzeln, mit Pause dazwischen: der Preloader bekommt Bilder, statt einen langen Task abzuwarten
+    // Pause erst nach ~40 ms Arbeit: jede Pause kostet einen internen Refresh von ScrollTrigger
+    let slice = performance.now();
     for (const { name, fn } of fxModules) {
       try { fn(window.FK); } catch (err) { console.error(`[fx:${name}]`, err); }
-      if (motion) await new Promise((r) => setTimeout(r, 0));
+      if (motion && performance.now() - slice > 40) {
+        await new Promise((r) => setTimeout(r, 0));
+        slice = performance.now();
+      }
     }
     if (motion) {
       ScrollTrigger.sort();
