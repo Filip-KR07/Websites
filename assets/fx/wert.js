@@ -101,7 +101,7 @@
     mm.add({
       isDesktop: '(min-width: 900px)',
       isScrolly: '(max-width: 899px) and (min-height: 500px)',
-      isShort: '(max-width: 899px) and (max-height: 499.98px)',
+      isShort: '(max-width: 899px) and (max-height: 499.98px)', // Handy quer: sonst liefe gar nichts
     }, (ctx) => {
       const { isDesktop, isScrolly } = ctx.conditions;
       const cfg = isDesktop ? CFG.desk : CFG.mob;
