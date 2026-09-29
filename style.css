@@ -246,8 +246,8 @@ html.motion .hero__frame{will-change:transform}
 .hero__scroll i::after{content:"";position:absolute;inset:0;background:var(--ink);transform:translateX(-100%);animation:scroll-cue 2.2s var(--ease) infinite}
 @keyframes scroll-cue{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
 .hero.is-framed .hero__frame{border-radius:36px;box-shadow:0 80px 120px -60px rgba(20,22,28,.35)}
-/* Tastatur-Fokus im ausgeblendeten Hero-Inhalt bleibt sichtbar */
-.hero__content:focus-within{opacity:1!important}
+/* Tastatur-Fokus im ausgeblendeten Hero-Inhalt bleibt sichtbar (nur Tastatur, Mausklick startet ja einen Sprung) */
+.hero__content:has(:focus-visible){opacity:1!important}
 
 /* Glas-Karten (yunicorn-Schema) */
 .glass{background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);

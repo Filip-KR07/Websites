@@ -1424,7 +1424,8 @@
     if (kind === 'reload' || kind === 'back_forward') {
       let saved = null;
       try { saved = JSON.parse(sessionStorage.getItem(POS_KEY) || 'null'); } catch (_) { saved = null; }
-      if (saved && saved.path === location.pathname) return () => anchorTop(saved);
+      // grob (vor dem Init, ohne Modul-Pins): Oberkante des Abschnitts; genau: Anteil darin
+      if (saved && saved.path === location.pathname) return (rough) => (rough ? anchorTop({ ...saved, ratio: 0 }) + window.innerHeight * 0.4 : anchorTop(saved));
     }
     let el = null;
     try { el = location.hash.length > 1 ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null; } catch (_) { el = null; }
@@ -1822,9 +1823,15 @@
       holdT = setTimeout(() => { hold = false; anchor = readAnchor(); }, 800);
     });
 
-    // Beim Neuladen/Deep-Link schon jetzt grob landen (hinter dem Preloader), genau dann nach dem Init (6c)
+    // Beim Neuladen/Deep-Link schon jetzt grob landen (hinter dem Preloader) und dort bleiben, waehrend
+    // die Module ihre Pins einsetzen; genau landet 6c nach dem Init
     const early = landing();
-    if (early) jumpTo(early());
+    if (early) {
+      const stay = () => jumpTo(early(true));
+      stay();
+      ScrollTrigger.addEventListener('refresh', stay);
+      initDone.then(() => ScrollTrigger.removeEventListener('refresh', stay));
+    }
 
     // Endlos-Animationen ausserhalb des Bildes anhalten (sonst Style und Layout in jedem Leerlauf-Frame)
     if (typeof IntersectionObserver !== 'undefined') {
