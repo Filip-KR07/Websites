@@ -446,8 +446,8 @@
     <header class="section-head rechner__head">
       <div class="rechner__intro">
         <p class="eyebrow" data-reveal>Rechner</p>
-        <h2 class="h2" data-reveal="words">Was bringt dir eine Website <em>ein?</em></h2>
-        <p class="lead" data-reveal>Stell deine eigenen Werte ein. Die Rechnung ist einfach und ehrlich.</p>
+        <h2 class="h2" data-reveal="words">Lohnt sich das? <em>Rechne nach.</em></h2>
+        <p class="lead" data-reveal>Stell deine eigenen Werte ein. Die Formel steht offen da, nichts ist versteckt. Rechne lieber vorsichtig: Das Ergebnis ist nur so gut wie deine Annahmen.</p>
       </div>
 
       <div class="rx-presets" data-rx-presets>
@@ -460,11 +460,13 @@
         </div>
         <div class="rx-presets__chips" role="group" aria-labelledby="rx-presets-label" data-rx-chipbox>
           <div class="rx-presets__list">
+            <button class="rx-chip" type="button" aria-pressed="false" data-rx-preset="vorsichtig">Beispiel: vorsichtig</button>
             <button class="rx-chip" type="button" aria-pressed="false" data-rx-preset="handwerk">Beispiel: Handwerk</button>
             <button class="rx-chip" type="button" aria-pressed="false" data-rx-preset="beratung">Beispiel: Beratung</button>
             <button class="rx-chip" type="button" aria-pressed="false" data-rx-preset="shop">Beispiel: Online-Shop</button>
           </div>
           <div class="rx-presets__list rx-presets__hl" aria-hidden="true" data-rx-hl>
+            <span class="rx-chip">Beispiel: vorsichtig</span>
             <span class="rx-chip">Beispiel: Handwerk</span>
             <span class="rx-chip">Beispiel: Beratung</span>
             <span class="rx-chip">Beispiel: Online-Shop</span>
@@ -474,8 +476,8 @@
 
       <figure class="rx-formula" data-rx-formula>
         <figcaption class="rx-formula__cap">So wird gerechnet</figcaption>
-        <p class="rx-formula__row"><span class="rx-term" data-rx-term="visitors">Besucher</span> <i aria-hidden="true">×</i><span class="sr-only">mal</span> <span class="rx-term" data-rx-term="inquiry">Anfragequote</span> <i aria-hidden="true">×</i><span class="sr-only">mal</span> <span class="rx-term" data-rx-term="close">Abschlussquote</span> <i aria-hidden="true">×</i><span class="sr-only">mal</span> <span class="rx-term" data-rx-term="value">Auftragswert</span> <i aria-hidden="true">×</i><span class="sr-only">mal</span> <span class="rx-term" data-rx-term="margin">Marge</span></p>
-        <p class="rx-formula__row rx-formula__row--sum"><i aria-hidden="true">=</i><span class="sr-only">ergibt den</span> Gewinn pro Monat</p>
+        <p class="rx-formula__row"><span class="rx-term" data-rx-term="visitors">Besucher</span> <i aria-hidden="true">×</i><span class="sr-only">mal</span> <span class="rx-term" data-rx-term="inquiry" data-rx-shop="Kaufquote">Anfragequote</span> <i aria-hidden="true">×</i><span class="sr-only">mal</span> <span class="rx-term" data-rx-term="close">Abschlussquote</span> <i aria-hidden="true">×</i><span class="sr-only">mal</span> <span class="rx-term" data-rx-term="value">Auftragswert</span> <i aria-hidden="true">×</i><span class="sr-only">mal</span> <span class="rx-term" data-rx-term="margin">Marge</span></p>
+        <p class="rx-formula__row rx-formula__row--sum"><i aria-hidden="true">−</i><span class="sr-only">minus</span> <span class="rx-term" data-rx-term="running">laufende Kosten</span> <i aria-hidden="true">=</i><span class="sr-only">ergibt den</span> Gewinn pro Monat</p>
         <p class="rx-formula__row"><span class="rx-term" data-rx-term="invest">Investition</span> <i aria-hidden="true">÷</i><span class="sr-only">geteilt durch</span> Gewinn pro Monat <i aria-hidden="true">=</i><span class="sr-only">ergibt die</span> Monate, bis sie bezahlt ist</p>
       </figure>
     </header>
@@ -489,7 +491,7 @@
             <div class="rx-field__text">
               <span class="rx-field__num" aria-hidden="true">01</span>
               <label class="rx-field__label" id="rx-l-visitors" for="rx-visitors">Besucher pro Monat</label>
-              <p class="rx-field__hint" id="rx-h-visitors">Menschen auf deiner Website im Monat.</p>
+              <p class="rx-field__hint" id="rx-h-visitors">Menschen auf deiner Website im Monat. Neue Websites brauchen oft Monate, bis sie gefunden werden: Rechne am Anfang lieber mit weniger.</p>
             </div>
             <div class="rx-value">
               <input class="rx-value__input" id="rx-visitors" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" enterkeyhint="done" value="500" aria-describedby="rx-h-visitors" data-rx-num disabled>
@@ -504,8 +506,8 @@
           <div class="rx-field" data-rx-field="inquiry">
             <div class="rx-field__text">
               <span class="rx-field__num" aria-hidden="true">02</span>
-              <label class="rx-field__label" id="rx-l-inquiry" for="rx-inquiry">Anfragequote in %</label>
-              <p class="rx-field__hint" id="rx-h-inquiry">Anteil der Besucher, die eine Anfrage senden.</p>
+              <label class="rx-field__label" id="rx-l-inquiry" for="rx-inquiry" data-rx-shop="Kaufquote in %">Anfragequote in %</label>
+              <p class="rx-field__hint" id="rx-h-inquiry" data-rx-shop="Anteil der Besucher, die etwas kaufen.">Anteil der Besucher, die eine Anfrage senden.</p>
             </div>
             <div class="rx-value">
               <input class="rx-value__input" id="rx-inquiry" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" enterkeyhint="done" value="1,5" aria-describedby="rx-h-inquiry" data-rx-num disabled>
@@ -522,7 +524,7 @@
             <div class="rx-field__text">
               <span class="rx-field__num" aria-hidden="true">03</span>
               <label class="rx-field__label" id="rx-l-close" for="rx-close">Abschlussquote in %</label>
-              <p class="rx-field__hint" id="rx-h-close">Anteil der Anfragen, aus denen ein Auftrag wird.</p>
+              <p class="rx-field__hint" id="rx-h-close" data-rx-shop="Im Shop ist jeder Kauf schon ein Auftrag, also meist 100 %.">Anteil der Anfragen, aus denen ein Auftrag wird.</p>
             </div>
             <div class="rx-value">
               <input class="rx-value__input" id="rx-close" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" enterkeyhint="done" value="25" aria-describedby="rx-h-close" data-rx-num disabled>
@@ -569,15 +571,34 @@
             <p class="rx-range__scale" aria-hidden="true"><span>5 %</span><span>100 %</span></p>
           </div>
 
-          <div class="rx-field rx-field--invest" data-rx-field="invest">
+          <div class="rx-field" data-rx-field="running">
             <div class="rx-field__text">
               <span class="rx-field__num" aria-hidden="true">06</span>
+              <label class="rx-field__label" id="rx-l-running" for="rx-running">Laufende Kosten pro Monat in €</label>
+              <p class="rx-field__hint" id="rx-h-running">Hosting, Domain und Pflege der Website. Der Wert ist ein Beispiel.</p>
+            </div>
+            <div class="rx-value">
+              <input class="rx-value__input" id="rx-running" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" enterkeyhint="done" value="30" aria-describedby="rx-h-running" data-rx-num disabled>
+              <span class="rx-value__unit" aria-hidden="true">€</span>
+            </div>
+            <div class="rx-range">
+              <span class="rx-range__track" aria-hidden="true" data-rx-track><i style="transform:scaleX(.06)" data-rx-fill></i></span>
+              <input class="rx-range__input" type="range" min="0" max="500" step="5" value="30" aria-labelledby="rx-l-running" aria-describedby="rx-h-running" aria-valuetext="30 Euro im Monat" data-rx-range disabled>
+            </div>
+            <p class="rx-range__scale" aria-hidden="true"><span>0 €</span><span>500 €</span></p>
+          </div>
+
+          <div class="rx-field rx-field--invest" data-rx-field="invest">
+            <div class="rx-field__text">
+              <span class="rx-field__num" aria-hidden="true">07</span>
               <label class="rx-field__label" id="rx-l-invest" for="rx-invest">Investition in die Website in €</label>
-              <p class="rx-field__hint" id="rx-h-invest">Einmaliger Preis für deine neue Website.</p>
+              <p class="rx-field__hint" id="rx-h-invest">Was die neue Website einmalig kostet. Der Wert ist ein Beispiel, deinen echten Preis bekommst du im Angebot.</p>
             </div>
             <div class="rx-value">
               <!-- PLATZHALTER-WERT: deinen typischen Projektpreis als Standard eintragen -->
-              <!-- (nur value="" hier aendern: Reglerstellung und Ergebnis rechnet das Skript selbst nach) -->
+              <!-- [[PLATZHALTER: typischer Projektpreis von Filip als Standard fuer "Investition" (value="3.000" hier), sonst als Beispiel lassen]] -->
+              <!-- (nur value="" hier aendern: Reglerstellung und Ergebnis rechnet das Skript selbst nach;
+                   das statische Beispiel ohne JS unten bleibt bei 3.000 € und ist als Beispiel markiert) -->
               <input class="rx-value__input" id="rx-invest" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" enterkeyhint="done" value="3.000" aria-describedby="rx-h-invest" data-rx-num disabled>
               <span class="rx-value__unit" aria-hidden="true">€</span>
             </div>
@@ -591,7 +612,7 @@
         </div>
 
         <div class="rx-dock" aria-hidden="true" data-rx-dock>
-          <p class="rx-dock__text"><span data-rx-dock-pay>Bezahlt nach 5,3 Monaten</span><i>·</i><b data-rx-dock-roi>×2,25</b></p>
+          <p class="rx-dock__text"><span class="rx-dock__tag">Beispiel</span><span data-rx-dock-pay>Bezahlt nach 5,6 Monaten</span><span class="rx-dock__roi">Rendite 1. Jahr <b data-rx-dock-roi>+113 %</b></span></p>
           <button class="rx-dock__btn" type="button" tabindex="-1" aria-label="Zum Diagramm" data-rx-dock-btn><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
       </fieldset>
@@ -603,31 +624,35 @@
           <p class="rx-panel__kicker">Beispielrechnung · 24 Monate</p>
           <ul class="rx-legend">
             <li class="rx-legend__item"><i class="rx-legend__gain" aria-hidden="true"></i>Gewinn, aufsummiert</li>
+            <li class="rx-legend__item"><i class="rx-legend__band" aria-hidden="true"></i><span>Spanne ±50 % <span data-rx-shop="Käufe">Anfragen</span></span></li>
             <li class="rx-legend__item"><i class="rx-legend__inv" aria-hidden="true"></i>Investition <b data-rx-inv>3.000 €</b></li>
           </ul>
         </div>
 
-        <div class="rx-verdict" aria-hidden="true">
-          <div class="rx-verdict__text">
-            <p class="rx-verdict__pre" data-rx-pre>Die Website hat sich nach</p>
-            <p class="rx-verdict__big"><span class="rx-odo" data-rx-odo>5,3</span> <em data-rx-unit>Monaten</em></p>
-            <p class="rx-verdict__post" data-rx-post>bezahlt.</p>
+        <div class="rx-verdict">
+          <div class="rx-verdict__text" aria-hidden="true" data-rx-verdict>
+            <p class="rx-verdict__pre" data-rx-pre>Mit deinen Annahmen hätte sich die Website nach</p>
+            <p class="rx-verdict__big"><span class="rx-odo" data-rx-odo>5,6</span> <em data-rx-unit>Monaten</em></p>
+            <p class="rx-verdict__post" data-rx-post>selbst bezahlt.</p>
           </div>
-          <div class="rx-medal">
+          <div class="rx-medal" aria-hidden="true">
             <div class="rx-medal__coin">
               <svg class="rx-medal__ring" viewBox="0 0 100 100" focusable="false" data-rx-ring>
                 <circle cx="50" cy="50" r="46" fill="none" stroke="#C8A96A" stroke-opacity=".6" stroke-width="5" stroke-dasharray=".9 3.917"/>
                 <circle cx="50" cy="50" r="40" fill="none" stroke="#C8A96A" stroke-opacity=".3" stroke-width=".6"/>
                 <circle cx="50" cy="4" r="2.4" fill="#C8A96A"/>
               </svg>
-              <span class="rx-medal__val"><span class="rx-odo" data-rx-roi>×2,25</span></span>
+              <span class="rx-medal__val"><span class="rx-odo" data-rx-roi>+113 %</span></span>
             </div>
-            <p class="rx-medal__cap">Rendite im ersten Jahr</p>
+            <p class="rx-medal__cap">Rendite im 1. Jahr<small>nach Abzug der Investition</small></p>
           </div>
+          <p class="rx-panel__fine">Beispielrechnung mit deinen Annahmen, keine Zusage. Nicht eingerechnet: die Anlaufzeit, bis eine neue Website gefunden wird, und Aufträge, die du auch ohne sie bekommen hättest.</p>
         </div>
-        <p class="sr-only" aria-live="polite" data-rx-live>Die Website hat sich nach 5,3 Monaten bezahlt, Rendite im ersten Jahr ×2,25.</p>
+        <p class="sr-only" aria-live="polite" data-rx-live>Mit deinen Annahmen hätte sich die Website nach 5,6 Monaten selbst bezahlt. Rendite im ersten Jahr nach Abzug der Investition: +113 %. 10 Aufträge decken die Investition, pro Auftrag bleiben im Schnitt 300 € Gewinn.</p>
 
-        <div class="rx-chart" role="img" aria-label="Diagramm: Gewinn der Website über 24 Monate aufsummiert, verglichen mit der Investition. Die Zahlen stehen daneben als Text." data-rx-chart>
+        <div class="rx-stage">
+        <p class="rx-orders" aria-hidden="true"><span class="rx-orders__n"><span class="rx-odo" data-rx-orders>10</span></span><span class="rx-orders__text"><span><span data-rx-orders-word>Aufträge decken</span> die Investition.</span><small>Mit deinen Zahlen bleiben pro Auftrag im Schnitt <b data-rx-per>300 €</b> Gewinn.</small></span></p>
+        <div class="rx-chart" role="img" aria-label="Diagramm: Gewinn der Website über 24 Monate aufsummiert, verglichen mit der Investition, dazu eine Spanne für halb so viele bis anderthalbmal so viele Anfragen. Die Zahlen stehen daneben als Text." data-rx-chart>
           <svg class="rx-chart__svg" viewBox="0 0 720 360" preserveAspectRatio="none" aria-hidden="true" focusable="false">
             <defs>
               <linearGradient id="rx-grad-gain" x1="0" y1="0" x2="0" y2="360" gradientUnits="userSpaceOnUse">
@@ -635,52 +660,58 @@
                 <stop offset=".5" stop-color="#A9A58C" stop-opacity=".36"/>
                 <stop offset="1" stop-color="#4C8FD6" stop-opacity=".16"/>
               </linearGradient>
+              <linearGradient id="rx-grad-band" x1="0" y1="0" x2="0" y2="360" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#F6F3EC" stop-opacity=".15"/>
+                <stop offset="1" stop-color="#F6F3EC" stop-opacity=".03"/>
+              </linearGradient>
               <pattern id="rx-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
                 <rect width="8" height="8" fill="#F6F3EC" fill-opacity=".035"/>
                 <line x1="0" y1="0" x2="0" y2="8" stroke="#F6F3EC" stroke-opacity=".2" stroke-width="1.6"/>
               </pattern>
-              <clipPath id="rx-clip-up"><rect x="-10" y="-40" width="740" height="338.46" data-rx-clip-up/></clipPath>
-              <clipPath id="rx-clip-down"><rect x="-10" y="298.46" width="740" height="61.54" data-rx-clip-down/></clipPath>
+              <clipPath id="rx-clip-up"><rect x="-10" y="-40" width="740" height="334.99" data-rx-clip-up/></clipPath>
+              <clipPath id="rx-clip-down"><rect x="-10" y="294.99" width="740" height="75.01" data-rx-clip-down/></clipPath>
               <clipPath id="rx-clip-wipe"><rect x="-10" y="-40" width="750" height="420" data-rx-wipe/></clipPath>
               <clipPath id="rx-clip-wipe-inv"><rect x="-10" y="-40" width="750" height="420" data-rx-wipe-inv/></clipPath>
             </defs>
             <path class="rx-chart__grid" d="M180 0V360M360 0V360M540 0V360M0 180H720"/>
             <path class="rx-chart__base" d="M0 360H720"/>
             <g clip-path="url(#rx-clip-wipe)">
-              <path class="rx-chart__loss" fill="url(#rx-hatch)" clip-path="url(#rx-clip-down)" data-rx-loss d="M0 360L30 348.46L60 336.92L90 325.38L120 313.85L150 302.31L180 290.77L210 279.23L240 267.69L270 256.15L300 244.62L330 233.08L360 221.54L390 210L420 198.46L450 186.92L480 175.38L510 163.85L540 152.31L570 140.77L600 129.23L630 117.69L660 106.15L690 94.62L720 83.08L720 298.46L0 298.46Z"/>
-              <path class="rx-chart__gain" fill="url(#rx-grad-gain)" clip-path="url(#rx-clip-up)" data-rx-gain d="M0 360L30 348.46L60 336.92L90 325.38L120 313.85L150 302.31L180 290.77L210 279.23L240 267.69L270 256.15L300 244.62L330 233.08L360 221.54L390 210L420 198.46L450 186.92L480 175.38L510 163.85L540 152.31L570 140.77L600 129.23L630 117.69L660 106.15L690 94.62L720 83.08L720 298.46L0 298.46Z"/>
-              <path class="rx-chart__drop" data-rx-drop d="M160 298.46V360"/>
+              <path class="rx-chart__loss" fill="url(#rx-hatch)" clip-path="url(#rx-clip-down)" data-rx-loss d="M0 360L30 348.46L60 336.92L90 325.38L120 313.85L150 302.31L180 290.77L210 279.23L240 267.69L270 256.15L300 244.62L330 233.08L360 221.54L390 210L420 198.46L450 186.92L480 175.38L510 163.85L540 152.31L570 140.77L600 129.23L630 117.69L660 106.15L690 94.62L720 83.08L720 294.99L0 294.99Z"/>
+              <path class="rx-chart__gain" fill="url(#rx-grad-gain)" clip-path="url(#rx-clip-up)" data-rx-gain d="M0 360L30 348.46L60 336.92L90 325.38L120 313.85L150 302.31L180 290.77L210 279.23L240 267.69L270 256.15L300 244.62L330 233.08L360 221.54L390 210L420 198.46L450 186.92L480 175.38L510 163.85L540 152.31L570 140.77L600 129.23L630 117.69L660 106.15L690 94.62L720 83.08L720 294.99L0 294.99Z"/>
+              <path class="rx-chart__band" fill="url(#rx-grad-band)" data-rx-band d="M0 360L30 342.37L60 324.73L90 307.1L120 289.47L150 271.84L180 254.2L210 236.57L240 218.94L270 201.31L300 183.67L330 166.04L360 148.41L390 130.77L420 113.14L450 95.51L480 77.88L510 60.24L540 42.61L570 24.98L600 7.35L630 -10.29L660 -27.92L690 -45.55L720 -60L720 229.34L690 234.78L660 240.23L630 245.67L600 251.12L570 256.56L540 262L510 267.45L480 272.89L450 278.34L420 283.78L390 289.23L360 294.67L330 300.11L300 305.56L270 311L240 316.45L210 321.89L180 327.33L150 332.78L120 338.22L90 343.67L60 349.11L30 354.56L0 360Z"/>
+              <path class="rx-chart__drop" data-rx-drop d="M169.01 294.99V360"/>
               <path class="rx-chart__glow" data-rx-glow d="M0 360L30 348.46L60 336.92L90 325.38L120 313.85L150 302.31L180 290.77L210 279.23L240 267.69L270 256.15L300 244.62L330 233.08L360 221.54L390 210L420 198.46L450 186.92L480 175.38L510 163.85L540 152.31L570 140.77L600 129.23L630 117.69L660 106.15L690 94.62L720 83.08"/>
               <path class="rx-chart__dots" data-rx-dots d="M30 348.46h.01M60 336.92h.01M90 325.38h.01M120 313.85h.01M150 302.31h.01M180 290.77h.01M210 279.23h.01M240 267.69h.01M270 256.15h.01M300 244.62h.01M330 233.08h.01M360 221.54h.01M390 210h.01M420 198.46h.01M450 186.92h.01M480 175.38h.01M510 163.85h.01M540 152.31h.01M570 140.77h.01M600 129.23h.01M630 117.69h.01M660 106.15h.01M690 94.62h.01M720 83.08h.01"/>
               <path class="rx-chart__line" data-rx-line d="M0 360L30 348.46L60 336.92L90 325.38L120 313.85L150 302.31L180 290.77L210 279.23L240 267.69L270 256.15L300 244.62L330 233.08L360 221.54L390 210L420 198.46L450 186.92L480 175.38L510 163.85L540 152.31L570 140.77L600 129.23L630 117.69L660 106.15L690 94.62L720 83.08"/>
             </g>
             <g clip-path="url(#rx-clip-wipe-inv)">
-              <path class="rx-chart__inv" data-rx-invline d="M0 298.46H720"/>
+              <path class="rx-chart__inv" data-rx-invline d="M0 294.99H720"/>
             </g>
           </svg>
 
-          <div class="rx-chart__guide" aria-hidden="true" data-rx-guide><i></i><span data-rx-guide-text>Monat 12 · 6.750 €</span></div>
-          <div class="rx-chart__marker" style="left:22.22%;top:82.91%" data-rx-marker><span class="rx-chart__marker-in"><i class="rx-chart__ring"></i><i class="rx-chart__dot"></i></span></div>
-          <p class="rx-chart__pill" style="left:22.22%;top:82.91%;transform:translate(-50%,calc(-100% - 14px))" data-rx-pill><span class="rx-chart__pill-in" data-rx-pill-text>Bezahlt ab Monat 6</span></p>
+          <div class="rx-chart__guide" aria-hidden="true" data-rx-guide><i></i><span data-rx-guide-text>Monat 12 · 6.390 €</span></div>
+          <div class="rx-chart__marker" style="left:23.47%;top:81.94%" data-rx-marker><span class="rx-chart__marker-in"><i class="rx-chart__ring"></i><i class="rx-chart__dot"></i></span></div>
+          <p class="rx-chart__pill" style="left:23.47%;top:81.94%;transform:translate(-50%,calc(-100% - 14px))" data-rx-pill><span class="rx-chart__pill-in" data-rx-pill-text>Bezahlt ab Monat 6</span></p>
           <span class="rx-chart__pen" style="left:100%;top:23.08%" data-rx-pen></span>
-          <p class="rx-chart__end" style="top:23.08%;transform:translateY(calc(-100% - 16px))" data-rx-end><span class="rx-chart__end-in"><b data-rx-endval>13.500 €</b><span>Gewinn nach 24 Monaten</span></span></p>
+          <p class="rx-chart__end" style="top:23.08%;transform:translateY(calc(-100% - 16px))" data-rx-end><span class="rx-chart__end-in"><b data-rx-endval>+9.780 €</b><span data-rx-endcap>Überschuss nach 24 Monaten</span></span></p>
+        </div>
         </div>
         <div class="rx-axis" aria-hidden="true">
           <span style="left:0">Start</span><span style="left:25%">6</span><span style="left:50%">12</span><span style="left:75%">18</span><span style="left:100%">24 Monate</span>
         </div>
 
         <dl class="rx-metrics">
-          <div class="rx-metric"><dt>Anfragen pro Monat</dt><dd><span data-rx-out="inquiries">7,5</span></dd></div>
+          <div class="rx-metric"><dt data-rx-shop="Käufe pro Monat">Anfragen pro Monat</dt><dd><span data-rx-out="inquiries">7,5</span></dd></div>
           <div class="rx-metric"><dt>Aufträge pro Monat</dt><dd><span data-rx-out="orders">1,9</span></dd></div>
           <div class="rx-metric"><dt>Umsatz pro Jahr</dt><dd><span data-rx-out="revYear">22.500 €</span><small><span data-rx-out="revMonth">1.875 €</span> im Monat</small></dd></div>
-          <div class="rx-metric rx-metric--gain"><dt>Gewinn pro Jahr</dt><dd><span data-rx-out="profitYear">6.750 €</span><small><span data-rx-out="profitMonth">562,50 €</span> im Monat</small></dd></div>
+          <div class="rx-metric rx-metric--gain"><dt>Gewinn pro Jahr</dt><dd><span data-rx-out="profitYear">6.390 €</span><small><span data-rx-out="profitMonth">533 €</span> im Monat</small></dd></div>
         </dl>
       </div>
     </div>
 
     <div class="rechner__foot">
       <div class="rechner__notes">
-        <p class="rechner__note" data-reveal>Beispielrechnung mit deinen eigenen Annahmen. Keine Zusage über tatsächliche Ergebnisse.</p>
+        <p class="rechner__note" data-reveal>Beispielrechnung mit deinen eigenen Annahmen. Keine Zusage über tatsächliche Ergebnisse. Die helle Spanne im Diagramm zeigt, was sich mit halb so vielen oder anderthalbmal so vielen Anfragen ergäbe.</p>
         <p class="rechner__nojs">Die Live-Berechnung braucht JavaScript. Oben siehst du das Ergebnis für die Standardwerte.</p>
       </div>
       <a class="btn btn--ink rechner__cta" href="mailto:filipkramar77@gmail.com" data-reveal><span>Lass uns deine Zahlen besprechen</span><span aria-hidden="true">→</span></a>
