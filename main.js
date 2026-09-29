@@ -1,6 +1,6 @@
 /* filipkramar.de — main.js
    Progressive Enhancement: Ohne GSAP/Lenis oder bei "prefers-reduced-motion" ist die Seite
-   vollständig sichtbar und nutzbar. Module in fester Reihenfolge, eine IIFE, keine Globals. */
+   vollständig sichtbar und nutzbar. Module in fester Reihenfolge, eine IIFE, einziges Global ist window.FK fuer die FX-Module (assets/fx). */
 (() => {
   'use strict';
 
@@ -1303,6 +1303,23 @@
   introDone.then(() => {
     if (window.requestIdleCallback) requestIdleCallback(startHeroScene, { timeout: 1200 });
     else setTimeout(startHeroScene, 60);
+  });
+
+  /* ---------- 6c. Schnittstelle fuer FX-Module (assets/fx/*.js) ---------- */
+  // Einziges Global der Seite. Jedes FX-Modul meldet sich mit FK.register(name, fn)
+  // an. Alle Module laufen nach dem Laden aller Skripte; danach sortiert
+  // ScrollTrigger die Trigger nach ihrer Position, damit Pins sauber verrechnet werden.
+  const fxModules = [];
+  window.FK = Object.freeze({
+    motion, isTouch, hasGSAP, lenis, introDone, motionOff,
+    $, $$, debounce, splitWords, splitChars, scrollToTarget,
+    register: (name, fn) => { fxModules.push({ name, fn }); },
+  });
+  document.addEventListener('DOMContentLoaded', () => {
+    fxModules.forEach(({ name, fn }) => {
+      try { fn(window.FK); } catch (err) { console.error(`[fx:${name}]`, err); }
+    });
+    if (motion) { ScrollTrigger.sort(); ScrollTrigger.refresh(); }
   });
 
   /* ---------- 7. Scroll-Module (nur mit Motion) ---------- */
