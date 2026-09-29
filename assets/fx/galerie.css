@@ -55,14 +55,17 @@
 
   /* Bildunterschrift: kleines Etikett im Bild */
   .galerie__cap{position:absolute;left:.7rem;bottom:.7rem;z-index:2;max-width:calc(100% - 1.4rem);
-    padding:.45rem .75rem;border-radius:999px;background:rgba(246,243,236,.92);color:var(--ink)}
+    padding:.45rem .75rem;border-radius:999px;background:rgba(246,243,236,.92);color:var(--ink);transition:opacity 240ms ease}
+  /* Mit Motion erst, wenn die Collage steht (auf dem Vollbild-Zoom waere es riesig) */
+  .galerie.is-fx:not(.is-settled) .galerie__cap{opacity:0}
 }
 
-/* Feiner Zeiger: Etikett gleitet beim Hover von unten herein */
+/* Feiner Zeiger: Etikett gleitet bei Hover oder Tastaturfokus von unten herein */
 @media (min-width:900px) and (hover:hover) and (pointer:fine){
   .galerie__cap{opacity:0;transform:translateY(calc(100% + .9rem));
     transition:transform 200ms var(--ease-out),opacity 160ms ease}
-  .galerie__tile:hover .galerie__cap{opacity:1;transform:none;
+  .galerie:not(.is-fx) .galerie__tile:is(:hover,:focus-within) .galerie__cap,
+  .galerie.is-settled .galerie__tile:is(:hover,:focus-within) .galerie__cap{opacity:1;transform:none;
     transition:transform 320ms var(--ease-out),opacity 220ms ease}
   .galerie .galerie__tile img{transition:transform 700ms var(--ease-out)}
   .galerie .galerie__tile:hover img{transform:scale(1.035)}
@@ -99,7 +102,7 @@
     padding:0 var(--gutter) .25rem;scrollbar-width:none;
   }
   .galerie__tiles::-webkit-scrollbar{display:none}
-  .galerie__tiles:focus-visible{outline-offset:-2px}
+  .galerie__tile:focus-visible{outline-offset:-3px} /* der Streifen schneidet oben und unten ab */
   .galerie .galerie__tile{
     position:relative;flex:0 0 calc(var(--sh) * var(--ar));width:auto;
     scroll-snap-align:start;overflow:visible;border-radius:0;box-shadow:none;background:none;
