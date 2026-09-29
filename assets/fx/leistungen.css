@@ -1,1 +1,211 @@
-/* fx/leistungen — wird im Modul-Branch gefuellt */
+/* fx/leistungen — Säulen als Kartenstapel, Arbeitsweise als Zählwerk.
+   Grundzustand (ohne JS, ohne GSAP, Reduced Motion): ruhige, vollständig
+   sichtbare Liste. Alles Bewegte nur unter html.motion. */
+
+/* ==========================================================================
+   1. Säulen — Grundform (gilt immer)
+   ========================================================================== */
+#leistungen{padding-bottom:0}
+#leistungen .pillars__stage{position:relative}
+#leistungen .pillars__word,#leistungen .pillars__index,#leistungen .pillar__mark{display:none}
+#leistungen .pillars__grid{display:grid;grid-template-columns:1fr;gap:clamp(1rem,2vw,1.75rem)}
+
+#leistungen .pillar{
+  --pad:clamp(1.75rem,4vw,4.5rem);
+  display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:end;align-content:stretch;
+  gap:clamp(1.5rem,3vw,3rem);min-height:clamp(24rem,60vh,36rem);padding:var(--pad);
+  border-radius:var(--r-lg);border-color:rgba(255,255,255,.9);color:var(--ink);
+  background:
+    radial-gradient(110% 80% at 92% 0%,rgba(255,255,255,.95),rgba(255,255,255,0) 60%),
+    linear-gradient(160deg,#FBFAF6 0%,#F1EEE7 55%,var(--marble) 100%);
+  backdrop-filter:none;-webkit-backdrop-filter:none; /* grosse bewegte Flaechen: kein Glas-Blur */
+  box-shadow:0 60px 100px -70px rgba(15,20,32,.55),inset 0 1px 0 rgba(255,255,255,.9);
+}
+#leistungen .pillar__num{
+  grid-column:1;grid-row:1;align-self:end;justify-self:start;
+  margin:0 0 calc(-1 * var(--pad) - .08em) -.05em;
+  font:300 clamp(9rem,20vw,20rem)/.8 var(--display);letter-spacing:-.03em;
+  font-variant-numeric:lining-nums;white-space:nowrap;pointer-events:none;
+  color:var(--azure);
+  background:linear-gradient(180deg,var(--azure) 8%,rgba(76,143,214,.07) 94%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+#leistungen .pillar__body{grid-column:2;grid-row:1;align-self:end;justify-self:end;width:100%;max-width:34rem;display:grid;gap:1rem}
+#leistungen .pillar .h3{font-size:clamp(1.7rem,1.15rem + 1.5vw,2.8rem);line-height:1.08;text-wrap:balance}
+#leistungen .pillar p{font-size:clamp(1rem,.95rem + .25vw,1.15rem);line-height:1.6;color:var(--ink-2);max-width:42ch}
+#leistungen .pillar__rule{position:relative;display:block;width:min(100%,12rem);height:1px;margin-bottom:.4rem;
+  background:linear-gradient(90deg,var(--gold),rgba(200,169,106,.2));transform-origin:0 50%}
+#leistungen .pillar__rule::after{content:"";position:absolute;left:0;top:-3px;width:7px;height:7px;border-radius:50%;background:var(--gold)}
+#leistungen .pillar__art{right:-3%;top:-14%;width:clamp(14rem,38%,32rem);opacity:.78}
+#leistungen .pillar__shade{position:absolute;inset:-1px;z-index:6;border-radius:inherit;background:var(--night);opacity:0;pointer-events:none}
+/* Glanz: eigener Lauf, der die Karte ganz verlässt (kein Streifen im Ruhezustand) */
+#leistungen .pillar::after{width:30%;opacity:0}
+#leistungen .pillar.is-in::after{animation:pl-sheen 1500ms var(--ease-out) 120ms 1 both}
+@keyframes pl-sheen{
+  0%{transform:translateX(-130%) skewX(-18deg);opacity:0}
+  12%{opacity:1}
+  80%{opacity:.9}
+  100%{transform:translateX(360%) skewX(-18deg);opacity:0}
+}
+
+/* II — Himmel */
+#leistungen .pillar:nth-of-type(2){
+  background:
+    radial-gradient(80% 70% at 78% 0%,rgba(255,255,255,.85),rgba(255,255,255,0) 58%),
+    linear-gradient(165deg,#E6EFF9 0%,var(--sky-2) 40%,#B2CFED 100%);
+}
+#leistungen .pillar:nth-of-type(2) .pillar__num{background-image:linear-gradient(180deg,#FFFFFF 4%,rgba(255,255,255,.8) 40%,rgba(76,143,214,.28) 96%)}
+#leistungen .pillar:nth-of-type(2) .pillar__art{right:6%;top:-8%;width:clamp(9rem,23%,18rem);opacity:.7}
+
+/* III — Nacht und Gold */
+#leistungen .pillar--accent{
+  color:var(--paper);border-color:rgba(200,169,106,.3);
+  background:
+    radial-gradient(80% 70% at 88% 0%,rgba(200,169,106,.22),rgba(200,169,106,0) 62%),
+    radial-gradient(70% 60% at 0% 100%,rgba(76,143,214,.16),rgba(76,143,214,0) 70%),
+    linear-gradient(160deg,var(--night-2) 0%,var(--night) 100%);
+  box-shadow:0 70px 110px -70px rgba(15,20,32,.75),inset 0 1px 0 rgba(200,169,106,.35);
+}
+#leistungen .pillar--accent p{color:rgba(246,243,236,.76)}
+#leistungen .pillar--accent .pillar__num{background-image:linear-gradient(180deg,#E9D6A8 6%,rgba(200,169,106,.5) 50%,rgba(200,169,106,.05) 96%)}
+#leistungen .pillar--accent .pillar__art{opacity:.9}
+#leistungen .pillar--accent::before{background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(200,169,106,.2),transparent 70%)}
+#leistungen .pillar--accent::after{background:linear-gradient(90deg,transparent,rgba(233,214,168,.2),transparent)}
+
+@media (max-width:899px){
+  #leistungen .pillar{grid-template-columns:1fr;grid-template-rows:1fr auto;align-items:stretch;min-height:26rem;gap:1.5rem}
+  #leistungen .pillar__num{grid-row:1;align-self:start;margin:-.02em 0 0 -.04em;font-size:clamp(7rem,40vw,12rem)}
+  #leistungen .pillar__body{grid-column:1;grid-row:2;justify-self:start}
+  #leistungen .pillar__art{width:64%;right:-12%;top:-8%}
+  #leistungen .pillar:nth-of-type(2) .pillar__art{width:40%;right:2%}
+}
+
+/* ==========================================================================
+   2. Säulen — Desktop mit Motion: gepinnter Kartenstapel
+   ========================================================================== */
+@media (min-width:900px){
+  html.motion #leistungen .pillars__stage{height:100vh;overflow:clip}
+  html.motion #leistungen .pillars__grid{position:absolute;inset:0;display:block;width:auto;max-width:none;margin:0}
+  html.motion #leistungen .pillar{
+    position:absolute;left:0;right:0;margin-inline:auto;top:calc(17vh + var(--nav-h) / 2);
+    width:min(80vw,1320px);height:70vh;min-height:0;transition:none;will-change:transform;
+  }
+  html.motion #leistungen .pillar__num{font-size:min(76vh,33vw)}
+  html.motion #leistungen .pillar__num,
+  html.motion #leistungen .pillar__art,
+  html.motion #leistungen .pillar__body{will-change:transform}
+  html.motion #leistungen .pillar__art{transition:none}
+
+  /* Goldlinie zeichnet sich, sobald die Karte oben liegt */
+  html.motion #leistungen .pillar__rule{transform:scaleX(0);transition:transform 1100ms var(--ease-out) 120ms}
+  html.motion #leistungen .pillar__rule::after{transform:scale(0);transition:transform 500ms var(--ease-out) 700ms}
+  html.motion #leistungen .pillar.is-active .pillar__rule,
+  html.motion #leistungen .pillar.is-active .pillar__rule::after{transform:none}
+
+  /* grosses Wort hinter dem Stapel, wandert quer */
+  html.motion #leistungen .pillars__word{
+    display:block;position:absolute;left:0;top:calc(17vh + var(--nav-h) / 2);transform:translateY(-58%);
+    font:italic 400 clamp(12rem,31vw,34rem)/1 var(--display);letter-spacing:-.03em;white-space:nowrap;
+    color:rgba(255,255,255,.78);pointer-events:none;user-select:none;-webkit-user-select:none;
+  }
+  html.motion #leistungen .pillars__word span{display:inline-block;will-change:transform}
+
+  /* Stapel-Index links neben den Karten */
+  html.motion #leistungen .pillars__index{
+    display:grid;gap:2.6rem;position:absolute;z-index:2;top:calc(17vh + var(--nav-h) / 2 + 35vh);
+    left:calc((100% - min(80vw,1320px)) / 4);transform:translate(-50%,-50%);padding-left:1.1rem;
+    font:400 1.05rem/1 var(--display);color:var(--muted);
+  }
+  html.motion #leistungen .pillars__index-track{position:absolute;left:0;top:-.4rem;bottom:-.4rem;width:1px;background:var(--line)}
+  html.motion #leistungen .pillars__index-track i{position:absolute;inset:0;background:linear-gradient(180deg,var(--azure),var(--gold));transform-origin:50% 0;transform:scaleY(0);will-change:transform}
+  html.motion #leistungen .pillars__index-num{transition:color 300ms ease,opacity 300ms ease;opacity:.7}
+  html.motion #leistungen .pillars__index-num.is-active{color:var(--ink);opacity:1}
+}
+
+/* ==========================================================================
+   3. Säulen — Handy mit Motion: sticky Stapel ohne Pin
+   ========================================================================== */
+@media (max-width:899px){
+  html.motion #leistungen .pillars__grid{display:block;padding-bottom:.5rem}
+  html.motion #leistungen .pillar__mark{display:block;height:0}
+  html.motion #leistungen .pillar{
+    position:sticky;top:calc(var(--nav-h) + .75rem);margin-top:1rem;min-height:min(34rem,72svh);
+    transform-origin:50% 0;transition:none;will-change:transform;
+  }
+  html.motion #leistungen .pillar:first-of-type{margin-top:0}
+  html.motion #leistungen .pillar:nth-of-type(2){top:calc(var(--nav-h) + .75rem + 14px)}
+  html.motion #leistungen .pillar:nth-of-type(3){top:calc(var(--nav-h) + .75rem + 28px)}
+  html.motion #leistungen .pillar__art{transition:none}
+  html.motion #leistungen .pillar__rule{transform:scaleX(0);transition:transform 900ms var(--ease-out) 100ms}
+  html.motion #leistungen .pillar__rule::after{transform:scale(0);transition:transform 400ms var(--ease-out) 550ms}
+  html.motion #leistungen .pillar.is-active .pillar__rule,
+  html.motion #leistungen .pillar.is-active .pillar__rule::after{transform:none}
+}
+
+/* ==========================================================================
+   4. Arbeitsweise — Grundform (gilt immer)
+   ========================================================================== */
+#arbeitsweise{overflow-x:clip}
+#arbeitsweise .process__steps{position:relative;min-width:0}
+#arbeitsweise .process__track,#arbeitsweise .step__line,#arbeitsweise .process__odo{display:none}
+#arbeitsweise .step{position:relative}
+#arbeitsweise .step__num{display:block;overflow:hidden;font-variant-numeric:lining-nums tabular-nums;padding-top:.06em}
+#arbeitsweise .step__num-in{display:block}
+
+/* Zählwerk (nur Desktop mit Motion sichtbar) */
+#arbeitsweise .process__odo{align-items:flex-end;gap:1.4rem;margin-top:clamp(1.5rem,4vh,3rem)}
+#arbeitsweise .process__odo-num{display:flex;font:300 clamp(7rem,26vh - 3rem,15rem)/.92 var(--display);letter-spacing:-.04em;font-variant-numeric:lining-nums tabular-nums}
+#arbeitsweise .process__odo-digit{display:block;height:.92em;color:transparent;-webkit-text-stroke:1px rgba(20,22,28,.3)}
+#arbeitsweise .process__odo-roll{display:block;height:.92em;overflow:hidden;color:var(--ink);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%);
+  mask-image:linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%)}
+#arbeitsweise .process__odo-strip{display:block;will-change:transform}
+#arbeitsweise .process__odo-strip span{display:block;height:.92em}
+#arbeitsweise .process__odo-meta{display:grid;gap:.5rem;padding-bottom:1.6em;font:500 .7rem/1 var(--body);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+#arbeitsweise .process__odo-meta span:first-child{color:var(--ink);display:flex;align-items:center;gap:.6rem}
+#arbeitsweise .process__odo-meta span:first-child::before{content:"";width:1.6rem;height:1px;background:var(--gold)}
+
+/* ==========================================================================
+   5. Arbeitsweise — Desktop mit Motion: sticky Zählwerk + Fortschrittslinie
+   ========================================================================== */
+@media (min-width:900px){
+  html.motion #arbeitsweise .process__side .h2{font-size:clamp(2.3rem,3.2vw + .6rem,4.3rem)}
+  html.motion #arbeitsweise .process__odo{display:flex}
+  html.motion #arbeitsweise .process__steps{padding-left:3.25rem}
+  html.motion #arbeitsweise .process__track{display:block;position:absolute;left:.5rem;top:0;bottom:0;width:1px;background:var(--line)}
+  html.motion #arbeitsweise .process__track i{position:absolute;inset:0;background:linear-gradient(180deg,var(--azure),var(--gold));transform-origin:50% 0;transform:scaleY(0);will-change:transform}
+  html.motion #arbeitsweise .step{min-height:44vh;padding:2.4rem 0 3rem;align-content:start}
+  html.motion #arbeitsweise .step:last-child{min-height:34vh}
+  html.motion #arbeitsweise .step .h3{font-size:clamp(1.7rem,1.1rem + 1.3vw,2.6rem);line-height:1.1}
+  html.motion #arbeitsweise .step p{font-size:1.05rem}
+
+  /* Knoten auf der Linie */
+  html.motion #arbeitsweise .step::before,
+  html.motion #arbeitsweise .step::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+  html.motion #arbeitsweise .step::before{left:calc(-2.75rem - 5px);top:-6px;width:11px;height:11px;background:var(--paper);border:1px solid rgba(20,22,28,.28);
+    transition:background-color 400ms ease,border-color 400ms ease}
+  html.motion #arbeitsweise .step::after{left:calc(-2.75rem - 14.5px);top:-15.5px;width:30px;height:30px;border:1px solid var(--gold);opacity:0;transform:scale(.4);
+    transition:opacity 400ms ease,transform 600ms var(--ease-out)}
+  html.motion #arbeitsweise .step.is-reached::before{background:var(--gold);border-color:var(--gold)}
+  html.motion #arbeitsweise .step.is-active::after{opacity:1;transform:none}
+
+  /* aktiver Schritt voll da, die anderen treten zurück */
+  html.motion #arbeitsweise .step__num,
+  html.motion #arbeitsweise .step__body{opacity:.35;transform:translateX(40px);
+    transition:opacity 700ms var(--ease-out),transform 900ms var(--ease-out)}
+  html.motion #arbeitsweise .step.is-reached .step__num,
+  html.motion #arbeitsweise .step.is-reached .step__body{transform:none}
+  html.motion #arbeitsweise .step.is-active .step__num,
+  html.motion #arbeitsweise .step.is-active .step__body{opacity:1}
+  html.motion #arbeitsweise .step.is-active .step__body{transition-delay:60ms}
+}
+
+/* ==========================================================================
+   6. Arbeitsweise — Handy mit Motion: eigene Linie und Ziffer je Schritt
+   ========================================================================== */
+@media (max-width:899px){
+  html.motion #arbeitsweise .step__line{display:block;position:absolute;left:1.05rem;top:4.4rem;bottom:1.25rem;width:1px;background:var(--line)}
+  html.motion #arbeitsweise .step__line i{position:absolute;inset:0;background:linear-gradient(180deg,var(--azure),var(--gold));transform-origin:50% 0;will-change:transform}
+  html.motion #arbeitsweise .step__num-in,
+  html.motion #arbeitsweise .step__body{will-change:transform}
+}
