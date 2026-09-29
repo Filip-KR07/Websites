@@ -55,9 +55,10 @@
     return $$('.w-in', el);
   };
 
+  // Buchstaben sind nur Optik (aria-hidden). Den Namen setzt der Aufrufer auf die Überschrift,
+  // nie als aria-label auf einen Span (generische Rollen dürfen keinen Namen tragen).
   const splitChars = (el) => {
     const text = el.textContent;
-    el.setAttribute('aria-label', text);
     el.innerHTML = Array.from(text).map((c) => `<span class="ch" aria-hidden="true">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
     return $$('.ch', el);
   };
@@ -178,24 +179,32 @@
       if (!btns.length) return;
       const single = root.dataset.faqSingle !== 'false';
 
-      const setOpen = (item, open) => {
+      // instant: ohne Höhen-Animation (für das Panel über der angetippten Frage)
+      const setOpen = (item, open, instant = false) => {
         const btn = $('[data-faq-btn]', item);
         const panel = $('[data-faq-panel]', item);
         if (!btn || !panel) return;
+        if (instant) {
+          item.classList.add('is-instant');
+          requestAnimationFrame(() => requestAnimationFrame(() => item.classList.remove('is-instant')));
+        }
         item.classList.toggle('is-open', open);
         btn.setAttribute('aria-expanded', open ? 'true' : 'false');
         panel.setAttribute('data-open', open ? 'true' : 'false');
         if (open) panel.removeAttribute('inert'); else panel.setAttribute('inert', '');
       };
 
+      // Startzustand ohne Übergang einklappen: kein Zuklappen beim Laden, kein
+      // transitionend, also auch kein ScrollTrigger-Refresh nur fürs Einklappen.
+      root.classList.add('is-settling');
+      items.forEach((item) => setOpen(item, item.hasAttribute('data-faq-open')));
+      root.classList.add('is-ready'); // erst jetzt darf CSS geschlossene Panels einklappen
+      requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('is-settling')));
+
       items.forEach((item) => {
         const btn = $('[data-faq-btn]', item);
         const panel = $('[data-faq-panel]', item);
         if (!btn || !panel) return;
-
-        // Startzustand aus dem HTML uebernehmen (kein Aufklappen beim Laden).
-        setOpen(item, item.hasAttribute('data-faq-open'));
-        root.classList.add('is-ready'); // erst jetzt darf CSS geschlossene Panels einklappen
 
         panel.addEventListener('transitionend', (e) => {
           if (e.target === panel && e.propertyName === 'grid-template-rows') notify();
@@ -203,8 +212,21 @@
 
         btn.addEventListener('click', () => {
           const open = btn.getAttribute('aria-expanded') !== 'true';
-          if (open && single) items.forEach((other) => { if (other !== item) setOpen(other, false); });
+          const others = open && single ? items.filter((o) => o !== item && o.classList.contains('is-open')) : [];
+          // Klappt ein Panel ÜBER der Frage zu, rutscht sie sonst unter dem Finger weg:
+          // das obere schließt sofort, der Scroll gleicht im selben Frame aus.
+          const above = others.filter((o) => o.compareDocumentPosition(item) & Node.DOCUMENT_POSITION_FOLLOWING);
+          const y0 = above.length ? btn.getBoundingClientRect().top : 0;
+          others.forEach((o) => setOpen(o, false, above.includes(o)));
           setOpen(item, open);
+          if (above.length) {
+            const dy = btn.getBoundingClientRect().top - y0;
+            const l = window.FK && window.FK.lenis;
+            if (Math.abs(dy) > 0.5) {
+              if (l) l.scrollTo(window.scrollY + dy, { immediate: true, force: true });
+              else window.scrollBy(0, dy);
+            }
+          }
           // Refresh erst nach Ende der Hoehen-Animation (transitionend), Sicherheitsnetz 420 ms
           clearTimeout(item._fkT); item._fkT = setTimeout(notify, 420);
         });
@@ -1165,30 +1187,53 @@
   const main = $('#main');
   let menuOpen = false;
   let lastFocus = null;
+  let menuInert = [];
 
-  const focusables = () => $$('a[href], button, [tabindex]:not([tabindex="-1"])', menu).filter((el) => el.offsetParent !== null || el === document.activeElement);
+  // Mit JS ist das Menü ein Dialog. Modal machen es die inert-Geschwister, nicht aria-modal:
+  // so bleibt der Schließen-Schalter in der Nav für Screenreader erreichbar.
+  if (menu) {
+    menu.setAttribute('role', 'dialog');
+    menu.setAttribute('aria-label', 'Menü');
+    menu.setAttribute('aria-hidden', 'true');
+  }
+
+  // Tab-Kreis: Schalter (Schließen) + alles Sichtbare im Menü
+  const focusables = () => [menuToggle, ...$$('a[href], button, [tabindex]:not([tabindex="-1"])', menu)]
+    .filter((el) => el && (el.offsetParent !== null || el === document.activeElement));
+
+  const setMenuInert = (on) => {
+    if (on) {
+      const outside = [...Array.from(body.children).filter((el) => el !== menu && el !== nav && el.tagName !== 'SCRIPT'), ...$$('.nav__brand, .nav__cta', nav || undefined)];
+      menuInert = outside.filter((el) => !el.hasAttribute('inert'));
+      menuInert.forEach((el) => el.setAttribute('inert', ''));
+    } else {
+      menuInert.forEach((el) => el.removeAttribute('inert'));
+      menuInert = [];
+    }
+  };
 
   const openMenu = () => {
     if (!menu || menuOpen) return;
     menuOpen = true;
     lastFocus = document.activeElement;
+    menu.scrollTop = 0;
     menu.classList.add('is-open');
     menu.setAttribute('aria-hidden', 'false');
     body.classList.add('menu-open');
     menuToggle.setAttribute('aria-expanded', 'true');
     menuToggle.setAttribute('aria-label', 'Menü schließen');
     if (menuLabel) menuLabel.textContent = 'Schließen';
-    if (main) main.setAttribute('inert', '');
+    setMenuInert(true);
     lenis?.stop();
     if (motion) {
-      gsap.fromTo(menuLinks, { y: 32, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: 0.045, duration: 0.55, delay: 0.18, ease: 'expo.out', overwrite: true });
+      gsap.fromTo(menuLinks, { y: 32, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.045, duration: 0.55, delay: 0.18, ease: 'expo.out', overwrite: true });
       const art = $('[data-menu-art]'); const foot = $('[data-menu-foot]');
-      if (art) gsap.fromTo(art, { scale: 1.06, autoAlpha: 0 }, { scale: 1, autoAlpha: 0.9, duration: 0.8, delay: 0.25, ease: 'expo.out', overwrite: true });
-      if (foot) gsap.fromTo(foot, { y: 14, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.5, delay: 0.4, ease: 'expo.out', overwrite: true });
+      if (art) gsap.fromTo(art, { scale: 1.06, opacity: 0 }, { scale: 1, opacity: 0.9, duration: 0.8, delay: 0.25, ease: 'expo.out', overwrite: true });
+      if (foot) gsap.fromTo(foot, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, delay: 0.4, ease: 'expo.out', overwrite: true });
     }
-    setTimeout(() => menuLinks[0]?.focus(), 250);
+    setTimeout(() => { if (menuOpen) menuLinks[0]?.focus(); }, 250);
   };
-  const closeMenu = () => {
+  const closeMenu = (restore = true) => {
     if (!menu || !menuOpen) return;
     menuOpen = false;
     menu.classList.remove('is-open');
@@ -1197,9 +1242,9 @@
     menuToggle.setAttribute('aria-expanded', 'false');
     menuToggle.setAttribute('aria-label', 'Menü öffnen');
     if (menuLabel) menuLabel.textContent = 'Menü';
-    if (main) main.removeAttribute('inert');
+    setMenuInert(false);
     lenis?.start();
-    if (lastFocus && lastFocus.focus) lastFocus.focus();
+    if (restore && lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
   };
   menuToggle?.addEventListener('click', () => (menuOpen ? closeMenu() : openMenu()));
   document.addEventListener('keydown', (e) => {
@@ -1208,22 +1253,53 @@
     if (e.key === 'Tab') {
       const f = focusables(); if (!f.length) return;
       const first = f[0]; const last = f[f.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      const i = f.indexOf(document.activeElement);
+      if (i < 0) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+      else if (e.shiftKey && i === 0) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); first.focus(); }
     }
   });
 
-  // Anker-Links (Menü, Buttons, Footer)
+  // Sprungziel: nach dem Scrollen liegt der Fokus dort (Überschrift bzw. <main>), nicht mehr oben
+  const focusTarget = (target) => {
+    const f = target === main ? target : ($('h1, h2', target) || target);
+    if (!f.hasAttribute('tabindex')) f.setAttribute('tabindex', '-1');
+    f.focus({ preventScroll: true });
+  };
+
+  // Anker-Links (Menü, Buttons, Footer, Skip-Link)
   $$('a[href^="#"]').forEach((a) => {
+    if (a.hasAttribute('data-menu-nojs')) return;
     a.addEventListener('click', (e) => {
       const id = a.getAttribute('href');
       if (id.length < 2) return;
       const target = document.querySelector(id);
       if (!target) return;
       e.preventDefault();
-      const go = () => scrollToTarget(target);
-      if (menuOpen) { closeMenu(); setTimeout(go, 300); } else go();
+      const go = () => { scrollToTarget(target); focusTarget(target); };
+      if (menuOpen) { closeMenu(false); setTimeout(go, 300); } else go();
     });
+  });
+
+  /* ---------- 5b. Fokus holt versteckte Reveals ins Bild ---------- */
+  // Reine DOM-Regel für alle Module: landet Tastaturfokus in einem noch unsichtbaren
+  // [data-reveal], wird der Reveal sofort fertig (eigene Reveals über el._fkReveal,
+  // fremde über ihre GSAP-Tweens, zur Not per opacity 1). Maus/Touch bleiben unberührt.
+  // Module markieren eigene Reveals mit data-fx-reveal (oder Klasse data-reveal), damit 7b sie nicht doppelt animiert.
+  const REVEAL_SEL = '[data-reveal], [data-fx-reveal], .data-reveal';
+  const keyboardFocus = (el) => { try { return el.matches(':focus-visible'); } catch (_) { return true; } };
+  document.addEventListener('focusin', (e) => {
+    const t = e.target;
+    if (!(t instanceof Element) || !keyboardFocus(t)) return;
+    for (let el = t.closest(REVEAL_SEL); el; el = el.parentElement && el.parentElement.closest(REVEAL_SEL)) {
+      if (typeof el._fkReveal === 'function') { el._fkReveal(); continue; }
+      const cs = getComputedStyle(el);
+      if (parseFloat(cs.opacity) >= 0.99 && cs.visibility !== 'hidden') continue;
+      if (window.gsap) gsap.getTweensOf(el).forEach((tw) => { const st = tw.scrollTrigger; if (!st || !st.vars.scrub) tw.progress(1); });
+      const now = getComputedStyle(el);
+      if (parseFloat(now.opacity) < 0.99) el.style.opacity = '1';
+      if (now.visibility === 'hidden') el.style.visibility = 'visible';
+    }
   });
 
   /* ---------- 6. Preloader + Hero-Intro ---------- */
@@ -1240,14 +1316,20 @@
   if (motion && hero) {
     history.scrollRestoration = 'manual';
     window.scrollTo(0, 0);
+    // Name am h1 selbst, die zerlegten Wörter sind nur Optik
+    const title = $('[data-hero-title]', hero);
+    if (title) title.setAttribute('aria-label', title.textContent.replace(/\s+/g, ' ').trim());
+    heroEls.words.forEach((w) => w.setAttribute('aria-hidden', 'true'));
     const chars = heroEls.words.flatMap(splitChars);
+    const introHidden = [heroEls.eyebrow, heroEls.sub, heroEls.caption, heroEls.scroll, nav, $('[data-hero-actions]', hero), $('[data-hero-card]', hero)].filter(Boolean);
     gsap.set(chars, { yPercent: 110 });
-    gsap.set([heroEls.eyebrow, heroEls.sub, heroEls.caption, heroEls.scroll, nav, '[data-hero-actions]', '[data-hero-card]'], { autoAlpha: 0 });
+    gsap.set(introHidden, { autoAlpha: 0 });
     gsap.set(heroEls.art, { autoAlpha: 0, scale: 1.08, transformOrigin: '50% 100%' });
     gsap.set(heroEls.disc, { autoAlpha: 0, scale: 0.7 });
+    let preTl = null; let heroTl = null;
 
     const heroIntro = () => new Promise((resolve) => {
-      gsap.timeline({ defaults: { ease: 'power4.out' }, onComplete: resolve })
+      heroTl = gsap.timeline({ defaults: { ease: 'power4.out' }, onComplete: resolve })
         .to(heroEls.disc, { autoAlpha: 1, scale: 1, duration: 1.8, ease: 'power2.out' }, 0)
         .to(heroEls.art, { autoAlpha: 1, scale: 1, duration: 1.8, ease: 'power2.out' }, 0.1)
         .to(chars, { yPercent: 0, duration: 1.2, stagger: 0.035 }, 0.15)
@@ -1261,15 +1343,17 @@
 
     const runPreloader = () => new Promise((resolve) => {
       if (!preloader) return resolve();
-      const seen = sessionStorage.getItem('fk-seen') === '1';
-      sessionStorage.setItem('fk-seen', '1');
+      preloader.style.animation = 'none'; // JS hat übernommen: CSS-Notbremse aus
+      // Gesperrter Speicher (Cookies/Websitedaten blockiert) wirft: dann läuft das Intro eben jedes Mal
+      let seen = false;
+      try { seen = sessionStorage.getItem('fk-seen') === '1'; sessionStorage.setItem('fk-seen', '1'); } catch (_) { /* egal */ }
       body.classList.add('is-loading');
       lenis?.stop();
       const count = $('[data-preloader-count]', preloader);
       const rule = $('[data-preloader-rule]', preloader);
       const words = $$('.preloader__word', preloader);
       const counter = { v: 0 };
-      const tl = gsap.timeline({
+      const tl = preTl = gsap.timeline({
         onComplete: () => {
           preloader.classList.add('is-done');
           body.classList.remove('is-loading');
@@ -1288,7 +1372,37 @@
         .to('.preloader__inner', { yPercent: 30, autoAlpha: 0, duration: 0.4, ease: 'power2.in' }, '<');
     });
 
-    introDone = runPreloader().then(heroIntro);
+    // Wachhund: Das Intro darf die Seite nie festhalten. Steht nach 6 s sichtbarer Zeit
+    // (Hintergrund-Tabs zählen nicht) nicht alles, wird der Endzustand hart gesetzt.
+    introDone = new Promise((resolve) => {
+      let settled = false; let dog = 0;
+      const finish = () => { if (settled) return; settled = true; clearTimeout(dog); resolve(); };
+      const force = () => {
+        if (settled) return;
+        try { preTl?.kill(); heroTl?.kill(); } catch (_) { /* egal */ }
+        preloader?.classList.add('is-done');
+        body.classList.remove('is-loading');
+        try {
+          lenis?.start();
+          gsap.set(chars, { yPercent: 0 });
+          gsap.set(introHidden, { autoAlpha: 1 });
+          gsap.set('[data-hero-card]', { y: 0 });
+          gsap.set([heroEls.art, heroEls.disc].filter(Boolean), { autoAlpha: 1, scale: 1 });
+        } catch (_) { introHidden.concat(chars).forEach((el) => { if (el.style) { el.style.visibility = ''; el.style.opacity = ''; el.style.transform = ''; } }); }
+        $('[data-hero-card]')?.classList.add('is-in');
+        finish();
+      };
+      const arm = () => { clearTimeout(dog); dog = setTimeout(() => { if (!document.hidden) force(); }, 6000); };
+      document.addEventListener('visibilitychange', () => { if (!document.hidden && !settled) arm(); });
+      arm();
+      runPreloader().then(heroIntro).then(finish, force);
+    });
+
+    // Tastaturfokus im weggescrollten Hero: zurück nach ganz oben (der gepinnte Hero selbst
+    // meldet dort immer top 0, darum der Body als Ziel), damit man sieht, wo man ist
+    heroEls.content?.addEventListener('focusin', (e) => {
+      if (window.scrollY > 4 && keyboardFocus(e.target)) scrollToTarget(body);
+    });
   } else if (preloader) {
     preloader.classList.add('is-done');
   }
@@ -1358,22 +1472,41 @@
         }
       }));
 
-      /* 7b. Text-Reveals */
-      $$('[data-reveal]').forEach((el) => {
+      /* 7b. Text-Reveals: ein ScrollTrigger.batch statt je ein Tween mit eigenem Trigger.
+         Die Trigger tragen keine Tweens (billiger Refresh) und sterben nach dem Auslösen.
+         Nur opacity, nie visibility: Tastatur und Screenreader erreichen alles. */
+      const reveals = $$('[data-reveal]');
+      const revealIn = (el, delay = 0) => {
+        if (el._fkRv) return el._fkRv;
         const type = el.dataset.reveal;
-        const st = { trigger: el, start: 'top 88%', once: true, onEnter: () => el.classList.add('is-in') };
+        const v = { delay, onStart: () => el.classList.add('is-in') };
+        ctx.add(() => { // im matchMedia-Kontext, damit ein Breakpoint-Wechsel auch laufende Reveals zurücksetzt
+          if (type === 'words') el._fkRv = gsap.to($$('.w-in', el), { ...v, yPercent: 0, duration: 1, stagger: 0.035, ease: 'power4.out' });
+          else if (type === 'lines') el._fkRv = gsap.to($$('.line', el), { ...v, clipPath: 'inset(0 0 0% 0)', y: 0, duration: 1.2, stagger: 0.16, ease: 'power4.out' });
+          else if (type === 'figure') el._fkRv = gsap.to(el, { ...v, y: 0, scale: 1, opacity: 1, duration: 1.3, ease: 'power3.out' });
+          else el._fkRv = gsap.to(el, { ...v, y: 0, opacity: 1, duration: 1, ease: 'power3.out' });
+        });
+        return el._fkRv;
+      };
+      reveals.forEach((el) => {
+        const type = el.dataset.reveal;
+        el._fkRv = null;
         if (type === 'words') {
-          const words = splitWords(el);
-          gsap.from(words, { yPercent: 110, duration: 1, stagger: 0.035, ease: 'power4.out', scrollTrigger: { ...st, start: 'top 85%' } });
-        } else if (type === 'lines') {
-          const lines = $$('.line', el);
-          gsap.fromTo(lines, { clipPath: 'inset(0 0 100% 0)', y: 24 }, { clipPath: 'inset(0 0 0% 0)', y: 0, duration: 1.2, stagger: 0.16, ease: 'power4.out', scrollTrigger: st });
-        } else if (type === 'figure') {
-          gsap.from(el, { y: 50, scale: 0.97, autoAlpha: 0, duration: 1.3, ease: 'power3.out', scrollTrigger: st });
-        } else {
-          gsap.from(el, { y: 28, autoAlpha: 0, duration: 1, ease: 'power3.out', scrollTrigger: st });
-        }
+          gsap.set(splitWords(el), { yPercent: 110 });
+          $$('.w', el).forEach((w) => w.setAttribute('aria-hidden', 'true')); // Name kommt aus aria-label der Überschrift
+        } else if (type === 'lines') gsap.set($$('.line', el), { clipPath: 'inset(0 0 100% 0)', y: 24 });
+        else if (type === 'figure') gsap.set(el, { y: 50, scale: 0.97, opacity: 0 });
+        else gsap.set(el, { y: 28, opacity: 0 });
+        el._fkReveal = () => { el._fkSt?.kill(); revealIn(el).progress(1); };
       });
+      ScrollTrigger.batch(reveals, {
+        start: 'top 88%', interval: 0.08,
+        // Was zusammen hereinkommt, läuft leicht versetzt nacheinander (Eyebrow, Titel, Lead)
+        onEnter: (els, sts) => {
+          els.forEach((el, i) => revealIn(el, i * 0.08));
+          sts.forEach((st) => st.kill());
+        },
+      }).forEach((st) => { st.trigger._fkSt = st; });
 
       /* 7c. Zähler */
       $$('[data-count]').forEach((el) => {
