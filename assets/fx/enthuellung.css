@@ -1,1 +1,111 @@
-/* fx/enthuellung — wird im Modul-Branch gefuellt */
+/* ==========================================================================
+   fx/enthuellung — Enthüllungen + Verschiebungen
+   Intro · Projekte · Werte · Jetzt. Was hier steht, ist der Endzustand:
+   Startwerte (Vorhang, Versatz, Kippen) setzt enthuellung.js erst zur Laufzeit
+   und nur mit Motion. Ohne JS / reduzierte Bewegung bleibt alles sichtbar.
+   ========================================================================== */
+
+/* ---------- 1. Intro: Bühne, Goldrahmen, Vorhangkante ---------- */
+#intro .intro__stage{position:relative}
+#intro .intro__portrait{position:relative;z-index:1}
+#intro .intro__frame{
+  position:absolute;top:-1rem;right:1rem;bottom:1rem;left:-1rem;z-index:0;pointer-events:none;
+  border:1px solid rgba(200,169,106,.85);border-radius:calc(var(--r) + 6px);
+}
+/* Kante läuft mit dem Vorhang nach oben, nur während der Enthüllung sichtbar */
+#intro .intro__edge{position:absolute;inset:0;z-index:2;pointer-events:none;visibility:hidden}
+#intro .intro__edge::before{
+  content:"";position:absolute;left:-6%;right:-6%;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold) 16%,#E4D2A6 50%,var(--gold) 84%,transparent);
+}
+#intro .intro__edge::after{
+  content:"";position:absolute;left:0;right:0;top:1px;height:72px;
+  background:linear-gradient(to bottom,rgba(246,243,236,.32),rgba(246,243,236,0));
+}
+#intro .intro__laurel{z-index:3}
+#intro .intro__caption{display:flex;align-items:center;gap:.75rem}
+#intro .intro__caption::before{content:"";flex:0 0 1.75rem;height:1px;background:var(--gold)}
+
+/* Kennzahlen: Oberlinie und Unterstreichungen als eigene Elemente (werden gezeichnet) */
+#intro .stats{position:relative;border-top:0}
+#intro .stats__rule{position:absolute;top:0;left:0;right:0;height:1px;background:var(--line);transform-origin:0 50%}
+#intro .stat{position:relative;padding-bottom:1.6rem}
+#intro .stat__rule{
+  position:absolute;left:0;right:0;bottom:0;height:1px;transform-origin:0 50%;
+  background:linear-gradient(90deg,var(--gold),var(--gold) 16%,rgba(200,169,106,.4) 34%,rgba(20,22,28,.14) 60%);
+}
+
+/* ---------- 2. Projekte: Hülle für die Bild-Parallaxe ---------- */
+#projekte .card__media{position:relative}
+#projekte .card__plx{position:absolute;inset:0}
+/* GSAP führt die Karten-Transforms; eine CSS-Transition würde jedem Frame hinterherlaufen */
+html.motion #projekte .card{transition:box-shadow 280ms var(--ease-out)}
+@media (min-width:900px){
+  /* Luft links/rechts, damit das Bild im horizontalen Lauf wandern kann */
+  html.motion #projekte .card__plx{left:-13%;right:-13%;will-change:transform}
+}
+
+/* ---------- 3. Werte: Kopf mit Lorbeerkranz, große Zeilen, Linien ---------- */
+#werte{position:relative;overflow-x:clip}
+@supports not (overflow:clip){#werte{overflow-x:hidden}}
+#werte .werte__grid{grid-template-columns:minmax(0,1fr);gap:clamp(2.5rem,5vw,4.5rem)}
+#werte .werte__sticky{
+  position:relative;top:auto;display:grid;
+  grid-template-columns:minmax(0,1fr) clamp(260px,30vw,440px);grid-template-rows:1fr auto auto;
+  column-gap:2rem;align-items:end;
+}
+#werte .werte__sticky>.eyebrow{grid-column:1;grid-row:2}
+#werte .werte__sticky>.h2{grid-column:1;grid-row:3}
+/* Kranz und Fragment teilen sich eine Zelle: das Fragment schwebt in der Mitte */
+#werte .werte__laurel{grid-column:2;grid-row:1 / -1;align-self:center;width:100%;height:auto;opacity:.62;pointer-events:none}
+html.motion #werte .werte__laurel{will-change:transform}
+#werte .werte__fragment{
+  position:relative;z-index:1;grid-column:2;grid-row:1 / -1;justify-self:center;align-self:center;
+  width:44%;margin:0;opacity:.95;
+}
+
+#werte .werte__list{position:relative}
+#werte .wert{
+  position:relative;border:0;
+  grid-template-columns:minmax(6rem,.62fr) minmax(0,1fr) minmax(0,1fr);
+  gap:1rem clamp(1.5rem,4vw,4rem);align-items:start;
+  padding:clamp(2.25rem,4.5vw,4.25rem) 0;
+}
+#werte .wert:last-child{border:0}
+#werte .wert__num{
+  grid-row:auto;font:300 clamp(4.2rem,2.4rem + 6.6vw,10rem)/.8 var(--display);
+  letter-spacing:-.02em;color:var(--ink);
+}
+#werte .wert .h3{font-size:clamp(1.55rem,1.05rem + 1.5vw,2.6rem);line-height:1.1;padding-top:.1em}
+#werte .wert p{max-width:40ch;padding-top:.45rem}
+/* Gerade Zeile gespiegelt: Ziffer rechts, Lesereihenfolge Titel -> Text bleibt */
+#werte .wert:nth-child(even){grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(6rem,.62fr)}
+#werte .wert:nth-child(even) .wert__num{grid-column:3;grid-row:1;text-align:right}
+#werte .wert:nth-child(even) .h3{grid-column:1;grid-row:1}
+#werte .wert:nth-child(even) p{grid-column:2;grid-row:1}
+
+#werte .wert__line{
+  position:absolute;top:0;left:0;right:0;height:1px;transform-origin:0 50%;pointer-events:none;
+  background:linear-gradient(90deg,var(--gold),rgba(200,169,106,.5) 12%,rgba(20,22,28,.16) 36%,rgba(20,22,28,.16));
+}
+#werte .wert:nth-child(even) .wert__line{
+  transform-origin:100% 50%;
+  background:linear-gradient(270deg,var(--gold),rgba(200,169,106,.5) 12%,rgba(20,22,28,.16) 36%,rgba(20,22,28,.16));
+}
+#werte .wert__line--end{top:auto;bottom:0}
+
+/* ---------- Breakpoints ---------- */
+@media (max-width:899px){
+  #intro .intro__frame{top:-.75rem;left:-.75rem;right:.75rem;bottom:.75rem}
+
+  #werte .werte__sticky{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto}
+  #werte .werte__sticky>.eyebrow{grid-row:1}
+  #werte .werte__sticky>.h2{grid-row:2;position:relative;z-index:1}
+  #werte .werte__laurel{position:absolute;z-index:0;grid-area:auto;top:-5.5rem;right:-18vw;width:min(56vw,250px);max-width:none;opacity:.34}
+  #werte .wert,#werte .wert:nth-child(even){grid-template-columns:4.4rem minmax(0,1fr);gap:.5rem 1.1rem;padding:2rem 0}
+  #werte .wert__num,#werte .wert:nth-child(even) .wert__num{
+    grid-column:1;grid-row:1 / span 2;text-align:left;font-size:clamp(3rem,13vw,4.2rem);padding-top:.05em;
+  }
+  #werte .wert .h3,#werte .wert:nth-child(even) .h3{grid-column:2;grid-row:1}
+  #werte .wert p,#werte .wert:nth-child(even) p{grid-column:2;grid-row:2;padding-top:0}
+}
