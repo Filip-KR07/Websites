@@ -24,7 +24,7 @@
       flash: q('[data-wert-flash]'), verdict: q('[data-wert-verdict]'),
       tens: q('[data-wert-tens]'), ones: q('[data-wert-ones]'), month: q('[data-wert-month]'),
       stepList: q('[data-wert-steps]'), steps: $$('[data-wert-step]', sec), cta: q('[data-wert-cta]'),
-      ledger: q('.waage__ledger'),
+      ledger: q('.waage__ledger'), grid: q('.waage__grid'), story: q('.waage__story'), stage: q('[data-wert-stage]'),
     };
     if (!el.pin || !el.scale || !el.beam || !el.panL || !el.panR || !el.block) return;
 
@@ -48,10 +48,11 @@
         steps: [0.012, 0.22, 0.44, 0.655], month: [0.02, 0.92], night: [0.17, 0.33, 0.48],
       },
       mob: {
-        n: 6, block: 0.04,
-        coins: [0.3, 0.46, 0.56, 0.66, 0.75, 0.84],
-        labels: [0, 1, 2, 3, 4, 5],
-        month: [0.03, 0.92], night: [0.14, 0.3, 0.46],
+        n: 6, block: 0.03,
+        // Münze 4 kippt die Waage, das Urteil steht, während Satz IV zu lesen ist
+        coins: [0.26, 0.33, 0.39, 0.44, 0.56, 0.68],
+        labels: [], // Kassenbuch kommt auf dem Handy als Nachsatz, siehe unten
+        month: [0.03, 0.92], night: [0.13, 0.26, 0.4],
       },
     };
 
@@ -94,10 +95,18 @@
       if (el.tens) el.tens.style.transform = `translate3d(0,${fix((-Math.min(1, Math.max(0, vs - 9)) / 2) * 100)}%,0)`;
     };
 
+    const navH = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+
     const mm = gsap.matchMedia();
-    mm.add({ isDesktop: '(min-width: 900px)', isMobile: '(max-width: 899px)' }, (ctx) => {
-      const { isDesktop } = ctx.conditions;
+    mm.add({
+      isDesktop: '(min-width: 900px)',
+      isScrolly: '(max-width: 899px) and (min-height: 500px)',
+      isShort: '(max-width: 899px) and (max-height: 499.98px)',
+    }, (ctx) => {
+      const { isDesktop, isScrolly } = ctx.conditions;
       const cfg = isDesktop ? CFG.desk : CFG.mob;
+      const sticky = !isDesktop && !!(el.grid && el.story && el.stage && el.month && el.stepList);
+      const scrolly = sticky && isScrolly; // hoch genug: die Sätze laufen unter der Waage durch
       const scrub = FK.isTouch ? true : 0.8;
       const coins = el.coins.slice(0, cfg.n);
       const labelOf = new Map(cfg.labels.map((ci, k) => [ci, k]));
@@ -112,6 +121,7 @@
       const labelTw = [];
       let blockTl = null;
       let verdictTw = null;
+      let recapTl = null;
       let litRaf = 0;
       let dropClock = 0;
       let live = true; // nach dem Aufräumen dürfen späte Rückrufe nichts mehr anfassen
@@ -189,11 +199,20 @@
         }
       };
 
+      // Im Band unter der Waage macht der Monat dem Urteil Platz
+      const swapMonth = (on, instant) => {
+        if (!sticky) return;
+        const to = on ? { opacity: 0, yPercent: -35 } : { opacity: 1, yPercent: 0 };
+        if (instant) gsap.set(el.month, to);
+        else gsap.to(el.month, { ...to, duration: on ? 0.3 : 0.45, ease: 'power2.out', overwrite: true });
+      };
+
       const checkTip = (instant) => {
         const on = blockOn && count() >= tipN;
         if (on === tipped) return;
         tipped = on;
         verdictTw?.kill();
+        swapMonth(on, instant);
         if (!el.verdict) return;
         if (on) {
           if (instant) { gsap.set(el.verdict, { autoAlpha: 1, yPercent: 0, scale: 1 }); return; }
@@ -317,6 +336,27 @@
         }
       };
 
+      /* ---------- Handy + Tablet hochkant: Rahmen für die klebende Waage ---------- */
+      // Waage + Monatsband kleben unter der Navigation, bis Satz IV durch ist. Der Rahmen
+      // umschließt nur Waage, Band und Sätze, damit Kassenbuch und Aufruf danach normal folgen.
+      // Flache Handys (quer): statt der Sätze ein kurzer Halt, in dem die Waage kippt.
+      let frame = null, head = null;
+      if (sticky) {
+        frame = document.createElement('div');
+        frame.className = 'waage__scrolly';
+        head = document.createElement('div');
+        head.className = 'waage__sticky';
+        head.append(el.scale, el.month);
+        const hold = document.createElement('div');
+        hold.className = 'waage__hold';
+        frame.append(head, scrolly ? el.stepList : hold);
+        el.grid.prepend(frame);
+        sec.classList.add('is-scrolly');
+        sec.classList.toggle('is-short', !scrolly);
+      }
+      // Unterkante des Bands (px ab Viewport-Oberkante), nur beim Messen gelesen
+      const bandBottom = () => (parseFloat(getComputedStyle(head).top) || navH()) + head.offsetHeight;
+
       /* ---------- Startzustand (nur mit Motion, zur Laufzeit) ---------- */
       el.coins.forEach((c, i) => gsap.set(c, { yPercent: -coinFall[i], rotation: coinRot[i], autoAlpha: 0 }));
       gsap.set(el.block, { yPercent: -BLOCK_FALL, autoAlpha: 0 });
@@ -324,19 +364,33 @@
       if (el.verdict) gsap.set(el.verdict, { autoAlpha: 0 });
       if (el.glint) gsap.set(el.glint, { autoAlpha: 0 });
       render(0);
-      const mo = { v: 1 };
       renderMonth(1);
 
       /* ---------- Gescrubbte Timeline ---------- */
+      // Monat direkt aus dem Fortschritt: nach jedem Refresh stimmt er sofort wieder
+      const [m0, m1] = cfg.month;
+      const monthAt = (p) => 1 + 11 * gsap.utils.clamp(0, 1, (p - m0) / (m1 - m0));
+      const update = (p) => {
+        if (!live || ScrollTrigger.isRefreshing) return;
+        sync(p);
+        renderMonth(monthAt(p));
+      };
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
-        onUpdate: () => sync(tl.progress()),
+        onUpdate: () => update(tl.progress()),
         scrollTrigger: isDesktop
           ? { trigger: el.pin, start: 'top top', end: '+=180%', pin: true, scrub, invalidateOnRefresh: true }
-          : { trigger: el.scale, start: 'top 62%', end: 'bottom 22%', scrub, invalidateOnRefresh: true },
+          : scrolly
+            // Von Satz I bis Satz IV; gemessen wird an der Liste, die klebt nicht
+            ? { trigger: el.stepList, start: 'top 92%', end: () => `bottom ${bandBottom()}px`, scrub, invalidateOnRefresh: true }
+            : sticky
+              // Quer: vom Hereinkommen bis zum Ende des Halts
+              ? { trigger: frame, start: 'top bottom', end: () => `bottom ${bandBottom()}px`, scrub, invalidateOnRefresh: true }
+              : { trigger: el.scale, start: 'top 85%', end: 'bottom 62%', scrub, invalidateOnRefresh: true },
       });
       tl.to({}, { duration: 1 }, 0);
-      const resync = () => sync(tl.progress());
+
+      const resync = () => update(tl.progress());
       ScrollTrigger.addEventListener('refresh', resync);
 
       const [n0, n1, n2] = cfg.night;
@@ -348,9 +402,6 @@
         tl.fromTo(el.night, { opacity: 0 }, { opacity: 0.95, duration: n1 - n0, ease: 'sine.inOut' }, n0)
           .to(el.night, { opacity: 0, duration: n2 - n1, ease: 'sine.inOut' }, n1);
       }
-      const [m0, m1] = cfg.month;
-      tl.fromTo(mo, { v: 1 }, { v: 12, duration: m1 - m0, onUpdate: () => renderMonth(mo.v) }, m0);
-
       if (isDesktop) {
         // Sanfter Kamera-Schub über den ganzen Pin
         tl.fromTo(el.scale, { scale: 0.965 }, { scale: 1.025, duration: 1 }, 0);
@@ -385,12 +436,35 @@
         });
         // Überzählige Münzen gibt es auf dem Handy nicht
         gsap.set(el.coins.slice(cfg.n), { autoAlpha: 0 });
+
+        // Jeder Satz löst sich auf, bevor er das Band unter der Waage erreicht
+        if (scrolly) {
+          el.steps.forEach((li) => {
+            gsap.fromTo(li, { opacity: 1 }, {
+              opacity: 0, ease: 'none',
+              scrollTrigger: { trigger: li, start: () => `top ${bandBottom() + 24}px`, end: () => `top ${bandBottom() - 12}px`, scrub: true, invalidateOnRefresh: true },
+            });
+          });
+        }
+
+        // Kassenbuch als Nachsatz: die Einträge fallen nacheinander hinein, sobald es im Bild ist
+        if (el.ledger) {
+          ScrollTrigger.create({
+            trigger: el.ledger, start: 'top 88%', once: true,
+            onEnter: () => {
+              if (!live) return;
+              recapTl = gsap.timeline()
+                .to(labelIn.filter(Boolean), { yPercent: 0, duration: 0.7, ease: 'expo.out', stagger: 0.07 }, 0)
+                .fromTo(labelDot.filter(Boolean), { scale: 0.3 }, { scale: 1, duration: 0.55, ease: 'back.out(3)', stagger: 0.07 }, 0.08);
+            },
+          });
+        }
       }
 
       // Simulation nur, solange die Waage im Bild ist. Zuletzt messen, damit der
       // Pin-Abstand dieses Abschnitts schon in der Höhe steckt.
       ScrollTrigger.create({
-        trigger: isDesktop ? sec : el.scale, start: 'top bottom', end: 'bottom top', refreshPriority: -1,
+        trigger: sec, start: 'top bottom', end: 'bottom top', refreshPriority: -1,
         onToggle: (self) => setVisible(self.isActive),
       });
 
@@ -399,13 +473,21 @@
         ScrollTrigger.removeEventListener('refresh', resync);
         setVisible(false);
         cancelAnimationFrame(litRaf);
-        [...coinTl, ...labelTw, blockTl, verdictTw].forEach((t) => t && t.kill());
-        gsap.killTweensOf([...flashRings, flashGlow, el.glint].filter(Boolean));
-        const touched = [el.beam, el.panL, el.panR, el.shL, el.shR, el.block, el.glint, el.verdict, el.tens, el.ones,
+        [...coinTl, ...labelTw, blockTl, verdictTw, recapTl].forEach((t) => t && t.kill());
+        gsap.killTweensOf([...flashRings, flashGlow, el.glint, el.month].filter(Boolean));
+        const touched = [el.beam, el.panL, el.panR, el.shL, el.shR, el.block, el.glint, el.verdict, el.tens, el.ones, el.month,
           ...el.coins, ...labelIn, ...labelDot, ...flashRings, flashGlow].filter(Boolean);
         gsap.set(touched, { clearProps: 'transform,opacity,visibility' });
         if (el.glint) { el.glint.style.left = ''; el.glint.style.top = ''; }
         $('.btn', el.cta || sec)?.classList.remove('is-lit');
+        // Rahmen auflösen, Originalreihenfolge wiederherstellen
+        if (frame) {
+          el.stage.prepend(el.scale);
+          el.story.prepend(el.month);
+          el.month.after(el.stepList);
+          frame.remove();
+          sec.classList.remove('is-scrolly', 'is-short');
+        }
       };
     });
   });
