@@ -1,1 +1,87 @@
-/* fx/kinetik — wird im Modul-Branch gefuellt */
+/* ==========================================================================
+   fx/kinetik — 1. Kinetische Typo (Lauftext-Band)  2. Haltung (Fenster + Wort-Scrub)
+   Laedt nach style.css. Alle Regeln auf .kin bzw. #statement begrenzt.
+   Ohne JS / reduzierte Bewegung: statische Zeilen, Zitat voll sichtbar.
+   ========================================================================== */
+
+/* 0. Globaler Fix (bei der Integration nach style.css verschieben):
+   html{scroll-behavior:smooth} verschluckt den kurzen Sprung auf 0, mit dem ScrollTrigger beim
+   Refresh misst. Laedt unter 900px ein Bild nach, waehrend gescrollt ist, verrutschen sonst alle
+   Trigger um die aktuelle Scrollhoehe. Sanfte Spruenge uebernehmen Lenis bzw. scrollToTarget. */
+html.motion{scroll-behavior:auto}
+
+/* 1. Lauftext-Band ------------------------------------------------------- */
+.marquee.kin{
+  --kin-fs:clamp(3.4rem,11.2vw,11.5rem);
+  position:relative;overflow:hidden;
+  display:grid;row-gap:clamp(.2rem,.8vw,.9rem);
+  padding:clamp(4.5rem,9vw,8.5rem) 0 clamp(3rem,6vw,5.5rem);
+  border-bottom:1px solid var(--line);
+}
+html:not(.motion) .marquee.kin{overflow:hidden} /* style.css erlaubt sonst horizontales Wischen */
+.kin__defs{position:absolute;width:0;height:0;overflow:hidden}
+.kin__row{
+  display:flex;white-space:nowrap;
+  font:400 var(--kin-fs)/1.04 var(--display);letter-spacing:-.035em;color:var(--ink);
+}
+.kin__track{display:flex;flex:none;width:max-content;transform-origin:50% 50%}
+.kin__set{display:flex;align-items:center;flex:none}
+.kin__word{display:block;padding-inline:.03em}
+/* Zeile 2: Kontur, jedes zweite Wort kursiv in Azur */
+.kin__row--line .kin__word{color:transparent;-webkit-text-stroke:1.2px var(--ink);font-weight:300}
+.kin__row--line .kin__word--it{
+  color:var(--azure);-webkit-text-stroke:0 transparent;
+  font-style:italic;font-weight:400;letter-spacing:-.02em;padding-inline:.02em .08em;
+}
+/* Trenner: goldener Kompass-Stern, dreht mit der Scroll-Geschwindigkeit */
+.kin__sep{
+  flex:none;display:block;position:relative;top:-.05em;
+  width:.26em;height:.26em;margin-inline:.36em;color:var(--gold);
+}
+.kin__sep svg{display:block;width:100%;height:100%;fill:currentColor;overflow:visible}
+
+/* Standbild ohne Motion: Zeile 2 versetzt, wirkt wie angehaltene Bewegung */
+html:not(.motion) .kin__row--line .kin__track{transform:translateX(-22%)}
+
+html.motion .kin__track,html.motion .kin__row{will-change:transform}
+
+@media (max-width:899px){
+  .marquee.kin{--kin-fs:clamp(3rem,15vw,5.6rem);padding:clamp(3.5rem,14vw,5rem) 0 clamp(2.25rem,9vw,3rem)}
+  .kin__row--line .kin__word{-webkit-text-stroke-width:1px}
+}
+
+/* 2. Haltung: dunkles Fenster, Wort fuer Wort ---------------------------- */
+#statement .kin-eyebrow::before{display:none} /* eigene Linie statt Pseudo-Element */
+#statement .kin-rule{
+  display:block;flex:none;width:clamp(2.5rem,5vw,4.5rem);height:1px;
+  background:linear-gradient(90deg,rgba(246,243,236,.55),var(--gold));transform-origin:0 50%;
+}
+#statement .kin-glow{
+  position:absolute;left:0;top:50%;width:min(92vw,1200px);aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(76,143,214,.2),rgba(76,143,214,.07) 55%,rgba(76,143,214,0));
+  transform:translate(-35%,-50%);pointer-events:none;
+}
+#statement .statement__by{display:flex;align-items:center;gap:.9rem}
+#statement .statement__by::after{
+  content:"";display:block;width:.5rem;height:.5rem;transform:rotate(45deg);
+  border:1px solid var(--gold);opacity:.8;
+}
+
+html.motion #statement .statement__bust,html.motion #statement .kin-glow,html.motion #statement .statement__inner{will-change:transform}
+/* Worte als eigene Ebenen: Deckkraft laeuft im Compositor, der Zitatblock wird nicht neu gerastert */
+html.motion #statement .kin-w{display:inline-block;will-change:opacity}
+/* Mit Motion bewegt sich die Bueste per Scroll (Drehung, Parallaxe, Zoom). Der Dauer-Schimmer
+   (animierte Maske) muesste sie dann jedes Bild neu rastern – daher stehendes Licht in der Mitte. */
+html.motion #statement .statement__bust{animation:none;-webkit-mask-position:50% 0;mask-position:50% 0}
+
+/* Gepinnt (Desktop, genug Hoehe): Abschnitt fuellt genau einen Viewport */
+@media (min-width:900px) and (min-height:620px){
+  html.motion #statement{
+    min-height:100vh;min-height:100svh;display:grid;align-items:center;
+    padding-block:calc(var(--nav-h) + 1rem) 2.5rem;
+  }
+  html.motion #statement .statement__quote{font-size:clamp(2.2rem,min(6.2vw,8.8svh),6.6rem)}
+}
+@media (max-width:899px){
+  #statement .kin-glow{width:140vw;transform:translate(-45%,-50%)}
+}
