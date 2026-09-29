@@ -14,8 +14,10 @@
   overflow:hidden;overflow:clip;
   color:var(--paper);
 }
+/* Iris: runde Maske um die Buehne (Kreis setzt kontakt.js, ohne Motion volle Flaeche) */
+#kontakt .kontakt__iris{position:absolute;inset:0;z-index:-1;pointer-events:none}
 #kontakt .kontakt__stage{
-  position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;
+  position:absolute;inset:0;overflow:hidden;
   background:
     radial-gradient(70% 55% at 50% 108%,rgba(76,143,214,.6),rgba(76,143,214,.16) 55%,rgba(76,143,214,0) 78%),
     radial-gradient(55% 45% at 50% 44%,rgba(38,58,98,.55),rgba(15,20,32,0) 72%),
@@ -44,9 +46,47 @@
     linear-gradient(180deg,rgba(15,20,32,.1),rgba(15,20,32,.55) 18%);
 }
 
+/* Mit Motion: Iris waechst per scale, die Buehne skaliert gegen (nur Transforms).
+   Masse in px aus kontakt.js: Breite, Hoehe, Kreismitte, Radius bis in die fernste Ecke. */
+html.motion #kontakt .kontakt__iris.is-iris{
+  inset:auto;left:calc(var(--kx-cx) - var(--kx-rad));top:calc(var(--kx-cy) - var(--kx-rad));
+  width:calc(var(--kx-rad) * 2);height:calc(var(--kx-rad) * 2);
+  border-radius:50%;overflow:hidden;will-change:transform;
+}
+html.motion #kontakt .kontakt__iris.is-iris .kontakt__stage{
+  inset:auto;left:calc(var(--kx-rad) - var(--kx-cx));top:calc(var(--kx-rad) - var(--kx-cy));
+  width:var(--kx-w);height:var(--kx-h);transform-origin:var(--kx-cx) var(--kx-cy);will-change:transform;
+}
+/* ganz offen: keine Maske und keine eigenen Ebenen mehr (spart beim Footer Kompositing) */
+html.motion #kontakt .kontakt__iris.is-open{overflow:visible;border-radius:0}
+html.motion #kontakt .kontakt__iris.is-open,
+html.motion #kontakt .kontakt__iris.is-open .kontakt__stage{will-change:auto}
+
 /* ---------- Kontakt: Inhalt ---------- */
 #kontakt .kontakt__inner{position:relative}
 #kontakt .kontakt__eyebrow{margin-bottom:1.1rem}
+/* Ergebnis aus dem Rechner (erscheint erst nach Eingaben dort) */
+#kontakt .kontakt__yours{
+  position:relative;overflow:hidden;
+  display:inline-flex;flex-wrap:wrap;align-items:baseline;justify-content:center;column-gap:.6rem;row-gap:.1rem;
+  max-width:100%;margin:0 0 clamp(1rem,2.6vh,1.6rem);padding:.55rem 1.15rem .6rem;
+  border:1px solid rgba(200,169,106,.45);border-radius:1.6rem;background:rgba(15,20,32,.38);
+  font:400 .9rem/1.35 var(--body);color:rgba(246,243,236,.8);
+}
+#kontakt .kontakt__yours[hidden]{display:none}
+#kontakt .kontakt__yours-lbl{font-weight:500;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(246,243,236,.74)}
+#kontakt .kontakt__yours em{display:inline-block;font:italic 400 1.4rem/1.1 var(--display);font-variant-numeric:lining-nums;color:var(--gold)}
+#kontakt .kontakt__yours-note{font-size:.8rem;color:rgba(246,243,236,.72)}
+/* Goldglanz laeuft einmal durch, sobald die Zeile erscheint */
+#kontakt .kontakt__yours::after{
+  content:"";position:absolute;top:0;bottom:0;left:0;width:40%;pointer-events:none;
+  background:linear-gradient(100deg,rgba(200,169,106,0),rgba(236,214,164,.28) 50%,rgba(200,169,106,0));
+  transform:translateX(-120%) skewX(-18deg);
+}
+html.motion #kontakt .kontakt__yours.is-lit::after{animation:kx-yours 1400ms var(--ease-out) 250ms 1 both}
+html.motion #kontakt .kontakt__yours.is-lit-b::after{animation:kx-yours-b 1400ms var(--ease-out) 250ms 1 both}
+@keyframes kx-yours{to{transform:translateX(320%) skewX(-18deg)}}
+@keyframes kx-yours-b{to{transform:translateX(320%) skewX(-18deg)}}
 #kontakt .kontakt__title{
   color:var(--paper);font-size:clamp(3.2rem,17vw,10.5rem);line-height:.98;
   margin-bottom:clamp(1.1rem,3vh,1.9rem);text-wrap:balance;
@@ -125,8 +165,13 @@
   #kontakt .kontakt__title{font-size:clamp(3.2rem,min(10.4vw,19vh),10.5rem)}
   .footer .footer__curtain{min-height:clamp(440px,74vh,780px);padding-top:calc(var(--kx-r) + clamp(3rem,8vh,6rem))}
   html.motion .footer .footer__curtain{will-change:transform}
+  html.motion .footer .footer__shade{will-change:opacity}
+  html.motion .footer .footer__row{will-change:transform,opacity}
 }
 @media (max-width:899px){
+  #kontakt .kontakt__yours{padding:.5rem 1rem .55rem;column-gap:.45rem;row-gap:0}
+  #kontakt .kontakt__yours em{font-size:1.22rem}
+  #kontakt .kontakt__yours-note{font-size:.74rem}
   #kontakt .kontakt__lead{font-size:1.08rem}
   #kontakt .kontakt__actions{gap:1rem}
   #kontakt .btn--big{padding:1.25rem 1.9rem 1.25rem 2.2rem}
@@ -135,4 +180,5 @@
 }
 @media (prefers-reduced-motion:reduce){
   #kontakt .kontakt__arrow{transition:none}
+  #kontakt .kontakt__yours::after{display:none}
 }

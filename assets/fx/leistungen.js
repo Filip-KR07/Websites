@@ -49,11 +49,13 @@
     };
 
     const desktop = () => {
-      // Zeitachse: kurzes Halten, dann je Karte Einflug + Halten
-      const PRE = 0.3; const MOVE = 1; const HOLD = 0.45;
+      // Zeitachse: kurzes Halten, dann je Karte Einflug + Halten, nach der letzten
+      // nur ein kurzer Atemzug (danach laeuft der Stapel ohnehin sichtbar weiter)
+      const PRE = 0.2; const MOVE = 0.85; const HOLD = 0.3; const END = 0.2;
       const at = (i) => PRE + (i - 1) * (MOVE + HOLD);
-      const total = at(n - 1) + MOVE + HOLD;
-      const pinLen = () => Math.round(window.innerHeight * 2.7);
+      const total = at(n - 1) + MOVE + END;
+      const UNIT = 0.84; // Scrollweg je Zeiteinheit in Viewporthoehen (3 Karten: ~2 vh statt 2,7)
+      const pinLen = () => Math.round(window.innerHeight * total * UNIT);
       const setFill = fill ? gsap.quickSetter(fill, 'scaleY') : () => {};
       let on = false;
 
