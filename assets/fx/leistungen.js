@@ -238,25 +238,9 @@
     });
   };
 
-  // Ohne Lenis scrollt <html> per CSS weich. ScrollTrigger springt beim Refresh
-  // kurz nach oben zum Messen; weich gescrollt kommt es dort nie an und alle
-  // Startpunkte verrutschen um die Scrollhöhe (Handy, Refresh mitten auf der
-  // Seite, z. B. nach Lazy-Bildern). Darum nur während des Messens hart scrollen;
-  // das Lesen danach erzwingt den neuen Stil, sonst gilt noch der alte.
-  const hardScrollDuringRefresh = (FK) => {
-    if (FK.lenis) return;
-    const root = document.documentElement;
-    ScrollTrigger.addEventListener('refreshInit', () => {
-      root.style.scrollBehavior = 'auto';
-      void getComputedStyle(root).scrollBehavior; // Stil sofort übernehmen
-    });
-    ScrollTrigger.addEventListener('refresh', () => requestAnimationFrame(() => { root.style.scrollBehavior = ''; }));
-  };
-
   FK.register('leistungen', (FK) => {
     if (!FK.motion) return;
     const scrub = FK.isTouch ? true : 0.6;
-    hardScrollDuringRefresh(FK);
     pillars(FK, scrub);
     steps(FK);
   });

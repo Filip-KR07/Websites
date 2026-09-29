@@ -240,9 +240,6 @@
       projekte(isDesktop, ctx);
       werte(isDesktop);
       jetzt();
-      // Der Hero-Pin (main.js 7a) entsteht erst nach dem Intro und landet hinten in der
-      // Trigger-Liste. Danach neu sortieren, sonst liegt alles darunter um seine Pin-Länge daneben.
-      FK.introDone.then(() => requestAnimationFrame(() => { ScrollTrigger.sort(); ScrollTrigger.refresh(); }));
     });
   });
 })();

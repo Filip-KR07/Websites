@@ -1337,6 +1337,7 @@
           gsap.timeline({
             scrollTrigger: {
               trigger: hero, start: 'top top', end: '+=110%', pin: true, scrub, anticipatePin: 1, invalidateOnRefresh: true,
+              refreshPriority: 0, // schaltet das Sortieren nach Position bei jedem Refresh ein
               onUpdate: (self) => hero.classList.toggle('is-framed', self.progress > 0.45),
             },
           })
@@ -1346,6 +1347,8 @@
             .fromTo(heroEls.art, { yPercent: 0 }, { yPercent: -6, ease: 'none' }, 0)
             .fromTo(heroEls.disc, { yPercent: 0 }, { yPercent: 18, ease: 'none' }, 0)
             .fromTo(hero, { backgroundColor: '#F6F3EC' }, { backgroundColor: '#DCEAF7', ease: 'none' }, 0);
+          // Der Hero-Pin entsteht erst nach dem Intro, alle Trigger darunter brauchen seinen Abstand.
+          ScrollTrigger.sort();
         } else {
           gsap.to(heroEls.content, {
             yPercent: -30, autoAlpha: 0, ease: 'none',

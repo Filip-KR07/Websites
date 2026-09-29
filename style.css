@@ -23,7 +23,7 @@
 :root{
   --paper:#F6F3EC; --paper-2:#EDE8DD; --marble:#E9E6E0;
   --sky:#BFD9F2; --sky-2:#DCEAF7; --azure:#4C8FD6;
-  --ink:#14161C; --ink-2:#3A3D46; --muted:#6F727B;
+  --ink:#14161C; --ink-2:#3A3D46; --muted:#5A5D66;
   --night:#0F1420; --night-2:#171D2B; --gold:#C8A96A;
   --line:rgba(20,22,28,.12); --line-light:rgba(246,243,236,.16);
 
@@ -48,6 +48,8 @@
 /* 3. Base */
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;-webkit-tap-highlight-color:transparent}
+/* Mit Motion misst ScrollTrigger per hartem Sprung; weiche Spruenge uebernehmen Lenis bzw. scrollToTarget */
+html.motion{scroll-behavior:auto}
 html.lenis,html.lenis body{height:auto}
 .lenis.lenis-smooth{scroll-behavior:auto!important}
 .lenis.lenis-stopped{overflow:hidden}
@@ -1106,11 +1108,14 @@ html:not(.motion) .progress{display:none}
 .sidenav{position:fixed;right:clamp(.75rem,1.6vw,1.6rem);top:50%;transform:translateY(-50%);z-index:108;display:none}
 html.motion .sidenav{display:block}
 .sidenav ol{display:grid;gap:.15rem}
+.sidenav ol{justify-items:end}
 .sidenav button{
-  display:flex;align-items:center;justify-content:flex-end;gap:.6rem;
-  width:100%;min-height:26px;padding:.2rem .1rem;color:var(--ink);
+  position:relative;display:flex;align-items:center;justify-content:center;
+  min-width:26px;min-height:26px;padding:.2rem .1rem;color:var(--ink);
 }
+/* Label liegt links neben dem Punkt und verbreitert den Button nicht (keine unsichtbare Klickfläche) */
 .sidenav .lbl{
+  position:absolute;right:calc(100% + .35rem);top:50%;margin-top:-.32rem;
   font:500 .64rem/1 var(--body);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;
   opacity:0;transform:translateX(6px);transition:opacity 200ms var(--ease-out),transform 200ms var(--ease-out);
   pointer-events:none; /* faengt keine Klicks ab */
@@ -1120,7 +1125,7 @@ html.motion .sidenav{display:block}
 .sidenav button[aria-current="true"] .dot{opacity:1;transform:scale(1.5);background:var(--azure)}
 .sidenav button[aria-current="true"] .lbl{opacity:.85;transform:none}
 .sidenav button:focus-visible .lbl{opacity:1;transform:none}
-.nav.is-dark ~ .sidenav,body.menu-open .sidenav{color:var(--paper)}
+.nav.is-dark ~ .sidenav,.nav.is-dark ~ .sidenav button,body.menu-open .sidenav{color:var(--paper)}
 body.menu-open .sidenav{opacity:0;pointer-events:none;transition:opacity 200ms ease}
 @media (hover:hover) and (pointer:fine){
   .sidenav button:hover .lbl{opacity:.85;transform:none}

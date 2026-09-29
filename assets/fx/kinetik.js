@@ -19,10 +19,6 @@
       if (stage && words.length) statement(stage, words, isDesktop && isTall, FK);
       return () => stops.forEach((fn) => fn());
     });
-
-    // Der Hero-Pin entsteht erst nach dem Intro und landet hinten in der Trigger-Liste.
-    // Ohne neues Sortieren fehlen allen spaeteren Pins (auch diesem) die 110 % Hero-Abstand.
-    FK.introDone.then(() => requestAnimationFrame(() => { ScrollTrigger.sort(); ScrollTrigger.refresh(); }));
   });
 
   /* ---------- Zitat in Woerter zerlegen (Zeilen und <em> bleiben erhalten) ---------- */

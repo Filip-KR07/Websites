@@ -84,10 +84,6 @@
     const mark = foot && $('[data-kx-mark]', foot);
     const markChars = mark ? splitKeepEm(mark, false) : []; // Signatur ist aria-hidden
 
-    // Der Hero-Pin entsteht erst nach dem Intro und landet hinten in der Liste;
-    // ohne erneutes Sortieren liegen alle spaeteren Trigger um seine Pin-Strecke daneben.
-    FK.introDone.then(() => { ScrollTrigger.sort(); ScrollTrigger.refresh(); });
-
     // Inhalt: Augenbraue, Zeichen in 3D, Text, Button, Rest
     const buildReveal = () => {
       const [eyebrow, lead, ...rest] = ins;

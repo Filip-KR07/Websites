@@ -94,21 +94,6 @@
       if (el.tens) el.tens.style.transform = `translate3d(0,${fix((-Math.min(1, Math.max(0, vs - 9)) / 2) * 100)}%,0)`;
     };
 
-    // Zwei Stolpersteine beim Messen aller Pins (betrifft nicht nur diesen Abschnitt):
-    // 1. html hat scroll-behavior:smooth. ScrollTrigger setzt vor dem Messen zwar
-    //    "auto" und springt nach oben, der Browser nutzt aber noch den alten Wert und
-    //    scrollt weich - gemessen wird dann an der falschen Stelle. Einmal Stil lesen
-    //    macht das "auto" sofort wirksam.
-    // 2. Der Hero-Pin entsteht erst nach dem Intro und landet hinten in der Liste.
-    //    Ohne neues Sortieren fehlt allen späteren Pins sein Abstand.
-    const root = document.documentElement;
-    ScrollTrigger.addEventListener('refreshInit', () => {
-      if (getComputedStyle(root).scrollBehavior !== 'smooth') return;
-      root.style.scrollBehavior = 'auto';
-      void getComputedStyle(root).scrollBehavior;
-    });
-    FK.introDone.then(() => requestAnimationFrame(() => { ScrollTrigger.sort(); ScrollTrigger.refresh(); }));
-
     const mm = gsap.matchMedia();
     mm.add({ isDesktop: '(min-width: 900px)', isMobile: '(max-width: 899px)' }, (ctx) => {
       const { isDesktop } = ctx.conditions;
