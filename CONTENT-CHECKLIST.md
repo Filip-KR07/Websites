@@ -55,15 +55,15 @@ sed -n '/id="zahlen"/,/id="statement"/p' index.html | grep -o "\[\[" | wc -l
 
 **Hero** – Stadt in der Bildunterschrift und im Kurzprofil, Jahre Erfahrung und Anzahl umgesetzter Websites. Nur echte Zahlen eintragen; die Werte stehen auf dem Handy nebeneinander, also kurz halten.
 
-**Über mich** – ein kurzer, starker Satz nach „Ich bin Filip.“, zwei Absätze zu je zwei bis drei Sätzen, dazu drei Kennzahlen. Pro Kennzahl den Wert **zweimal** eintragen: im Attribut `data-count="…"` (nur Ziffern, z. B. `12`) und als Text im selben `<span>`. Ein Zusatz wie `+` oder `%` gehört direkt hinter das `</span>`, innerhalb von `stat__num`.
+**Über mich** – ein kurzer, starker Satz nach „Ich bin Filip.“, zwei Absätze zu je zwei bis drei Sätzen, dazu drei Kennzahlen. Pro Kennzahl den Wert **zweimal** eintragen: im Attribut `data-count="…"` (nur Ziffern, z. B. `12`) und als Text im selben `<span>` (dort steht jetzt kurz `[[Zahl]]`, damit die Zeile nicht überläuft). Ein Zusatz wie `+` oder `%` gehört direkt hinter das `</span>`, innerhalb von `stat__num`.
 
-**Die Rechnung** – nichts offen. Die Beispielzahlen sind als Beispiel gekennzeichnet.
+**Die Rechnung** – nichts offen.
 
 **Rechner** – nichts offen, aber die Standardwerte sind Annahmen und sollten zu deinem Angebot passen: Investition **3.000 €** (Feld `rx-invest`, `value="3.000"`, und `def: 3000` in `assets/fx/rechner.js`), 500 Besucher pro Monat, 1,5 % Anfragen, 25 % Abschluss, 1.000 € Auftragswert, 30 % Marge. Beim Ändern HTML-Wert und `def` in `rechner.js` gemeinsam anpassen.
 
 **Was ich tue** – drei Säulen mit Titel und je zwei Sätzen, z. B. Design, Technik, Sichtbarkeit. Die römischen Ziffern bleiben.
 
-**Arbeitsweise** – vier Schritte mit Titel und ein bis zwei Sätzen (z. B. Gespräch, Konzept, Umsetzung, Launch &amp; Übergabe), dazu die Region für Termine vor Ort in der Einleitung.
+**Arbeitsweise** – vier Schritte mit Titel und ein bis zwei Sätzen (z. B. Gespräch, Konzept, Umsetzung, Launch & Übergabe), dazu die Region für Termine vor Ort in der Einleitung.
 
 **Fokus** – ein Satzanfang, der stehen bleibt, und fünf Begriffe, die beim Scrollen durchgetauscht werden. Ein bis zwei Wörter je Begriff, sonst springt die Zeile. Dazu ein bis zwei Sätze, die den Satz auflösen.
 
@@ -71,7 +71,7 @@ sed -n '/id="zahlen"/,/id="statement"/p' index.html | grep -o "\[\[" | wc -l
 
 **Projekte** – vier Karten mit Verweis, Kategorie, Name und einem Einzeiler von höchstens 90 Zeichen. Nur echte Projekte, Beispiele als solche kennzeichnen. Bilder siehe unten.
 
-**Zahlen** – vier Kennzahlen (z. B. umgesetzte Websites, Jahre Erfahrung, Ø Ladezeit, Projekte pünktlich live). Pro Kachel: Beschriftung; Endwert im Text **und** im Attribut `data-to` (nur Ziffern, Dezimalpunkt), bei Kommazahlen `data-decimals="1"`; ein Zusatz wie `+`, `%` oder `s` in `<span class="zahl__suffix">`; `data-points` mit mindestens zwei kommagetrennten echten Werten für die Verlaufslinie (sonst bleibt sie eine neutrale waagerechte Linie); eine Kurznotiz und darunter der Stand mit Quelle. Nur Zahlen, die du belegen kannst.
+**Zahlen** – vier Kennzahlen (z. B. umgesetzte Websites, Jahre Erfahrung, Ø Ladezeit, Projekte pünktlich live). Pro Kachel: Beschriftung; Endwert im Text (statt `[[Zahl]]`) **und** im Attribut `data-to` (nur Ziffern, Dezimalpunkt), bei Kommazahlen `data-decimals="1"`; ein Zusatz wie `+`, `%` oder `s` in `<span class="zahl__suffix">`; `data-points` mit mindestens zwei kommagetrennten echten Werten für die Verlaufslinie (sonst bleibt sie eine neutrale waagerechte Linie); eine Kurznotiz und darunter der Stand mit Quelle. Nur Zahlen, die du belegen kannst.
 
 **Haltung** – dein Leitsatz in drei Zeilen, die mittlere wird kursiv hervorgehoben.
 
