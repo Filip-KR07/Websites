@@ -1051,12 +1051,15 @@
     const total = words.length;
     if (totalEl) totalEl.textContent = String(total).padStart(2, '0');
     const setRail = railInner ? gsap.quickSetter(railInner, 'scaleX') : null;
-  
+    // Beim Breakpoint-Wechsel Reste der anderen Betriebsart loeschen (inkl. GSAP-Transform-Cache)
+    gsap.set(words, { clearProps: 'transform,opacity,visibility' });
+    if (railInner) gsap.set(railInner, { clearProps: 'transform' });
+    slot.classList.toggle('is-swapping', !!o.isDesktop);
+
     if (!o.isDesktop) {
       /* Mobil: KEIN Pin. Die Varianten bleiben als lesbare Liste stehen und
          kommen gestaffelt herein. */
-      gsap.set(words, { yPercent: 28, opacity: 0 });
-      gsap.to(words, {
+      gsap.fromTo(words, { yPercent: 28, opacity: 0 }, {
         yPercent: 0, opacity: 1, duration: 0.85, stagger: 0.09, ease: 'power3.out',
         scrollTrigger: { trigger: slot, start: 'top 90%', once: true },
       });
@@ -1071,31 +1074,32 @@
     }
   
     /* Desktop: gestapelt, maskiert, gescrubbt im Pin. */
-    slot.classList.add('is-swapping');
     gsap.set(words, { yPercent: 125 });
     gsap.set(words[0], { yPercent: 0 });
-  
+
     let shown = 0;
+    const marks = []; // Fortschritt, bei dem ein Tausch zur Haelfte durch ist
+    const sync = (self) => {
+      if (setRail) setRail(self.progress);
+      if (!meter) return;
+      let i = 1;
+      marks.forEach((m) => { if (self.progress >= m) i++; });
+      if (i !== shown) { shown = i; meter.textContent = String(i).padStart(2, '0'); }
+    };
     const tl = gsap.timeline({
       defaults: { ease: 'power3.inOut' },
       scrollTrigger: {
         trigger: sec,
         start: 'top top',
-        end: () => `+=${Math.round(total * 58)}%`,
+        end: () => `+=${Math.round(total * 40)}%`, // etwa 0,4 Viewport pro Begriff
         pin: true,
         scrub: o.scrub,
-       
         invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          if (setRail) setRail(self.progress);
-          if (meter) {
-            const i = Math.min(total, Math.floor(self.progress * total) + 1);
-            if (i !== shown) { shown = i; meter.textContent = String(i).padStart(2, '0'); }
-          }
-        },
+        onUpdate: sync,
+        onRefresh: sync,
       },
     });
-  
+
     tl.to({}, { duration: 0.4 }); // Ruhe, bevor der erste Tausch startet
     for (let i = 1; i < total; i++) {
       const label = `swap-${i}`;
@@ -1104,6 +1108,7 @@
         .to({}, { duration: 0.45 });
     }
     tl.to({}, { duration: 0.35 }); // Nachlauf, damit der letzte Begriff stehen bleibt
+    for (let i = 1; i < total; i++) marks.push((tl.labels[`swap-${i}`] + 0.34) / tl.duration());
   };
 
   /* ---------- 3. Smooth Scroll (Lenis) ---------- */
@@ -1111,26 +1116,83 @@
   if (motion && hasLenis && !isTouch) {
     lenis = new Lenis({ lerp: 0.09, smoothWheel: true });
     lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add((t) => lenis.raf(t * 1000));
-    gsap.ticker.lagSmoothing(0);
+    // Vor GSAP: Lenis scrollt auf sauberem Layout, der Scrub liest die Position im selben Frame
+    gsap.ticker.add((t) => lenis.raf(t * 1000), false, true);
   }
+  if (motion) {
+    // Klassische Scrollbalken (Windows, Linux): Rinne waehrend des Preloaders halten (style.css)
+    doc.classList.toggle('has-scrollbar', window.innerWidth - doc.clientWidth > 0);
+    // Waehrend Preloader und Intro normale Lag-Glaettung (kein Sprung nach dem Init-Stau),
+    // 0 erst, wenn gescrollt werden darf (siehe 6c)
+    gsap.ticker.lagSmoothing(80, 33);
+    // Scrollposition beim Laden setzt diese Datei selbst (6c), nicht der Browser
+    ScrollTrigger.clearScrollMemory('manual');
+    // Refreshes steuert Abschnitt 8 (gebuendelt, nie mitten im Scrollen)
+    ScrollTrigger.config({ autoRefreshEvents: 'visibilitychange' });
+  }
+
+  // Erfuellt, sobald die FX-Module laufen und der erste Refresh durch ist (6c)
+  let initResolve = null;
+  const initDone = new Promise((r) => { initResolve = r; });
+
+  // Pins zaehlen ab ihrem Spacer; data-land="0..1" landet an dieser Stelle des Pins
+  const spacerOf = (el) => (el.parentElement && el.parentElement.classList.contains('pin-spacer') ? el.parentElement : el);
+  const pinOf = (el) => (hasGSAP ? ScrollTrigger.getAll().find((s) => s.pin && (s.pin === el || s.pin.contains(el))) : null);
+  const targetY = (target, offset = 0) => {
+    if (typeof target === 'number') return target + offset;
+    const st = pinOf(target);
+    const land = parseFloat(target.dataset.land || (st ? st.pin.dataset.land : ''));
+    if (st && !Number.isNaN(land)) return st.start + (st.end - st.start) * fkClamp(land, 0, 1) + offset;
+    if (st && st.pin !== target) return st.start + (target.getBoundingClientRect().top - st.pin.getBoundingClientRect().top) + offset;
+    return spacerOf(st ? st.pin : target).getBoundingClientRect().top + window.scrollY + offset;
+  };
+  const jumpTo = (y) => {
+    const top = Math.max(0, Math.round(y));
+    if (lenis) lenis.scrollTo(top, { immediate: true, force: true }); else window.scrollTo(0, top);
+  };
+  let jumpOff = null; // laufender Sprung: nach einem Refresh neu zielen
   const scrollToTarget = (target, offset = 0) => {
-    if (lenis) {
-      lenis.scrollTo(target, { offset, duration: 1.4, easing: (t) => 1 - Math.pow(1 - t, 4) });
-    } else {
-      const top = target.getBoundingClientRect().top + window.scrollY + offset;
-      window.scrollTo({ top, behavior: motionOff() ? 'auto' : 'smooth' });
+    jumpOff?.();
+    let t = 0;
+    const end = () => {
+      clearTimeout(t);
+      if (hasGSAP) { ScrollTrigger.removeEventListener('refresh', onRefresh); ScrollTrigger.removeEventListener('scrollEnd', end); }
+      if (jumpOff === end) jumpOff = null;
+    };
+    const go = (again) => {
+      const top = Math.max(0, Math.round(targetY(target, offset)));
+      if (lenis) lenis.scrollTo(top, { duration: again ? 0.6 : 1.4, easing: (x) => 1 - Math.pow(1 - x, 4), force: true, onComplete: end });
+      else window.scrollTo({ top, behavior: motionOff() ? 'auto' : 'smooth' });
+    };
+    const onRefresh = () => go(true);
+    go(false);
+    if (!hasGSAP) return;
+    jumpOff = end;
+    t = setTimeout(end, 4000);
+    ScrollTrigger.addEventListener('refresh', onRefresh);
+    if (!lenis) setTimeout(() => { if (jumpOff === end) ScrollTrigger.addEventListener('scrollEnd', end); }, 120);
+  };
+
+  /* Leseposition: Abschnitt auf 40 % Hoehe und Anteil darin. Uebersteht Breakpoint-Wechsel,
+     Drehen und Neuladen, auch wenn Pins dazukommen oder wegfallen. */
+  const readAnchor = () => {
+    const line = window.innerHeight * 0.4;
+    const secs = $$('main section[id], .footer');
+    for (const el of secs) {
+      const r = spacerOf(el).getBoundingClientRect();
+      if (r.top <= line && r.bottom > line) return { id: el.id || 'footer', ratio: (line - r.top) / (r.height || 1), w: window.innerWidth, h: window.innerHeight, y: window.scrollY };
     }
+    return { id: null, ratio: 0, w: window.innerWidth, h: window.innerHeight, y: window.scrollY };
+  };
+  const anchorTop = (a) => {
+    const el = a.id === 'footer' ? $('.footer') : (a.id && document.getElementById(a.id));
+    if (!el) return a.y;
+    const r = spacerOf(el).getBoundingClientRect();
+    return r.top + window.scrollY + a.ratio * r.height - window.innerHeight * 0.4;
   };
 
   /* ---------- 4. Nav: Scrolled-State + Section-Theme ---------- */
   const nav = $('[data-nav]');
-  const themedSections = $$('[data-nav-theme]');
-  const applyTheme = (theme) => {
-    if (!nav) return;
-    nav.classList.toggle('is-dark', theme === 'dark');
-    setThemeColor(THEME[theme] || THEME.light);
-  };
   const onScrollNav = () => {
     if (!nav) return;
     nav.classList.toggle('is-scrolled', window.scrollY > 40);
@@ -1138,23 +1200,61 @@
   onScrollNav();
   window.addEventListener('scroll', onScrollNav, { passive: true });
 
-  if (hasGSAP) {
-    themedSections.forEach((sec) => {
-      ScrollTrigger.create({
-        trigger: sec,
-        start: 'top 56px',
-        end: 'bottom 56px',
-        onToggle: (self) => { if (self.isActive) { applyTheme(sec.dataset.navTheme); if (sec.hasAttribute('data-hero')) setThemeColor(THEME.hero); } },
-      });
-    });
-  } else {
-    const fallbackTheme = () => {
-      const y = 56;
-      const hit = themedSections.find((s) => { const r = s.getBoundingClientRect(); return r.top <= y && r.bottom > y; });
-      if (hit) applyTheme(hit.dataset.navTheme);
+  /* Sonde: duenner Streifen im Viewport. Ein IntersectionObserver meldet, welche Flaechen dort
+     liegen: ohne Layout-Lesen beim Scrollen; Pins, Transforms, clip-path und Refreshes inklusive.
+     area(w, h) -> { top, right, bottom, left } in Viewport-Pixeln oder null. */
+  const probe = (els, area, onChange) => {
+    if (!els.length || typeof IntersectionObserver === 'undefined') return () => {};
+    const hits = new Set();
+    let io = null;
+    const build = () => {
+      io?.disconnect(); hits.clear();
+      const w = window.innerWidth, h = window.innerHeight, a = area(w, h);
+      if (!a) return;
+      const m = (v) => `${-Math.max(0, Math.round(v))}px`;
+      io = new IntersectionObserver((entries) => {
+        entries.forEach((en) => { if (en.isIntersecting) hits.add(en.target); else hits.delete(en.target); });
+        onChange(hits);
+      }, { rootMargin: `${m(a.top)} ${m(w - a.right)} ${m(h - a.bottom)} ${m(a.left)}` });
+      els.forEach((el) => io.observe(el));
     };
-    fallbackTheme();
-    window.addEventListener('scroll', fallbackTheme, { passive: true });
+    const onResize = debounce(build, 150);
+    let off = false;
+    initDone.then(() => { if (!off) build(); }); // erst nach dem ersten Refresh messen (Layout ist dann sauber)
+    window.addEventListener('resize', onResize);
+    return () => { off = true; io?.disconnect(); window.removeEventListener('resize', onResize); };
+  };
+  // Innerstes Element = spaetestes in Dokumentreihenfolge (Karte im Abschnitt, Folgeabschnitt an der Kante)
+  const innermost = (hits) => {
+    let best = null;
+    hits.forEach((el) => { if (!best || (best.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)) best = el; });
+    return best;
+  };
+  // Dunkle Karten in hellen Abschnitten (ergaenzend zu [data-nav-theme])
+  const DARK_SURFACES = '.rx-panel, .jetzt__card, #leistungen .pillar--accent';
+  const themedEls = [...new Set([...$$('[data-nav-theme]'), ...$$(DARK_SURFACES)])];
+  const themeOf = (el) => (el ? (el.dataset.navTheme || 'dark') : 'light');
+  // Streifen auf Hoehe der Nav-Schrift, mittlere Haelfte eines Elements
+  const navBand = (el) => () => {
+    const r = el && el.getBoundingClientRect();
+    if (!r || !r.width) return null;
+    return { top: 30, bottom: 42, left: r.left + r.width * 0.25, right: r.right - r.width * 0.25 };
+  };
+
+  if (nav) {
+    // Marke und rechte Gruppe getrennt: dunkle Karten sind oft schmaler als der Viewport
+    const st = { l: 'light', r: 'light', any: false, hero: false };
+    const paint = () => {
+      const dark = st.l === 'dark' && st.r === 'dark';
+      nav.classList.toggle('is-dark', dark);
+      nav.classList.toggle('is-dark-l', !dark && st.l === 'dark');
+      nav.classList.toggle('is-dark-r', !dark && st.r === 'dark');
+      nav.classList.toggle('is-mixed', !dark && st.any); // heller Schleier waere ueber dunkler Karte milchig
+      setThemeColor(dark ? THEME.dark : (st.hero ? THEME.hero : THEME.light));
+    };
+    probe(themedEls, navBand($('.nav__brand', nav)), (hits) => { const el = innermost(hits); st.l = themeOf(el); st.hero = !!(el && el.hasAttribute('data-hero')); paint(); });
+    probe(themedEls, navBand($('.nav__menu', nav)), (hits) => { st.r = themeOf(innermost(hits)); paint(); });
+    probe(themedEls, (w) => ({ top: 30, bottom: 42, left: 0, right: w }), (hits) => { st.any = [...hits].some((el) => themeOf(el) === 'dark'); paint(); });
   }
 
   /* ---------- 5. Fullscreen-Menü ---------- */
@@ -1315,12 +1415,58 @@
     $, $$, debounce, splitWords, splitChars, scrollToTarget,
     register: (name, fn) => { fxModules.push({ name, fn }); },
   });
-  document.addEventListener('DOMContentLoaded', () => {
-    fxModules.forEach(({ name, fn }) => {
-      try { fn(window.FK); } catch (err) { console.error(`[fx:${name}]`, err); }
+
+  // Landepunkt beim Laden: Neuladen/Zurueck -> gespeicherte Leseposition, sonst #hash, sonst oben
+  const POS_KEY = 'fk-pos';
+  const landing = () => {
+    let kind = '';
+    try { kind = (performance.getEntriesByType('navigation')[0] || {}).type || ''; } catch (_) { /* egal */ }
+    if (kind === 'reload' || kind === 'back_forward') {
+      let saved = null;
+      try { saved = JSON.parse(sessionStorage.getItem(POS_KEY) || 'null'); } catch (_) { saved = null; }
+      // grob (vor dem Init, ohne Modul-Pins): Oberkante des Abschnitts; genau: Anteil darin
+      if (saved && saved.path === location.pathname) return (rough) => (rough ? anchorTop({ ...saved, ratio: 0 }) + window.innerHeight * 0.4 : anchorTop(saved));
+    }
+    let el = null;
+    try { el = location.hash.length > 1 ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null; } catch (_) { el = null; }
+    return el ? () => targetY(el) : null;
+  };
+  if (motion) {
+    window.addEventListener('pagehide', () => {
+      try { sessionStorage.setItem(POS_KEY, JSON.stringify({ ...readAnchor(), path: location.pathname })); } catch (_) { /* egal */ }
     });
-    if (motion) { ScrollTrigger.sort(); ScrollTrigger.refresh(); }
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Module einzeln, mit Pause dazwischen: der Preloader bekommt Bilder, statt einen langen Task abzuwarten
+    // Pause erst nach ~40 ms Arbeit: jede Pause kostet einen internen Refresh von ScrollTrigger
+    let slice = performance.now();
+    for (const { name, fn } of fxModules) {
+      try { fn(window.FK); } catch (err) { console.error(`[fx:${name}]`, err); }
+      if (motion && performance.now() - slice > 40) {
+        await new Promise((r) => setTimeout(r, 0));
+        slice = performance.now();
+      }
+    }
+    if (motion) {
+      ScrollTrigger.sort();
+      ScrollTrigger.refresh();
+      const land = landing();
+      if (land) {
+        // Landen, solange niemand selbst gescrollt hat (nach load und Intro erneut, falls der Browser nachzieht)
+        let moved = false;
+        const stop = () => { moved = true; };
+        ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach((t) => window.addEventListener(t, stop, { once: true, passive: true }));
+        const put = () => { if (!moved) jumpTo(land()); };
+        put();
+        if (document.readyState !== 'complete') window.addEventListener('load', () => setTimeout(put, 0), { once: true });
+        introDone.then(() => setTimeout(put, 60));
+      }
+    }
+    initResolve();
   });
+  // Nach dem Intro darf gescrollt werden: Lenis braucht dann keine Lag-Glaettung mehr
+  if (motion) introDone.then(() => { if (lenis) gsap.ticker.lagSmoothing(0); });
 
   /* ---------- 7. Scroll-Module (nur mit Motion) ---------- */
   if (motion) {
@@ -1329,34 +1475,36 @@
     mm.add({ isDesktop: '(min-width: 900px)', isMobile: '(max-width: 899px)' }, (ctx) => {
       const { isDesktop } = ctx.conditions;
       const scrub = isTouch ? true : 0.8;
+      const cleanups = []; // Sonden und Beobachter, die matchMedia nicht selbst zuruecknimmt
 
-      /* 7a. Hero-Scrub: Full-Bleed-Rahmen wird zur Karte (nach dem Intro erstellt) */
-      introDone.then(() => ctx.add(() => {
-        if (!hero) return;
-        if (isDesktop) {
-          gsap.timeline({
-            scrollTrigger: {
-              trigger: hero, start: 'top top', end: '+=110%', pin: true, scrub, invalidateOnRefresh: true,
-              refreshPriority: 0, // schaltet das Sortieren nach Position bei jedem Refresh ein
-              onUpdate: (self) => hero.classList.toggle('is-framed', self.progress > 0.45),
-            },
-          })
-            .fromTo(heroEls.frame, { scale: 1, borderRadius: 0 }, { scale: 0.76, borderRadius: 36, ease: 'power1.inOut' }, 0)
-            .fromTo(heroEls.content, { yPercent: 0, autoAlpha: 1 }, { yPercent: -40, autoAlpha: 0, ease: 'power1.in', immediateRender: false }, 0)
-            .fromTo(heroEls.scroll, { autoAlpha: 1 }, { autoAlpha: 0, immediateRender: false }, 0)
-            .fromTo(heroEls.art, { yPercent: 0 }, { yPercent: -6, ease: 'none' }, 0)
-            .fromTo(heroEls.disc, { yPercent: 0 }, { yPercent: 18, ease: 'none' }, 0)
-            .fromTo(hero, { backgroundColor: '#F6F3EC' }, { backgroundColor: '#DCEAF7', ease: 'none' }, 0);
-          // Der Hero-Pin entsteht erst nach dem Intro, alle Trigger darunter brauchen seinen Abstand.
-          ScrollTrigger.sort();
-        } else {
-          gsap.to(heroEls.content, {
-            yPercent: -30, autoAlpha: 0, ease: 'none',
-            scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom 40%', scrub: true },
-          });
-          gsap.to(heroEls.art, { yPercent: 12, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
-        }
-      }));
+      /* 7a. Hero: Full-Bleed-Rahmen wird zur Karte.
+         Pin und Scrub entstehen sofort, damit der Pin-Abstand vor dem ersten Refresh steht
+         (Deep-Links, Neuladen). Bei Fortschritt 0 ist die Timeline neutral und beruehrt nur
+         Eigenschaften, die das Intro nicht animiert (Rahmen, Inhalts-Huelle, yPercent, Hintergrund). */
+      if (hero && isDesktop) {
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: hero, start: 'top top', end: '+=110%', pin: true, scrub, invalidateOnRefresh: true,
+            refreshPriority: 0, // schaltet das Sortieren nach Position bei jedem Refresh ein
+            // Rundung und Schatten per CSS-Transition (is-framed), nicht pro Frame neu gemalt
+            onUpdate: (self) => hero.classList.toggle('is-framed', self.progress > 0.03),
+          },
+        })
+          .fromTo(heroEls.frame, { scale: 1 }, { scale: 0.76, ease: 'power1.inOut' }, 0)
+          // opacity statt autoAlpha: Ueberschrift und Buttons bleiben im Accessibility-Baum
+          .fromTo(heroEls.content, { yPercent: 0, opacity: 1 }, { yPercent: -40, opacity: 0, ease: 'power1.in', immediateRender: false }, 0)
+          .fromTo(heroEls.art, { yPercent: 0 }, { yPercent: -6, ease: 'none' }, 0)
+          .fromTo(heroEls.disc, { yPercent: 0 }, { yPercent: 18, ease: 'none' }, 0)
+          .fromTo(hero, { backgroundColor: '#F6F3EC' }, { backgroundColor: '#DCEAF7', ease: 'none' }, 0);
+        // Scroll-Hinweis ueber seine Kinder: das Intro blendet den Hinweis selbst per autoAlpha ein
+        if (heroEls.scroll && heroEls.scroll.children.length) tl.fromTo(heroEls.scroll.children, { opacity: 1 }, { opacity: 0, immediateRender: false }, 0);
+      } else if (hero) {
+        gsap.to(heroEls.content, {
+          yPercent: -30, opacity: 0, ease: 'none',
+          scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom 40%', scrub: true },
+        });
+        gsap.to(heroEls.art, { yPercent: 12, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
+      }
 
       /* 7b. Text-Reveals */
       $$('[data-reveal]').forEach((el) => {
@@ -1409,6 +1557,10 @@
         const dot = $('[data-journey-dot]', stage);
         const anchors = $$('[data-journey-anchor]', stage);
         const items = $$('[data-journey-item]', stage);
+        // Leuchtpunkt als eigene HTML-Ebene: Puls und Glanz laufen im Compositor statt als SVG-Filter
+        let orb = $('.weg__orb', stage);
+        if (!orb) { orb = document.createElement('span'); orb.className = 'weg__orb'; orb.setAttribute('aria-hidden', 'true'); stage.appendChild(orb); }
+        stage.classList.add('has-orb');
         let len = 0; let anchorY = [];
         const build = () => {
           const r = stage.getBoundingClientRect();
@@ -1431,6 +1583,7 @@
           path.style.strokeDashoffset = `${len - l}`;
           const pt = path.getPointAtLength(l);
           dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y);
+          orb.style.transform = `translate3d(${pt.x.toFixed(1)}px,${pt.y.toFixed(1)}px,0)`;
           items.forEach((it, i) => it.classList.toggle('is-active', pt.y >= anchorY[i] - 2));
         };
         render(0);
@@ -1446,15 +1599,14 @@
       const vTrack = $('[data-ventures-track]');
       if (ventures && vTrack && isDesktop) {
         const dist = () => Math.max(0, vTrack.scrollWidth - window.innerWidth);
-        const tl = gsap.to(vTrack, {
+        // Karten sind so gross, dass die Seitwaertsfahrt etwa einen Viewport lang ist (style.css).
+        // Kein eigenes Einblenden je Karte: das Bild-Reveal kommt aus assets/fx/enthuellung.js.
+        gsap.to(vTrack, {
           x: () => -dist(), ease: 'none',
-          scrollTrigger: { trigger: ventures, start: 'top top', end: () => `+=${dist()}`, pin: true, scrub, invalidateOnRefresh: true },
-        });
-        $$('[data-ventures-card]', vTrack).forEach((card, i) => {
-          gsap.from(card, {
-            y: 60, autoAlpha: 0, duration: 1, ease: 'power3.out',
-            scrollTrigger: { trigger: card, containerAnimation: tl, start: 'left 95%', once: true },
-          });
+          scrollTrigger: {
+            trigger: ventures, start: 'top top', end: () => `+=${dist()}`, pin: true, scrub, invalidateOnRefresh: true,
+            onRefresh: () => ventures.classList.toggle('is-short', dist() < window.innerHeight * 0.3), // Hinweis nur bei echter Fahrt
+          },
         });
       } else if (vTrack) {
         gsap.from($$('[data-ventures-card]', vTrack), { y: 40, autoAlpha: 0, duration: 1, stagger: 0.1, ease: 'power3.out', scrollTrigger: { trigger: vTrack, start: 'top 85%', once: true } });
@@ -1537,14 +1689,17 @@
         }
       }
 
-      /* Hintergrund-Temperatur folgt den Sections */
+      /* Hintergrund-Temperatur folgt den Sections (Sonde auf 60 % Hoehe, stimmt auch nach Refresh und Neuladen) */
       const BG = { paper: '#F6F3EC', sky: '#E4EEF8' };
-      $$('[data-bg]').forEach((sec) => {
-        ScrollTrigger.create({
-          trigger: sec, start: 'top 60%', end: 'bottom 60%',
-          onToggle: (self) => { if (self.isActive) gsap.to(body, { backgroundColor: BG[sec.dataset.bg] || BG.paper, duration: 0.9, ease: 'power2.out', overwrite: 'auto' }); },
-        });
-      });
+      let bgNow = null;
+      cleanups.push(probe($$('[data-bg]'), (w, h) => ({ top: h * 0.6, bottom: h * 0.6 + 2, left: 0, right: w }), (hits) => {
+        const sec = innermost(hits);
+        if (!sec) return;
+        const c = BG[sec.dataset.bg] || BG.paper;
+        if (c === bgNow) return;
+        gsap.to(body, { backgroundColor: c, duration: bgNow ? 0.9 : 0, ease: 'power2.out', overwrite: 'auto' });
+        bgNow = c;
+      }));
 
       /* 7k. Wort-Tausch im Abschnitt Fokus (nur Desktop, gepinnt) */
       typoSwap({ isDesktop, scrub });
@@ -1578,15 +1733,34 @@
           li.appendChild(b); list.appendChild(li);
           return b;
         });
-        const setActive = (i) => btns.forEach((b, k) => {
-          if (k === i) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
-        });
-        items.forEach(({ sec }, i) => {
-          ScrollTrigger.create({
-            trigger: sec, start: 'top 45%', end: 'bottom 45%',
-            onToggle: (self) => { if (self.isActive) setActive(i); },
+        // Aktiver Abschnitt und eigenes Hell/Dunkel: Sonden auf Hoehe der Seitennavigation
+        let active = -1, annT = 0, intro = false;
+        introDone.then(() => { intro = true; });
+        const setActive = (i) => {
+          if (i === active) return;
+          const first = active < 0;
+          active = i;
+          btns.forEach((b, k) => {
+            b.classList.remove('is-announce');
+            if (k === i) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
           });
-        });
+          // Label kurz zeigen, wenn der Abschnitt wechselt; sonst nur bei Hover/Fokus
+          clearTimeout(annT);
+          if (first || !intro) return;
+          btns[i].classList.add('is-announce');
+          annT = setTimeout(() => btns[i].classList.remove('is-announce'), 1500);
+        };
+        const secs = items.map((it) => it.sec);
+        cleanups.push(probe(secs, (w, h) => ({ top: h * 0.45, bottom: h * 0.45 + 2, left: 0, right: w }), (hits) => {
+          const i = secs.indexOf(innermost(hits));
+          if (i >= 0) setActive(i);
+        }));
+        cleanups.push(probe(themedEls, (w, h) => {
+          const r = list.getBoundingClientRect();
+          if (!r.width) return null;
+          return { top: h / 2 - 1, bottom: h / 2 + 1, left: r.left, right: r.right };
+        }, (hits) => sidenav.classList.toggle('is-dark', themeOf(innermost(hits)) === 'dark')));
+        cleanups.push(() => clearTimeout(annT));
       })();
 
 
@@ -1608,13 +1782,67 @@
           btn.addEventListener('pointerleave', leave);
         });
       }
+
+      return () => cleanups.forEach((f) => f());
     });
 
-    /* ---------- 8. Refresh nach späten Loads ---------- */
-    const refresh = debounce(() => { ScrollTrigger.refresh(); lenis?.resize(); heroScene?.refresh(); }, 200);
-    document.fonts?.ready.then(refresh);
-    window.addEventListener('resize', refresh);
-    introDone.then(refresh);
+    /* ---------- 8. Refresh: gebuendelt, nie mitten im Scrollen ---------- */
+    // Quellen: Schriften, load, Intro-Ende, Groesse und Drehung. Ohne Groessenaenderung nur,
+    // wenn sich die Seitenhoehe wirklich geaendert hat (ein Refresh kostet hier ~100 ms).
+    const signature = () => `${window.innerWidth}x${window.innerHeight}:${document.documentElement.scrollHeight}`;
+    let sig = '';
+    let sized = false;
+    const runRefresh = debounce(() => {
+      if (!sized && signature() === sig) return;
+      sized = false;
+      ScrollTrigger.refresh(true); // true: wartet bis zum Scroll-Ende, falls gerade gescrollt wird
+    }, 200);
+    const later = () => initDone.then(runRefresh);
+    document.fonts?.ready.then(later);
+    window.addEventListener('load', later);
+    introDone.then(later);
+    let lastW = window.innerWidth, lastH = window.innerHeight;
+    const onResize = () => {
+      const w = window.innerWidth, h = window.innerHeight;
+      // Touch: reine Hoehenaenderung durch die Adressleiste ignorieren
+      if (w === lastW && (h === lastH || (isTouch && Math.abs(h - lastH) < lastH * 0.25))) return;
+      lastW = w; lastH = h; sized = true; runRefresh();
+    };
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+
+    // Leseposition halten, wenn Breakpoint oder Drehung das Layout umbauen (Pins kommen/gehen)
+    let anchor = null, hold = false, holdT = 0;
+    const keep = () => { if (!hold && !ScrollTrigger.isRefreshing) anchor = readAnchor(); };
+    ScrollTrigger.addEventListener('scrollEnd', keep);
+    ScrollTrigger.addEventListener('refresh', () => {
+      sig = signature();
+      lenis?.resize();
+      const moved = anchor && (anchor.w !== window.innerWidth || Math.abs(anchor.h - window.innerHeight) > (isTouch ? anchor.h * 0.25 : 0));
+      if (!moved && !hold) { anchor = readAnchor(); return; }
+      // Nach einem Groessenwechsel bauen alle Module ihre Pins neu, mehrere Refreshes folgen:
+      // so lange an der alten Leseposition festhalten
+      hold = true;
+      jumpTo(anchorTop(anchor));
+      clearTimeout(holdT);
+      holdT = setTimeout(() => { hold = false; anchor = readAnchor(); }, 800);
+    });
+
+    // Beim Neuladen/Deep-Link schon jetzt grob landen (hinter dem Preloader) und dort bleiben, waehrend
+    // die Module ihre Pins einsetzen; genau landet 6c nach dem Init
+    const early = landing();
+    if (early) {
+      const stay = () => jumpTo(early(true));
+      stay();
+      ScrollTrigger.addEventListener('refresh', stay);
+      initDone.then(() => ScrollTrigger.removeEventListener('refresh', stay));
+    }
+
+    // Endlos-Animationen ausserhalb des Bildes anhalten (sonst Style und Layout in jedem Leerlauf-Frame)
+    if (typeof IntersectionObserver !== 'undefined') {
+      const idle = new IntersectionObserver((entries) => entries.forEach((en) => en.target.classList.toggle('is-offscreen', !en.isIntersecting)), { rootMargin: '15% 0px' });
+      $$('main section[id], .footer').forEach((s) => idle.observe(s));
+    }
   } else {
     /* Ohne Motion: Pfad statisch zeichnen, alles sichtbar */
     const stage = $('[data-journey]');
