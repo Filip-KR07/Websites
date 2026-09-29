@@ -1,1 +1,162 @@
-/* fx/wert — wird im Modul-Branch gefuellt */
+/* fx/wert — Die Rechnung: Waage aus Marmor und Gold.
+   Koordinaten der Waage: 1000 x 800 Einheiten, alle Ebenen in Prozent davon.
+   Ohne Motion (kein JS, kein GSAP, reduzierte Bewegung) steht der Endzustand:
+   Balken nach rechts gekippt, Schale voll, alle Texte sichtbar. */
+
+#wert.waage{position:relative;padding:var(--section) 0 clamp(3rem,7vw,7rem);overflow-x:clip}
+
+/* Kopf */
+.waage__head{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,4fr);gap:clamp(1.5rem,4vw,4rem);align-items:end;margin-bottom:clamp(2.5rem,5vw,4.5rem)}
+.waage__head .eyebrow{margin-bottom:1.25rem}
+.waage__title{max-width:17ch}
+.waage__lead{max-width:34ch;padding-bottom:.4rem}
+
+/* Bühne: links Geschichte, rechts Waage */
+.waage__grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:clamp(2rem,4.5vw,5rem);align-items:center}
+.waage__story{display:flex;flex-direction:column;gap:clamp(1.4rem,3.4vh,2.6rem);min-width:0}
+
+/* Monatszähler (Rollziffern) */
+.waage__month{display:grid;gap:.55rem}
+.waage__month-label{font:500 .72rem/1 var(--body);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-2)}
+.waage__odo{display:flex;align-items:flex-end;font:300 clamp(3.4rem,1.6rem + 4.4vw,7rem)/1 var(--display);letter-spacing:-.02em;color:var(--ink);font-variant-numeric:lining-nums tabular-nums}
+.waage__digit{display:block;height:1.08em;width:.54em;overflow:hidden;text-align:center}
+.waage__strip{display:block}
+.waage__strip b{display:block;height:1.08em;line-height:1.08em;font-weight:inherit}
+.waage__month-total{align-self:flex-end;margin:0 0 .2em .45em;font:italic 400 .3em/1 var(--display);letter-spacing:0;color:var(--ink-2)}
+
+/* Vier Sätze als Rechnung, Zeile für Zeile */
+.waage__steps{display:grid}
+.waage__step{position:relative;display:grid;grid-template-columns:2.9rem minmax(0,1fr);align-items:start;padding:.95rem 0 1.05rem;border-top:1px solid var(--line)}
+.waage__step:last-child{border-bottom:1px solid var(--line)}
+.waage__step-num{font:italic 400 1.55rem/1 var(--display);color:var(--azure);padding-top:.12rem}
+.waage__step-mask{overflow:hidden;padding-bottom:.1em;margin-bottom:-.1em}
+#wert .waage__step-text{font:400 clamp(1.2rem,.85rem + .8vw,1.6rem)/1.22 var(--display);letter-spacing:-.005em;color:var(--ink);max-width:27ch;text-wrap:pretty}
+.waage__step-bar{position:absolute;left:0;right:0;top:-1px;height:1px;background:var(--ink);transform-origin:0 50%}
+
+.waage__cta{display:grid;gap:1rem;justify-items:start}
+.waage__cta .btn{min-height:48px}
+#wert .waage__note{font-size:.82rem;line-height:1.5;color:var(--ink-2);max-width:40ch}
+.waage__cta .btn.is-lit::after{animation:sweep 1100ms var(--ease-out) 1}
+
+/* Waage */
+.waage__stage{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 12rem;gap:clamp(1rem,2vw,2rem);align-items:center;min-width:0}
+.waage__scale{position:relative;justify-self:center;width:min(100%,calc((100svh - var(--nav-h) - 5rem) * 1.25));aspect-ratio:1000/800;container-type:inline-size}
+.waage__scale>*{position:absolute}
+.waage__scale svg{display:block;width:100%;height:100%;overflow:visible}
+
+.waage__disc,.waage__night{left:15%;top:6.25%;width:70%;height:87.5%;border-radius:50%}
+.waage__disc{z-index:0;
+  background:radial-gradient(circle at 50% 30%,#FFFFFF 0%,#EEF4FA 32%,#DCEAF7 62%,#C7DDF3 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.7),0 60px 110px -70px rgba(76,143,214,.55)}
+.waage__night{z-index:1;opacity:0;overflow:hidden;
+  background:radial-gradient(circle at 50% 28%,#2C3B5C 0%,#1A2338 55%,#0F1420 100%)}
+.waage__ring{z-index:2;left:10%;top:0;width:80%;height:100%}
+.waage__static{z-index:3;inset:0}
+.waage__engrave{font:500 11px var(--body);letter-spacing:3px;fill:#5F5B53}
+.waage__engrave--big{font-size:12.5px;letter-spacing:7px}
+
+.waage__shadow{z-index:4;top:96.9%;width:24%;height:3.6%;border-radius:50%;opacity:.6;
+  background:radial-gradient(closest-side,rgba(20,22,28,.3),rgba(20,22,28,0))}
+.waage__shadow--l{left:5%}
+.waage__shadow--r{left:71%}
+
+.waage__pan{z-index:5;top:31.25%;width:26%;height:41.25%;transform-origin:50% 0}
+.waage__pan--l{left:4%}
+.waage__pan--r{left:70%}
+.waage__pan>*{position:absolute;inset:0}
+.waage__pan-back{z-index:0}
+.waage__pan-front{z-index:2}
+.waage__coins{z-index:1}
+.waage__chain{fill:none;stroke:#9C7F45;stroke-width:2.3;stroke-dasharray:5 2.6;stroke-linecap:round}
+.waage__chain--hi{stroke:#F3E3B8;stroke-width:.9}
+
+.waage__block{z-index:1;inset:auto;left:14.615%;top:35.152%;width:73.077%;height:45.455%}
+.waage__block-t1{font:500 30px var(--display);letter-spacing:.5px;fill:#2E3038}
+.waage__block-t2{font:italic 400 23px var(--display);fill:#4A4740}
+
+.waage__coin{position:absolute;width:19.231%;height:15.152%}
+.waage__coin svg{overflow:visible}
+.waage__glint{position:absolute;left:0;top:0;width:15%;height:11.8%;opacity:0;pointer-events:none;
+  clip-path:polygon(50% 0,57% 43%,100% 50%,57% 57%,50% 100%,43% 57%,0 50%,43% 43%);
+  background:radial-gradient(circle,#FFFFFF 0 16%,#F6E7BE 38%,rgba(200,169,106,0) 72%)}
+
+.waage__beam{z-index:6;left:14%;top:11.25%;width:72%;height:25%;transform-origin:50% 80%}
+
+.waage__flash{z-index:7;left:40%;top:18.75%;width:20%;height:25%;pointer-events:none}
+.waage__flash i,.waage__flash b{position:absolute;inset:0;border-radius:50%;opacity:0}
+.waage__flash i{border:1.5px solid var(--gold)}
+.waage__flash b{inset:-25%;background:radial-gradient(closest-side,rgba(236,214,160,.7),rgba(200,169,106,0))}
+
+#wert .waage__verdict{z-index:8;right:0;top:8.5%;display:flex;align-items:center;gap:.55em;margin:0;
+  padding:.5em .95em .55em .8em;border-radius:999px;background:rgba(246,243,236,.86);border:1px solid rgba(176,142,79,.55);
+  font:italic 400 clamp(.82rem,3.1cqw,1.55rem)/1.1 var(--display);color:var(--ink);white-space:nowrap}
+.waage__verdict::before{content:"";width:.55em;height:.55em;flex:0 0 auto;background:#B08E4F;
+  clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%)}
+
+/* Kassenbuch: was in die andere Schale fällt */
+.waage__ledger{display:grid;gap:.85rem;align-self:center;min-width:0}
+#wert .waage__ledger-title{font:500 .68rem/1.35 var(--body);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
+.waage__tokens{display:grid}
+.waage__token{overflow:hidden;border-bottom:1px solid var(--line)}
+.waage__token:first-child{border-top:1px solid var(--line)}
+.waage__token-in{display:flex;align-items:center;gap:.6rem;padding:.55rem 0 .5rem;font:400 1.14rem/1.2 var(--display);color:var(--ink)}
+.waage__dot{flex:0 0 auto;width:.8rem;height:.8rem;border-radius:50%;
+  background:radial-gradient(circle at 36% 32%,#FBF1D2,#E4CB91 35%,#C8A96A 70%,#957840);box-shadow:inset 0 0 0 1px rgba(126,101,52,.55)}
+
+/* Endzustand ohne Motion */
+html:not(.motion) .waage__beam{transform:rotate(9deg)}
+html:not(.motion) .waage__pan--l{transform:translate(1.563%,-15.643%)}
+html:not(.motion) .waage__pan--r{transform:translate(-1.563%,15.643%)}
+html:not(.motion) .waage__shadow--l{transform:translateX(1.693%) scale(1.08);opacity:.38}
+html:not(.motion) .waage__shadow--r{transform:translateX(-1.693%) scale(.92);opacity:.82}
+html:not(.motion) .waage__coin{transform:rotate(var(--r))}
+html:not(.motion) .waage__strip--ones{transform:translateY(-92.3077%)}
+html:not(.motion) .waage__strip--tens{transform:translateY(-50%)}
+
+/* Mit Motion: nur was sich wirklich bewegt, bekommt eine eigene Ebene */
+html.motion .waage__beam,html.motion .waage__pan,html.motion .waage__ring,html.motion .waage__shadow,html.motion .waage__glint{will-change:transform}
+html.motion .waage__night{will-change:opacity}
+
+@media (min-width:900px){
+  html.motion .waage__pin{height:100svh;min-height:600px;display:flex;align-items:center;padding:calc(var(--nav-h) + .25rem) 0 1.25rem}
+  html.motion .waage__pin>.container{width:min(100% - 2*var(--gutter),var(--container))}
+  html.motion .waage__scale{will-change:transform}
+}
+
+/* Mittlere Breiten: Kassenbuch als Chips unter der Waage */
+@media (max-width:1199px){
+  .waage__stage{grid-template-columns:minmax(0,1fr);gap:1.1rem}
+  .waage__scale{width:min(100%,calc((100svh - var(--nav-h) - 11rem) * 1.25))}
+  .waage__ledger{justify-items:center;text-align:center;gap:.7rem}
+  .waage__tokens{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem}
+  .waage__token,.waage__token:first-child{border:0}
+  .waage__token-in{padding:.5rem .85rem .5rem .6rem;border-radius:999px;background:rgba(255,255,255,.6);border:1px solid var(--line);
+    font:500 .78rem/1 var(--body);letter-spacing:.01em;gap:.45rem}
+  .waage__dot{width:.72rem;height:.72rem}
+}
+
+/* Flache Desktop-Fenster: alles etwas kompakter, damit die gepinnte Bühne passt */
+@media (min-width:900px) and (max-height:780px){
+  .waage__odo{font-size:clamp(3rem,1.2rem + 3.4vw,5rem)}
+  .waage__step{padding:.7rem 0 .75rem}
+  #wert .waage__step-text{font-size:clamp(1.1rem,.8rem + .6vw,1.35rem)}
+  .waage__story{gap:1.2rem}
+}
+
+/* Handy: Waage über den Sätzen, keine Pins */
+@media (max-width:899px){
+  .waage__head{grid-template-columns:minmax(0,1fr);gap:1.1rem;margin-bottom:2rem}
+  .waage__grid{display:flex;flex-direction:column;align-items:stretch;gap:1.75rem}
+  .waage__story{display:contents}
+  .waage__stage{order:1;display:block}
+  .waage__month{order:2}
+  .waage__steps{order:3}
+  .waage__cta{order:4}
+  .waage__scale{width:calc(100% + 2 * var(--gutter));margin-inline:calc(var(--gutter) * -1)}
+  .waage__ledger{margin-top:1rem}
+  .waage__month{display:flex;align-items:flex-end;gap:.9rem}
+  .waage__month-label{padding-bottom:.55rem}
+  .waage__odo{font-size:3.4rem}
+  .waage__step{grid-template-columns:2.6rem minmax(0,1fr);padding:.85rem 0 .9rem}
+  #wert .waage__step-text{font-size:1.32rem}
+}
