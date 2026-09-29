@@ -69,8 +69,14 @@ button,.btn,.nav__menu,.menu__links a,.card,.footer__links a,.kontakt__socials a
 ul,ol{list-style:none;margin:0;padding:0}
 h1,h2,h3,p,figure,blockquote{margin:0}
 ::selection{background:var(--sky);color:var(--ink)}
-:focus-visible{outline:2px solid var(--azure);outline-offset:4px;border-radius:2px}
-.skip{position:absolute;left:var(--gutter);top:-100px;z-index:200;background:var(--ink);color:var(--paper);padding:.6rem 1rem;border-radius:999px}
+:focus-visible{outline:2px solid #2F6DB0;outline-offset:3px;border-radius:2px}
+/* Zweiton-Ring: heller Saum im Abstand + dunkles Azur (>= 3:1 auf Papier, Himmel und Nacht) */
+:where(a,button,summary,[tabindex]):focus-visible{box-shadow:0 0 0 3px rgba(246,243,236,.95)}
+/* Sprungziele (Ueberschrift/main mit tabindex=-1) tragen keinen Ring */
+:where(h1,h2,main,#top)[tabindex="-1"]:focus{outline:none;box-shadow:none}
+/* Fokus und Ankerspruenge landen unter der festen Nav, nicht dahinter */
+html{scroll-padding-top:calc(var(--nav-h) + 1.5rem)}
+.skip{position:absolute;left:var(--gutter);top:-100px;z-index:200;display:inline-flex;align-items:center;min-height:44px;background:var(--ink);color:var(--paper);padding:.6rem 1.1rem;border-radius:999px}
 .skip:focus{top:1rem}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
@@ -90,7 +96,7 @@ html.motion .eyebrow[data-reveal]:not(.is-in)::before{transform:scaleX(0)}
 p+p{margin-top:1rem}
 .section-head{margin-bottom:clamp(2.5rem,6vw,5rem)}
 .btn{
-  display:inline-flex;align-items:center;gap:.6rem;padding:.9rem 1.5rem;border-radius:999px;
+  display:inline-flex;align-items:center;gap:.6rem;padding:.9rem 1.5rem;border-radius:999px;min-height:44px;
   font:500 .88rem/1 var(--body);letter-spacing:.02em;white-space:nowrap;
   transition:transform 160ms var(--ease-out),background-color 200ms ease,color 200ms ease,border-color 200ms ease;
 }
@@ -117,6 +123,8 @@ p+p{margin-top:1rem}
 .preloader{position:fixed;inset:0;z-index:120;background:var(--paper);color:var(--ink);display:grid;place-items:center}
 html.no-js .preloader,.preloader.is-done{display:none}
 html.js:not(.motion) .preloader{animation:preloader-out .6s var(--ease) 1.2s forwards}
+/* Letzte Notbremse, falls main.js nach dem Setzen von .motion abbricht (JS schaltet sie ab, sobald es uebernimmt) */
+html.motion .preloader{animation:preloader-out .6s var(--ease) 7s forwards}
 @keyframes preloader-out{to{opacity:0;visibility:hidden}}
 .preloader__inner{display:grid;justify-items:center;gap:1.2rem;text-align:center}
 .preloader__name{font:400 clamp(2.4rem,6vw,4.5rem)/1 var(--display);letter-spacing:-.02em;overflow:hidden}
@@ -129,17 +137,35 @@ html.js:not(.motion) .preloader{animation:preloader-out .6s var(--ease) 1.2s for
 /* 6. Nav + Menu */
 .nav{
   position:fixed;inset:0 0 auto 0;z-index:110;display:flex;align-items:center;justify-content:space-between;
-  padding:1.4rem var(--gutter);color:var(--ink);transition:color .4s,padding .4s var(--ease);
+  padding:1.4rem max(var(--gutter),env(safe-area-inset-right,0px)) 1.4rem max(var(--gutter),env(safe-area-inset-left,0px));
+  color:var(--ink);transition:color .4s,padding .4s var(--ease);
+  pointer-events:none; /* nur Marke und Schalter fangen Taps, nicht das ganze Band */
 }
+.nav>*{pointer-events:auto}
+/* Scrim: dicht hinter der Schrift, weicher Auslauf unterhalb der Nav */
 .nav::before{
-  content:"";position:absolute;inset:0;z-index:-1;opacity:0;transition:opacity .4s;
-  background:linear-gradient(to bottom,rgba(246,243,236,.85),rgba(246,243,236,0));
-  -webkit-mask:linear-gradient(#000 40%,transparent);mask:linear-gradient(#000 40%,transparent);
+  content:"";position:absolute;inset:0 0 -16px 0;z-index:-1;opacity:0;transition:opacity .4s;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(246,243,236,.95),rgba(246,243,236,.9) 70%,rgba(246,243,236,0));
 }
 .nav.is-scrolled{padding-block:.9rem}
 .nav.is-scrolled::before{opacity:1}
 .nav.is-dark{color:var(--paper)}
-.nav.is-dark::before{background:linear-gradient(to bottom,rgba(15,20,32,.85),rgba(15,20,32,0))}
+.nav.is-dark::before{background:linear-gradient(to bottom,rgba(15,20,32,.95),rgba(15,20,32,.9) 70%,rgba(15,20,32,0))}
+@media (max-width:899px){ /* Handy: Milchglas, damit Logo und Schalter nie auf Text stehen */
+  .nav::before{-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);
+    -webkit-mask:linear-gradient(#000 78%,transparent);mask:linear-gradient(#000 78%,transparent)}
+}
+/* Ohne JS: Scrim immer an (kein Scroll-/Theme-Wechsel), Menue ueber :target */
+html.no-js .nav{padding-block:.9rem}
+html.no-js .nav::before{opacity:1}
+html.js .nav__menu--nojs,.nav .nav__menu--close,html.no-js [data-menu-toggle]{display:none}
+html.no-js .menu:target{clip-path:inset(0 0 0 0);visibility:visible;opacity:1;transition:clip-path 640ms var(--ease-drawer),visibility 0s}
+html.no-js:has(#menu:target) .nav{color:var(--paper)}
+html.no-js:has(#menu:target) .nav::before{opacity:0}
+html.no-js:has(#menu:target) .nav__menu--open,html.no-js:has(#menu:target) .nav__cta{display:none}
+html.no-js:has(#menu:target) .nav__menu--close{display:flex}
+.nav__menu--close .nav__burger i:first-child{top:6px;transform:rotate(45deg)}
+.nav__menu--close .nav__burger i:last-child{top:6px;transform:rotate(-45deg)}
 .nav.is-dark .btn--line{border-color:var(--line-light);background:rgba(15,20,32,.35)}
 .nav.is-dark .btn--line:hover{border-color:var(--paper)}
 .nav__brand{font:500 1.35rem/1 var(--display);letter-spacing:-.01em;position:relative}
@@ -162,12 +188,13 @@ body.menu-open .nav__cta{opacity:0;pointer-events:none}
 .menu{
   position:fixed;inset:0;z-index:100;background:var(--night);color:var(--paper);
   clip-path:inset(0 0 100% 0);visibility:hidden;
+  overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch; /* kurze Bildschirme: Menue scrollt selbst */
   transition:clip-path 420ms var(--ease-in-out),visibility 0s linear 420ms;
 }
 .menu.is-open{clip-path:inset(0 0 0 0);visibility:visible;transition:clip-path 640ms var(--ease-drawer),visibility 0s}
 .menu__inner{
-  height:100%;display:grid;grid-template-columns:1.3fr 1fr;gap:var(--gutter);align-items:end;
-  padding:calc(var(--nav-h) + 2rem) var(--gutter) clamp(2rem,6vh,4rem);
+  min-height:100%;display:grid;grid-template-columns:1.3fr 1fr;gap:var(--gutter);align-items:end;align-content:end;
+  padding:calc(var(--nav-h) + 2rem) max(var(--gutter),env(safe-area-inset-right,0px)) calc(clamp(2rem,6vh,4rem) + env(safe-area-inset-bottom,0px)) max(var(--gutter),env(safe-area-inset-left,0px));
   max-width:var(--container);margin-inline:auto;
 }
 .menu__links{display:grid;gap:.15em}
@@ -294,7 +321,13 @@ html.motion .hero__frame{will-change:transform}
 .process__list{display:grid;counter-reset:step}
 .step{display:grid;grid-template-columns:4.5rem 1fr;gap:1.5rem;padding:2rem 0;border-top:1px solid var(--line)}
 .step:last-child{border-bottom:1px solid var(--line)}
-.step__num{font:300 2.2rem/1 var(--display);color:var(--azure);font-variant-numeric:tabular-nums}
+.step__num{font:300 2.2rem/1 var(--display);color:#2F6DB0;font-variant-numeric:tabular-nums}
+@media (min-width:900px){
+  html.motion #arbeitsweise .step .step__num{transition:opacity 700ms var(--ease-out),transform 900ms var(--ease-out),color 600ms var(--ease)}
+  html.motion #arbeitsweise .step:not(.is-active) .step__num,
+  html.motion #arbeitsweise .step:not(.is-active) .step__body{opacity:.62}
+  html.motion #arbeitsweise .step:not(.is-active) .step__num{color:var(--ink-2)}
+}
 .step p{color:var(--ink-2);max-width:48ch;margin-top:.4rem}
 
 /* 8. Intro */
@@ -349,9 +382,11 @@ html:not(.motion) .weg__orb{display:none}
 }
 .weg__item:nth-child(odd) .weg__anchor{right:calc(-48px - 5px)}
 .weg__item:nth-child(even) .weg__anchor{left:calc(-48px - 5px)}
-.weg__year{font:italic 400 1.2rem/1 var(--display);color:var(--azure)}
+.weg__year{font:italic 400 1.2rem/1 var(--display);color:#2F6DB0;transition:color .6s var(--ease)}
 .weg__item p{color:var(--ink-2)}
-html.motion .weg__item{opacity:.28;transform:translateY(14px);transition:opacity .6s var(--ease),transform .8s var(--ease-out)}
+/* Inaktiv gedimmt, aber >= 3:1: Deckkraft .62 und Jahr in Grau; aktiv leuchtet es in Azur auf */
+html.motion .weg__item{opacity:.62;transform:translateY(14px);transition:opacity .6s var(--ease),transform .8s var(--ease-out)}
+html.motion .weg__item:not(.is-active) .weg__year{color:var(--ink-2)}
 html.motion .weg__item.is-active{opacity:1;transform:none}
 .weg__anchor::after{content:"";position:absolute;inset:-1.5px;border-radius:50%;border:1.5px solid var(--azure);opacity:0;transform:scale(.6)}
 .weg__item.is-active .weg__anchor{background:var(--azure);border-color:var(--azure);transform:scale(1.3)}
@@ -497,7 +532,7 @@ html.motion .weg__item.is-active .weg__anchor::after{animation:ring 700ms var(--
   .hero__card-list::-webkit-scrollbar{display:none}
   .hero__card-list li{padding-left:1.1rem;flex:0 0 auto;max-width:9.5rem;scroll-snap-align:start}
   .hero__card-list strong{font-size:1.05rem;display:block;overflow-wrap:anywhere}
-  .hero__card-list span{font-size:.64rem;line-height:1.25}
+  .hero__card-list span{font-size:.72rem;line-height:1.25}
   .hero__scroll{display:none}
   .pillars__grid{grid-template-columns:1fr}
   .pillar{min-height:280px}
@@ -601,7 +636,7 @@ html.motion .weg__item.is-active .weg__anchor::after{animation:ring 700ms var(--
   font:300 clamp(2.6rem,1.8rem + 2.2vw,4.4rem)/1 var(--display);letter-spacing:-.03em;
   font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1;
 }
-.zahl__suffix{font:300 clamp(1.4rem,1rem + 1.1vw,2.2rem)/1 var(--display);color:var(--azure)}
+.zahl__suffix{font:300 clamp(1.4rem,1rem + 1.1vw,2.2rem)/1 var(--display);color:#2F6DB0} /* >= 3:1 auch auf der Akzentkarte */
 
 .zahl__spark{display:block;margin-top:.3rem}
 .zahl__spark svg{display:block;width:100%;height:clamp(38px,3.2vw,52px)}
@@ -643,7 +678,7 @@ html.motion .weg__item.is-active .weg__anchor::after{animation:ring 700ms var(--
   overscroll-behavior-x:contain;
 }
 .stimmen__viewport::-webkit-scrollbar{display:none}
-.stimmen__viewport:focus-visible{outline:2px solid var(--azure);outline-offset:2px;border-radius:var(--r)}
+.stimmen__viewport:focus-visible{outline:2px solid #2F6DB0;outline-offset:3px;border-radius:var(--r)}
 
 /* Wird von sections.js gesetzt, sobald der Pointer-Drag aktiv ist. */
 .stimmen.is-drag .stimmen__viewport{overflow:hidden;scroll-snap-type:none;touch-action:pan-y;cursor:grab}
@@ -736,6 +771,10 @@ html.no-js .stimmen__controls,html.no-js .stimmen__bar{display:none}
 }
 .jetzt__meta time{font-variant-numeric:tabular-nums}
 .jetzt__since:not(:empty)::before{content:"·";margin-right:.6rem;color:var(--gold)}
+@media (max-width:899px){ /* schmal: Datum und "vor X" untereinander, ohne Punkt am Zeilenanfang */
+  .jetzt__meta{flex-direction:column;align-items:flex-start;gap:.15rem}
+  .jetzt__meta .jetzt__since:not(:empty)::before{content:none}
+}
 
 .jetzt__focus{font:300 clamp(1.3rem,1.05rem + 1.1vw,2rem)/1.3 var(--display);letter-spacing:-.01em;max-width:30ch}
 
@@ -810,9 +849,13 @@ html.no-js .stimmen__controls,html.no-js .stimmen__bar{display:none}
 .frage__panel{display:grid;grid-template-rows:1fr;overflow:hidden}
 .frage__inner{
   min-height:0;overflow:hidden;
-  padding-bottom:1.75rem;max-width:58ch;color:var(--ink-2);
+  max-width:58ch;color:var(--ink-2);
 }
+.frage__inner::after{content:"";display:block;height:1.75rem} /* Abstand klappt mit ein (Padding bliebe als Luecke stehen) */
 .fragen.is-ready .frage__panel{transition:grid-template-rows 280ms var(--ease-out)}
+.fragen__list{overflow-anchor:none} /* Ausgleich macht main.js, der Browser-Anker soll nicht doppelt schieben */
+.fragen.is-settling .frage__panel,.fragen.is-settling .frage__inner,
+.frage.is-instant .frage__panel,.frage.is-instant .frage__inner{transition:none!important}
 .fragen.is-ready .frage__panel[data-open="false"]{grid-template-rows:0fr}
 .fragen.is-ready .frage__inner{transition:opacity 200ms var(--ease-out) 60ms,transform 260ms var(--ease-out) 60ms,visibility 0s}
 .fragen.is-ready .frage__panel[data-open="false"] .frage__inner{
@@ -830,6 +873,22 @@ html.no-js .frage__btn{grid-template-columns:1fr;pointer-events:none;cursor:defa
 .menu__links--dense{gap:.04em}
 .menu__links--dense a{font-size:clamp(1.5rem,4.4vh,3rem);line-height:1.06;gap:1rem;padding:.06em 0}
 .menu__links--dense small{min-width:2.4ch}
+/* Touch und Handy: jede Zeile >= 44 px hoch, Ziffer und Wort bleiben auf einer Grundlinie */
+@media (max-width:899px),(pointer:coarse){
+  .menu .menu__links--dense a{display:grid;grid-template-columns:auto 1fr;align-items:baseline;align-content:center;min-height:44px}
+}
+@media (max-width:899px){
+  .menu .menu__foot{display:flex;flex-wrap:wrap;column-gap:1.25rem;row-gap:0}
+}
+/* Handy quer: drei Spalten links, Kontakte rechts, damit alles ohne Scrollen passt */
+@media (max-height:500px) and (min-width:600px){
+  .menu .menu__inner{grid-template-columns:minmax(0,1fr) auto;align-content:end;padding-bottom:calc(1rem + env(safe-area-inset-bottom,0px))}
+  .menu .menu__links--dense{grid-auto-flow:column;grid-template-rows:repeat(5,auto);grid-auto-columns:minmax(0,1fr);column-gap:1.5rem}
+  .menu .menu__side{justify-items:end}
+  .menu .menu__art{display:none}
+  .menu .menu__foot{display:grid;justify-items:end}
+  .menu .menu__links--dense a{font-size:clamp(1.25rem,6.5vh,1.75rem)}
+}
 
 /* --------------------------------------------------------------------------
    24. Breakpoints
