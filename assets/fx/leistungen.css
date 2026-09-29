@@ -84,7 +84,14 @@
    2. Säulen — Desktop mit Motion: gepinnter Kartenstapel
    ========================================================================== */
 @media (min-width:900px){
-  html.motion #leistungen .pillars__stage{height:100vh;overflow:clip}
+  /* Buehne reicht unten ueber den Bildschirm hinaus (negativer Rand gleicht aus),
+     damit der Kartenschatten nach dem Pin nicht an ihrer Kante abreisst */
+  html.motion #leistungen{display:flow-root} /* Abschnitt endet wie bisher, der Rand kollabiert nicht */
+  html.motion #leistungen .pillars__stage{
+    --pl-bleed:8rem;
+    height:calc(100vh + var(--pl-bleed));margin-bottom:calc(-1 * var(--pl-bleed));overflow:clip;pointer-events:none;
+  }
+  html.motion #leistungen .pillar{pointer-events:auto}
   html.motion #leistungen .pillars__grid{position:absolute;inset:0;display:block;width:auto;max-width:none;margin:0}
   html.motion #leistungen .pillar{
     position:absolute;left:0;right:0;margin-inline:auto;top:calc(17vh + var(--nav-h) / 2);
