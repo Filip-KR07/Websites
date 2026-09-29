@@ -62,7 +62,6 @@
         w: 1, pos: 0, ready: false, wrap: (v) => v,
         setX: gsap.quickSetter(track, 'x', 'px'),
         skewTo: cfg.skewK ? gsap.quickTo(track, 'skewX', { duration: 0.6, ease: 'power3.out' }) : null,
-        spin: null,
       };
     });
     if (!rows.length) return () => {};
@@ -80,12 +79,24 @@
         if (!r.ready) { r.pos = -r.w * (i ? 0.42 : 0.04); r.ready = true; } // Zeilen versetzt starten
         r.pos = r.wrap(r.pos);
         r.setX(r.pos);
-        r.spin = gsap.quickSetter($$('.kin__sep', r.track), 'rotation', 'deg');
       });
+      // Sterne drehen per CSS-Animation im Compositor (kinetik.css), hier nur das Tempo
+      stars = rows.flatMap((r) => $$('.kin__sep svg', r.track).flatMap((svg) => svg.getAnimations()));
+      lastRate = NaN;
+    };
+
+    // Tempo + Richtung der Sterne: nur bei spürbarer Änderung nachstellen, nicht jedes Bild
+    const SPIN_CSS = 16; // Grad pro Sekunde bei playbackRate 1 (22,5 s pro Umdrehung)
+    let stars = []; let lastRate = NaN; let lastRateAt = 0;
+    const setSpin = (rate, now) => {
+      const flip = Math.sign(rate) !== Math.sign(lastRate);
+      if (!flip && (Math.abs(rate - lastRate) < 0.05 * Math.max(1, Math.abs(lastRate)) || now - lastRateAt < 90)) return;
+      lastRate = rate; lastRateAt = now;
+      stars.forEach((a) => (a.updatePlaybackRate ? a.updatePlaybackRate(rate) : (a.playbackRate = rate)));
     };
 
     let vel = 0; let lastUpd = 0; let dir = 1;
-    let vSm = 0; let dirSm = 1; let rot = 0; let lastSkew = 0; let running = false;
+    let vSm = 0; let dirSm = 1; let lastSkew = 0; let running = false;
 
     const tick = (time, dtMs) => {
       const dt = Math.min(dtMs, 50) / 1000; // nach Tab-Wechsel keinen Sprung
@@ -93,11 +104,10 @@
       vSm += ((performance.now() - lastUpd < 120 ? vel : 0) - vSm) * k;
       dirSm += (dir - dirSm) * (1 - Math.exp(-dt * 4.5)); // Richtungswechsel weich
       const speed = cfg.base + Math.min(Math.abs(vSm) * cfg.boost, cfg.maxBoost);
-      rot = (rot + (cfg.spin + Math.min(Math.abs(vSm) * cfg.spinK, 520)) * dirSm * dt) % 360;
+      setSpin(((cfg.spin + Math.min(Math.abs(vSm) * cfg.spinK, 520)) * dirSm) / SPIN_CSS, time * 1000);
       rows.forEach((r) => {
         r.pos = r.wrap(r.pos + speed * dirSm * r.sign * dt);
         r.setX(r.pos);
-        r.spin?.(rot * -r.sign);
       });
       if (cfg.skewK) {
         const sk = gsap.utils.clamp(-8, 8, vSm * cfg.skewK);
@@ -107,10 +117,11 @@
         }
       }
     };
-    const start = () => { if (!running) { running = true; gsap.ticker.add(tick); } };
+    const start = () => { if (!running) { running = true; band.classList.add('is-live'); gsap.ticker.add(tick); } };
     const stop = () => {
       if (!running) return;
       running = false;
+      band.classList.remove('is-live'); // Sterne stehen still, solange das Band nicht im Bild ist
       gsap.ticker.remove(tick);
       vSm = 0; lastSkew = 0;
       rows.forEach((r) => r.skewTo?.(0)); // aufrichten, bevor das Band wieder ins Bild kommt
@@ -159,7 +170,9 @@
     // Fensterformen: gleiche Struktur, damit GSAP die Zahlen interpoliert
     const shut = pinIt ? 'inset(12% 8% 0% 8% round 40px)' : 'inset(7% 4% 0% 4% round 26px)';
     const open = 'inset(0% 0% 0% 0% round 0px)';
-    const leave = pinIt ? 'inset(0% 3.5% 10% 3.5% round 40px)' : 'inset(0% 3% 6% 3% round 26px)';
+    // Beim Verlassen nur seitlich schliessen: die Unterkante bleibt die Abschnittskante, an der
+    // auch die Navigation wieder hell wird (sonst dunkle Nav ueber Papier)
+    const leave = pinIt ? 'inset(0% 3.5% 0% 3.5% round 40px)' : 'inset(0% 3% 0% 3% round 26px)';
 
     // Gestaffelte fromTo rendern nur das erste Wort sofort – Startzustand daher explizit setzen
     gsap.set(words, { opacity: 0.15 });

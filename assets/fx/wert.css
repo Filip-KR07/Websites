@@ -22,7 +22,6 @@
 .waage__digit{display:block;height:1.08em;width:.54em;overflow:hidden;text-align:center}
 .waage__strip{display:block}
 .waage__strip b{display:block;height:1.08em;line-height:1.08em;font-weight:inherit}
-.waage__month-total{align-self:flex-end;margin:0 0 .2em .45em;font:italic 400 .3em/1 var(--display);letter-spacing:0;color:var(--ink-2)}
 
 /* Vier Sätze als Rechnung, Zeile für Zeile */
 .waage__steps{display:grid}
@@ -143,20 +142,42 @@ html.motion .waage__night{will-change:opacity}
   .waage__story{gap:1.2rem}
 }
 
-/* Handy: Waage über den Sätzen, keine Pins */
+/* Handy + Tablet hochkant: Waage oben, Urteil in einem eigenen Band darunter
+   (nie hinter der Navigation), dann Monat, Sätze, Kassenbuch, Aufruf */
 @media (max-width:899px){
+  #wert{--band:3.75rem;--wscale:min(100% + 2 * var(--gutter),40rem,(100svh - var(--nav-h) - var(--band) - 1rem) * 1.25)}
   .waage__head{grid-template-columns:minmax(0,1fr);gap:1.1rem;margin-bottom:2rem}
   .waage__grid{display:flex;flex-direction:column;align-items:stretch;gap:1.75rem}
-  .waage__story{display:contents}
-  .waage__stage{order:1;display:block}
+  .waage__story,.waage__stage{display:contents}
+  .waage__scale{order:1;width:var(--wscale);margin:0 calc((100% - var(--wscale)) / 2) calc(var(--band) - 1.75rem)}
   .waage__month{order:2}
   .waage__steps{order:3}
-  .waage__cta{order:4}
-  .waage__scale{width:calc(100% + 2 * var(--gutter));margin-inline:calc(var(--gutter) * -1)}
-  .waage__ledger{margin-top:1rem}
+  .waage__ledger{order:4;margin-top:.75rem}
+  .waage__cta{order:5}
   .waage__month{display:flex;align-items:flex-end;gap:.9rem}
   .waage__month-label{padding-bottom:.55rem}
   .waage__odo{font-size:3.4rem}
   .waage__step{grid-template-columns:2.6rem minmax(0,1fr);padding:.85rem 0 .9rem}
   #wert .waage__step-text{font-size:1.32rem}
+
+  /* Urteil: zentriert im Band unter der Waage */
+  #wert .waage__verdict{left:0;right:0;top:100%;height:var(--band);justify-content:center;padding:0;border:0;border-radius:0;background:none;
+    font-size:clamp(1rem,4.2cqw,1.3rem)}
+  #wert .waage__verdict::before{display:none}
+  #wert .waage__verdict-in{display:flex;align-items:center;gap:.55em;padding:.5em .95em .55em .8em;border-radius:999px;
+    background:rgba(246,243,236,.94);border:1px solid rgba(176,142,79,.55);box-shadow:0 12px 30px -18px rgba(126,101,52,.55)}
+  #wert .waage__verdict-in::before{content:"";width:.55em;height:.55em;flex:0 0 auto;background:#B08E4F;
+    clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%)}
+
+  /* Mit Motion: Waage + Monatsband bleiben unter der Navigation stehen, die Sätze laufen
+     darunter durch und lösen sich am Band auf (wert.js baut den Rahmen; quer nur kurzer Halt) */
+  #wert.is-scrolly{--wscale:min(100% + 2 * var(--gutter),40rem,(100svh - var(--nav-h) - .4rem - var(--band) - 34svh) * 1.25)}
+  #wert.is-scrolly.is-short{--wscale:min(100% + 2 * var(--gutter),40rem,(100svh - var(--nav-h) - 1rem - var(--band)) * 1.25)}
+  #wert.is-scrolly .waage__scrolly{order:1;display:flex;flex-direction:column;gap:1.75rem}
+  #wert.is-short .waage__hold{height:70svh}
+  #wert.is-scrolly .waage__sticky{position:sticky;top:calc(var(--nav-h) + .4rem);z-index:2;display:flex;flex-direction:column}
+  #wert.is-scrolly .waage__scale{margin-bottom:0}
+  #wert.is-scrolly .waage__month{height:var(--band);align-items:center;justify-content:center;gap:.75rem}
+  #wert.is-scrolly .waage__month-label{padding:0}
+  #wert.is-scrolly .waage__odo{font-size:2.3rem}
 }

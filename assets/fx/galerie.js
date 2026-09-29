@@ -20,15 +20,7 @@
     const bars = $$('[data-galerie-meter] i', section);
     if (!strip || !tiles.length || !center) return;
 
-    /* Mobil-Streifen: per Tastatur erreichbar + Zaehler (auch ohne Motion) */
-    const mqMobile = window.matchMedia('(max-width: 899px)');
-    const syncStrip = () => {
-      if (mqMobile.matches) strip.setAttribute('tabindex', '0');
-      else strip.removeAttribute('tabindex');
-    };
-    syncStrip();
-    mqMobile.addEventListener?.('change', syncStrip);
-
+    /* Mobil-Streifen: Zaehler (auch ohne Motion). Per Tastatur erreichbar sind die Bilder selbst (tabindex im HTML) */
     if ('IntersectionObserver' in window && now) {
       const ratios = new Map();
       let active = -1;
@@ -61,11 +53,12 @@
     const words = FK.splitWords(title);
 
     /* Ueberschrift + Zitat: eigene kurze Timelines, vor- und zurueckspielbar */
+    // Nur Deckkraft (kein visibility:hidden), damit Screenreader den Text immer finden
     const headTimeline = () => gsap.timeline({ paused: true })
-      .fromTo(eyebrow, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 0)
+      .fromTo(eyebrow, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 0)
       .fromTo(words, { yPercent: 110 }, { yPercent: 0, duration: 1, stagger: 0.05, ease: 'power4.out' }, 0.05);
     const quoteTimeline = (from) => gsap.timeline({ paused: true })
-      .fromTo(quote, { autoAlpha: 0, ...from }, { autoAlpha: 1, x: 0, y: 0, duration: 1, ease: 'power3.out' }, 0);
+      .fromTo(quote, { opacity: 0, ...from }, { opacity: 1, x: 0, y: 0, duration: 1, ease: 'power3.out' }, 0);
 
     const mm = gsap.matchMedia();
     mm.add({ isDesktop: '(min-width: 900px)', isMobile: '(max-width: 899px)' }, (ctx) => {
@@ -119,8 +112,10 @@
 
         const headTl = headTimeline();
         const quoteTl = quoteTimeline({ x: 56 });
-        let headOn = false, quoteOn = false;
+        let headOn = false, quoteOn = false, settled = false;
         const textState = (p) => {
+          // Etiketten erst, wenn die Collage steht (vorher waere das Mittelbild riesig)
+          if (settled !== p >= 0.64) { settled = !settled; section.classList.toggle('is-settled', settled); }
           if (!headOn && p >= 0.64) { headOn = true; eyebrow.classList.add('is-in'); headTl.timeScale(1).play(); }
           else if (headOn && p < 0.52) { headOn = false; eyebrow.classList.remove('is-in'); headTl.timeScale(1.8).reverse(); }
           if (!quoteOn && p >= 0.8) { quoteOn = true; quote.classList.add('is-in'); quoteTl.timeScale(1).play(); }
@@ -136,8 +131,22 @@
             // entsteht erst nach dem Intro, ohne Sortierung starten alle spaeteren Pins zu frueh
             refreshPriority: 0,
           },
-          onUpdate() { textState(this.progress()); },
+          // Beim Neumessen spult ScrollTrigger kurz auf 0: das ist kein Scrollen, danach neu anwenden
+          onUpdate() { if (!ScrollTrigger.isRefreshing) textState(this.progress()); },
         });
+        const reapply = () => textState(tl.progress());
+        ScrollTrigger.addEventListener('refresh', reapply);
+
+        /* Tastatur: wer ein Bild fokussiert, landet bei der fertigen Collage (wie data-land) */
+        const land = parseFloat(section.dataset.land) || 0.85;
+        const settle = (e) => {
+          if (tl.progress() >= 0.64 || !e.target.matches?.(':focus-visible')) return;
+          const st = tl.scrollTrigger;
+          const y = st.start + (st.end - st.start) * land;
+          if (FK.lenis) FK.lenis.scrollTo(y, { duration: 1.1 });
+          else window.scrollTo({ top: y, behavior: FK.motionOff() ? 'auto' : 'smooth' });
+        };
+        strip.addEventListener('focusin', settle);
 
         /* Mittleres Bild: vom Vollbild in die Mittelzelle, Bild innen zieht nach */
         const cInner = inners[tiles.indexOf(center)];
@@ -155,7 +164,7 @@
             .fromTo(inners[tiles.indexOf(el)], { scale: 1.25 }, { scale: 1, duration: 0.5, ease: 'power2.out' }, c.at);
         });
         /* Goldrahmen legt sich um das Mittelbild, Schriftband zieht dahinter vorbei */
-        if (ring) tl.fromTo(ring, { autoAlpha: 0, scale: 1.08 }, { autoAlpha: 1, scale: 1, duration: 0.2, ease: 'power2.out' }, 0.5);
+        if (ring) tl.fromTo(ring, { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 0.2, ease: 'power2.out' }, 0.5);
         if (ghost) tl.fromTo(ghost, { xPercent: 4 }, { xPercent: -30, duration: 1 }, 0);
         tl.set({}, {}, 1);
 
@@ -166,7 +175,11 @@
           scrollTrigger: { trigger: section.parentNode, start: 'bottom bottom', end: 'bottom top', scrub: true, invalidateOnRefresh: true, refreshPriority: -1 },
         });
         tiles.forEach((t, i) => exit.fromTo(t, { yPercent: 0 }, { yPercent: DRIFT[i] || -6 }, 0));
-        return undefined;
+        return () => {
+          ScrollTrigger.removeEventListener('refresh', reapply);
+          strip.removeEventListener('focusin', settle);
+          section.classList.remove('is-settled');
+        };
       }
 
       /* Mobil: kein Pin. Ueberschrift, dann Clip-Reveal je Bild, dann Zitat */
@@ -181,7 +194,7 @@
       if ('IntersectionObserver' in window) {
         gsap.set(frames, { clipPath: 'inset(100% 0% 0% 0%)' });
         gsap.set(inners, { scale: 1.3 });
-        gsap.set(caps, { autoAlpha: 0, y: 10 });
+        gsap.set(caps, { opacity: 0, y: 10 });
         const shown = new Set(), visible = new Set();
         let armed = false;
         const show = (i, delay) => {
@@ -190,7 +203,7 @@
           ctx.add(() => {
             gsap.to(frames[i], { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.1, ease: 'power4.out', delay });
             gsap.to(inners[i], { scale: 1.14, duration: 1.4, ease: 'power3.out', delay });
-            gsap.to(caps[i], { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: delay + 0.35 });
+            gsap.to(caps[i], { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: delay + 0.35 });
           });
         };
         io = new IntersectionObserver((entries) => {
@@ -208,13 +221,25 @@
         gsap.set(inners, { scale: 1.14 });
       }
 
-      /* Beim Wischen wandert das Bild im Rahmen leicht mit */
-      tiles.forEach((t, i) => {
-        gsap.fromTo(inners[i], { xPercent: -5 }, {
-          xPercent: 5, ease: 'none',
-          scrollTrigger: { trigger: t, scroller: strip, horizontal: true, start: 'left right', end: 'right left', scrub: true },
-        });
-      });
+      /* Beim Wischen wandert das Bild im Rahmen leicht mit. Eigener Scroll-Listener statt
+         ScrollTrigger am Streifen: ein Refresh setzt so nie mitten im Wischen scrollLeft zurueck. */
+      const setX = inners.map((n) => gsap.quickSetter(n, 'xPercent'));
+      let geo = [], raf = 0;
+      const drift = () => {
+        raf = 0;
+        const x = strip.scrollLeft;
+        geo.forEach((g, i) => setX[i](-5 + 10 * gsap.utils.clamp(0, 1, (x + g.vw - g.l) / (g.vw + g.w))));
+      };
+      const measureStrip = () => {
+        const sr = strip.getBoundingClientRect();
+        geo = tiles.map((t) => { const r = t.getBoundingClientRect(); return { l: r.left - sr.left + strip.scrollLeft, w: r.width, vw: sr.width }; });
+        drift();
+      };
+      const onStrip = () => { if (!raf) raf = requestAnimationFrame(drift); };
+      measureStrip();
+      strip.addEventListener('scroll', onStrip, { passive: true });
+      const ro = 'ResizeObserver' in window ? new ResizeObserver(measureStrip) : null;
+      ro?.observe(strip);
 
       const quoteTl = quoteTimeline({ y: 24 });
       ScrollTrigger.create({
@@ -222,7 +247,13 @@
         onEnter: () => { quote.classList.add('is-in'); quoteTl.play(); },
       });
 
-      return () => io?.disconnect();
+      return () => {
+        io?.disconnect();
+        ro?.disconnect();
+        strip.removeEventListener('scroll', onStrip);
+        cancelAnimationFrame(raf);
+        gsap.set(inners, { clearProps: 'transform' });
+      };
     });
   });
 })();
