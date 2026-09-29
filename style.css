@@ -189,7 +189,7 @@ body.menu-open .nav__cta{opacity:0;pointer-events:none}
 .hero__frame{
   position:absolute;inset:0;overflow:hidden;transform-origin:50% 50%;
   background:linear-gradient(165deg,#EEF4FA 0%,var(--sky-2) 35%,var(--sky) 72%,#A9CBEC 100%);
-  transition:border-radius 700ms var(--ease-out),box-shadow 700ms var(--ease-out);
+  transition:border-radius 550ms var(--ease-out),box-shadow 550ms var(--ease-out);
 }
 /* Eigene Ebene: der Scrub skaliert nur noch, statt Rahmen, Raster und Schleier neu zu malen */
 html.motion .hero__frame{will-change:transform}
@@ -269,7 +269,10 @@ html.motion .hero__frame{will-change:transform}
 /* Kurzprofil endet vor dem Kopf der Bueste (Kopf beginnt etwa 20 % in die Bildbreite) */
 @media (min-width:900px){
   .hero__card{max-width:max(20rem,calc(100% - clamp(2%,8vw,12%) - min(74vh,58vw) * .8 - 2 * var(--gutter)))}
-  .hero__card-list li{min-width:0}
+  /* Eine Reihe, solange die Werte an Leerzeichen umbrechen koennen; erst dann eine zweite Reihe */
+  .hero__card-list{flex-wrap:wrap;row-gap:.9rem}
+  .hero__card-list li{flex:1 1 0;min-width:min-content}
+  .hero__card-list strong{font-size:clamp(1.2rem,1.3vw + .4rem,1.6rem)}
 }
 
 /* Säulen */
