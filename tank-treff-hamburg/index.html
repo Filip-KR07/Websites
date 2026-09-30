@@ -3,191 +3,261 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b0d12">
-<meta name="color-scheme" content="dark light">
-<title>Hoyer Tank-Treff Hamburg · A1 Abfahrt 38</title>
-<meta name="description" content="Tank-Treff Hamburg an der A1, Abfahrt 38: aktuelle Spritpreise, Öffnungszeiten, Bistro, Shop und LKW-Tanken bis 4,20 m Durchfahrtshöhe.">
-<link rel="preload" href="../assets/fonts/inter-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
+<meta name="description" content="Hoyer Tank-Treff Hamburg an der A1, Abfahrt 38: Preise, Öffnungszeiten, Bistro und LKW-Tanken bis 4,20 m.">
+<title>Hoyer Tank-Treff Hamburg</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: Straßenraum. Links die Beschilderung (Titel), rechts der Preismast; darunter ein Autobahnschild als Infoband, Öffnungszeiten als 24-h-Zeitleiste. */
+:root{
+  color-scheme:light;
+  --concrete:#e4e5e1; --paper:#f3f3f0; --asphalt:#1b1c1e; --asphalt-2:#2a2c30;
+  --signal:#d3131d; --autobahn:#1d4f9f; --led:#ffb21a; --muted:#65686e; --line:#c9cbc5;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif; --body:Barlow,"Helvetica Neue",Arial,sans-serif;
+  --ease-out:cubic-bezier(.23,1,.32,1);
+}
+*{box-sizing:border-box}
+html{-webkit-tap-highlight-color:transparent;scroll-behavior:smooth}
+body{margin:0;background:var(--concrete);color:var(--asphalt);font:400 17px/1.55 var(--body)}
+a{color:inherit}
+.wrap{width:min(1200px,100% - 32px);margin-inline:auto}
+h1,h2,h3{font-family:var(--display);font-weight:800;text-transform:uppercase;letter-spacing:-.005em;line-height:.9;margin:0;text-wrap:balance}
+.label{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:14px;color:var(--muted)}
+
+/* Kopf */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--asphalt);color:#fff}
+.top .wrap{display:flex;align-items:center;gap:24px;height:56px}
+.mark{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:22px;text-transform:uppercase;text-decoration:none;letter-spacing:.01em}
+.mark i{display:grid;place-items:center;width:30px;height:30px;background:var(--signal);font-style:normal;font-size:19px}
+.top nav{display:flex;gap:22px;margin-left:auto;font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:15px}
+.top nav a{text-decoration:none;opacity:.75;transition:opacity 200ms ease}
+@media (hover:hover) and (pointer:fine){.top nav a:hover{opacity:1}}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;background:var(--asphalt-2);color:#fff}
+.hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:30% 55%;opacity:.55;animation:bg-in 1400ms var(--ease-out) both}
+@keyframes bg-in{from{opacity:0;transform:scale(1.05)}}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(27,28,30,.92) 0%,rgba(27,28,30,.55) 55%,rgba(27,28,30,.2) 100%);pointer-events:none}
+.hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1fr auto;gap:48px;align-items:end;padding-block:clamp(56px,9vw,112px) 0}
+.hero h1{font-size:clamp(3.4rem,9vw,8rem)}
+.hero h1 span{display:block;overflow:hidden}
+.hero h1 span b{display:block;font-weight:inherit;animation:rise 900ms var(--ease-out) both}
+.hero h1 span:nth-child(2) b{animation-delay:90ms;color:var(--signal)}
+@keyframes rise{from{transform:translateY(100%)}}
+.hero p{max-width:34ch;font-size:1.15rem;color:#d9dadc;margin:28px 0 0}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin:32px 0 clamp(48px,7vw,88px)}
+.btn{display:inline-flex;align-items:center;height:52px;padding:0 24px;font-family:var(--display);font-weight:700;font-size:19px;text-transform:uppercase;letter-spacing:.04em;text-decoration:none;border:2px solid #fff;touch-action:manipulation;user-select:none;transition:transform 140ms var(--ease-out),background-color 200ms ease,color 200ms ease}
+.btn:active{transform:scale(.97)}
+.btn-red{background:var(--signal);border-color:var(--signal)}
+@media (hover:hover) and (pointer:fine){.btn-line:hover{background:#fff;color:var(--asphalt)}.btn-red:hover{background:#b80f18;border-color:#b80f18}}
+.status{display:inline-flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:15px}
+.status::before{content:"";width:10px;height:10px;border-radius:50%;background:#8a8d93}
+.status.open::before{background:#35d06f;box-shadow:0 0 0 4px rgba(53,208,111,.25)}
+.status.closed::before{background:var(--signal)}
+
+/* Preismast */
+.pylon{width:min(340px,100%);align-self:end;background:var(--asphalt);border:6px solid #3a3d42;border-bottom:0;box-shadow:0 30px 60px rgba(0,0,0,.45);animation:pylon-in 1000ms var(--ease-out) 150ms both}
+@keyframes pylon-in{from{transform:translateY(40px);opacity:0}}
+.pylon-cap{background:var(--signal);display:flex;align-items:center;justify-content:space-between;padding:16px 18px;font-family:var(--display);font-weight:800;font-size:30px;text-transform:uppercase;line-height:1}
+.pylon-cap small{font-size:13px;letter-spacing:.1em;font-weight:600;opacity:.85}
+.pylon ul{list-style:none;margin:0;padding:6px 0 18px}
+.pylon li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 18px;border-top:1px solid #303236}
+.pylon li:first-child{border-top:0}
+.pylon .fuel{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:15px;color:#c5c7cb;line-height:1.1}
+.price{display:flex;align-items:flex-start;font-family:var(--display);font-weight:700;font-size:40px;line-height:1;color:var(--led);text-shadow:0 0 12px rgba(255,178,26,.55);font-variant-numeric:tabular-nums}
+.price .cell{display:inline-block;overflow:hidden;height:1em}
+.price .cell b{display:block;font-weight:inherit;animation:roll 700ms var(--ease-out) both;animation-delay:calc(400ms + var(--d) * 45ms)}
+@keyframes roll{from{transform:translateY(-100%);opacity:0}}
+.price .comma{margin:0 1px}
+.price .tenth{font-size:.5em;margin-left:2px}
+.pylon-foot{padding:0 18px 16px;font-size:12px;color:#8a8d93}
+
+/* Autobahnschild */
+.sign{background:var(--autobahn);color:#fff;padding:18px 0}
+.sign .wrap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.plate{border:3px solid #fff;border-radius:10px;padding:14px 18px;min-width:0}
+.plate .label{color:rgba(255,255,255,.75);font-size:13px}
+.plate strong{display:block;font-family:var(--display);font-weight:700;font-size:clamp(1.25rem,2.4vw,1.8rem);text-transform:uppercase;line-height:1.05;margin-top:4px;overflow-wrap:anywhere}
+.plate .a1{display:inline-block;background:var(--autobahn);border:2px solid #fff;border-radius:4px;padding:0 6px;margin-right:6px}
+
+/* Abschnitte */
+section.block{padding-block:clamp(64px,9vw,112px)}
+.head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px 32px;margin-bottom:40px;border-bottom:3px solid var(--asphalt);padding-bottom:14px}
+.head h2{font-size:clamp(2.2rem,6vw,4.6rem);overflow-wrap:anywhere;min-width:0}
+
+/* Öffnungszeiten als Zeitleiste */
+.hours{display:grid;gap:6px}
+.row{display:grid;grid-template-columns:110px 1fr 120px;align-items:center;gap:16px}
+.day{font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:20px}
+.track{position:relative;height:30px;background:repeating-linear-gradient(90deg,transparent 0 calc(25% - 1px),var(--line) calc(25% - 1px) 25%),var(--paper)}
+.bar{position:absolute;top:0;bottom:0;background:var(--asphalt);transform-origin:left;transform:scaleX(0);transition:transform 900ms var(--ease-out)}
+.hours.in .bar{transform:none}
+.row.today .bar{background:var(--signal)}
+.row.today .day::after{content:" · heute";color:var(--signal);font-size:14px;letter-spacing:.06em}
+.now{position:absolute;top:-6px;bottom:-6px;width:2px;background:var(--led);box-shadow:0 0 0 2px var(--concrete)}
+.time{white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right;color:var(--muted)}
+.row.today .time{color:var(--asphalt);font-weight:600}
+.scale{display:grid;grid-template-columns:110px 1fr 120px;gap:16px;margin-top:6px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.scale div{display:flex;justify-content:space-between}
+
+/* Bistro */
+.bistro{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(24px,5vw,72px);align-items:center}
+.bistro h2{font-size:clamp(2.6rem,6vw,4.6rem)}
+.bistro p{max-width:46ch;color:#3d4046}
+.menu{background:var(--paper);border-top:6px solid var(--signal);padding:24px 28px}
+.menu li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.menu ul{list-style:none;margin:12px 0 0;padding:0}
+.menu span:last-child{font-family:var(--display);font-weight:700;font-size:20px}
+
+/* Services als Autobahn-Piktogramme */
+.svc{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:28px 16px}
+.svc li{display:flex;flex-direction:column;gap:10px;font-weight:500}
+.svc svg{width:64px;height:64px;background:var(--autobahn);border-radius:8px;padding:12px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;box-shadow:inset 0 0 0 3px var(--autobahn),inset 0 0 0 5px #fff}
+.pay{margin-top:48px;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline}
+.pay b{font-family:var(--display);font-weight:700;font-size:22px;text-transform:uppercase}
+
+footer{background:var(--asphalt);color:#b9bbbf;padding-block:40px calc(40px + env(safe-area-inset-bottom,0px));font-size:15px}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px}
+footer a{color:#fff}
+
+/* Scroll-Reveal: sichtbar in Ruhe, nur leichtes Nachziehen */
+.rv{transition:opacity 700ms var(--ease-out),transform 700ms var(--ease-out)}
+.js .rv:not(.in){opacity:.001;transform:translateY(18px)}
+
+@media (max-width:900px){
+  .hero .wrap{grid-template-columns:1fr}
+  .pylon{justify-self:start}
+  .sign .wrap{grid-template-columns:1fr 1fr}
+  .bistro{grid-template-columns:1fr}
+  .svc{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .top nav{display:none}
+}
+@media (max-width:560px){
+  .row,.scale{grid-template-columns:34px 1fr 84px;gap:8px}.time{font-size:13px}.sign .wrap{grid-template-columns:1fr}
+  .day{font-size:16px}.row.today .day::after{content:""}
+  .svc{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cta .btn{flex:1;justify-content:center}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:1ms!important;animation-delay:0ms!important}
+  .bar,.rv{transition:opacity 300ms ease!important}.bar{transform:none}
+  .js .rv:not(.in){transform:none}
+}
+</style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
-  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></symbol>
-  <symbol id="i-route" viewBox="0 0 24 24"><path d="m3 11 18-8-8 18-2-8-8-2Z"/></symbol>
-  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
-  <symbol id="i-height" viewBox="0 0 24 24"><path d="M4 3h16M4 21h16M12 7v10M9 10l3-3 3 3M9 14l3 3 3-3"/></symbol>
-  <symbol id="i-coffee" viewBox="0 0 24 24"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9Z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 3v3"/></symbol>
-  <symbol id="i-food" viewBox="0 0 24 24"><path d="M3 13h18M5 13a7 7 0 0 1 14 0M4 17h16l-1 3H5l-1-3Z"/></symbol>
-  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></symbol>
-  <symbol id="i-gas" viewBox="0 0 24 24"><rect x="7" y="6" width="10" height="15" rx="4"/><path d="M10 6V3h4v3"/></symbol>
-  <symbol id="i-wc" viewBox="0 0 24 24"><circle cx="7" cy="4.5" r="1.5"/><circle cx="17" cy="4.5" r="1.5"/><path d="M5 8h4v6H8v7H6v-7H5V8ZM15 8h4l1.5 7H19v6h-4v-6h-1.5L15 8Z"/></symbol>
-  <symbol id="i-cash" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></symbol>
-  <symbol id="i-card" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></symbol>
-  <symbol id="i-van" viewBox="0 0 24 24"><path d="M2 7h12v9H2zM14 10h4l3 3v3h-7z"/><circle cx="6" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></symbol>
-  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M1 5h14v11H1zM15 9h4l4 4v3h-8z"/><circle cx="5" cy="17.5" r="2"/><circle cx="12" cy="17.5" r="2"/><circle cx="19" cy="17.5" r="2"/></symbol>
-  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+<symbol id="coffee" viewBox="0 0 24 24"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9Z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 3v3"/></symbol>
+<symbol id="food" viewBox="0 0 24 24"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M16 3c-2 1-3 4-3 7h3v11"/></symbol>
+<symbol id="shop" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></symbol>
+<symbol id="gas" viewBox="0 0 24 24"><rect x="7" y="6" width="10" height="15" rx="4"/><path d="M10 6V3h4v3"/></symbol>
+<symbol id="wc" viewBox="0 0 24 24"><circle cx="7" cy="4.5" r="1.5"/><circle cx="17" cy="4.5" r="1.5"/><path d="M5 8h4v6H8v7H6v-7H5V8ZM15 8h4l1.5 7H19v6h-4v-6h-1.5L15 8Z"/></symbol>
+<symbol id="card" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></symbol>
+<symbol id="cash" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></symbol>
+<symbol id="van" viewBox="0 0 24 24"><path d="M2 7h12v9H2zM14 10h4l3 3v3h-7z"/><circle cx="6" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></symbol>
+<symbol id="truck" viewBox="0 0 24 24"><path d="M1 5h14v11H1zM15 9h4l4 4v3h-8z"/><circle cx="5" cy="17.5" r="2"/><circle cx="12" cy="17.5" r="2"/><circle cx="19" cy="17.5" r="2"/></symbol>
 </svg>
 
-<header class="header" data-header>
-  <div class="wrap header-inner">
-    <a class="brand" href="#top" aria-label="Tank-Treff Hamburg – Startseite">
-      <span class="brand-mark" aria-hidden="true">H</span>
-      <span>Hoyer Tank-Treff <b>Hamburg</b></span>
-    </a>
-    <nav class="nav" aria-label="Hauptnavigation">
-      <a href="#preise">Preise</a><a href="#zeiten">Öffnungszeiten</a><a href="#bistro">Bistro</a><a href="#services">Services</a><a href="#anfahrt">Anfahrt</a>
-    </nav>
-    <a class="btn btn-sm btn-light" href="tel:+491758859618"><svg><use href="#i-phone"/></svg><span>Anrufen</span></a>
+
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="mark" href="#start"><i>H</i>Hoyer Tank-Treff</a>
+  <nav aria-label="Hauptnavigation"><a href="#zeiten">Öffnungszeiten</a><a href="#bistro">Bistro</a><a href="#services">Services</a></nav>
+</div></header>
+
+<main id="start">
+<section class="hero">
+  <img class="hero-bg" src="img/station.jpg" alt="">
+  <div class="wrap">
+    <div>
+      <span class="status" data-status>Öffnungszeiten</span>
+      <h1 style="margin-top:18px"><span><b>Hoyer Tank-Treff</b></span><span><b>Hamburg</b></span></h1>
+      <p>Direkt an der A1, Abfahrt 38. Volltanken, Kaffee holen, weiterfahren. Auch für LKW bis 4,20 m.</p>
+      <div class="cta">
+        <a class="btn btn-red" href="https://www.google.com/maps/dir/?api=1&amp;destination=Nartenstr.+31,+21079+Hamburg" target="_blank" rel="noopener">Route planen</a>
+        <a class="btn btn-line" href="#zeiten">Öffnungszeiten</a>
+      </div>
+    </div>
+    <aside class="pylon" aria-label="Aktuelle Preise">
+      <div class="pylon-cap"><span>Hoyer</span><small>€ / Liter</small></div>
+      <ul data-prices></ul>
+      <div class="pylon-foot">Stand 28.09.2026, 13:34 Uhr · ohne Gewähr</div>
+    </aside>
   </div>
-</header>
+</section>
 
-<main id="top">
-  <!-- HERO -->
-  <section class="hero">
-    <!-- Hintergrund: Bild jetzt, Drohnenvideo später.
-         Video einsetzen: <img> durch folgendes ersetzen und Datei nach img/ legen:
-         <video class="hero-media" autoplay muted loop playsinline poster="img/station.jpg">
-           <source src="img/drohne.mp4" type="video/mp4">
-         </video> -->
-    <img class="hero-media" src="img/station.jpg" alt="" fetchpriority="high">
-    <div class="hero-shade" aria-hidden="true"></div>
-    <div class="wrap hero-inner">
-      <p class="eyebrow intro" style="--i:0"><span class="status" data-status>Öffnungszeiten werden geprüft…</span></p>
-      <h1 class="hero-title"><span class="line"><span>Hoyer Tank-Treff</span></span><span class="line"><em>in Hamburg</em></span></h1>
-      <p class="lead intro" style="--i:3">Tanken, Pause, weiter: deine Tankstelle direkt an der A1, Abfahrt 38 – mit Bistro, Shop und Platz für LKW bis 4,20&nbsp;m.</p>
-      <div class="hero-cta intro" style="--i:4">
-        <a class="btn btn-primary" href="https://www.google.com/maps/dir/?api=1&amp;destination=Nartenstr.+31,+21079+Hamburg" target="_blank" rel="noopener"><svg><use href="#i-route"/></svg>Route planen</a>
-        <a class="btn btn-ghost" href="#preise">Aktuelle Preise <svg><use href="#i-arrow"/></svg></a>
-      </div>
+<div class="sign"><div class="wrap">
+  <div class="plate"><div class="label">Anfahrt</div><strong><span class="a1">A1</span>Abfahrt 38</strong></div>
+  <div class="plate"><div class="label">Durchfahrtshöhe</div><strong>max. 4,20 m</strong></div>
+  <div class="plate"><div class="label">Adresse</div><strong>Nartenstraße 31</strong></div>
+  <div class="plate"><div class="label">Telefon</div><strong style="user-select:all">+49 175 8859618</strong></div>
+</div></div>
 
-      <dl class="facts intro" style="--i:5">
-        <div><dt>Diesel</dt><dd>2,37<sup>9</sup> <small>€/L</small></dd></div>
-        <div><dt>Durchfahrt</dt><dd>4,20 <small>m</small></dd></div>
-        <div><dt>Autobahn</dt><dd>A1 <small>Abf. 38</small></dd></div>
-      </dl>
-    </div>
-  </section>
+<section class="block" id="zeiten"><div class="wrap">
+  <div class="head rv"><h2>Öffnungszeiten</h2><span class="label">24-Stunden-Ansicht</span></div>
+  <div class="hours rv" data-hours></div>
+  <div class="scale"><span></span><div><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div><span></span></div>
+</div></section>
 
-  <!-- PREISE -->
-  <section class="section" id="preise">
-    <div class="wrap">
-      <div class="section-head reveal">
-        <p class="kicker">Aktuelle Preise</p>
-        <h2>Was der Liter heute kostet.</h2>
-      </div>
-      <ul class="prices">
-        <li class="price price-hero reveal"><span class="price-name">Diesel</span><span class="price-value">2,37<sup>9</sup></span><span class="price-unit">€ / Liter</span></li>
-        <li class="price reveal"><span class="price-name">Super</span><span class="price-value">2,28<sup>9</sup></span></li>
-        <li class="price reveal"><span class="price-name">Super E10</span><span class="price-value">2,22<sup>9</sup></span></li>
-        <li class="price reveal"><span class="price-name">Super Plus</span><span class="price-value">2,37<sup>9</sup></span></li>
-        <li class="price reveal"><span class="price-name">LPG · PKW</span><span class="price-value">1,10<sup>9</sup></span></li>
-        <li class="price reveal"><span class="price-name">AdBlue® · LKW</span><span class="price-value">1,20<sup>9</sup></span></li>
-        <li class="price price-note reveal"><span class="price-name">Aktualisiert</span><span>28.09.2026<br>13:34 Uhr</span></li>
-      </ul>
-      <p class="fine">Angaben ohne Gewähr. Es gelten die aktuellen Preise an den Zapfsäulen. Alle Preise in € pro Liter inkl. gesetzlicher Umsatzsteuer.</p>
-    </div>
-  </section>
+<section class="block" id="bistro" style="background:var(--paper)"><div class="wrap bistro">
+  <div class="rv">
+    <span class="label">Bistro &amp; Shop</span>
+    <h2 style="margin:12px 0 20px">Rast machen<br>und wohlfühlen</h2>
+    <p>Frisch gebrühter Kaffee, belegte Brötchen und warme Gerichte. Für die schnelle Pause oder die richtige Mahlzeit auf langer Strecke.</p>
+  </div>
+  <div class="menu rv">
+    <span class="label">Für unterwegs</span>
+    <ul><li><span>Kaffee to go</span><span>Bistro</span></li><li><span>Belegte Brötchen</span><span>Snack</span></li><li><span>Warme Gerichte</span><span>Küche</span></li><li><span>Reiseproviant &amp; Getränke</span><span>Shop</span></li></ul>
+  </div>
+</div></section>
 
-  <!-- ZEITEN + INFO -->
-  <section class="section section-tint" id="zeiten">
-    <div class="wrap bento">
-      <article class="card card-hours reveal">
-        <header class="card-head"><svg><use href="#i-clock"/></svg><h2>Öffnungszeiten</h2></header>
-        <ul class="hours" data-hours>
-          <li data-day="1"><span>Montag</span><span>05:30 – 20:00</span></li>
-          <li data-day="2"><span>Dienstag</span><span>05:30 – 20:00</span></li>
-          <li data-day="3"><span>Mittwoch</span><span>05:30 – 20:00</span></li>
-          <li data-day="4"><span>Donnerstag</span><span>05:30 – 20:00</span></li>
-          <li data-day="5"><span>Freitag</span><span>05:30 – 20:00</span></li>
-          <li data-day="6"><span>Samstag</span><span>07:00 – 19:00</span></li>
-          <li data-day="0"><span>Sonntag</span><span>geschlossen</span></li>
-        </ul>
-      </article>
-
-      <article class="card card-contact reveal" id="anfahrt">
-        <header class="card-head"><svg><use href="#i-pin"/></svg><h2>Adresse</h2></header>
-        <address>Nartenstraße 31<br>21079 Hamburg</address>
-        <p><a class="link" href="tel:+491758859618">+49 175 8859618</a></p>
-        <a class="btn btn-primary btn-block" href="https://www.google.com/maps/dir/?api=1&amp;destination=Nartenstr.+31,+21079+Hamburg" target="_blank" rel="noopener"><svg><use href="#i-route"/></svg>In Google Maps öffnen</a>
-      </article>
-
-      <article class="card card-stat reveal">
-        <svg class="stat-icon"><use href="#i-height"/></svg>
-        <p class="stat">4,20 m</p>
-        <p class="muted">maximale Durchfahrtshöhe</p>
-      </article>
-
-      <article class="card card-stat card-red reveal">
-        <svg class="stat-icon"><use href="#i-route"/></svg>
-        <p class="stat">A1 · 38</p>
-        <p>Direkt an der Autobahnabfahrt – schnell runter, schnell wieder drauf.</p>
-      </article>
-    </div>
-  </section>
-
-  <!-- BISTRO -->
-  <section class="section" id="bistro">
-    <div class="wrap">
-      <div class="bistro reveal reveal-clip">
-        <div class="bistro-art" aria-hidden="true">
-          <span class="plate"></span><span class="tomato"></span><span class="leaf"></span><span class="steam"></span>
-        </div>
-        <div class="bistro-text">
-          <p class="kicker">Bistro &amp; Shop</p>
-          <h2>Rast machen und wohlfühlen.</h2>
-          <p>Frisch gebrühter Kaffee, belegte Brötchen und warme Gerichte – für die schnelle Pause oder die richtige Mahlzeit auf langer Strecke.</p>
-          <ul class="tags"><li>Kaffee to go</li><li>Warme Küche</li><li>Snacks</li><li>Reiseproviant</li></ul>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SERVICES -->
-  <section class="section section-tint" id="services">
-    <div class="wrap">
-      <div class="section-head reveal">
-        <p class="kicker">Services</p>
-        <h2>Alles, was die Pause braucht.</h2>
-      </div>
-      <ul class="services">
-        <li class="reveal"><svg><use href="#i-coffee"/></svg>Kaffee</li>
-        <li class="reveal"><svg><use href="#i-food"/></svg>Snack / Bistro</li>
-        <li class="reveal"><svg><use href="#i-bag"/></svg>Shop</li>
-        <li class="reveal"><svg><use href="#i-gas"/></svg>Flaschengas</li>
-        <li class="reveal"><svg><use href="#i-wc"/></svg>WC</li>
-        <li class="reveal"><svg><use href="#i-card"/></svg>Hoyer Führerschein</li>
-        <li class="reveal"><svg><use href="#i-cash"/></svg>Bargeldauszahlung</li>
-        <li class="reveal"><svg><use href="#i-van"/></svg>PKW / Transporter</li>
-        <li class="reveal"><svg><use href="#i-truck"/></svg>LKW &lt; 12 t</li>
-        <li class="reveal"><svg><use href="#i-truck"/></svg>LKW &gt; 12 t</li>
-      </ul>
-
-      <div class="partners reveal">
-        <h3>Hier kannst du zahlen mit</h3>
-        <ul><li>Mastercard</li><li>JCB</li><li>Montex</li><li>Orosol</li><li>RHV</li><li>TK-Tankstellen</li></ul>
-      </div>
-    </div>
-  </section>
+<section class="block" id="services"><div class="wrap">
+  <div class="head rv"><h2>Services</h2><span class="label">Vor Ort verfügbar</span></div>
+  <ul class="svc rv">
+    <li><svg><use href="#coffee"/></svg>Kaffee</li><li><svg><use href="#food"/></svg>Snack / Bistro</li><li><svg><use href="#shop"/></svg>Shop</li><li><svg><use href="#gas"/></svg>Flaschengas</li><li><svg><use href="#wc"/></svg>WC</li>
+    <li><svg><use href="#card"/></svg>Hoyer Führerschein</li><li><svg><use href="#cash"/></svg>Bargeldauszahlung</li><li><svg><use href="#van"/></svg>PKW / Transporter</li><li><svg><use href="#truck"/></svg>LKW bis 12 t</li><li><svg><use href="#truck"/></svg>LKW über 12 t</li>
+  </ul>
+  <div class="pay rv"><span class="label">Bezahlen mit</span><b>Mastercard</b><b>JCB</b><b>Montex</b><b>Orosol</b><b>RHV</b><b>TK-Tankstellen</b></div>
+</div></section>
 </main>
 
-<footer class="footer">
-  <div class="wrap footer-inner">
-    <div>
-      <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">H</span><span>Hoyer Tank-Treff <b>Hamburg</b></span></a>
-      <p class="muted">Nartenstraße 31 · 21079 Hamburg</p>
-    </div>
-    <nav aria-label="Rechtliches"><a href="../impressum.html">Impressum</a><a href="../datenschutz.html">Datenschutz</a></nav>
-  </div>
-</footer>
+<footer><div class="wrap"><span>Hoyer Tank-Treff · Nartenstraße 31</span><span><a href="../impressum.html">Impressum</a> · <a href="../datenschutz.html">Datenschutz</a></span></div></footer>
 
-<nav class="dock" aria-label="Schnellaktionen">
-  <a href="tel:+491758859618"><svg><use href="#i-phone"/></svg>Anrufen</a>
-  <a href="#preise"><svg><use href="#i-gas"/></svg>Preise</a>
-  <a class="dock-primary" href="https://www.google.com/maps/dir/?api=1&amp;destination=Nartenstr.+31,+21079+Hamburg" target="_blank" rel="noopener"><svg><use href="#i-route"/></svg>Route</a>
-</nav>
+<script>
+(function(){
+  var FUELS=[["Diesel","2.379"],["Super","2.289"],["Super E10","2.229"],["Super Plus","2.379"],["LPG","1.109"],["AdBlue LKW","1.209"]];
+  var ul=document.querySelector('[data-prices]'),d=0;
+  FUELS.forEach(function(f){
+    var p=f[1].replace('.',''),html='';
+    for(var i=0;i<p.length;i++){
+      var cls=i===p.length-1?'cell tenth':'cell';
+      if(i===1)html+='<span class="comma">,</span>';
+      html+='<span class="'+cls+'" style="--d:'+(d++)+'"><b>'+p[i]+'</b></span>';
+    }
+    ul.insertAdjacentHTML('beforeend','<li><span class="fuel">'+f[0]+'</span><span class="price" aria-label="'+f[1].replace('.',',')+' Euro">'+html+'</span></li>');
+  });
 
-<script src="main.js" defer></script>
+  var H=[null,[330,1200],[330,1200],[330,1200],[330,1200],[330,1200],[420,1140]];
+  var N=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'],S=['Mo','Di','Mi','Do','Fr','Sa','So'];
+  var f=function(m){return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+  var now=new Date(),wd=now.getDay(),min=now.getHours()*60+now.getMinutes(),hours=document.querySelector('[data-hours]');
+  var small=matchMedia('(max-width:560px)').matches;
+  for(var k=1;k<=7;k++){
+    var day=k%7,h=H[day],today=day===wd;
+    var bar=h?'<span class="bar" style="left:'+(h[0]/14.4)+'%;width:'+((h[1]-h[0])/14.4)+'%;transition-delay:'+(k*60)+'ms"></span>':'';
+    var mark=today?'<span class="now" style="left:'+(min/14.4)+'%"></span>':'';
+    hours.insertAdjacentHTML('beforeend','<div class="row'+(today?' today':'')+'"><span class="day">'+(small?S[k-1]:N[k-1])+'</span><div class="track">'+bar+mark+'</div><span class="time">'+(h?f(h[0])+'–'+f(h[1]):'geschlossen')+'</span></div>');
+  }
+  var h=H[wd],open=h&&min>=h[0]&&min<h[1],st=document.querySelector('[data-status]');
+  st.textContent=open?'Jetzt geöffnet bis '+f(h[1])+' Uhr':'Gerade geschlossen';
+  st.classList.add(open?'open':'closed');
+
+  if(!('IntersectionObserver' in window)){hours.classList.add('in');return}
+  document.documentElement.classList.add('js');
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{rootMargin:'0px 0px -10% 0px'});
+  document.querySelectorAll('.rv').forEach(function(el){io.observe(el)});
+})();
+</script>
+
 </body>
 </html>
