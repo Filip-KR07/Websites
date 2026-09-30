@@ -25,6 +25,22 @@
   updateStatus();
   setInterval(updateStatus, 60000);
 
+  // Header wird beim Scrollen zu Glas, aktiver Menüpunkt folgt der Sektion
+  var header = document.querySelector('[data-header]');
+  var onScroll = function () { header.classList.toggle('is-scrolled', window.scrollY > 24); };
+  onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
+  if ('IntersectionObserver' in window) {
+    var links = {};
+    document.querySelectorAll('.nav a').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+    var navIo = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting || !links[e.target.id]) return;
+        Object.keys(links).forEach(function (k) { links[k].classList.toggle('is-active', k === e.target.id); });
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    Object.keys(links).forEach(function (id) { var s = document.getElementById(id); if (s) navIo.observe(s); });
+  }
+
   // Einblenden beim Scrollen – einmalig, mit kurzem Versatz innerhalb einer Gruppe
   var items = document.querySelectorAll('.reveal');
   if (!('IntersectionObserver' in window)) { items.forEach(function (el) { el.classList.add('is-in'); }); return; }

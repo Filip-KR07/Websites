@@ -37,7 +37,11 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
 }
 
 /* Header */
-.header{position:sticky;top:0;z-index:20;padding-top:env(safe-area-inset-top);background:rgba(11,13,18,.72);backdrop-filter:saturate(1.6) blur(16px);-webkit-backdrop-filter:saturate(1.6) blur(16px);border-bottom:1px solid var(--line)}
+.header{position:fixed;inset:0 0 auto;z-index:20;padding-top:env(safe-area-inset-top);background:rgba(11,13,18,0);border-bottom:1px solid transparent;transition:background-color 300ms ease,border-color 300ms ease,backdrop-filter 300ms ease}
+.header.is-scrolled{background:rgba(11,13,18,.68);backdrop-filter:saturate(1.8) blur(20px);-webkit-backdrop-filter:saturate(1.8) blur(20px);border-color:var(--line)}
+.nav a{position:relative}.nav a.is-active{color:var(--text)}
+.nav a::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;border-radius:2px;background:var(--red);transform:scaleX(0);transition:transform 300ms var(--ease-out)}
+.nav a.is-active::after{transform:scaleX(1)}
 .header-inner{display:flex;align-items:center;gap:32px;height:68px}
 .brand{display:flex;align-items:center;gap:12px;font-size:17px;letter-spacing:-.01em}
 .brand b{font-weight:500;color:var(--muted)}
@@ -49,10 +53,11 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
 .hero{position:relative;overflow:hidden;min-height:min(100svh,920px);display:flex;align-items:flex-end;padding:clamp(96px,14vw,160px) 0 clamp(48px,7vw,88px)}
 .hero-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:70% 50%}
 .hero-shade{position:absolute;inset:0;background:
+  linear-gradient(180deg,rgba(11,13,18,.75) 0%,rgba(11,13,18,0) 22%),
   linear-gradient(90deg,rgba(11,13,18,.92) 0%,rgba(11,13,18,.7) 38%,rgba(11,13,18,.15) 70%,rgba(11,13,18,0) 100%),
   linear-gradient(0deg,var(--bg) 0%,rgba(11,13,18,0) 35%)}
 .hero-inner{position:relative}
-.hero h1{font-size:clamp(2.8rem,8vw,6.5rem);margin:24px 0 28px;text-wrap:balance}
+.hero h1{font-size:clamp(2.8rem,8vw,6.5rem);margin:24px 0 28px;line-height:.98;letter-spacing:-.045em}
 .hero h1 em{font-style:normal;color:var(--red)}
 .lead{font-size:clamp(1.05rem,1.8vw,1.3rem);color:#c3c8d2;max-width:36ch;margin:0}
 .hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px}
@@ -159,7 +164,7 @@ address{font-style:normal;font-size:1.5rem;line-height:1.3;letter-spacing:-.02em
   .bistro-art{min-height:300px}
 }
 @media (max-width:760px){
-  .hero-shade{background:linear-gradient(0deg,var(--bg) 0%,rgba(11,13,18,.85) 45%,rgba(11,13,18,.35) 100%)}
+  .hero-shade{background:linear-gradient(180deg,rgba(11,13,18,.7),rgba(11,13,18,0) 20%),linear-gradient(0deg,var(--bg) 0%,rgba(11,13,18,.85) 45%,rgba(11,13,18,.35) 100%)}
   .hero-media{object-position:62% 50%}
   .nav,.header .btn{display:none}
   .facts div+div{padding-left:14px}
@@ -180,3 +185,39 @@ address{font-style:normal;font-size:1.5rem;line-height:1.3;letter-spacing:-.02em
   .js .reveal{transform:none;transition:opacity 300ms ease}
   .bistro-art .steam{animation:none}
 }
+
+/* ---- Übergänge ---- */
+/* Intro: Bild "entwickelt" sich, Titelzeilen steigen aus einer Maske auf */
+.hero-media{animation:media-in 1600ms var(--ease-out) both}
+@keyframes media-in{from{opacity:0;transform:scale(1.08);filter:blur(12px)}to{opacity:1;transform:none;filter:none}}
+.hero-title .line{display:block;overflow:hidden;padding-bottom:.08em;margin-bottom:-.08em}
+.hero-title .line>*{display:block;animation:line-up 1000ms var(--ease-out) both}
+.hero-title .line:nth-child(1)>*{animation-delay:250ms}
+.hero-title .line:nth-child(2)>*{animation-delay:350ms}
+@keyframes line-up{from{transform:translateY(105%)}to{transform:none}}
+.intro{animation:fade-up 900ms var(--ease-out) both;animation-delay:calc(200ms + var(--i) * 90ms)}
+@keyframes fade-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* Scroll-getriebene Tiefe im Hero, wo der Browser es kann */
+@supports (animation-timeline:scroll()){
+  .hero-media{animation:media-in 1600ms var(--ease-out) both,hero-parallax linear both;animation-timeline:auto,scroll(root);animation-range:normal,0 100svh}
+  .hero-inner{animation:hero-out linear both;animation-timeline:scroll(root);animation-range:0 80svh}
+  @keyframes hero-parallax{to{transform:translateY(18%) scale(1.06)}}
+  @keyframes hero-out{to{opacity:0;transform:translateY(-40px)}}
+}
+
+/* Bistro-Karte öffnet sich per clip-path statt nur einzublenden */
+.js .reveal-clip{opacity:1;transform:none;clip-path:inset(12% 6% 12% 6% round 40px);transition:clip-path 1100ms var(--ease-out)}
+.js .reveal-clip.is-in{clip-path:inset(0 0 0 0 round calc(var(--radius) + 8px))}
+
+@media (hover:hover) and (pointer:fine){
+  .price,.services li,.card{transition:transform 300ms var(--ease-out),border-color 200ms ease}
+  .price:hover,.services li:hover,.card:hover{transform:translateY(-3px)}
+}
+@media (prefers-reduced-motion:reduce){
+  .hero-media,.hero-title .line>*,.intro{animation:fade 400ms ease both!important;filter:none}
+  .hero-inner{animation:none!important}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .js .reveal-clip{clip-path:none;transition:none}
+}
+@media (prefers-reduced-transparency:reduce){.header.is-scrolled{background:var(--bg);backdrop-filter:none}}
