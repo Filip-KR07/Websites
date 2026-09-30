@@ -49,6 +49,7 @@ assets/img/placeholders/  Platzhalter-Bilder, bis eigene Fotos da sind
 assets/img/portrait/  ← eigene Portraits
 assets/img/gallery/   ← eigene Galerie-Fotos
 assets/og/            Vorlage für das Social-Media-Vorschaubild
+restaurant/           Eigenständige Demo-Website für Restaurants (eigene README, nach dem Deploy unter /restaurant/)
 ```
 
 ## OG-Bild / Icons neu rendern
