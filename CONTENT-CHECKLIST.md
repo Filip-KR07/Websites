@@ -11,7 +11,7 @@ grep -o "\[\[" index.html impressum.html datenschutz.html | wc -l
 Muss `0` ergeben. Pro Datei: `grep -o "\[\[" index.html | wc -l` (bzw. `impressum.html`, `datenschutz.html`).
 `grep -c` reicht nicht, es zählt Zeilen – in manchen Zeilen stehen zwei Platzhalter.
 
-Stand dieser Liste: **180 Stellen** – 157 in `index.html`, 9 in `impressum.html`, 14 in `datenschutz.html`. Nach jeder Änderung am HTML neu zählen; die Zahlen pro Abschnitt unten sind eine Momentaufnahme.
+Stand dieser Liste: **181 Stellen** – 158 in `index.html`, 9 in `impressum.html`, 14 in `datenschutz.html`. Nach jeder Änderung am HTML neu zählen; die Zahlen pro Abschnitt unten sind eine Momentaufnahme.
 
 ## Abschnitte in Seitenreihenfolge
 
@@ -37,7 +37,7 @@ Stand dieser Liste: **180 Stellen** – 157 in `index.html`, 9 in `impressum.htm
 | 16 | Fragen | `#fragen` | 11 |
 | 17 | Kontakt | `#kontakt` | 3 |
 | – | Footer | `.footer` | 1 |
-| | **Summe `index.html`** | | **157** |
+| | **Summe `index.html`** | | **158** |
 | – | Impressum | `impressum.html` | 9 |
 | – | Datenschutz | `datenschutz.html` | 14 |
 
