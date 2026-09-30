@@ -115,7 +115,8 @@
       const payback = profitMonth > 0 ? v.invest / profitMonth : Infinity;
       const roi = (profitMonth * 12 - v.invest) / v.invest;
       const perOrder = v.value * v.margin / 100;
-      const ordersToPay = Math.max(1, Math.ceil(v.invest / perOrder - 1e-9));
+      // Auftraege bis zur Amortisation, laufende Kosten eingerechnet; null = traegt sich nie
+      const ordersToPay = profitMonth > 0 ? Math.max(1, Math.ceil(payback * orders - 1e-9)) : null;
       return { inquiries, orders, revMonth, profitMonth, payback, roi, perOrder, ordersToPay, spread: gross * 0.5 };
     };
 
@@ -310,28 +311,30 @@
       let pre = 'Mit deinen Annahmen hätte sich die Website nach'; let post = 'selbst bezahlt.'; let num; let unit; let say;
       const roiStr = pct(r.roi);
       const n = r.ordersToPay;
-      const ordSay = `${fmt(n)} ${n === 1 ? 'Auftrag deckt' : 'Aufträge decken'} die Investition, pro Auftrag bleiben im Schnitt ${euro(r.perOrder)} Gewinn.`;
+      const ordWord = n === null ? 'Die laufenden Kosten sind höher als der Gewinn aus den Aufträgen.'
+        : `${n === 1 ? 'Auftrag deckt' : 'Aufträge decken'} die Investition samt laufender Kosten.`;
+      const ordSay = n === null ? ordWord : `${fmt(n)} ${ordWord} Pro Auftrag bleiben im Schnitt ${euro(r.perOrder)} Gewinn vor laufenden Kosten.`;
       const pp = payParts(r);
       if (pp) {
         num = pp.num; unit = pp.unit;
         say = `Mit deinen Annahmen hätte sich die Website nach ${num} ${unit} selbst bezahlt.`;
         setText(E.dockPay, `Bezahlt nach ${num} ${unit}`);
       } else {
-        pre = 'Mit deinen Annahmen dauert es länger als'; num = '36'; unit = 'Monate,'; post = 'bis sie sich selbst bezahlt.';
+        pre = 'Mit deinen Annahmen hätte sich die Website auch nach'; num = '36'; unit = 'Monaten'; post = 'noch nicht selbst bezahlt.';
         say = 'Mit deinen Annahmen hätte sich die Website auch nach 36 Monaten noch nicht selbst bezahlt.';
         setText(E.dockPay, 'Nach 36 Monaten nicht bezahlt');
       }
       say += ` Rendite im ersten Jahr nach Abzug der Investition: ${roiStr}. ${ordSay}`;
       setText(E.pre, pre); setText(E.post, post); setText(E.unit, unit);
       setText(E.dockRoi, roiStr);
-      setText(E.ordersWord, n === 1 ? 'Auftrag deckt' : 'Aufträge decken');
+      setText(E.ordersWord, ordWord);
       setText(E.per, euro(r.perOrder));
       // Lange Prozentzahlen werden kleiner, damit sie in der Medaille bleiben
       if (E.roi && roiStr.length !== roiLen) {
         roiLen = roiStr.length;
         E.roi.parentElement.style.setProperty('--k', String(Math.max(0.4, Math.min(1, 5 / roiLen))));
       }
-      curPay = num; curRoi = roiStr; curOrd = fmt(n);
+      curPay = num; curRoi = roiStr; curOrd = n === null ? '–' : fmt(n);
       if (odoLive) { odoPay(num); odoRoi(roiStr); odoOrd(curOrd); }
       // Medaille dreht sich mit der Rendite
       if (motion && E.ring && lastRoi !== null && r.roi !== lastRoi) {
@@ -411,7 +414,7 @@
         `Gewinn pro Monat nach laufenden Kosten: ${euro(r.profitMonth)}`,
         pp ? `Die Website hätte sich nach ${pp.num} ${pp.unit} selbst bezahlt.` : 'Die Website hätte sich nach 36 Monaten noch nicht selbst bezahlt.',
         `Rendite im 1. Jahr nach Abzug der Investition: ${pct(r.roi)}`,
-        `Aufträge, die die Investition decken: ${fmt(r.ordersToPay)}`,
+        r.ordersToPay === null ? 'Die laufenden Kosten sind höher als der Gewinn aus den Aufträgen.' : `Aufträge, bis die Website samt laufender Kosten bezahlt ist: ${fmt(r.ordersToPay)}`,
       ].join('\n').replace(/\u00a0/g, ' ');
       document.dispatchEvent(new CustomEvent('fk:rechner', {
         detail: {

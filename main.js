@@ -59,7 +59,9 @@
   // nie als aria-label auf einen Span (generische Rollen dürfen keinen Namen tragen).
   const splitChars = (el) => {
     const text = el.textContent;
-    el.innerHTML = Array.from(text).map((c) => `<span class="ch" aria-hidden="true">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
+    // Wortweise gruppiert: umbrechen darf die Zeile nur zwischen Woertern (geschuetzte Leerzeichen halten zusammen)
+    const chars = (w) => Array.from(w).map((c) => `<span class="ch" aria-hidden="true">${c === '\u00a0' ? '&nbsp;' : c}</span>`).join('');
+    el.innerHTML = text.trim().split(/ +/).map((w) => `<span class="chw">${chars(w)}</span>`).join(' ');
     return $$('.ch', el);
   };
 
@@ -815,6 +817,8 @@
     let sampleCount = 0;
     let sampleSum = 0;
     let lastDrawTs = 0;
+    let warm = 6;         // Anlaufbilder nach Start/Pause nicht mitmessen
+    let rafMin = 16.7;    // kuerzester rAF-Abstand = Takt des Displays
 
     /* --- Größe ------------------------------------------------------------
        Einziger Ort (neben refresh()), an dem gemessen wird. */
@@ -903,8 +907,10 @@
         // Abstand zwischen zwei GEZEICHNETEN Bildern messen, nicht zwischen
         // rAF-Aufrufen: sonst steht hier immer ~16 ms und der Governor
         // kann auf langsamer Hardware nie ausloesen.
-        if (lastDrawTs) { sampleSum += ts - lastDrawTs; sampleCount++; }
+        if (lastDrawTs && warm <= 0) { sampleSum += ts - lastDrawTs; sampleCount++; }
+        warm--;
         lastDrawTs = ts;
+        if (raw > 4) rafMin = Math.min(rafMin, raw);
         // Erste Entscheidung schon nach 24 Bildern, damit der Einstieg in
         // den Hero nicht sekundenlang ruckelt; danach ruhiger nachmessen.
         if (sampleCount >= (downgrades === 0 ? 24 : 48)) {
@@ -913,10 +919,12 @@
           sampleCount = 0;
           // Schwelle bewusst streng: die Szene darf die Seite nicht unter
           // etwa 50 Bilder pro Sekunde druecken, solange der Hero sichtbar ist.
-          if (avg > frameBudget * 1.35) {
+          // Erwarteter Abstand: Budget auf den Takt des Displays gerundet (60 Hz: 33,3 ms)
+          const expected = Math.max(frameBudget, Math.ceil(frameBudget / rafMin - 0.05) * rafMin);
+          if (avg > expected * 1.35) {
             if (downgrades < 2) { downgrades++; relayout(); }
             else { givenUp = true; giveUp(); }   // Hardware traegt die Szene nicht
-          } else if (avg < frameBudget * 1.1) {
+          } else if (avg < expected * 1.1) {
             sampleSum = 0; sampleCount = 0;      // laeuft rund, nicht weiter pruefen
           }
         }
@@ -929,6 +937,7 @@
       running = true;
       lastTs = 0;
       acc = frameBudget;              // erstes Bild sofort
+      lastDrawTs = 0; sampleSum = 0; sampleCount = 0; warm = 6; // Pause nicht als Ruckler werten
       /* Nach einer langen Pause die Shader-Zeit zurückfalten, damit mediump
          nicht wegdriftet. Passiert nur, wenn gerade nichts zu sehen ist. */
       if (elapsed > 900) elapsed -= 900;
@@ -1585,6 +1594,7 @@
   /* ---------- 7. Scroll-Module (nur mit Motion) ---------- */
   if (motion) {
     const mm = gsap.matchMedia();
+    let ventFocus = null; // Fokus-Handler der Projekte-Fahrt (je Breakpoint neu)
 
     mm.add({ isDesktop: '(min-width: 900px)', isMobile: '(max-width: 899px)' }, (ctx) => {
       const { isDesktop } = ctx.conditions;
@@ -1734,15 +1744,29 @@
         const dist = () => Math.max(0, vTrack.scrollWidth - window.innerWidth);
         // Karten sind so gross, dass die Seitwaertsfahrt etwa einen Viewport lang ist (style.css).
         // Kein eigenes Einblenden je Karte: das Bild-Reveal kommt aus assets/fx/enthuellung.js.
-        gsap.to(vTrack, {
+        const vTween = gsap.to(vTrack, {
           x: () => -dist(), ease: 'none',
           scrollTrigger: {
             trigger: ventures, start: 'top top', end: () => `+=${dist()}`, pin: true, scrub, invalidateOnRefresh: true,
             onRefresh: () => ventures.classList.toggle('is-short', dist() < window.innerHeight * 0.3), // Hinweis nur bei echter Fahrt
           },
         });
+        // Tastatur: fokussierte Karte ueber die Scrollposition in den Blick holen,
+        // statt den Browser die Sektion seitwaerts verschieben zu lassen.
+        if (ventFocus) ventures.removeEventListener('focusin', ventFocus);
+        ventFocus = (e) => {
+          const card = e.target.closest('[data-ventures-card]');
+          const st = vTween.scrollTrigger;
+          if (!card || !st) return;
+          ventures.scrollLeft = 0;
+          const off = card.getBoundingClientRect().left - vTrack.getBoundingClientRect().left;
+          const x = Math.min(dist(), Math.max(0, off - (window.innerWidth - card.offsetWidth) / 2));
+          if (lenis) lenis.scrollTo(st.start + x, { immediate: true }); else window.scrollTo(0, st.start + x);
+        };
+        ventures.addEventListener('focusin', ventFocus);
       } else if (vTrack) {
-        gsap.from($$('[data-ventures-card]', vTrack), { y: 40, autoAlpha: 0, duration: 1, stagger: 0.1, ease: 'power3.out', scrollTrigger: { trigger: vTrack, start: 'top 85%', once: true } });
+        if (ventFocus) { ventures?.removeEventListener('focusin', ventFocus); ventFocus = null; }
+        gsap.from($$('[data-ventures-card]', vTrack), { y: 40, opacity: 0, duration: 1, stagger: 0.1, ease: 'power3.out', scrollTrigger: { trigger: vTrack, start: 'top 85%', once: true } });
       }
 
       /* 7g. Parallax + Galerie */
