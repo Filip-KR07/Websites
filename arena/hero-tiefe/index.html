@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="de" class="no-js" data-stil="glut">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Salz &amp; Glut — Restaurant &amp; Bar · Küche über offenem Feuer</title>
+<meta name="description" content="Saisonale Küche über offenem Feuer, mitten in der Altstadt. Speisekarte, Öffnungszeiten und Tischreservierung online.">
+<!-- DEMO: Seite nicht indexieren. Für ein echtes Restaurant diese Zeile löschen. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#110E0C">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Salz &amp; Glut — Küche über offenem Feuer">
+<meta property="og:description" content="Saisonale Küche über offenem Feuer, mitten in der Altstadt. Jetzt Tisch reservieren.">
+<meta property="og:image" content="../../restaurant/assets/img/og-image.jpg">
+<meta property="og:locale" content="de_DE">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../../restaurant/favicon.svg" type="image/svg+xml">
+<link rel="preload" as="font" type="font/woff2" href="../../restaurant/assets/fonts/fraunces-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="../../restaurant/assets/fonts/inter-latin.woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+<script>
+  /* Vor dem ersten Rendern: JS-/Motion-Klassen und gespeicherten Demo-Stil setzen (kein Aufblitzen) */
+  (function (h) {
+    var q = location.search;
+    h.classList.remove('no-js'); h.classList.add('js');
+    var still = /[?&]motion=off\b/.test(q) || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (!still) h.classList.add('motion');
+    var s = (q.match(/[?&]stil=([a-z]+)/) || [])[1];
+    if (!s) { try { s = localStorage.getItem('sg-stil'); } catch (e) {} }
+    if (s && /^(glut|salon|terrasse)$/.test(s)) h.setAttribute('data-stil', s);
+    /* Sicherheitsnetz: Falls main.js nicht lädt, startet das Intro trotzdem */
+    setTimeout(function () { h.classList.add('is-ready'); }, 2600);
+  })(document.documentElement);
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Restaurant",
+  "name": "Salz & Glut",
+  "description": "Saisonale Küche über offenem Feuer.",
+  "servesCuisine": ["Grillküche", "Regionale Küche", "Saisonale Küche"],
+  "priceRange": "€€€",
+  "acceptsReservations": "True",
+  "telephone": "+49 123 456789",
+  "email": "tisch@salz-und-glut.example",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Marktgasse 12",
+    "postalCode": "00000",
+    "addressLocality": "Musterstadt",
+    "addressCountry": "DE"
+  },
+  "openingHoursSpecification": [
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Wednesday", "Thursday"], "opens": "17:30", "closes": "23:00" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Friday", "opens": "17:30", "closes": "24:00" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "12:00", "closes": "15:00" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "17:30", "closes": "24:00" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Sunday", "opens": "12:00", "closes": "15:00" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Sunday", "opens": "17:30", "closes": "22:00" }
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+
+<!-- Icons: einmal definiert, überall per <use> -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-pfeil" viewBox="0 0 24 24"><path d="M5 12h13m-5-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-pfeil-aussen" viewBox="0 0 24 24"><path d="M8 16 16 8m-7 0h7v7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-links" viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-rechts" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-telefon" viewBox="0 0 24 24"><path d="M6.6 3.5h2.6l1.4 4.1-2 1.4a12.5 12.5 0 0 0 6.4 6.4l1.4-2 4.1 1.4v2.6a2 2 0 0 1-2.1 2A16.6 16.6 0 0 1 4.6 5.6a2 2 0 0 1 2-2.1Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-ort" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.3" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+  <symbol id="i-flamme" viewBox="0 0 24 24"><path d="M12 2.5c.6 3.3 4.9 5.5 4.9 10.3a4.9 4.9 0 0 1-9.8 0c0-2.2 1-3.6 2.1-4.7.2 1.6.9 2.6 1.9 3.1-.4-3.2.1-6 .9-8.7Z" fill="currentColor"/></symbol>
+  <symbol id="i-haken" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-instagram" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor"/></symbol>
+  <symbol id="i-pinsel" viewBox="0 0 24 24"><circle cx="8" cy="9" r="1.6" fill="currentColor"/><circle cx="12.5" cy="6.8" r="1.6" fill="currentColor"/><circle cx="16.6" cy="9.6" r="1.6" fill="currentColor"/><path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.3 0 1.9-.8 1.9-1.7 0-1.4-1.2-1.6-1.2-3 0-1 .8-1.8 1.9-1.8h2.2a3.7 3.7 0 0 0 3.7-3.7C20.5 6.6 16.7 3.5 12 3.5Z" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+</svg>
+
+<!-- ============ NAVIGATION ============ -->
+<header class="nav" data-nav>
+  <div class="nav__bar container">
+    <a class="nav__brand" href="#top" aria-label="Salz &amp; Glut – zum Seitenanfang">Salz <em>&amp;</em> Glut</a>
+    <nav class="nav__links" aria-label="Hauptnavigation">
+      <a href="#kueche" data-spy>Küche</a>
+      <a href="#karte" data-spy>Karte</a>
+      <a href="#galerie" data-spy>Galerie</a>
+      <a href="#anlaesse" data-spy>Anlässe</a>
+      <a href="#besuch" data-spy>Besuch</a>
+    </nav>
+    <div class="nav__actions">
+      <a class="nav__tel" href="tel:+49123456789" aria-label="Anrufen: 0123 456 789"><svg aria-hidden="true"><use href="#i-telefon"/></svg><span>0123 456 789</span></a>
+      <a class="btn btn--accent btn--sm nav__cta" href="#reservieren">Reservieren</a>
+      <button class="nav__burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menü öffnen" data-menu-open>
+        <span class="nav__burger-lines" aria-hidden="true"><i></i><i></i></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobiles Menü (Vollbild-Dialog) -->
+<dialog class="menu" id="menu" aria-label="Menü" data-menu>
+  <div class="menu__inner" data-lenis-prevent>
+    <div class="menu__top">
+      <span class="nav__brand">Salz <em>&amp;</em> Glut</span>
+      <button class="menu__close" type="button" aria-label="Menü schließen" data-menu-close><svg aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <nav aria-label="Menü">
+      <ol class="menu__links">
+        <li><a href="#kueche"><span class="menu__num">01</span>Küche</a></li>
+        <li><a href="#karte"><span class="menu__num">02</span>Speisekarte</a></li>
+        <li><a href="#galerie"><span class="menu__num">03</span>Galerie</a></li>
+        <li><a href="#anlaesse"><span class="menu__num">04</span>Anlässe</a></li>
+        <li><a href="#reservieren"><span class="menu__num">05</span>Reservieren</a></li>
+        <li><a href="#besuch"><span class="menu__num">06</span>Besuch</a></li>
+      </ol>
+    </nav>
+    <div class="menu__foot">
+      <p class="status" data-status><span class="status__dot" aria-hidden="true"></span><span data-status-text>Mi – So ab 17:30 Uhr</span></p>
+      <p><a href="tel:+49123456789">0123 456 789</a><br>Marktgasse 12 · Musterstadt</p>
+      <div class="stil-inline" role="group" aria-label="Demo-Stil wählen">
+        <span class="stil-inline__label">Demo-Stil</span>
+        <button type="button" data-stil-set="glut" aria-pressed="true"><span class="stil-swatch stil-swatch--glut" aria-hidden="true"></span>Glut</button>
+        <button type="button" data-stil-set="salon" aria-pressed="false"><span class="stil-swatch stil-swatch--salon" aria-hidden="true"></span>Salon</button>
+        <button type="button" data-stil-set="terrasse" aria-pressed="false"><span class="stil-swatch stil-swatch--terrasse" aria-hidden="true"></span>Terrasse</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<main id="main">
+
+<div class="stage">
+  <!-- ============ HERO „Tiefe“: das Foto fährt im Raum nach hinten, die Schrift kommt vom Betrachter nach vorn ============
+       Ebenen von hinten nach vorn: Foto (mit Schärfentiefe-Kopien) → Verlauf → ferne Glut → Schrift → nahe Glut.
+       Stellschrauben (Perspektive, Tiefe, Anflug) stehen oben in css/style.css bei „6. Hero“. -->
+  <section class="hero" id="top" aria-labelledby="hero-title" tabindex="-1" data-hero>
+    <!-- data-hero-media: Maus und Scrollen (JS) · .hero__zoom: Intro-Fahrt in den Raum (CSS) -->
+    <div class="hero__media" data-hero-media>
+      <div class="hero__zoom">
+        <!-- Hero-Bild: Dateien in assets/img/hero/ (siehe README). hoch = Hochformat fürs Handy -->
+        <picture class="hero__pic" data-hero-pic="scharf">
+          <source media="(max-aspect-ratio: 4/5)" srcset="../../restaurant/assets/img/hero/innen-hoch.webp" width="1080" height="1920">
+          <img src="../../restaurant/assets/img/hero/innen-2000.webp"
+               srcset="../../restaurant/assets/img/hero/innen-800.webp 800w, ../../restaurant/assets/img/hero/innen-1400.webp 1400w, ../../restaurant/assets/img/hero/innen-2000.webp 2000w"
+               sizes="(max-aspect-ratio: 3/2) 210vh, 140vw" width="2000" height="1333"
+               alt="Der Gastraum am Abend: dunkles Holz, warmes Licht und gedeckte Tische" fetchpriority="high" data-hero-img>
+        </picture>
+        <!-- Schärfentiefe ohne Live-Blur: vorberechnete weiche Kopien. „mittel“ = ganze Bildebene unscharf,
+             „weich“ = zusätzlich zur Raumtiefe hin (Maske um den Fluchtpunkt). Beide blenden im Intro ein. -->
+        <picture class="hero__pic hero__pic--mittel" aria-hidden="true" data-hero-pic="mittel">
+          <source media="(max-aspect-ratio: 4/5)" srcset="img/innen-mittel-hoch.webp" width="720" height="1280">
+          <img src="img/innen-mittel.webp" width="1200" height="800" alt="" decoding="async">
+        </picture>
+        <picture class="hero__pic hero__pic--weich" aria-hidden="true" data-hero-pic="weich">
+          <source media="(max-aspect-ratio: 4/5)" srcset="../../restaurant/assets/img/hero/innen-weich-hoch.webp" width="540" height="960">
+          <img src="../../restaurant/assets/img/hero/innen-weich.webp" width="900" height="600" alt="" decoding="async">
+        </picture>
+        <div class="hero__nacht" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="hero__shade" aria-hidden="true"></div>
+    <div class="hero__dim" aria-hidden="true" data-hero-dim></div>
+
+    <!-- Glut: Lichtpunkte in drei Tiefen, reine Dekoration. --x/--y Startpunkt, --s Größe, --o Deckkraft,
+         --t Dauer (s), --d Versatz (s), --dx/--h Weg, --w Pendeln. data-tiefe = wie stark die Ebene der Maus folgt (px, negativ = gegenläufig) -->
+    <div class="glut glut--fern" aria-hidden="true" data-tiefe-ebene data-tiefe="-5">
+      <i style="--x:9%;--y:96%;--s:10;--o:0.9;--t:15;--d:-2;--dx:4vw;--h:58vh;--w:10px"></i>
+      <i style="--x:17%;--y:84%;--s:8;--o:0.75;--t:19;--d:-9;--dx:-3vw;--h:50vh;--w:8px"></i>
+      <i style="--x:29%;--y:99%;--s:11;--o:0.85;--t:16;--d:-12;--dx:5vw;--h:64vh;--w:12px"></i>
+      <i style="--x:38%;--y:90%;--s:8;--o:0.7;--t:21;--d:-5;--dx:-2vw;--h:46vh;--w:9px"></i>
+      <i style="--x:52%;--y:97%;--s:10;--o:0.85;--t:17;--d:-14;--dx:3vw;--h:60vh;--w:11px"></i>
+      <i style="--x:61%;--y:86%;--s:8;--o:0.7;--t:20;--d:-3;--dx:-4vw;--h:52vh;--w:8px"></i>
+      <i style="--x:72%;--y:99%;--s:12;--o:0.9;--t:14;--d:-8;--dx:4vw;--h:66vh;--w:12px"></i>
+      <i style="--x:81%;--y:88%;--s:9;--o:0.75;--t:18;--d:-15;--dx:-3vw;--h:54vh;--w:10px"></i>
+      <i style="--x:90%;--y:96%;--s:10;--o:0.85;--t:16;--d:-6;--dx:-5vw;--h:60vh;--w:9px"></i>
+      <i style="--x:96%;--y:80%;--s:8;--o:0.65;--t:22;--d:-11;--dx:2vw;--h:44vh;--w:8px"></i>
+      <i style="--x:45%;--y:70%;--s:7;--o:0.6;--t:23;--d:-18;--dx:3vw;--h:40vh;--w:7px"></i>
+      <i style="--x:85%;--y:62%;--s:7;--o:0.55;--t:24;--d:-4;--dx:-2vw;--h:36vh;--w:7px"></i>
+    </div>
+    <div class="glut glut--mitte" aria-hidden="true" data-tiefe-ebene data-tiefe="12">
+      <i style="--x:14%;--y:104%;--s:24;--o:0.55;--t:13;--d:-3;--dx:6vw;--h:70vh;--w:16px"></i>
+      <i style="--x:33%;--y:108%;--s:20;--o:0.5;--t:12;--d:-8;--dx:-5vw;--h:74vh;--w:14px"></i>
+      <i style="--x:58%;--y:104%;--s:28;--o:0.5;--t:14;--d:-1;--dx:7vw;--h:68vh;--w:18px"></i>
+      <i style="--x:77%;--y:110%;--s:22;--o:0.52;--t:11;--d:-6;--dx:-6vw;--h:76vh;--w:15px"></i>
+      <i style="--x:93%;--y:100%;--s:26;--o:0.48;--t:15;--d:-10;--dx:-4vw;--h:64vh;--w:16px"></i>
+      <i style="--x:66%;--y:96%;--s:18;--o:0.45;--t:16;--d:-13;--dx:4vw;--h:60vh;--w:12px"></i>
+    </div>
+
+    <div class="hero__front" data-hero-front>
+      <!-- data-hero-flug: Maus und Scrollen (JS) · .hero__content: Anflug vom Betrachter (CSS) -->
+      <div class="hero__flug" data-hero-flug>
+        <div class="hero__content container">
+          <p class="hero__eyebrow" data-intro style="--i:0"><svg aria-hidden="true"><use href="#i-flamme"/></svg>Restaurant &amp; Bar · Altstadt</p>
+          <h1 class="hero__title" id="hero-title" data-hero-titel>
+            <span class="hero__line"><span class="hero__word" style="--i:0;--wz:170px">Salz</span></span>
+            <span class="hero__line hero__line--2"><span class="hero__word hero__word--amp" style="--i:1;--wz:340px" data-hero-amp>&amp;</span> <span class="hero__word" style="--i:2;--wz:210px">Glut</span></span>
+          </h1>
+          <div class="hero__below">
+            <p class="hero__lead" data-intro style="--i:1">Saisonale Küche über offenem Feuer – regional, ehrlich und mitten in der Altstadt.</p>
+            <div class="hero__ctas" data-intro style="--i:2">
+              <a class="btn btn--accent btn--lg" href="#reservieren">Tisch reservieren <svg class="btn__icon" aria-hidden="true"><use href="#i-pfeil"/></svg></a>
+              <a class="btn btn--glass btn--lg" href="#karte">Zur Speisekarte</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero__meta container" data-intro style="--i:3">
+        <p class="status status--hero" data-status><span class="status__dot" aria-hidden="true"></span><span data-status-text>Mi – So ab 17:30 Uhr</span></p>
+        <a class="hero__scroll" href="#kueche"><span>Entdecken</span><i aria-hidden="true"></i></a>
+        <p class="hero__addr"><svg aria-hidden="true"><use href="#i-ort"/></svg>Marktgasse 12 · Musterstadt</p>
+      </div>
+    </div>
+
+    <!-- Nahe Glut: große, unscharfe Lichtscheiben vor der Schrift (Bokeh) -->
+    <div class="glut glut--nah" aria-hidden="true" data-tiefe-ebene data-tiefe="34">
+      <i style="--x:88%;--y:34%;--s:170;--o:0.13;--t:24;--d:-6;--dx:-6vw;--h:26vh;--w:24px"></i>
+      <i style="--x:70%;--y:104%;--s:110;--o:0.11;--t:19;--d:-12;--dx:5vw;--h:40vh;--w:20px"></i>
+      <i style="--x:6%;--y:26%;--s:130;--o:0.1;--t:27;--d:-17;--dx:7vw;--h:22vh;--w:22px"></i>
+    </div>
+    <script>
+      /* Intro starten, sobald das Hero-Bild dekodiert ist, ohne auf die übrigen Skripte zu warten (main.js macht dasselbe als Rückfall) */
+      (function (h, i) {
+        if (!h.classList.contains('motion') || !i) return;
+        var los = function () { h.classList.add('is-ready'); };
+        var dek = function () { if (i.decode) i.decode().then(los, los); else los(); };
+        if (i.complete && i.naturalWidth) dek();
+        else { i.addEventListener('load', dek, { once: true }); i.addEventListener('error', los, { once: true }); }
+        setTimeout(los, 1400);
+      })(document.documentElement, document.querySelector('[data-hero-img]'));
+    </script>
+  </section>
+
+  <!-- ============ KÜCHE (schiebt sich über das Hero-Bild) ============ -->
+  <section class="sheet kueche" id="kueche" aria-labelledby="kueche-title">
+    <div class="container">
+      <div class="kueche__head">
+        <p class="eyebrow" data-reveal>Unsere Küche</p>
+        <h2 class="statement" id="kueche-title" data-words>Wir kochen mit dem, was die Saison hergibt – über <em>Buchenholzglut,</em> mit viel Geduld und ohne Umwege.</h2>
+      </div>
+
+      <div class="kueche__grid">
+        <figure class="kueche__fig kueche__fig--gross" data-reveal="clip">
+          <div class="kueche__img" data-parallax="0.08">
+            <img src="../../restaurant/assets/img/kueche/feuer-1200.webp" srcset="../../restaurant/assets/img/kueche/feuer-700.webp 700w, ../../restaurant/assets/img/kueche/feuer-1200.webp 1200w"
+                 sizes="(min-width: 960px) 38vw, 88vw" width="1200" height="1500" loading="lazy" decoding="async"
+                 alt="Ein Koch am Herd, aus der Pfanne schlagen Flammen">
+          </div>
+          <figcaption>Ab 16 Uhr brennt das Feuer.</figcaption>
+        </figure>
+
+        <figure class="kueche__fig kueche__fig--klein" data-reveal="clip" data-tiefe>
+          <div class="kueche__img" data-parallax="0.15">
+            <img src="../../restaurant/assets/img/kueche/chef-900.webp" srcset="../../restaurant/assets/img/kueche/chef-500.webp 500w, ../../restaurant/assets/img/kueche/chef-900.webp 900w"
+                 sizes="(min-width: 960px) 22vw, 56vw" width="900" height="1125" loading="lazy" decoding="async"
+                 alt="Der Küchenchef richtet unter Wärmelampen einen Teller an">
+          </div>
+        </figure>
+
+        <div class="kueche__text">
+          <p class="lead" data-reveal>Jeden Nachmittag um vier zünden wir das Feuer an. Bis die ersten Gäste kommen, ist daraus Glut geworden – die gleichmäßige Hitze, mit der wir Fleisch, Fisch und Gemüse garen.</p>
+          <p data-reveal>Unsere Zutaten kommen von Höfen, die wir persönlich kennen. Was keine Saison hat, kommt nicht auf die Karte. Deshalb ändert sie sich alle paar Wochen – und deshalb schmeckt der Herbst bei uns nach Herbst.</p>
+
+          <div class="signatur" data-reveal>
+            <svg class="signatur__zug" viewBox="0 0 220 70" aria-hidden="true">
+              <path d="M6 48c10-20 20-34 27-36 6-2 4 12-4 26s-12 17-8 8 14-22 22-22c7 0-5 21 1 21 5 0 10-16 16-16 5 0 0 14 5 14s9-12 14-12c4 0 1 11 5 11 5 0 12-18 18-18 5 0-1 17 4 17 7 0 12-10 20-10 10 0 2 12 12 12 14 0 32-9 72-15" pathLength="1"/>
+            </svg>
+            <p><strong>Jonas Albrecht</strong><span>Küchenchef</span></p>
+          </div>
+
+          <dl class="fakten">
+            <div class="fakt" data-reveal><dt>Plätze im Gastraum</dt><dd><span data-count="46">46</span></dd></div>
+            <div class="fakt" data-reveal><dt>Partnerhöfe aus der Region</dt><dd><span data-count="12">12</span></dd></div>
+            <div class="fakt" data-reveal><dt>Feuer, jeden Abend</dt><dd><span data-count="1">1</span></dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ LAUFBAND ============ -->
+<div class="band" aria-hidden="true">
+  <div class="band__track" data-band>
+    <div class="band__set">
+      <span>Saisonal</span><svg><use href="#i-flamme"/></svg><span><em>Regional</em></span><svg><use href="#i-flamme"/></svg><span>Über offenem Feuer</span><svg><use href="#i-flamme"/></svg><span><em>Handgemacht</em></span><svg><use href="#i-flamme"/></svg>
+    </div>
+    <div class="band__set">
+      <span>Saisonal</span><svg><use href="#i-flamme"/></svg><span><em>Regional</em></span><svg><use href="#i-flamme"/></svg><span>Über offenem Feuer</span><svg><use href="#i-flamme"/></svg><span><em>Handgemacht</em></span><svg><use href="#i-flamme"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SIGNATURE-GERICHTE (Desktop: horizontal beim Scrollen) ============ -->
+<section class="signature" id="signature" aria-labelledby="signature-title" data-hscroll>
+  <div class="signature__pin" data-hscroll-pin>
+    <div class="container signature__head">
+      <div>
+        <p class="eyebrow" data-reveal>Aus der Glut</p>
+        <h2 class="h2" id="signature-title" data-reveal>Fünf Teller, für die man <em>wiederkommt.</em></h2>
+      </div>
+      <div class="signature__nav" data-reveal>
+        <p class="signature__hint"><span class="hint-pin">Weiterscrollen</span><span class="hint-pfeile">Blättern</span><span class="hint-touch">Wischen</span> – oder direkt <a href="#karte">zur ganzen Karte</a>.</p>
+        <div class="signature__arrows">
+          <button class="icon-btn" type="button" data-hscroll-prev aria-label="Vorheriges Gericht"><svg aria-hidden="true"><use href="#i-links"/></svg></button>
+          <button class="icon-btn" type="button" data-hscroll-next aria-label="Nächstes Gericht"><svg aria-hidden="true"><use href="#i-rechts"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="signature__viewport" data-hscroll-viewport role="region" aria-label="Signature-Gerichte" tabindex="0">
+      <ol class="signature__track" data-hscroll-track>
+        <li class="dish-card">
+          <div class="dish-card__media"><img src="../../restaurant/assets/img/gerichte/rind-1000.webp" srcset="../../restaurant/assets/img/gerichte/rind-500.webp 500w, ../../restaurant/assets/img/gerichte/rind-1000.webp 1000w" sizes="(min-width: 1024px) 30vw, 78vw" width="1000" height="1250" loading="lazy" decoding="async" alt="Rinderrücken, in Scheiben geschnitten, auf einem Holzbrett" data-hscroll-img></div>
+          <div class="dish-card__body">
+            <span class="dish-card__num">01</span>
+            <h3 class="dish-card__title">Rinderrücken vom Buchenholz</h3>
+            <p>250 g vom Weiderind, Knochenmark-Jus, Ofenkartoffel und Salzbutter.</p>
+            <p class="dish-card__price">38 €</p>
+          </div>
+        </li>
+        <li class="dish-card">
+          <div class="dish-card__media"><img src="../../restaurant/assets/img/gerichte/shortrib-1000.webp" srcset="../../restaurant/assets/img/gerichte/shortrib-500.webp 500w, ../../restaurant/assets/img/gerichte/shortrib-1000.webp 1000w" sizes="(min-width: 1024px) 30vw, 78vw" width="1000" height="1250" loading="lazy" decoding="async" alt="Glasierte Short Ribs mit Tomaten und Pommes auf einem Brett" data-hscroll-img></div>
+          <div class="dish-card__body">
+            <span class="dish-card__num">02</span>
+            <h3 class="dish-card__title">Short Rib, 48 Stunden</h3>
+            <p>Zwei Tage geschmort, zum Schluss über der Glut abgeflämmt. Dazu Krautsalat.</p>
+            <p class="dish-card__price">32 €</p>
+          </div>
+        </li>
+        <li class="dish-card">
+          <div class="dish-card__media"><img src="../../restaurant/assets/img/gerichte/garnelen-1000.webp" srcset="../../restaurant/assets/img/gerichte/garnelen-500.webp 500w, ../../restaurant/assets/img/gerichte/garnelen-1000.webp 1000w" sizes="(min-width: 1024px) 30vw, 78vw" width="1000" height="1250" loading="lazy" decoding="async" alt="Garnelen in würziger Sauce mit Reis und Kräutern" data-hscroll-img></div>
+          <div class="dish-card__body">
+            <span class="dish-card__num">03</span>
+            <h3 class="dish-card__title">Glut-Garnelen</h3>
+            <p>Knoblauch, Chili und Zitrone, dazu Kräuterreis und ein Schluck Brühe.</p>
+            <p class="dish-card__price">24 €</p>
+          </div>
+        </li>
+        <li class="dish-card">
+          <div class="dish-card__media"><img src="../../restaurant/assets/img/gerichte/herbstsalat-1000.webp" srcset="../../restaurant/assets/img/gerichte/herbstsalat-500.webp 500w, ../../restaurant/assets/img/gerichte/herbstsalat-1000.webp 1000w" sizes="(min-width: 1024px) 30vw, 78vw" width="1000" height="1250" loading="lazy" decoding="async" alt="Bunter Salat mit Oliven, Feta und roten Zwiebeln" data-hscroll-img></div>
+          <div class="dish-card__body">
+            <span class="dish-card__num">04</span>
+            <h3 class="dish-card__title">Herbstsalat</h3>
+            <p>Geröstete Kerne, Birne, Bergkäse und ein Dressing aus Apfel und Senf.</p>
+            <p class="dish-card__price">13 €</p>
+          </div>
+        </li>
+        <li class="dish-card">
+          <div class="dish-card__media"><img src="../../restaurant/assets/img/gerichte/schokolade-1000.webp" srcset="../../restaurant/assets/img/gerichte/schokolade-500.webp 500w, ../../restaurant/assets/img/gerichte/schokolade-1000.webp 1000w" sizes="(min-width: 1024px) 30vw, 78vw" width="1000" height="1250" loading="lazy" decoding="async" alt="Schokoladen-Brownie mit flüssiger Schokolade übergossen" data-hscroll-img></div>
+          <div class="dish-card__body">
+            <span class="dish-card__num">05</span>
+            <h3 class="dish-card__title">Schokolade, Salz &amp; Rauch</h3>
+            <p>Warmer Brownie, geräuchertes Meersalz und ein Löffel Crème fraîche.</p>
+            <p class="dish-card__price">11 €</p>
+          </div>
+        </li>
+        <li class="dish-card dish-card--mehr">
+          <a class="dish-card__mehr" href="#karte">
+            <span class="dish-card__mehr-kreis"><svg aria-hidden="true"><use href="#i-pfeil"/></svg></span>
+            <span>Die ganze <em>Karte</em></span>
+          </a>
+        </li>
+      </ol>
+    </div>
+
+    <div class="container">
+      <div class="signature__progress" aria-hidden="true"><span data-hscroll-bar></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SPEISEKARTE ============ -->
+<section class="karte" id="karte" aria-labelledby="karte-title">
+  <div class="container">
+    <header class="section-head karte__head">
+      <div>
+        <p class="eyebrow" data-reveal>Speisekarte</p>
+        <h2 class="h2" id="karte-title" data-reveal>Die <em>Karte</em></h2>
+      </div>
+      <p class="karte__note" data-reveal>Wechselt mit der Saison – aktuell: Herbst.<br>Alle Preise in Euro inklusive Mehrwertsteuer.</p>
+    </header>
+
+    <aside class="empfehlung" data-reveal aria-label="Empfehlung des Hauses">
+      <div class="empfehlung__text">
+        <p class="empfehlung__label"><svg aria-hidden="true"><use href="#i-flamme"/></svg>Empfehlung des Hauses</p>
+        <h3 class="empfehlung__title">Feuer-Menü in fünf Gängen</h3>
+        <p>Der Küchenchef kocht, was heute am besten ist. Für den ganzen Tisch, auf Wunsch vegetarisch.</p>
+      </div>
+      <p class="empfehlung__preis"><span><strong>79 €</strong> pro Person</span><span><strong>+ 40 €</strong> Weinbegleitung</span></p>
+    </aside>
+
+    <div class="tabs" data-tabs>
+      <div class="tabs__bar">
+        <div class="tabs__list" role="tablist" aria-label="Speisekarte" data-tablist>
+          <button class="tabs__tab" type="button" role="tab" id="tab-vorspeisen" aria-controls="panel-vorspeisen" aria-selected="true">Vorspeisen</button>
+          <button class="tabs__tab" type="button" role="tab" id="tab-haupt" aria-controls="panel-haupt" aria-selected="false" tabindex="-1">Hauptgänge</button>
+          <button class="tabs__tab" type="button" role="tab" id="tab-dessert" aria-controls="panel-dessert" aria-selected="false" tabindex="-1">Desserts</button>
+          <button class="tabs__tab" type="button" role="tab" id="tab-getraenke" aria-controls="panel-getraenke" aria-selected="false" tabindex="-1">Getränke</button>
+        </div>
+      </div>
+
+      <!-- Ein Gericht: <li class="dish"> mit Name, Preis, Beschreibung, optional Tags.
+           data-preview = Bild, das am Desktop beim Überfahren neben dem Mauszeiger erscheint (optional) -->
+      <div class="tabs__panel" role="tabpanel" id="panel-vorspeisen" aria-labelledby="tab-vorspeisen" tabindex="0">
+        <h3 class="tabs__panel-title">Vorspeisen</h3>
+        <ul class="dishes">
+          <li class="dish" data-preview="../../restaurant/assets/img/gerichte/brot-500.webp">
+            <div class="dish__row"><h4 class="dish__name">Sauerteigbrot &amp; Rauchbutter</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">6 <span>€</span></p></div>
+            <p class="dish__desc">Hauseigener Sauerteig, am Feuer geröstet, Butter über Heu geräuchert</p>
+            <ul class="dish__tags"><li class="tag">vegetarisch</li></ul>
+          </li>
+          <li class="dish">
+            <div class="dish__row"><h4 class="dish__name">Rote Bete aus der Asche</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">14 <span>€</span></p></div>
+            <p class="dish__desc">Ziegenfrischkäse, geröstete Haselnuss, Holunder</p>
+            <ul class="dish__tags"><li class="tag">vegetarisch</li></ul>
+          </li>
+          <li class="dish">
+            <div class="dish__row"><h4 class="dish__name">Tatar vom Weiderind</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">18 <span>€</span></p></div>
+            <p class="dish__desc">Eigelbcreme, Kapern, hausgemachte Kartoffelchips</p>
+          </li>
+          <li class="dish" data-preview="../../restaurant/assets/img/gerichte/garnelen-500.webp">
+            <div class="dish__row"><h4 class="dish__name">Glut-Garnelen</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">17 <span>€</span></p></div>
+            <p class="dish__desc">Knoblauch, Chili, Zitrone, Kräuteröl – kleine Portion</p>
+            <ul class="dish__tags"><li class="tag tag--scharf">scharf</li></ul>
+          </li>
+          <li class="dish" data-preview="../../restaurant/assets/img/gerichte/herbstsalat-500.webp">
+            <div class="dish__row"><h4 class="dish__name">Herbstsalat</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">13 <span>€</span></p></div>
+            <p class="dish__desc">Geröstete Kerne, Birne, Bergkäse, Apfel-Senf-Dressing</p>
+            <ul class="dish__tags"><li class="tag">vegetarisch</li></ul>
+          </li>
+          <li class="dish">
+            <div class="dish__row"><h4 class="dish__name">Kürbissuppe</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">11 <span>€</span></p></div>
+            <p class="dish__desc">Geröstete Kürbiskerne, steirisches Kernöl, Salbei</p>
+            <ul class="dish__tags"><li class="tag tag--vegan">vegan</li></ul>
+          </li>
+        </ul>
+      </div>
+
+      <div class="tabs__panel" role="tabpanel" id="panel-haupt" aria-labelledby="tab-haupt" tabindex="0">
+        <h3 class="tabs__panel-title">Hauptgänge</h3>
+        <ul class="dishes">
+          <li class="dish" data-preview="../../restaurant/assets/img/gerichte/rind-500.webp">
+            <div class="dish__row"><h4 class="dish__name">Rinderrücken vom Buchenholz</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">38 <span>€</span></p></div>
+            <p class="dish__desc">250 g vom Weiderind, Knochenmark-Jus, Ofenkartoffel, Salzbutter</p>
+            <ul class="dish__tags"><li class="tag tag--signature">Signature</li></ul>
+          </li>
+          <li class="dish" data-preview="../../restaurant/assets/img/gerichte/shortrib-500.webp">
+            <div class="dish__row"><h4 class="dish__name">Short Rib, 48 Stunden</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">32 <span>€</span></p></div>
+            <p class="dish__desc">Geschmort und abgeflämmt, BBQ-Glasur, Krautsalat</p>
+          </li>
+          <li class="dish">
+            <div class="dish__row"><h4 class="dish__name">Saibling vom Rost</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">29 <span>€</span></p></div>
+            <p class="dish__desc">Beurre blanc, gegrillter Fenchel, Dill</p>
+          </li>
+          <li class="dish">
+            <div class="dish__row"><h4 class="dish__name">Halbes Maishähnchen</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">26 <span>€</span></p></div>
+            <p class="dish__desc">Zitrone und Thymian, Grillgemüse, Pommes Anna</p>
+          </li>
+          <li class="dish">
+            <div class="dish__row"><h4 class="dish__name">Sellerie aus der Glut</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">22 <span>€</span></p></div>
+            <p class="dish__desc">Im Ganzen gegart wie ein Steak, Pilzjus, Walnuss, Kräuter</p>
+            <ul class="dish__tags"><li class="tag tag--vegan">vegan</li></ul>
+          </li>
+          <li class="dish">
+            <div class="dish__row"><h4 class="dish__name">Gnocchi &amp; Salbeibutter</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">21 <span>€</span></p></div>
+            <p class="dish__desc">Braune Butter, gerösteter Kürbis, Bergkäse</p>
+            <ul class="dish__tags"><li class="tag">vegetarisch</li></ul>
+          </li>
+        </ul>
+      </div>
+
+      <div class="tabs__panel" role="tabpanel" id="panel-dessert" aria-labelledby="tab-dessert" tabindex="0">
+        <h3 class="tabs__panel-title">Desserts</h3>
+        <ul class="dishes">
+          <li class="dish" data-preview="../../restaurant/assets/img/gerichte/schokolade-500.webp">
+            <div class="dish__row"><h4 class="dish__name">Schokolade, Salz &amp; Rauch</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">11 <span>€</span></p></div>
+            <p class="dish__desc">Warmer Brownie, geräuchertes Meersalz, Crème fraîche</p>
+            <ul class="dish__tags"><li class="tag tag--signature">Signature</li></ul>
+          </li>
+          <li class="dish">
+            <div class="dish__row"><h4 class="dish__name">Gegrillte Birne</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">10 <span>€</span></p></div>
+            <p class="dish__desc">Salzkaramell, Vanilleeis, Haferstreusel</p>
+            <ul class="dish__tags"><li class="tag">vegetarisch</li></ul>
+          </li>
+          <li class="dish">
+            <div class="dish__row"><h4 class="dish__name">Zitronentarte</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">9 <span>€</span></p></div>
+            <p class="dish__desc">Mürbeteig, Baiser, am Tisch abgeflämmt</p>
+          </li>
+          <li class="dish">
+            <div class="dish__row"><h4 class="dish__name">Käse aus der Region</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">14 <span>€</span></p></div>
+            <p class="dish__desc">Drei Sorten, Feigensenf, Früchtebrot</p>
+          </li>
+        </ul>
+      </div>
+
+      <div class="tabs__panel" role="tabpanel" id="panel-getraenke" aria-labelledby="tab-getraenke" tabindex="0">
+        <h3 class="tabs__panel-title">Getränke</h3>
+        <ul class="dishes">
+          <li class="dish" data-preview="../../restaurant/assets/img/gerichte/cocktail-bramble-500.webp">
+            <div class="dish__row"><h4 class="dish__name">Bramble am Feuer</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">13 <span>€</span></p></div>
+            <p class="dish__desc">Gin, Brombeere, Zitrone, geräucherter Rosmarin</p>
+          </li>
+          <li class="dish" data-preview="../../restaurant/assets/img/gerichte/cocktail-rauch-500.webp">
+            <div class="dish__row"><h4 class="dish__name">Old Fashioned mit Rauch</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">14 <span>€</span></p></div>
+            <p class="dish__desc">Bourbon, Ahornsirup, Orangenbitter</p>
+          </li>
+          <li class="dish">
+            <div class="dish__row"><h4 class="dish__name">Hauswein weiß oder rot</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">7,50 <span>€</span></p></div>
+            <p class="dish__desc">0,2 l – von einem Weingut aus der Region</p>
+          </li>
+          <li class="dish">
+            <div class="dish__row"><h4 class="dish__name">Weinbegleitung</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">29 <span>€</span></p></div>
+            <p class="dish__desc">Drei Gläser, passend zu Ihren Gängen</p>
+          </li>
+          <li class="dish">
+            <div class="dish__row"><h4 class="dish__name">Rhabarber-Ingwer-Limonade</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">5,50 <span>€</span></p></div>
+            <p class="dish__desc">Hausgemacht, 0,4 l</p>
+            <ul class="dish__tags"><li class="tag">alkoholfrei</li></ul>
+          </li>
+          <li class="dish">
+            <div class="dish__row"><h4 class="dish__name">Mineralwasser</h4><span class="dish__dots" aria-hidden="true"></span><p class="dish__price">6,50 <span>€</span></p></div>
+            <p class="dish__desc">0,75 l, still oder sprudelnd</p>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="karte__foot" data-reveal>Informationen zu Allergenen und Zusatzstoffen erhalten Sie gern von unserem Service.</p>
+  </div>
+  <!-- Bildvorschau neben dem Mauszeiger (nur Desktop) -->
+  <div class="vorschau" aria-hidden="true" data-vorschau><img alt="" width="500" height="625"></div>
+</section>
+
+<!-- ============ STIMMEN ============ -->
+<section class="stimmen" id="stimmen" aria-labelledby="stimmen-title">
+  <div class="container stimmen__inner">
+    <div class="stimmen__head">
+      <p class="eyebrow" data-reveal>Gäste über uns</p>
+      <h2 class="sr-only" id="stimmen-title">Stimmen unserer Gäste</h2>
+      <p class="bewertung" data-reveal><span class="bewertung__sterne" aria-hidden="true">★★★★★</span><span><strong>4,8</strong> von 5 · über 900 Bewertungen</span></p>
+    </div>
+
+    <div class="zitate" data-zitate>
+      <figure class="zitat">
+        <blockquote><p>„Man riecht das Feuer schon an der Tür – und schmeckt es in jedem Gang. Der Rinderrücken war der beste seit Jahren.“</p></blockquote>
+        <figcaption>Julia M. <span>· Gast im September</span></figcaption>
+      </figure>
+      <figure class="zitat">
+        <blockquote><p>„Unaufgeregt, herzlich und auf den Punkt. Genau so wünscht man sich einen Abend in der Altstadt.“</p></blockquote>
+        <figcaption>Thomas K. <span>· Stammgast</span></figcaption>
+      </figure>
+      <figure class="zitat">
+        <blockquote><p>„Die Weinbegleitung hat uns überrascht: mutig, regional und perfekt auf das Menü abgestimmt.“</p></blockquote>
+        <figcaption>Lena &amp; Can <span>· Gäste am Chef’s Table</span></figcaption>
+      </figure>
+    </div>
+
+    <div class="zitate__nav" data-zitate-nav hidden>
+      <button class="icon-btn" type="button" data-zitat-prev aria-label="Vorherige Stimme"><svg aria-hidden="true"><use href="#i-links"/></svg></button>
+      <p class="zitate__count" aria-live="polite"><span data-zitat-index>1</span> / <span data-zitat-total>3</span></p>
+      <button class="icon-btn" type="button" data-zitat-next aria-label="Nächste Stimme"><svg aria-hidden="true"><use href="#i-rechts"/></svg></button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GALERIE ============ -->
+<section class="galerie" id="galerie" aria-labelledby="galerie-title">
+  <div class="container">
+    <header class="section-head galerie__head">
+      <div>
+        <p class="eyebrow" data-reveal>Einblicke</p>
+        <h2 class="h2" id="galerie-title" data-reveal>Ein Abend <em>bei uns</em></h2>
+      </div>
+      <p class="galerie__note" data-reveal>Bild antippen für die große Ansicht.</p>
+    </header>
+
+    <ul class="galerie__grid" data-galerie>
+      <li class="galerie__item galerie__item--1" data-reveal="clip"><a href="../../restaurant/assets/img/galerie/tisch-1400.webp" data-w="1400" data-h="933"><img src="../../restaurant/assets/img/galerie/tisch-700.webp" srcset="../../restaurant/assets/img/galerie/tisch-700.webp 700w, ../../restaurant/assets/img/galerie/tisch-1400.webp 1400w" sizes="(min-width: 900px) 55vw, 92vw" width="1400" height="933" loading="lazy" decoding="async" alt="Gedeckter Tisch mit Weingläsern und einem angerichteten Teller"></a></li>
+      <li class="galerie__item galerie__item--2" data-reveal="clip"><a href="../../restaurant/assets/img/galerie/bar-1400.webp" data-w="1400" data-h="1867"><img src="../../restaurant/assets/img/galerie/bar-700.webp" srcset="../../restaurant/assets/img/galerie/bar-700.webp 700w, ../../restaurant/assets/img/galerie/bar-1400.webp 1400w" sizes="(min-width: 900px) 40vw, 46vw" width="1400" height="1867" loading="lazy" decoding="async" alt="Die Bar mit Glühbirnen, Spirituosen und Holztresen"></a></li>
+      <li class="galerie__item galerie__item--3" data-reveal="clip"><a href="../../restaurant/assets/img/galerie/cocktail-1400.webp" data-w="1400" data-h="1021"><img src="../../restaurant/assets/img/galerie/cocktail-700.webp" srcset="../../restaurant/assets/img/galerie/cocktail-700.webp 700w, ../../restaurant/assets/img/galerie/cocktail-1400.webp 1400w" sizes="(min-width: 900px) 24vw, 46vw" width="1400" height="1021" loading="lazy" decoding="async" alt="Roter Cocktail mit Brombeeren und getrockneter Orange"></a></li>
+      <li class="galerie__item galerie__item--4" data-reveal="clip"><a href="../../restaurant/assets/img/galerie/anschnitt-1400.webp" data-w="1400" data-h="933"><img src="../../restaurant/assets/img/galerie/anschnitt-700.webp" srcset="../../restaurant/assets/img/galerie/anschnitt-700.webp 700w, ../../restaurant/assets/img/galerie/anschnitt-1400.webp 1400w" sizes="(min-width: 900px) 32vw, 46vw" width="1400" height="933" loading="lazy" decoding="async" alt="Ein Steak wird am Tisch angeschnitten"></a></li>
+      <li class="galerie__item galerie__item--5" data-reveal="clip"><a href="../../restaurant/assets/img/galerie/digestif-1400.webp" data-w="1400" data-h="933"><img src="../../restaurant/assets/img/galerie/digestif-700.webp" srcset="../../restaurant/assets/img/galerie/digestif-700.webp 700w, ../../restaurant/assets/img/galerie/digestif-1400.webp 1400w" sizes="(min-width: 900px) 40vw, 46vw" width="1400" height="933" loading="lazy" decoding="async" alt="Ein Digestif im Glas auf dunklem Holz"></a></li>
+      <li class="galerie__item galerie__item--6" data-reveal="clip"><a href="../../restaurant/assets/img/galerie/wintergarten-1400.webp" data-w="1400" data-h="933"><img src="../../restaurant/assets/img/galerie/wintergarten-700.webp" srcset="../../restaurant/assets/img/galerie/wintergarten-700.webp 700w, ../../restaurant/assets/img/galerie/wintergarten-1400.webp 1400w" sizes="(min-width: 900px) 32vw, 92vw" width="1400" height="933" loading="lazy" decoding="async" alt="Der Wintergarten mit Pflanzen, Holztischen und Hängelampen"></a></li>
+      <li class="galerie__item galerie__item--7" data-reveal="clip"><a href="../../restaurant/assets/img/galerie/tafel-1400.webp" data-w="1400" data-h="933"><img src="../../restaurant/assets/img/galerie/tafel-700.webp" srcset="../../restaurant/assets/img/galerie/tafel-700.webp 700w, ../../restaurant/assets/img/galerie/tafel-1400.webp 1400w" sizes="(min-width: 900px) 24vw, 46vw" width="1400" height="933" loading="lazy" decoding="async" alt="Eine lange Tafel mit Gästen im Gespräch"></a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- Große Bildansicht der Galerie -->
+<dialog class="lightbox" aria-label="Bildansicht" data-lightbox data-lenis-prevent>
+  <div class="lightbox__stage" data-lightbox-stage>
+    <img class="lightbox__img" alt="" data-lightbox-img>
+  </div>
+  <p class="lightbox__cap" data-lightbox-cap></p>
+  <p class="lightbox__count" data-lightbox-count></p>
+  <button class="lightbox__btn lightbox__close" type="button" aria-label="Schließen" data-lightbox-close><svg aria-hidden="true"><use href="#i-x"/></svg></button>
+  <button class="lightbox__btn lightbox__prev" type="button" aria-label="Vorheriges Bild" data-lightbox-prev><svg aria-hidden="true"><use href="#i-links"/></svg></button>
+  <button class="lightbox__btn lightbox__next" type="button" aria-label="Nächstes Bild" data-lightbox-next><svg aria-hidden="true"><use href="#i-rechts"/></svg></button>
+</dialog>
+
+<!-- ============ ANLÄSSE ============ -->
+<section class="anlaesse" id="anlaesse" aria-labelledby="anlaesse-title">
+  <div class="container">
+    <header class="section-head">
+      <p class="eyebrow" data-reveal>Anlässe</p>
+      <h2 class="h2" id="anlaesse-title" data-reveal>Mehr als ein <em>Abendessen</em></h2>
+    </header>
+
+    <div class="anlaesse__grid">
+      <article class="anlass" data-reveal>
+        <div class="anlass__media"><img src="../../restaurant/assets/img/anlaesse/private-dining.webp" width="900" height="1125" loading="lazy" decoding="async" alt="Ein heller Salon mit weiß eingedeckten Tischen"></div>
+        <div class="anlass__body">
+          <p class="anlass__meta">10 bis 24 Gäste</p>
+          <h3 class="anlass__title">Private Dining</h3>
+          <p>Unser Salon im ersten Stock für Geburtstage, Firmenabende und Hochzeitsessen – mit eigenem Menü und eigenem Service.</p>
+          <a class="link-pfeil" href="#reservieren" data-anlass="Private Dining">Anfragen <svg aria-hidden="true"><use href="#i-pfeil"/></svg></a>
+        </div>
+      </article>
+      <article class="anlass" data-reveal>
+        <div class="anlass__media"><img src="../../restaurant/assets/img/anlaesse/chefs-table.webp" width="900" height="1125" loading="lazy" decoding="async" alt="Der Küchenchef richtet viele Teller am Pass an"></div>
+        <div class="anlass__body">
+          <p class="anlass__meta">6 Plätze · Fr &amp; Sa</p>
+          <h3 class="anlass__title">Chef’s Table</h3>
+          <p>Sechs Plätze direkt am Feuer. Sieben Gänge, die der Küchenchef selbst an den Tisch bringt und erklärt.</p>
+          <a class="link-pfeil" href="#reservieren" data-anlass="Chef’s Table">Platz sichern <svg aria-hidden="true"><use href="#i-pfeil"/></svg></a>
+        </div>
+      </article>
+      <article class="anlass" data-reveal>
+        <div class="anlass__media"><img src="../../restaurant/assets/img/anlaesse/gutschein.webp" width="900" height="1125" loading="lazy" decoding="async" alt="Gäste stoßen mit Rotwein an"></div>
+        <div class="anlass__body">
+          <p class="anlass__meta">Ab 50 €</p>
+          <h3 class="anlass__title">Gutscheine</h3>
+          <p>Ein Abend am Feuer zum Verschenken – als Wertgutschein oder als Menü, per Post oder sofort als PDF.</p>
+          <a class="link-pfeil" href="mailto:tisch@salz-und-glut.example?subject=Gutschein">Gutschein bestellen <svg aria-hidden="true"><use href="#i-pfeil"/></svg></a>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RESERVIERUNG ============ -->
+<section class="reservieren" id="reservieren" aria-labelledby="reservieren-title">
+  <div class="container reservieren__grid">
+    <div class="reservieren__intro">
+      <p class="eyebrow" data-reveal>Reservierung</p>
+      <h2 class="h2" id="reservieren-title" data-reveal>Ihr Tisch am <em>Feuer</em></h2>
+      <p class="lead" data-reveal>Reservieren Sie für bis zu acht Personen direkt hier. Für größere Gruppen oder kurzfristig rufen Sie uns bitte an.</p>
+      <a class="tel-gross" href="tel:+49123456789" data-reveal><svg aria-hidden="true"><use href="#i-telefon"/></svg>0123 456 789</a>
+      <ul class="haekchen" data-reveal>
+        <li><svg aria-hidden="true"><use href="#i-haken"/></svg>Bestätigung innerhalb von 24 Stunden</li>
+        <li><svg aria-hidden="true"><use href="#i-haken"/></svg>Wir halten Ihren Tisch 15 Minuten</li>
+        <li><svg aria-hidden="true"><use href="#i-haken"/></svg>Kostenfrei stornieren bis 24 Stunden vorher</li>
+      </ul>
+    </div>
+
+    <!-- Formular: Ohne Endpunkt läuft es im Demo-Modus (nichts wird versendet).
+         Für echten Versand data-endpoint setzen, z. B. data-endpoint="https://formspree.io/f/DEINE-ID" -->
+    <div class="buchung" data-reveal>
+      <form class="buchung__form" data-buchung data-endpoint="" action="mailto:tisch@salz-und-glut.example" method="post" enctype="text/plain" novalidate>
+        <fieldset class="feld-gruppe">
+          <legend>Personen</legend>
+          <div class="stepper" data-stepper>
+            <button class="stepper__btn" type="button" data-step="-1" aria-label="Eine Person weniger">−</button>
+            <input class="stepper__input" type="number" id="b-personen" name="personen" value="2" min="1" max="8" inputmode="numeric" aria-label="Anzahl der Personen">
+            <button class="stepper__btn" type="button" data-step="1" aria-label="Eine Person mehr">+</button>
+          </div>
+          <p class="feld-hinweis" data-gruppe-hinweis hidden>Ab neun Personen bitte telefonisch anfragen.</p>
+        </fieldset>
+
+        <fieldset class="feld-gruppe">
+          <legend>Datum</legend>
+          <div class="chips-scroll" data-daten-wrap hidden>
+            <div class="chips chips--daten" data-daten></div>
+          </div>
+          <input class="feld feld--nativ" type="date" name="datum" aria-label="Datum" required data-datum>
+          <p class="feld-fehler" id="fehler-datum" data-fehler="datum" hidden>Bitte wählen Sie ein Datum.</p>
+        </fieldset>
+
+        <fieldset class="feld-gruppe">
+          <legend>Uhrzeit</legend>
+          <div class="zeiten-wahl" data-zeiten hidden></div>
+          <input class="feld feld--nativ" type="time" name="uhrzeit" aria-label="Uhrzeit" step="900" required data-uhrzeit>
+          <p class="feld-fehler" id="fehler-uhrzeit" data-fehler="uhrzeit" hidden>Bitte wählen Sie eine Uhrzeit.</p>
+        </fieldset>
+
+        <div class="felder">
+          <div class="feld-wrap">
+            <label for="b-name">Name</label>
+            <input class="feld" id="b-name" name="name" autocomplete="name" required aria-describedby="fehler-name">
+            <p class="feld-fehler" id="fehler-name" data-fehler="name" hidden>Bitte geben Sie Ihren Namen an.</p>
+          </div>
+          <div class="feld-wrap">
+            <label for="b-mail">E-Mail</label>
+            <input class="feld" id="b-mail" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" required aria-describedby="fehler-email">
+            <p class="feld-fehler" id="fehler-email" data-fehler="email" hidden>Bitte geben Sie eine gültige E-Mail-Adresse an.</p>
+          </div>
+          <div class="feld-wrap">
+            <label for="b-tel">Telefon <span>(optional)</span></label>
+            <input class="feld" id="b-tel" name="telefon" type="tel" autocomplete="tel">
+          </div>
+          <div class="feld-wrap feld-wrap--voll">
+            <label for="b-notiz">Anmerkungen <span>(optional)</span></label>
+            <textarea class="feld" id="b-notiz" name="anmerkung" rows="3" placeholder="Allergien, Anlass, Kinderstuhl …" data-notiz></textarea>
+          </div>
+        </div>
+
+        <label class="check">
+          <input type="checkbox" name="datenschutz" required aria-describedby="fehler-datenschutz">
+          <span class="check__box" aria-hidden="true"><svg><use href="#i-haken"/></svg></span>
+          <span>Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Reservierung gespeichert werden. Mehr in der <a href="../../restaurant/datenschutz.html">Datenschutzerklärung</a>.</span>
+        </label>
+        <p class="feld-fehler" id="fehler-datenschutz" data-fehler="datenschutz" hidden>Bitte stimmen Sie der Verarbeitung zu.</p>
+
+        <div class="buchung__fuss">
+          <p class="buchung__summe" data-summe aria-live="polite">Bitte Datum und Uhrzeit wählen</p>
+          <button class="btn btn--accent btn--lg buchung__senden" type="submit" data-senden>
+            <span class="buchung__senden-text" data-senden-text>Anfrage senden</span>
+            <span class="buchung__lader" aria-hidden="true"><i></i><i></i><i></i></span>
+          </button>
+        </div>
+        <p class="feld-fehler buchung__fehler" data-fehler="senden" hidden role="alert">Das hat leider nicht geklappt. Bitte versuchen Sie es noch einmal oder rufen Sie uns an.</p>
+      </form>
+
+      <div class="buchung__danke" data-danke hidden tabindex="-1">
+        <svg class="buchung__haken" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" pathLength="1"/><path d="m15 27 7.5 7.5L38 19" pathLength="1"/></svg>
+        <h3 class="buchung__danke-titel">Danke<span data-danke-name></span>!</h3>
+        <p data-danke-text>Wir haben Ihre Anfrage erhalten und melden uns mit einer Bestätigung per E-Mail.</p>
+        <p class="buchung__demo" data-danke-demo hidden>Demo-Modus: Diese Anfrage wurde nicht versendet.</p>
+        <button class="btn btn--line" type="button" data-neu>Weitere Reservierung</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BESUCH / KONTAKT ============ -->
+<section class="besuch" id="besuch" aria-labelledby="besuch-title">
+  <div class="container besuch__grid">
+    <div class="besuch__info">
+      <p class="eyebrow" data-reveal>Besuch</p>
+      <h2 class="h2" id="besuch-title" data-reveal>So finden Sie <em>uns</em></h2>
+      <address class="besuch__adresse" data-reveal>
+        Salz &amp; Glut<br>
+        Marktgasse 12<br>
+        00000 Musterstadt
+      </address>
+      <ul class="besuch__kontakt" data-reveal>
+        <li><a href="tel:+49123456789"><svg aria-hidden="true"><use href="#i-telefon"/></svg>0123 456 789</a></li>
+        <li><a href="mailto:tisch@salz-und-glut.example"><svg aria-hidden="true"><use href="#i-pfeil"/></svg>tisch@salz-und-glut.example</a></li>
+        <!-- Eigene Profil-Adresse eintragen oder Zeile löschen -->
+        <li><a href="https://www.instagram.com/" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-instagram"/></svg>Instagram</a></li>
+      </ul>
+      <p class="besuch__anreise" data-reveal>Zwei Minuten vom Marktplatz. Parkhaus Altstadt in der Nähe, Haltestelle „Rathaus“ direkt um die Ecke.</p>
+    </div>
+
+    <div class="zeiten" data-reveal>
+      <div class="zeiten__kopf">
+        <h3 class="zeiten__titel">Öffnungszeiten</h3>
+        <p class="status" data-status><span class="status__dot" aria-hidden="true"></span><span data-status-text>Mi – So ab 17:30 Uhr</span></p>
+      </div>
+      <!-- Öffnungszeiten: EINZIGE Quelle für Statusanzeige und Reservierungszeiten.
+           data-tag: 0 = Sonntag … 6 = Samstag. data-zeiten: "HH:MM-HH:MM", mehrere mit Komma, leer = Ruhetag.
+           Bei Änderungen auch das JSON-LD im <head> anpassen. -->
+      <table class="zeiten__tabelle" data-oeffnungszeiten data-zeitzone="Europe/Berlin" data-letzte-reservierung="90">
+        <caption class="sr-only">Öffnungszeiten nach Wochentag</caption>
+        <tbody>
+          <tr data-tag="1" data-zeiten=""><th scope="row">Montag</th><td>Ruhetag</td></tr>
+          <tr data-tag="2" data-zeiten=""><th scope="row">Dienstag</th><td>Ruhetag</td></tr>
+          <tr data-tag="3" data-zeiten="17:30-23:00"><th scope="row">Mittwoch</th><td>17:30 – 23:00</td></tr>
+          <tr data-tag="4" data-zeiten="17:30-23:00"><th scope="row">Donnerstag</th><td>17:30 – 23:00</td></tr>
+          <tr data-tag="5" data-zeiten="17:30-24:00"><th scope="row">Freitag</th><td>17:30 – 24:00</td></tr>
+          <tr data-tag="6" data-zeiten="12:00-15:00,17:30-24:00"><th scope="row">Samstag</th><td>12:00 – 15:00<br>17:30 – 24:00</td></tr>
+          <tr data-tag="0" data-zeiten="12:00-15:00,17:30-22:00"><th scope="row">Sonntag</th><td>12:00 – 15:00<br>17:30 – 22:00</td></tr>
+        </tbody>
+      </table>
+      <p class="zeiten__notiz">Warme Küche bis 90 Minuten vor Schluss.</p>
+    </div>
+
+    <a class="lageplan" href="https://www.google.com/maps/search/?api=1&amp;query=Marktgasse+12+Musterstadt" target="_blank" rel="noopener" data-reveal="clip" aria-label="Route planen in Google Maps (öffnet neues Fenster)">
+      <!-- Stilisierter Lageplan statt eingebetteter Karte: lädt nichts von Dritten (Datenschutz) -->
+      <svg class="lageplan__svg" viewBox="0 0 1200 520" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+        <rect width="1200" height="520" class="lp-grund"/>
+        <path class="lp-park" d="M954 0h246v136H954z"/>
+        <path class="lp-fluss" d="M-40 410C160 360 330 470 560 425S930 330 1240 380"/>
+        <g class="lp-haeuser">
+          <rect x="14" y="14" width="110" height="62" rx="4"/>
+          <rect x="136" y="14" width="110" height="62" rx="4"/>
+          <rect x="14" y="104" width="110" height="32" rx="4"/>
+          <rect x="136" y="104" width="110" height="32" rx="4"/>
+          <rect x="14" y="164" width="110" height="47" rx="4"/>
+          <rect x="136" y="164" width="110" height="47" rx="4"/>
+          <rect x="14" y="239" width="110" height="47" rx="4"/>
+          <rect x="136" y="239" width="110" height="47" rx="4"/>
+          <rect x="274" y="14" width="75" height="62" rx="4"/>
+          <rect x="361" y="14" width="75" height="62" rx="4"/>
+          <rect x="274" y="104" width="75" height="32" rx="4"/>
+          <rect x="361" y="104" width="75" height="32" rx="4"/>
+          <rect x="274" y="164" width="75" height="47" rx="4"/>
+          <rect x="361" y="164" width="75" height="47" rx="4"/>
+          <rect x="274" y="239" width="75" height="47" rx="4"/>
+          <rect x="361" y="239" width="75" height="47" rx="4"/>
+          <rect x="464" y="14" width="75" height="62" rx="4"/>
+          <rect x="551" y="14" width="75" height="62" rx="4"/>
+          <rect x="464" y="104" width="75" height="32" rx="4"/>
+          <rect x="551" y="104" width="75" height="32" rx="4"/>
+          <rect x="654" y="14" width="112" height="62" rx="4"/>
+          <rect x="654" y="104" width="112" height="32" rx="4"/>
+          <rect x="654" y="164" width="112" height="47" rx="4"/>
+          <rect x="654" y="239" width="112" height="47" rx="4"/>
+          <rect x="794" y="14" width="132" height="62" rx="4"/>
+          <rect x="794" y="104" width="132" height="32" rx="4"/>
+          <rect x="794" y="164" width="132" height="47" rx="4"/>
+          <rect x="794" y="239" width="132" height="47" rx="4"/>
+          <rect x="954" y="164" width="112" height="47" rx="4"/>
+          <rect x="954" y="239" width="112" height="47" rx="4"/>
+          <rect x="1094" y="164" width="92" height="47" rx="4"/>
+          <rect x="1094" y="239" width="92" height="47" rx="4"/>
+          <rect x="14" y="478" width="232" height="60" rx="4"/>
+          <rect x="274" y="478" width="162" height="60" rx="4"/>
+          <rect x="654" y="478" width="112" height="60" rx="4"/>
+          <rect x="794" y="478" width="132" height="60" rx="4"/>
+          <rect x="1094" y="478" width="92" height="60" rx="4"/>
+        </g>
+        <g class="lp-gasse">
+          <path d="M0 90h1200M0 225h1200M450 0v300M780 0v300M1080 136v164M160 300v200"/>
+        </g>
+        <g class="lp-strasse">
+          <path d="M0 150h1200M0 300h1200M260 0v520M640 0v520M940 0v520M470 300l90 220M1010 300l-60 220"/>
+        </g>
+        <rect class="lp-markt" x="464" y="164" width="162" height="122" rx="6"/>
+        <text class="lp-text" x="545" y="231" text-anchor="middle">Markt</text>
+        <g class="lp-pin" transform="translate(710 225)">
+          <circle class="lp-pin__puls" r="34"/>
+          <circle class="lp-pin__punkt" r="19"/>
+          <use href="#i-flamme" x="-10" y="-11" width="20" height="20" class="lp-pin__flamme"/>
+          <text class="lp-pin__text" x="0" y="-36" text-anchor="middle">Salz &amp; Glut</text>
+        </g>
+      </svg>
+      <span class="lageplan__label">Route planen <svg aria-hidden="true"><use href="#i-pfeil-aussen"/></svg></span>
+    </a>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__cta">
+        <p class="footer__claim">Bis bald <em>am Feuer.</em></p>
+        <a class="btn btn--accent btn--lg" href="#reservieren">Tisch reservieren <svg class="btn__icon" aria-hidden="true"><use href="#i-pfeil"/></svg></a>
+      </div>
+      <nav class="footer__nav" aria-label="Fußzeile">
+        <a href="#kueche">Küche</a>
+        <a href="#karte">Speisekarte</a>
+        <a href="#galerie">Galerie</a>
+        <a href="#anlaesse">Anlässe</a>
+        <a href="#besuch">Anfahrt &amp; Zeiten</a>
+      </nav>
+      <div class="footer__kontakt">
+        <p>Marktgasse 12<br>00000 Musterstadt</p>
+        <p><a href="tel:+49123456789">0123 456 789</a><br><a href="mailto:tisch@salz-und-glut.example">tisch@salz-und-glut.example</a></p>
+      </div>
+    </div>
+    <p class="footer__marke" aria-hidden="true">Salz <em>&amp;</em> Glut</p>
+    <div class="footer__unten">
+      <p>© <span data-jahr>2026</span> Salz &amp; Glut · Demo-Website, alle Inhalte sind Beispiele.</p>
+      <p class="footer__recht"><a href="../../restaurant/impressum.html">Impressum</a><a href="../../restaurant/datenschutz.html">Datenschutz</a></p>
+      <p>Website von <a href="https://filipkramar.de">Filip Kramar</a></p>
+    </div>
+  </div>
+</footer>
+
+<!-- Handy: feste Leiste unten zum Anrufen und Reservieren -->
+<div class="mobilleiste" data-mobilleiste>
+  <a class="mobilleiste__anruf" href="tel:+49123456789"><svg aria-hidden="true"><use href="#i-telefon"/></svg>Anrufen</a>
+  <a class="btn btn--accent mobilleiste__buchen" href="#reservieren">Tisch reservieren</a>
+</div>
+
+<!-- DEMO: Stil-Umschalter. Für ein echtes Restaurant diesen Block und den Block .stil-inline im Menü löschen. -->
+<div class="stil" data-stil-box>
+  <div class="stil__pop" id="stil-optionen" role="group" aria-label="Demo-Stil wählen" data-stil-pop>
+    <p class="stil__titel">Demo-Stil</p>
+    <button class="stil__option" type="button" data-stil-set="glut" aria-pressed="true"><span class="stil-swatch stil-swatch--glut" aria-hidden="true"></span><span><strong>Glut</strong><small>Dunkel · Gastraum</small></span></button>
+    <button class="stil__option" type="button" data-stil-set="salon" aria-pressed="false"><span class="stil-swatch stil-swatch--salon" aria-hidden="true"></span><span><strong>Salon</strong><small>Hell · Gastraum</small></span></button>
+    <button class="stil__option" type="button" data-stil-set="terrasse" aria-pressed="false"><span class="stil-swatch stil-swatch--terrasse" aria-hidden="true"></span><span><strong>Terrasse</strong><small>Frisch · draußen</small></span></button>
+  </div>
+  <button class="stil__toggle" type="button" aria-expanded="false" aria-controls="stil-optionen" data-stil-toggle><svg aria-hidden="true"><use href="#i-pinsel"/></svg>Stil</button>
+</div>
+
+<script src="../../restaurant/assets/vendor/gsap.min.js" defer></script>
+<script src="../../restaurant/assets/vendor/ScrollTrigger.min.js" defer></script>
+<script src="../../restaurant/assets/vendor/lenis.min.js" defer></script>
+<script src="js/main.js" defer></script>
+</body>
+</html>

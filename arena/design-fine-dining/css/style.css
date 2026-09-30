@@ -1,0 +1,694 @@
+/* ==========================================================================
+   Aurel — Degustationsrestaurant · Demo-Design "Fine Dining" · style.css
+   1. Schriften  2. Tokens  3. Basis  4. Bausteine  5. Navigation & Menü
+   6. Hero  7. Philosophie  8. Menü  9. Küchenchef  10. Ein Abend
+   11. Reservierung  12. Besuch  13. Footer  14. Handy-Leiste  15. Motion
+   ========================================================================== */
+
+/* 1. Schriften (selbst gehostet, keine Anfragen an Dritte) */
+@font-face{font-family:'Bodoni Moda';font-style:normal;font-weight:400 700;font-display:swap;src:url(../fonts/bodoni-moda-latin.woff2) format('woff2')}
+@font-face{font-family:'Bodoni Moda';font-style:italic;font-weight:400 700;font-display:swap;src:url(../fonts/bodoni-moda-italic-latin.woff2) format('woff2')}
+@font-face{font-family:'Jost';font-style:normal;font-weight:300 600;font-display:swap;src:url(../fonts/jost-latin.woff2) format('woff2')}
+
+/* 2. Tokens — hier Farben, Schriften und Abstände anpassen.
+      Kontraste (Fließtext) auf --papier: --tinte 16:1, --tinte-2 8,6:1, --leise 5,3:1, --messing 5,3:1 */
+:root{
+  color-scheme:light;
+  /* Papier & Tinte */
+  --papier:#F4F0E8;       /* Seitenhintergrund, Elfenbein */
+  --papier-2:#ECE6DB;     /* Flächen */
+  --karte:#FAF7F1;        /* Formular-"Karte" */
+  --tinte:#1A1714;        /* Text, Knöpfe */
+  --tinte-2:#48413A;      /* Fließtext */
+  --leise:#6B6257;        /* Nebentext */
+  --linie:rgba(26,23,20,.13);
+  --linie-stark:rgba(26,23,20,.3);
+  /* Akzent: dunkles Messing (für Text geeignet) und helles Messing (nur Linien und Ornamente) */
+  --messing:#7A5D32;
+  --messing-hell:#B39364;
+  /* Abend-Abschnitt und Footer */
+  --nacht:#141210; --nacht-2:#221E1A; --nacht-tinte:#EFE9DE; --nacht-leise:#A89E90;
+  /* Schrift auf dem Foto */
+  --foto-tinte:#F7F2E9;
+  /* Status */
+  --ok:#3F7A4E; --bald:#94681A; --fehler:#A3261D;
+
+  /* Schriften */
+  --display:'Bodoni Moda','Bodoni 72','Didot',Georgia,'Times New Roman',serif;
+  --text:'Jost','Futura','Avenir Next',system-ui,-apple-system,'Segoe UI',sans-serif;
+
+  --fs-hero:min(21vw,37svh);
+  --fs-h2:clamp(2.7rem,1.6rem + 4.2vw,6rem);
+  --fs-statement:clamp(1.95rem,1.15rem + 2.7vw,4.1rem);
+  --fs-h3:clamp(1.55rem,1.3rem + .9vw,2.15rem);
+  --fs-lead:clamp(1.12rem,1.04rem + .38vw,1.36rem);
+  --fs-body:clamp(1.02rem,.98rem + .16vw,1.1rem);
+  --fs-versal:.72rem;
+
+  /* Abstände */
+  --gutter:clamp(1.25rem,5vw,4.5rem);
+  --wrap:1360px;
+  --abschnitt:clamp(6.5rem,13vw,12.5rem);
+  --nav-h:84px;
+
+  /* Kurven: ease-out für UI und Einblenden, ease-in-out für Bewegung auf dem Bildschirm */
+  --ease-out:cubic-bezier(.23,1,.32,1);
+  --ease-in-out:cubic-bezier(.77,0,.175,1);
+  --ease-seide:cubic-bezier(.65,.05,.25,1);   /* langsam und weich, für Bilder */
+}
+
+/* 3. Basis */
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;scroll-padding-top:calc(var(--nav-h) + 1.5rem);background:var(--papier)}
+html:not(.motion){scroll-behavior:auto}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+.lenis.lenis-stopped{overflow:hidden}
+body{
+  margin:0;background:var(--papier);color:var(--tinte);
+  font:400 var(--fs-body)/1.7 var(--text);letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  overflow-x:clip;text-rendering:optimizeLegibility;font-optical-sizing:auto;
+}
+img,svg{display:block;max-width:100%;height:auto}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+a,button,label,input,textarea,[role=button]{touch-action:manipulation}
+button,.knopf,.chip,.wahl__opt,.nav__links a,.menu__links a{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+ul,ol{list-style:none;margin:0;padding:0}
+h1,h2,h3,p,figure,blockquote,dl,dd{margin:0}
+input,textarea,select{font:inherit;font-size:max(16px,1rem);color:inherit}
+::selection{background:var(--tinte);color:var(--papier)}
+:focus-visible{outline:1.5px solid var(--messing);outline-offset:4px}
+:where(section,h1,h2)[tabindex="-1"]:focus{outline:none}
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:fixed;left:var(--gutter);top:-100px;z-index:200;display:inline-flex;align-items:center;min-height:44px;padding:.6rem 1.2rem;background:var(--tinte);color:var(--papier);font:500 var(--fs-versal)/1 var(--text);letter-spacing:.2em;text-transform:uppercase}
+.skip:focus{top:calc(env(safe-area-inset-top) + .75rem)}
+
+/* 4. Bausteine */
+.wrap{width:min(100% - 2*var(--gutter),var(--wrap));margin-inline:auto}
+.versal{display:block;font:500 var(--fs-versal)/1.35 var(--text);letter-spacing:.26em;text-transform:uppercase;color:var(--tinte-2)}
+.kicker{display:flex;align-items:center;gap:1rem;margin-bottom:clamp(1.5rem,3vw,2.5rem);font:500 var(--fs-versal)/1 var(--text);letter-spacing:.26em;text-transform:uppercase;color:var(--tinte-2)}
+.kicker__nr{display:inline-flex;align-items:center;gap:1rem;font:italic 400 1.15rem/1 var(--display);letter-spacing:0;text-transform:none;color:var(--messing)}
+.kicker__nr::after{content:"";width:2.75rem;height:1px;background:var(--messing-hell)}
+.kicker--hell{color:var(--nacht-leise)}
+.kicker--hell .kicker__nr{color:var(--messing-hell)}
+.h2{font:400 var(--fs-h2)/1 var(--display);letter-spacing:-.018em;text-wrap:balance}
+.h2 em,.statement em,.fuss__claim em{font-style:italic;color:var(--messing)}
+.kopf{max-width:54rem;margin-bottom:clamp(3rem,6vw,5.5rem)}
+.kopf__lead{margin-top:clamp(1.25rem,2.5vw,2rem);max-width:40ch;font-size:var(--fs-lead);line-height:1.6;color:var(--tinte-2)}
+
+/* Knöpfe: eckig, Versalien, Messing beim Überfahren (per Deckschicht, animiert nur opacity) */
+.knopf{
+  position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;gap:.7rem;
+  min-height:52px;padding:0 1.9rem;background:var(--tinte);color:var(--papier);border:1px solid var(--tinte);
+  font:500 var(--fs-versal)/1 var(--text);letter-spacing:.24em;text-transform:uppercase;white-space:nowrap;
+  transition:transform 160ms var(--ease-out);
+}
+.knopf::before{content:"";position:absolute;inset:-1px;z-index:-1;background:var(--messing);opacity:0;transition:opacity 240ms ease}
+.knopf:active{transform:scale(.97)}
+.knopf--klein{min-height:42px;padding:0 1.25rem}
+.knopf--gross{min-height:58px;padding:0 2.3rem}
+.knopf--hell{background:var(--foto-tinte);color:var(--tinte);border-color:var(--foto-tinte)}
+.knopf--hell::before{background:var(--messing-hell)}
+.knopf:disabled{cursor:progress}
+.linie-link{
+  position:relative;display:inline-flex;align-items:center;gap:.65rem;min-height:44px;padding-block:.5rem;white-space:nowrap;
+  font:500 var(--fs-versal)/1 var(--text);letter-spacing:.24em;text-transform:uppercase;color:var(--tinte);
+}
+.linie-link::before,.linie-link::after{content:"";position:absolute;left:0;right:0;bottom:.55rem;height:1px;background:currentColor}
+.linie-link::before{opacity:.28}
+.linie-link::after{transform:scaleX(0);transform-origin:left;transition:transform 300ms var(--ease-out)}
+.linie-link svg{width:18px;height:18px;flex:none;transition:transform 240ms var(--ease-out)}
+.linie-link:active{transform:scale(.97)}
+@media (hover:hover) and (pointer:fine){
+  .knopf:hover::before{opacity:1}
+  .linie-link:hover::after{transform:scaleX(1)}
+  .linie-link:hover svg{transform:translateX(4px)}
+}
+
+.status{display:inline-flex;align-items:center;gap:.65rem;font:500 .8rem/1.3 var(--text);letter-spacing:.06em;color:var(--tinte-2)}
+.status__punkt{width:7px;height:7px;border-radius:50%;background:var(--leise);flex:none}
+.status.is-offen .status__punkt{background:var(--ok)}
+.status.is-bald .status__punkt{background:var(--bald)}
+
+/* Bogen: das wiederkehrende Motiv. Radius 100vmax wird vom Browser auf die halbe Breite gekürzt = Halbkreis */
+.bogen{position:relative;overflow:hidden;border-radius:100vmax 100vmax 0 0;background:var(--papier-2);isolation:isolate}
+.bogen img{position:absolute;left:0;top:-8%;width:100%;height:116%;object-fit:cover}
+.bogen--hoch{aspect-ratio:4 / 5.4}
+.bogen--klein{width:5.5rem;aspect-ratio:4 / 5;flex:none}
+.bogen--klein img{top:0;height:100%}
+
+/* 5. Navigation */
+.nav{position:fixed;inset:0 0 auto;z-index:50;padding-top:env(safe-area-inset-top);color:var(--tinte);transition:transform 420ms var(--ease-in-out)}
+.nav::before{
+  content:"";position:absolute;inset:0;background:color-mix(in srgb,var(--papier) 88%,transparent);
+  box-shadow:0 1px 0 var(--linie);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  opacity:0;transition:opacity 300ms ease;pointer-events:none;
+}
+.nav.is-fest::before{opacity:1}
+.nav.is-weg{transform:translateY(-101%)}
+.nav__bar{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:var(--nav-h)}
+.nav__marke{justify-self:start;display:inline-flex;align-items:center;min-height:44px;font:400 1.3rem/1 var(--display);letter-spacing:.34em;text-transform:uppercase;margin-right:-.34em}
+.nav__links{display:flex;gap:.3rem}
+.nav__links a{position:relative;display:inline-flex;align-items:center;min-height:44px;padding:0 .9rem;font:500 var(--fs-versal)/1 var(--text);letter-spacing:.22em;text-transform:uppercase;color:var(--tinte-2)}
+.nav__links a::after{content:"";position:absolute;left:.9rem;right:.9rem;bottom:.7rem;height:1px;background:var(--messing);transform:scaleX(0);transform-origin:left;transition:transform 300ms var(--ease-out)}
+.nav__links a[aria-current="true"]{color:var(--tinte)}
+.nav__links a[aria-current="true"]::after{transform:scaleX(1)}
+.nav__aktion{justify-self:end;display:flex;align-items:center;gap:.75rem}
+.nav__burger{display:none;place-items:center;width:48px;height:48px;margin-right:-12px;transition:transform 160ms var(--ease-out)}
+.nav__burger span{display:grid;gap:7px;width:26px}
+.nav__burger i{display:block;height:1px;background:currentColor}
+.nav__burger i:last-child{width:17px;justify-self:end}
+.nav__burger:active{transform:scale(.94)}
+@media (hover:hover) and (pointer:fine){
+  .nav__links a:hover{color:var(--tinte)}
+  .nav__links a:hover::after{transform:scaleX(1)}
+}
+@media (max-width:1023px){
+  :root{--nav-h:64px}
+  .nav__bar{grid-template-columns:1fr auto}
+  .nav__links{display:none}
+  .nav__burger{display:grid}
+  html.no-js .nav__burger{display:none}
+}
+@media (max-width:599px){.nav__cta{display:none}}
+/* Ohne JS: Links als scrollbare Zeile unter der Leiste statt Burger-Menü */
+@media (max-width:1023px){
+  html.no-js .nav__links{display:flex;position:absolute;top:100%;left:0;right:0;overflow-x:auto;background:var(--papier);box-shadow:0 1px 0 var(--linie)}
+}
+
+/* Menü (Vollbild-Dialog auf Handy und Tablet) */
+.menu{
+  position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;
+  background:var(--papier);color:var(--tinte);
+  clip-path:inset(0 0 100% 0);transition:clip-path 300ms var(--ease-in-out);
+}
+.menu::backdrop{background:transparent}
+.menu.is-offen{clip-path:inset(0 0 0 0)}
+.menu__innen{display:flex;flex-direction:column;min-height:100%;padding:env(safe-area-inset-top) var(--gutter) calc(env(safe-area-inset-bottom) + 1.5rem);overflow-y:auto;overscroll-behavior:contain}
+.menu__kopf{display:flex;align-items:center;justify-content:space-between;height:64px}
+.menu__zu{display:grid;place-items:center;width:48px;height:48px;margin-right:-12px;transition:transform 160ms var(--ease-out)}
+.menu__zu svg{width:26px;height:26px}
+.menu__zu:active{transform:scale(.94)}
+.menu__links{margin-top:clamp(2rem,8vh,5rem);border-top:1px solid var(--linie)}
+.menu__links li{border-bottom:1px solid var(--linie)}
+.menu__links a{display:flex;align-items:baseline;gap:1.1rem;padding:.85rem 0;font:400 clamp(1.9rem,8.5vw,3rem)/1.1 var(--display);letter-spacing:-.01em}
+.menu__links a:active{opacity:.6}
+.menu__nr{min-width:2.4rem;font:italic 400 1rem/1 var(--display);color:var(--messing)}
+.menu__fuss{display:grid;gap:1.1rem;margin-top:auto;padding-top:2.5rem;color:var(--tinte-2);font-size:.95rem}
+.menu__fuss a{color:var(--tinte);font-weight:500}
+
+/* 6. Hero — Foto im Bogen, Schrift davor.
+      Geometrie des Bogens (gilt für Zuschnitt, Kontur und Bodenlinie gleichermaßen):
+      --bogen-oben / --bogen-unten = Abstand vom oberen/unteren Rand, --bogen-seite = seitlicher Abstand in % der Breite,
+      --bogen-radius muss mindestens die halbe Bogenbreite sein (der Browser kürzt ihn auf einen exakten Halbkreis). */
+.hero{
+  --bogen-oben:calc(var(--nav-h) + env(safe-area-inset-top) + clamp(.75rem,4vh,2.75rem));
+  --bogen-seite:33.5%;
+  --bogen-unten:clamp(4.5rem,9.5vh,6rem);
+  --bogen-radius:calc(16.5vw + 24px);
+  --spalte:calc(33.5vw - var(--gutter) - 2.5rem); /* Breite der Textspalten neben dem Bogen (zu --bogen-seite passend halten) */
+  --titel-luft:clamp(1.25rem,6.5vh,4.5rem);
+  --hero-fokus:50% 50%;
+  position:relative;isolation:isolate;height:100vh;height:100svh;min-height:600px;overflow:hidden;background:var(--papier);
+}
+.hero__rahmen{
+  position:absolute;inset:0;z-index:2;background:#17120E;
+  clip-path:inset(var(--bogen-oben) var(--bogen-seite) var(--bogen-unten) var(--bogen-seite) round var(--bogen-radius) var(--bogen-radius) 0 0);
+}
+.hero__tiefe{position:absolute;inset:-7% 0}
+.hero__bild,.hero__bild img{position:absolute;inset:0;width:100%;height:100%}
+.hero__bild img{object-fit:cover;object-position:var(--hero-fokus)}
+.hero__schleier{position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,9,7,.28) 0%,rgba(12,9,7,.06) 42%,rgba(12,9,7,.42) 100%)}
+.hero__schrift{
+  position:absolute;inset:0;z-index:1;display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:calc(var(--bogen-unten) + var(--titel-luft));pointer-events:none;color:var(--tinte);
+}
+.hero__schrift--hell{z-index:auto;color:var(--foto-tinte)}
+.hero__titel{font:400 var(--fs-hero)/.8 var(--display);letter-spacing:.07em;margin-right:-.07em;white-space:nowrap}
+.hero__schrift--hell .hero__titel{text-shadow:0 2px 30px rgba(0,0,0,.25)}
+.hero__maske{display:block;clip-path:inset(-40% -10% 0 -10%)}
+.hero__b{display:inline-block}
+.hero__kontur{
+  position:absolute;z-index:3;pointer-events:none;
+  top:calc(var(--bogen-oben) - 14px);left:calc(var(--bogen-seite) - 14px);right:calc(var(--bogen-seite) - 14px);bottom:var(--bogen-unten);
+  border:1px solid var(--messing-hell);border-bottom:0;border-radius:100vmax 100vmax 0 0;
+}
+.hero__boden{position:absolute;z-index:3;left:var(--gutter);right:var(--gutter);bottom:var(--bogen-unten);height:1px;background:var(--linie-stark)}
+.hero__oben,.hero__unten{position:absolute;left:0;right:0;z-index:4;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+.hero__oben{top:var(--bogen-oben)}
+.hero__unten{top:calc(var(--bogen-oben) + clamp(5.5rem,15vh,9rem))}
+.hero__oben>*,.hero__unten>*{pointer-events:auto;max-width:var(--spalte)}
+.hero__notiz{display:grid;gap:.6rem}
+.hero__notiz-zeile{font:italic 400 1.2rem/1.3 var(--display);color:var(--tinte-2)}
+.hero__notiz--rechts{justify-items:end;text-align:right}
+.hero__mobil-versal{display:none}
+.hero__lead{font:400 var(--fs-lead)/1.55 var(--text);color:var(--tinte-2);max-width:min(26ch,var(--spalte))}
+.hero__ctas{display:grid;justify-items:end;gap:.5rem}
+/* Der Knopf "Tisch anfragen" steht auf größeren Bildschirmen schon in der Navigation */
+.hero__ctas .knopf{display:none}
+@media (max-width:599px){.hero__ctas .knopf{display:inline-flex}}
+.hero__meta{position:absolute;left:0;right:0;bottom:0;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:1rem;height:var(--bogen-unten);padding-bottom:env(safe-area-inset-bottom)}
+.hero__adresse{font:500 .8rem/1.3 var(--text);letter-spacing:.06em;color:var(--tinte-2)}
+@media (max-height:700px) and (min-width:1024px){.hero__unten{top:calc(var(--bogen-oben) + 4.5rem)}.hero__lead{display:none}}
+
+/* Tablet und Handy: Bogen breiter, Text unter der Bodenlinie */
+@media (max-width:1023px){
+  .hero{--bogen-seite:21%;--bogen-unten:clamp(15rem,34svh,19rem);--bogen-radius:calc(29vw + 24px);--fs-hero:min(18vw,22svh)}
+  /* Schrift liegt hier im oberen Drittel des Bogens, über der dunklen Sitzbank im Foto (bessere Lesbarkeit) */
+  .hero__schrift{top:29%;bottom:auto;padding-bottom:0;align-items:flex-start}
+  .hero__oben{display:none}
+  .hero__unten{top:auto;bottom:calc(var(--bogen-unten) - 1.75rem);transform:translateY(100%);flex-direction:column;align-items:flex-start;gap:1rem}
+  .hero__unten>*,.hero__lead{max-width:34rem}
+  .hero__mobil-versal{display:block}
+  .hero__ctas{grid-auto-flow:column;align-items:center;gap:1.5rem}
+  .hero__meta{height:auto;padding:0 0 calc(1.1rem + env(safe-area-inset-bottom))}
+}
+@media (max-width:699px){
+  .hero{--bogen-seite:19%;--bogen-unten:clamp(15rem,37svh,18.5rem);--bogen-radius:calc(31vw + 24px);--fs-hero:23vw;min-height:620px}
+  .hero__adresse{display:none}
+  .hero__lead{font-size:1.06rem}
+  .hero__unten{gap:.85rem}
+  .hero__ctas{gap:1.1rem}
+}
+
+/* 7. Philosophie */
+.abschnitt{position:relative;padding-block:var(--abschnitt)}
+.philosophie{padding-bottom:calc(var(--abschnitt) * .55)}
+.philosophie__raster{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:1.5rem}
+.philosophie .kicker,.philosophie .statement{grid-column:1 / -1}
+.statement{max-width:24ch;font:400 var(--fs-statement)/1.14 var(--display);letter-spacing:-.012em;text-wrap:pretty}
+.philosophie__text{grid-column:6 / 13;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2rem;margin-top:clamp(3rem,6vw,5.5rem);color:var(--tinte-2)}
+.philosophie__text p{margin:0}
+.fakten{grid-column:1 / -1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:clamp(4rem,8vw,7rem);border-top:1px solid var(--linie)}
+.fakt{display:flex;flex-direction:column-reverse;gap:.9rem;padding:2rem 1.5rem 0 0}
+.fakt+.fakt{padding-left:1.5rem;border-left:1px solid var(--linie)}
+.fakt dd{font:400 clamp(3rem,1.9rem + 4vw,6.5rem)/.9 var(--display);letter-spacing:-.02em;font-variant-numeric:lining-nums}
+.fakt dt{font:500 var(--fs-versal)/1.4 var(--text);letter-spacing:.2em;text-transform:uppercase;color:var(--leise)}
+.breitbild{margin-top:clamp(5rem,10vw,9rem)}
+.breitbild__rahmen{position:relative;overflow:hidden;aspect-ratio:16 / 9;background:var(--papier-2)}
+.breitbild__rahmen img{position:absolute;left:0;top:-8%;width:100%;height:116%;object-fit:cover}
+.breitbild figcaption{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:1.5rem;margin-top:1.1rem;font-size:.92rem;color:var(--leise)}
+.breitbild figcaption .versal{color:var(--tinte-2)}
+@media (max-width:899px){
+  .philosophie__text{grid-column:1 / -1;grid-template-columns:minmax(0,1fr);gap:1.1rem}
+  .fakten{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fakt:nth-child(3){padding-left:0;border-left:0}
+  .fakt:nth-child(n+3){margin-top:1.5rem;border-top:1px solid var(--linie)}
+  .breitbild__rahmen{aspect-ratio:4 / 3}
+  .breitbild figcaption{grid-template-columns:minmax(0,1fr);gap:.4rem}
+}
+
+/* 8. Menü */
+.menue{background:var(--papier)}
+.konfig{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.45fr);gap:1.5rem 2.25rem;padding:2rem 0;border-block:1px solid var(--linie)}
+.wahl{margin:0;padding:0;border:0;min-width:0}
+.wahl legend{padding:0;margin-bottom:.85rem}
+/* Segment-Auswahl: echte Radio-Knöpfe. Die dunkle Markierung ist eine Kopie der Beschriftung in Negativ,
+   per clip-path auf die gewählte Option zugeschnitten – sie gleitet, der Text wechselt die Farbe exakt an der Kante. */
+.wahl__reihe{--k:0;position:relative;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));border:1px solid var(--linie-stark);background:transparent}
+.wahl__reihe:has(>.wahl__opt:nth-child(2) input:checked){--k:1}
+.wahl__reihe:has(>.wahl__opt:nth-child(3) input:checked){--k:2}
+.wahl__opt,.wahl__invers>span{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;min-height:3.9rem;padding:.65rem .5rem;text-align:center}
+.wahl__opt{position:relative;cursor:pointer}
+.wahl__opt+.wahl__opt::before{content:"";position:absolute;left:0;top:28%;bottom:28%;width:1px;background:var(--linie)}
+.wahl__opt input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.wahl__opt>span,.wahl__invers>span>span{font:500 var(--fs-versal)/1.2 var(--text);letter-spacing:.2em;text-transform:uppercase}
+.wahl__opt>small,.wahl__invers small{font:italic 400 .95rem/1.1 var(--display);color:var(--leise)}
+.wahl__invers{
+  position:absolute;inset:0;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));
+  background:var(--tinte);color:var(--papier);pointer-events:none;
+  clip-path:inset(0 calc((var(--n) - 1 - var(--k)) * 100% / var(--n)) 0 calc(var(--k) * 100% / var(--n)));
+  transition:clip-path 280ms var(--ease-out);
+}
+.wahl__invers small{color:rgba(244,240,232,.72)}
+.wahl__reihe:has(input:focus-visible){outline:1.5px solid var(--messing);outline-offset:4px}
+.wahl__opt:active{transform:scale(.97)}
+/* Ohne :has()-Unterstützung: klassische Markierung */
+@supports not selector(:has(*)){
+  .wahl__invers{display:none}
+  .wahl__opt:focus-within{outline:1.5px solid var(--messing);outline-offset:-4px}
+  .wahl__opt input{opacity:1;position:static;width:auto;height:auto;accent-color:var(--tinte)}
+}
+
+.menue__buehne{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:1.5rem;margin-top:clamp(3rem,6vw,5rem)}
+.menue__bogen{grid-column:1 / 6;align-self:start;position:sticky;top:calc(var(--nav-h) + 4vh)}
+.menue__bogen .bogen{max-height:calc(100svh - var(--nav-h) - 12vh);width:min(100%,calc((100svh - var(--nav-h) - 12vh) * 4 / 5.4));margin-inline:auto}
+.menue__bogen .bogen img{opacity:0;transform:scale(1.05);transition:opacity 700ms var(--ease-out),transform 1400ms var(--ease-out)}
+.menue__bogen .bogen img.is-an{opacity:1;transform:none}
+.menue__bogen figcaption{display:flex;justify-content:center;align-items:baseline;gap:1rem;margin-top:1.1rem;font:italic 400 1.15rem/1.3 var(--display);color:var(--tinte-2)}
+.menue__bogen figcaption .versal{color:var(--messing)}
+.menue__karte{grid-column:7 / 13;min-width:0}
+
+.gaenge{counter-reset:gang;border-top:1px solid var(--linie)}
+.gang{
+  counter-increment:gang;position:relative;display:grid;grid-template-columns:4.25rem minmax(0,1fr);column-gap:1rem;
+  padding:2.1rem 0 2.2rem;border-bottom:1px solid var(--linie);
+}
+.gang::before{
+  content:counter(gang,upper-roman);grid-row:1 / span 4;padding-top:.15rem;
+  font:italic 400 1.5rem/1 var(--display);color:var(--messing);font-variant-numeric:lining-nums;
+}
+.gang::after{content:"";position:absolute;left:-1.25rem;top:2.1rem;bottom:2.2rem;width:1px;background:var(--messing);transform:scaleY(0);transform-origin:top;transition:transform 400ms var(--ease-out)}
+.gang.is-aktiv::after{transform:scaleY(1)}
+.gang>*{grid-column:2}
+.gang__art{color:var(--leise);margin-bottom:.7rem}
+.gang__nur7{letter-spacing:.12em;text-transform:none;font-weight:400}
+.gang__name{font:400 var(--fs-h3)/1.12 var(--display);letter-spacing:-.01em}
+.gang__teile{margin-top:.55rem;color:var(--tinte-2)}
+.gang__begleitung{margin-top:.9rem;font:italic 400 1.02rem/1.35 var(--display);color:var(--messing)}
+.gang__begleitung>span{align-items:center;gap:.55rem}
+.gang__wein{display:inline-flex}
+.gang__begleitung svg{width:17px;height:17px;flex:none}
+/* Auswahl wirkt ohne JavaScript per :has(); mit JavaScript übernimmt main.js das Ein- und Ausblenden (mit Bewegung) */
+.gang__vegetarisch,.gang__begleitung .gang__frei{display:none}
+.menue:has(input[name="kueche"][value="vegetarisch"]:checked) .gang__vegetarisch{display:inline}
+.menue:has(input[name="kueche"][value="vegetarisch"]:checked) .gang__klassisch{display:none}
+.menue:has(input[name="begleitung"][value="frei"]:checked) .gang__begleitung .gang__frei{display:inline-flex}
+.menue:has(input[name="begleitung"][value="frei"]:checked) .gang__begleitung .gang__wein{display:none}
+.menue:has(input[name="begleitung"][value="ohne"]:checked) .gang__begleitung{display:none}
+html:not(.js) .menue:has(input[name="umfang"][value="5"]:checked) .gang[data-nur7]{display:none}
+.gang.is-weg{opacity:0;transition:opacity 180ms ease}
+.gang.is-kommt{opacity:0}
+.gang.is-kommt-an{opacity:1;transition:opacity 260ms ease 60ms}
+.gaenge.is-wechsel .gang__name,.gaenge.is-wechsel .gang__teile,.gaenge.is-wechsel .gang__begleitung{animation:auftauchen 320ms var(--ease-out) both}
+.gaenge.is-neu-gezaehlt .gang::before{animation:auftauchen 300ms var(--ease-out) both}
+@keyframes auftauchen{from{opacity:0;transform:translateY(5px)}}
+
+.summe{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.25rem 2rem;margin-top:2.5rem;padding:1.6rem 1.75rem;background:var(--papier-2)}
+.summe__text{display:grid;gap:.45rem}
+.summe__text .versal{color:var(--messing)}
+.summe__wert{font:400 1.3rem/1.3 var(--display)}
+.summe__wert.is-neu{animation:auftauchen 320ms var(--ease-out) both}
+
+.preise{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2.5rem;margin-top:clamp(5rem,10vw,8.5rem);padding-top:3rem;border-top:1px solid var(--linie)}
+.preise__titel{margin-bottom:1.25rem;font:italic 400 1.6rem/1.2 var(--display)}
+.preisliste li{display:flex;justify-content:space-between;align-items:baseline;gap:1.25rem;padding:.85rem 0;border-bottom:1px solid var(--linie)}
+.preisliste li>span:first-child{display:grid}
+.preisliste em{font-style:normal;font-size:.88rem;color:var(--leise)}
+.preis{flex:none;font:400 1.15rem/1 var(--display);font-variant-numeric:lining-nums tabular-nums;white-space:nowrap}
+.preise__notiz{max-width:60ch;margin-top:2rem;font-size:.9rem;color:var(--leise)}
+@media (max-width:1023px){
+  .konfig{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .wahl--breit{grid-column:1 / -1}
+  .menue__buehne{grid-template-columns:minmax(0,1fr)}
+  .menue__bogen{display:none}
+  .menue__karte{grid-column:1 / -1}
+  .preise{grid-template-columns:minmax(0,1fr);gap:2.5rem}
+  .gang::after{display:none}
+}
+@media (max-width:599px){
+  .konfig{grid-template-columns:minmax(0,1fr);padding:1.5rem 0}
+  .wahl__opt,.wahl__invers>span{min-height:3.6rem;padding:.55rem .3rem}
+  .wahl__opt>span,.wahl__invers>span>span{letter-spacing:.14em}
+  .gang{grid-template-columns:2.75rem minmax(0,1fr);padding:1.75rem 0}
+  .summe{padding:1.4rem 1.25rem}
+  .summe .knopf{width:100%}
+}
+
+/* 9. Küchenchef */
+.chef{background:var(--papier-2)}
+.chef__raster{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:1.5rem;align-items:center}
+.chef__bild{grid-column:1 / 6}
+.chef__text{grid-column:7 / 13;min-width:0}
+.chef__rolle{margin-top:1.1rem;color:var(--messing)}
+.zitat{position:relative;margin:clamp(2rem,4vw,3rem) 0;padding-top:2rem;border-top:1px solid var(--messing-hell)}
+.zitat p{font:italic 400 clamp(1.6rem,1.15rem + 1.6vw,2.6rem)/1.22 var(--display);letter-spacing:-.01em;text-wrap:balance}
+.chef__text>p:not([class]){color:var(--tinte-2);max-width:46ch}
+.stationen{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 2rem;margin-top:2.25rem;border-top:1px solid var(--linie)}
+.stationen li{display:flex;align-items:baseline;gap:1rem;padding:.85rem 0;border-bottom:1px solid var(--linie);font-size:.95rem;color:var(--tinte-2)}
+.stationen span{font:italic 400 1.1rem/1 var(--display);color:var(--messing);font-variant-numeric:lining-nums}
+.sommeliere{display:flex;align-items:center;gap:1.4rem;margin-top:2.75rem;padding:1.4rem;background:var(--papier)}
+.sommeliere .versal{color:var(--messing)}
+.sommeliere__name{margin:.35rem 0 .45rem;font:400 1.45rem/1.2 var(--display)}
+.sommeliere p:not(.versal):not(.sommeliere__name){font-size:.92rem;line-height:1.6;color:var(--tinte-2)}
+.sommeliere p+p{margin-top:0}
+@media (max-width:899px){
+  .chef__raster{grid-template-columns:minmax(0,1fr)}
+  .chef__bild{grid-column:1;width:min(84%,26rem);margin:0 auto clamp(3rem,10vw,4.5rem)}
+  .chef__text{grid-column:1}
+  .stationen{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:459px){.sommeliere{flex-direction:column;align-items:flex-start}}
+
+/* 10. Ein Abend — dunkler Abschnitt mit Bildstrecke */
+.abend{background:var(--nacht);color:var(--nacht-tinte);padding-bottom:calc(var(--abschnitt) * .8)}
+.abend .h2 em{color:var(--messing-hell)}
+.abend__kopf{margin-bottom:clamp(3.5rem,7vw,6rem)}
+.raum{position:relative}
+.raum__buehne{position:relative;width:min(100% - 2*var(--gutter),var(--wrap));margin-inline:auto}
+.raum__bild{position:relative;overflow:hidden;aspect-ratio:16 / 9;background:var(--nacht-2)}
+.raum__bild img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.raum__bild::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,11,9,0) 38%,rgba(14,11,9,.5) 68%,rgba(14,11,9,.86) 100%)}
+.raum__text{text-shadow:0 2px 28px rgba(10,8,6,.5);position:absolute;left:clamp(1.25rem,4vw,3.5rem);right:clamp(1.25rem,4vw,3.5rem);bottom:clamp(1.25rem,4vw,3.25rem);z-index:2;display:grid;gap:.9rem;max-width:26ch;font:400 clamp(1.5rem,1rem + 2vw,3rem)/1.15 var(--display);color:var(--foto-tinte);text-wrap:balance}
+.raum__text .versal{color:rgba(247,242,233,.85)}
+/* Desktop mit GSAP: Bühne bleibt stehen, der Bogen öffnet sich bis zum Rand */
+.raum--pin .raum__buehne{width:100%;height:100vh;height:100svh}
+.raum--pin .raum__bild{position:absolute;inset:0;aspect-ratio:auto}
+.raum--pin .raum__text{left:50%;right:auto;bottom:12vh;transform:translateX(-50%);text-align:center;justify-items:center;max-width:22ch}
+@media (max-width:899px){
+  .raum__bild{aspect-ratio:4 / 5;border-radius:100vmax 100vmax 0 0}
+  .raum__text{position:static;margin-top:1.5rem;color:var(--nacht-tinte);max-width:none;text-shadow:none}
+  .raum__text .versal{color:var(--messing-hell)}
+  .raum__bild::after{display:none}
+}
+
+.stationen-abend{display:grid;gap:clamp(5rem,11vw,10rem);margin-top:clamp(5rem,11vw,10rem)}
+.station{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:1.5rem;align-items:end}
+.station__bild{grid-column:1 / 8;position:relative;overflow:hidden;aspect-ratio:3 / 2;background:var(--nacht-2)}
+.station__bild img{position:absolute;left:0;top:-7%;width:100%;height:114%;object-fit:cover}
+.station__bild--hoch{aspect-ratio:4 / 5}
+.station__text{grid-column:9 / 13;padding-bottom:.5rem;color:var(--nacht-leise)}
+.station__zeit{font:400 clamp(3.4rem,2rem + 5vw,7.5rem)/.9 var(--display);letter-spacing:-.02em;color:var(--messing-hell);font-variant-numeric:lining-nums}
+.station__titel{margin:1.25rem 0 .9rem;font:italic 400 var(--fs-h3)/1.15 var(--display);color:var(--nacht-tinte)}
+.station--rechts .station__bild{grid-column:7 / 12;grid-row:1}
+.station--rechts .station__text{grid-column:2 / 6;grid-row:1}
+@media (max-width:899px){
+  .station,.station--rechts{grid-template-columns:minmax(0,1fr)}
+  .station__bild,.station--rechts .station__bild{grid-column:1;grid-row:1}
+  .station__bild--hoch{width:78%}
+  .station__text,.station--rechts .station__text{grid-column:1;grid-row:2;margin-top:1.75rem}
+}
+
+/* 11. Reservierung */
+.reservierung__raster{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:1.5rem;align-items:start}
+.reservierung__intro{grid-column:1 / 6;position:sticky;top:calc(var(--nav-h) + 3rem)}
+.buchung{grid-column:7 / 13;min-width:0;padding:clamp(1.5rem,4vw,3.25rem);background:var(--karte);box-shadow:0 0 0 1px var(--linie)}
+.telefon{display:inline-flex;align-items:center;gap:.8rem;min-height:44px;margin-top:1.75rem;font:400 clamp(1.5rem,1.2rem + 1vw,2.1rem)/1 var(--display);font-variant-numeric:lining-nums}
+.telefon svg{width:22px;height:22px;color:var(--messing)}
+.storno{margin-top:clamp(2.5rem,5vw,3.5rem);padding-top:1.75rem;border-top:1px solid var(--messing-hell)}
+.storno__titel{margin-bottom:1rem;font:italic 400 1.5rem/1.2 var(--display)}
+.storno ul{border-top:1px solid var(--linie)}
+.storno li{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:1rem;padding:.75rem 0;border-bottom:1px solid var(--linie);font-size:.93rem}
+.storno li span{color:var(--leise)}
+.storno>p{margin-top:1.1rem;font-size:.9rem;color:var(--tinte-2)}
+
+.feld-gruppe{margin:0 0 2rem;padding:0;border:0;min-width:0}
+.feld-gruppe legend{padding:0;margin-bottom:.85rem}
+.feld-hinweis{margin-top:.65rem;font-size:.86rem;color:var(--leise)}
+.feld-fehler{margin-top:.55rem;font-size:.86rem;font-weight:500;color:var(--fehler)}
+.chips{display:grid;gap:.5rem}
+.chips--daten{grid-template-columns:repeat(auto-fill,minmax(4.6rem,1fr))}
+.chips--zeiten{grid-template-columns:repeat(auto-fill,minmax(5.4rem,1fr))}
+.chips--personen{grid-template-columns:repeat(6,minmax(0,1fr))}
+.chip{position:relative;display:block;cursor:pointer}
+.chip input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.chip__flaeche{
+  display:grid;place-items:center;gap:.2rem;min-height:48px;padding:.55rem .3rem;border:1px solid var(--linie-stark);
+  font:500 .9rem/1.1 var(--text);letter-spacing:.06em;text-align:center;transition:transform 160ms var(--ease-out);
+}
+.chip__klein{font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--leise)}
+.chip__gross{font:400 1.45rem/1 var(--display);font-variant-numeric:lining-nums}
+.chip input:checked+.chip__flaeche{background:var(--tinte);border-color:var(--tinte);color:var(--papier)}
+.chip input:checked+.chip__flaeche .chip__klein{color:rgba(244,240,232,.75)}
+.chip input:focus-visible+.chip__flaeche{outline:1.5px solid var(--messing);outline-offset:3px}
+.chip:active .chip__flaeche{transform:scale(.97)}
+.chip input:disabled+.chip__flaeche{opacity:.4;cursor:default}
+@media (hover:hover) and (pointer:fine){.chip input:not(:checked):not(:disabled):hover+.chip__flaeche{border-color:var(--tinte)}}
+.feld--nativ{width:100%;max-width:18rem}
+.zeiten-leer{grid-column:1 / -1;font-size:.9rem;color:var(--leise)}
+
+.buchung__menue{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.5rem;margin-bottom:2rem;padding:1.75rem 0;border-block:1px solid var(--linie)}
+.buchung__menue .wahl--breit{grid-column:1 / -1}
+.buchung__menue .wahl__opt,.buchung__menue .wahl__invers>span{min-height:3rem}
+
+.felder{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.6rem 1.5rem}
+.feld-wrap{display:grid;gap:.25rem;min-width:0}
+.feld-wrap--voll{grid-column:1 / -1}
+.feld-wrap label{font:500 var(--fs-versal)/1.3 var(--text);letter-spacing:.22em;text-transform:uppercase;color:var(--tinte-2)}
+.feld-wrap label span{letter-spacing:.06em;text-transform:none;font-weight:400;color:var(--leise)}
+.feld{
+  width:100%;min-height:48px;padding:.7rem 0;border:0;border-bottom:1px solid var(--linie-stark);border-radius:0;background:transparent;
+  font:400 max(16px,1.05rem)/1.4 var(--text);color:var(--tinte);appearance:none;-webkit-appearance:none;
+}
+textarea.feld{resize:vertical;min-height:5.5rem}
+.feld::placeholder{color:var(--leise);opacity:1}
+.feld:focus{outline:none;box-shadow:0 1px 0 0 var(--tinte);border-bottom-color:var(--tinte)}
+.feld:focus-visible{outline:none}
+.feld[aria-invalid="true"]{border-bottom-color:var(--fehler);box-shadow:0 1px 0 0 var(--fehler)}
+.feld--nativ{border:1px solid var(--linie-stark);padding:.7rem .8rem}
+
+.haken{position:relative;display:flex;align-items:flex-start;gap:.9rem;margin-top:1.6rem;font-size:.93rem;line-height:1.55;color:var(--tinte-2);cursor:pointer}
+.haken input{position:absolute;left:0;top:0;width:22px;height:22px;margin:0;opacity:0;cursor:pointer}
+.haken__box{display:grid;place-items:center;width:22px;height:22px;flex:none;margin-top:.05rem;border:1px solid var(--linie-stark);background:var(--karte);transition:transform 160ms var(--ease-out)}
+.haken__box svg{width:16px;height:16px;color:var(--papier);opacity:0;transform:scale(.8);transition:opacity 160ms ease,transform 200ms var(--ease-out)}
+.haken input:checked+.haken__box{background:var(--tinte);border-color:var(--tinte)}
+.haken input:checked+.haken__box svg{opacity:1;transform:none}
+.haken input:focus-visible+.haken__box{outline:1.5px solid var(--messing);outline-offset:3px}
+.haken input[aria-invalid="true"]+.haken__box{border-color:var(--fehler)}
+.haken:active .haken__box{transform:scale(.94)}
+.haken a{color:var(--tinte);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.haken+.feld-fehler{margin-left:2.3rem}
+
+.buchung__fuss{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.25rem 2rem;margin-top:2.25rem;padding-top:1.75rem;border-top:1px solid var(--linie)}
+.buchung__summe{flex:1 1 16rem;font:italic 400 1.1rem/1.45 var(--display);color:var(--tinte-2)}
+.buchung__form.is-laedt [data-senden]{pointer-events:none}
+.buchung__form.is-laedt [data-senden-text]{animation:atmen 1.2s ease-in-out infinite}
+@keyframes atmen{50%{opacity:.45}}
+
+.danke{position:relative;display:grid;justify-items:start;gap:1rem;padding:clamp(1rem,3vw,2rem) 0}
+.danke:focus{outline:none}
+.danke__bogen{width:3.5rem;height:4.4rem;border:1px solid var(--messing-hell);border-bottom:0;border-radius:100vmax 100vmax 0 0;margin-bottom:.5rem}
+.danke .versal{color:var(--messing)}
+.danke__titel{font:400 clamp(2rem,1.5rem + 2vw,3rem)/1.1 var(--display)}
+.danke p{color:var(--tinte-2)}
+.danke__demo{padding:1rem 1.2rem;border:1px solid var(--messing-hell);background:var(--papier);font-size:.93rem}
+.danke p+p{margin-top:0}
+@media (max-width:1023px){
+  .reservierung__raster{grid-template-columns:minmax(0,1fr)}
+  .reservierung__intro{grid-column:1;position:static;margin-bottom:3rem}
+  .buchung{grid-column:1}
+}
+@media (max-width:599px){
+  .felder,.buchung__menue{grid-template-columns:minmax(0,1fr)}
+  .buchung{margin-inline:calc(var(--gutter) * -.5);padding:1.5rem 1.1rem}
+  .buchung__fuss .knopf{width:100%}
+  .storno li{grid-template-columns:minmax(0,1fr);gap:.15rem}
+}
+
+/* 12. Besuch */
+.besuch{padding-bottom:calc(var(--abschnitt) * .7)}
+.besuch__raster{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2.5rem}
+.besuch__spalte{min-width:0}
+.besuch__zeile{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.5rem 1rem}
+.besuch__titel{margin-bottom:1.25rem;font:italic 400 1.6rem/1.2 var(--display)}
+.zeiten{width:100%;border-collapse:collapse;border-top:1px solid var(--linie)}
+.zeiten th,.zeiten td{padding:.7rem 0;border-bottom:1px solid var(--linie);text-align:left;vertical-align:top;font-size:.95rem}
+.zeiten th{font-weight:400;color:var(--tinte-2)}
+.zeiten td{text-align:right;font-variant-numeric:tabular-nums lining-nums}
+.zeiten tr[data-zeiten=""] td{color:var(--leise)}
+.zeiten tr.is-heute th,.zeiten tr.is-heute td{color:var(--tinte);font-weight:500}
+.zeiten tr.is-heute th::before{content:"";display:inline-block;width:5px;height:5px;margin:0 .6rem .15rem 0;border-radius:50%;background:var(--messing)}
+.besuch__notiz{margin-top:.9rem;font-size:.88rem;color:var(--leise)}
+.besuch__adresse{font:400 1.35rem/1.45 var(--display);font-style:normal;margin-bottom:1.5rem}
+.anfahrt{display:grid;gap:1rem;margin-bottom:1.5rem}
+.anfahrt dt{font:500 var(--fs-versal)/1.3 var(--text);letter-spacing:.22em;text-transform:uppercase;color:var(--messing);margin-bottom:.25rem}
+.anfahrt dd{font-size:.95rem;color:var(--tinte-2)}
+.besuch__kontakt{font-size:1rem;line-height:1.9}
+.besuch__kontakt a{border-bottom:1px solid var(--linie-stark)}
+.lageplan{width:100%;height:auto;margin-top:clamp(4rem,8vw,6.5rem);aspect-ratio:4 / 1}
+.lp-strasse path{fill:none;stroke:var(--linie-stark);stroke-width:1}
+.lp-weg path{fill:none;stroke:var(--messing-hell);stroke-width:1;stroke-dasharray:2 6}
+.lp-park{fill:none;stroke:var(--linie-stark);stroke-width:1}
+.lp-park--innen{stroke-dasharray:3 5}
+.lp-halt{fill:var(--papier);stroke:var(--tinte);stroke-width:1}
+.lp-bogen{fill:none;stroke:var(--messing);stroke-width:1.6}
+.lp-text{font:500 13px var(--text);letter-spacing:.24em;text-transform:uppercase;fill:var(--tinte-2)}
+.lp-text--klein{font-size:11px;fill:var(--leise)}
+.lp-text--marke{font:400 18px var(--display);letter-spacing:.34em;fill:var(--tinte)}
+@media (max-width:899px){
+  .besuch__raster{grid-template-columns:minmax(0,1fr);gap:3rem}
+  .lageplan{aspect-ratio:2 / 1;margin-inline:calc(var(--gutter) * -1);width:calc(100% + 2 * var(--gutter));max-width:none}
+}
+
+/* 13. Footer */
+.fuss{background:var(--nacht);color:var(--nacht-tinte);padding:clamp(5rem,10vw,8rem) 0 calc(2rem + env(safe-area-inset-bottom));overflow:hidden}
+.fuss__oben{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:2rem;padding-bottom:clamp(3rem,6vw,4.5rem);border-bottom:1px solid rgba(239,233,222,.14)}
+.fuss__claim{font:400 clamp(2.4rem,1.5rem + 3.8vw,5.2rem)/1.05 var(--display);letter-spacing:-.015em;text-wrap:balance}
+.fuss__claim em{color:var(--messing-hell)}
+.fuss__raster{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2rem;padding-top:3rem;font-size:.95rem;line-height:1.75;color:var(--nacht-leise)}
+.fuss__raster .versal{color:var(--messing-hell);margin-bottom:.7rem}
+.fuss__raster a{color:var(--nacht-tinte)}
+.fuss__marke{margin:clamp(3.5rem,8vw,6rem) 0 clamp(1.5rem,3vw,2.5rem);font:400 clamp(4.5rem,18vw,17rem)/.8 var(--display);letter-spacing:.3em;margin-right:-.3em;text-align:center;text-transform:uppercase;color:var(--nacht-2);white-space:nowrap}
+.fuss__unten{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.75rem 2rem;padding-top:1.5rem;border-top:1px solid rgba(239,233,222,.14);font-size:.85rem;color:var(--nacht-leise)}
+.fuss__unten a{color:var(--nacht-tinte)}
+.fuss__recht{display:flex;gap:1.5rem}
+@media (hover:hover) and (pointer:fine){.fuss a:not(.knopf):hover{color:var(--messing-hell)}}
+@media (max-width:899px){.fuss__raster{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:459px){.fuss__raster{grid-template-columns:minmax(0,1fr)}}
+
+/* 14. Handy-Leiste */
+.leiste{display:none}
+@media (max-width:1023px){
+  .leiste{
+    position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:1rem;
+    padding:.6rem var(--gutter) calc(.6rem + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--papier) 94%,transparent);
+    box-shadow:0 -1px 0 var(--linie);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    transform:translateY(105%);transition:transform 300ms var(--ease-out);
+  }
+  .leiste.is-sichtbar{transform:none}
+  .leiste__anruf{display:inline-flex;align-items:center;gap:.6rem;min-height:48px;font:500 var(--fs-versal)/1 var(--text);letter-spacing:.22em;text-transform:uppercase}
+  .leiste__anruf svg{width:18px;height:18px;color:var(--messing)}
+  .leiste__knopf{min-height:46px}
+  html.no-js .leiste{display:none}
+}
+
+/* 15. Motion
+   Alles unter .motion (gesetzt im <head>, nicht bei "Bewegung reduzieren" oder ?motion=off).
+   Das Intro ist reine CSS-Animation: pausiert, bis main.js das Hero-Bild dekodiert hat (.is-ready),
+   Sicherheitsnetz im <head> startet es sonst nach 1,8 s. */
+.motion .hero__bild img{animation:bild-zurueck 2.9s cubic-bezier(.33,0,.15,1) both paused}
+.motion .hero__rahmen{animation:rahmen-zu 1.85s var(--ease-in-out) .4s both paused}
+.motion .hero__schleier{animation:blende-ein 1.7s var(--ease-in-out) .6s both paused}
+.motion .hero__b{animation:buchstabe 1.4s var(--ease-out) calc(.95s + var(--i) * 70ms) both paused}
+.motion .hero__boden{animation:linie-auf 1.3s var(--ease-in-out) 1.35s both paused}
+.motion .hero__kontur{animation:kontur-auf 1.3s var(--ease-in-out) 1.6s both paused}
+.motion [data-intro]{animation:intro-auf .9s var(--ease-out) calc(1.6s + var(--i) * 60ms) both paused}
+.motion .nav__bar{animation:nav-ein .9s var(--ease-out) 1.5s both paused}
+.motion.is-ready :is(.hero__bild img,.hero__rahmen,.hero__schleier,.hero__b,.hero__boden,.hero__kontur,[data-intro]),
+.motion.is-ready .nav__bar{animation-play-state:running}
+
+@keyframes bild-zurueck{from{transform:scale(1.14)}to{transform:scale(1)}}
+@keyframes rahmen-zu{from{clip-path:inset(0 0 0 0 round 0 0 0 0)}}
+@keyframes blende-ein{from{opacity:0}}
+@keyframes buchstabe{from{transform:translateY(108%)}}
+@keyframes linie-auf{from{clip-path:inset(0 50% 0 50%)}to{clip-path:inset(0 0 0 0)}}
+@keyframes kontur-auf{from{clip-path:inset(100% 0 0 0);opacity:0}to{clip-path:inset(0 0 0 0);opacity:1}}
+@keyframes intro-auf{from{opacity:0;transform:translateY(14px)}}
+@keyframes nav-ein{from{opacity:0;transform:translateY(-10px)}}
+
+/* Einblenden beim Scrollen (main.js setzt .is-in). Startzustand nur mit .motion, Sicherheitsnetz: .js-kaputt */
+.motion [data-reveal]:not(.is-in){opacity:0;transform:translateY(26px)}
+.motion [data-reveal]{transition:opacity 1.1s var(--ease-out) var(--d,0ms),transform 1.3s var(--ease-out) var(--d,0ms)}
+.motion [data-reveal="vorhang"]:not(.is-in){opacity:1;transform:none;clip-path:inset(9% 9% 9% 9%)}
+.motion [data-reveal="vorhang"]{transition:clip-path 1.6s var(--ease-seide) var(--d,0ms)}
+.motion .chef__bild[data-reveal="vorhang"]:not(.is-in),.motion .station__bild--hoch[data-reveal="vorhang"]:not(.is-in){clip-path:inset(100% 0 0 0)}
+.motion svg.lageplan[data-reveal="vorhang"]:not(.is-in){clip-path:inset(0 50% 0 50%)}
+/* Wörter der Leitsätze steigen einzeln aus einer Maske (main.js teilt sie auf) */
+.wort{display:inline-block;clip-path:inset(-20% -6% -18% -6%);vertical-align:top}
+.wort>span{display:inline-block}
+.motion [data-zeilen] .wort>span{transform:translateY(105%);transition:transform 1.2s var(--ease-out) var(--d,0ms)}
+.motion [data-zeilen].is-in .wort>span{transform:none}
+html.js-kaputt [data-reveal],html.js-kaputt [data-reveal] img,html.js-kaputt [data-zeilen] .wort>span{opacity:1!important;transform:none!important;clip-path:none!important}
+
+/* Menü auf/zu */
+.motion .menu__links li{opacity:0;transform:translateY(12px);transition:opacity 300ms var(--ease-out),transform 300ms var(--ease-out)}
+.motion .menu.is-offen .menu__links li{opacity:1;transform:none;transition-delay:calc(90ms + var(--i,0) * 40ms)}
+
+/* Bewegung reduziert / ?motion=off: keine Wege, keine Skalierung, alles sofort sichtbar */
+html:not(.motion) *,html:not(.motion) *::before,html:not(.motion) *::after{animation-duration:1ms!important;animation-delay:0ms!important;animation-iteration-count:1!important}
+html:not(.motion) .buchung__form.is-laedt [data-senden-text]{opacity:.6}
+html:not(.motion) .menue__bogen .bogen img{transform:none;transition:opacity 400ms ease}
+html:not(.motion) .gang::after,html:not(.motion) .linie-link::after,html:not(.motion) .nav{transition:none}
+/* Auch UI ohne Wege und Skalierung: Menü, Markierung, Leiste und Druck-Feedback nur blenden bzw. sofort */
+html:not(.motion) .menu{clip-path:none;opacity:0;transition:opacity 200ms ease}
+html:not(.motion) .menu.is-offen{opacity:1}
+html:not(.motion) .wahl__invers{transition:none}
+html:not(.motion) .leiste{transform:none;opacity:0;pointer-events:none;transition:opacity 200ms ease}
+html:not(.motion) .leiste.is-sichtbar{opacity:1;pointer-events:auto}
+html:not(.motion) .haken__box svg{transform:none}
+html:not(.motion) :is(.knopf,.linie-link,.wahl__opt,.nav__burger,.menu__zu):active,
+html:not(.motion) .chip:active .chip__flaeche,html:not(.motion) .haken:active .haken__box{transform:none}

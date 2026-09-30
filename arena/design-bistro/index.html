@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="de" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Linie 12 · Bistro für Brunch, Bowls &amp; Burger</title>
+<meta name="description" content="Urbanes Bistro am Gleispark: Tageskarte, Brunch am Wochenende, Bowls und Smash-Burger. Walk-ins willkommen, Gruppen bitte anmelden.">
+<!-- DEMO: Seite nicht indexieren. Für ein echtes Restaurant diese Zeile löschen. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#16130F">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Linie 12 · Brunch, Bowls &amp; Burger">
+<meta property="og:description" content="Bistro am Gleispark. Walk-ins willkommen, Brunch Sa + So 9–15 Uhr.">
+<meta property="og:locale" content="de_DE">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="preload" as="font" type="font/woff2" href="fonts/archivo-latin.woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+<script>
+  /* Vor dem ersten Rendern: JS- und Motion-Klassen setzen, damit nichts aufblitzt.
+     ?motion=off oder "Bewegung reduzieren" im System => keine Wege, keine Skalierung. */
+  (function (h) {
+    h.classList.remove('no-js'); h.classList.add('js');
+    var still = /[?&]motion=off\b/.test(location.search) || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (!still) h.classList.add('motion');
+    /* Sicherheitsnetz: Falls main.js nicht lädt, läuft das Intro trotzdem ab */
+    setTimeout(function () { h.classList.add('is-ready'); }, 2600);
+  })(document.documentElement);
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Restaurant",
+  "name": "Linie 12",
+  "description": "Urbanes Bistro für Brunch, Bowls und Burger.",
+  "servesCuisine": ["Brunch", "Bowls", "Burger"],
+  "priceRange": "€€",
+  "acceptsReservations": "True",
+  "telephone": "+49 123 456789",
+  "email": "hallo@linie-12.example",
+  "address": { "@type": "PostalAddress", "streetAddress": "Gleisstraße 12", "postalCode": "00000", "addressLocality": "Musterstadt", "addressCountry": "DE" },
+  "openingHoursSpecification": [
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Tuesday", "Wednesday", "Thursday"], "opens": "08:00", "closes": "22:00" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Friday", "opens": "08:00", "closes": "23:00" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "09:00", "closes": "23:00" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Sunday", "opens": "09:00", "closes": "17:00" }
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+
+<!-- Icons: einmal definiert, überall per <use> -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-pfeil" viewBox="0 0 24 24"><path d="M4 12h15m-6-7 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></symbol>
+  <symbol id="i-runter" viewBox="0 0 24 24"><path d="M12 4v15m-7-6 7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></symbol>
+  <symbol id="i-aussen" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"/></symbol>
+  <symbol id="i-haken" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5L20 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"/></symbol>
+  <symbol id="i-telefon" viewBox="0 0 24 24"><path d="M6.6 3.5h2.6l1.4 4.1-2 1.4a12.5 12.5 0 0 0 6.4 6.4l1.4-2 4.1 1.4v2.6a2 2 0 0 1-2.1 2A16.6 16.6 0 0 1 4.6 5.6a2 2 0 0 1 2-2.1Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-stern" viewBox="0 0 24 24"><path d="M12 1.5l2.2 6.3 6.2-2.6-2.6 6.2 6.2 2.2-6.2 2.2 2.6 6.2-6.2-2.6-2.2 6.3-2.2-6.3-6.2 2.6 2.6-6.2L.2 13.6l6.2-2.2L3.8 5.2 10 7.8Z" fill="currentColor"/></symbol>
+  <symbol id="i-wuerfel" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8.5" cy="8.5" r="1.6" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.6" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.6" fill="currentColor"/></symbol>
+  <symbol id="i-tram" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 12h14M9 2.5h6M12 2.5V5M8 18l-2 3.5M16 18l2 3.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="15" r="1" fill="currentColor"/><circle cx="15" cy="15" r="1" fill="currentColor"/></symbol>
+  <symbol id="i-bus" viewBox="0 0 24 24"><rect x="4" y="3.5" width="16" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 11h16M7 18.5V21M17 18.5V21" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="15" r="1" fill="currentColor"/><circle cx="16" cy="15" r="1" fill="currentColor"/></symbol>
+  <symbol id="i-rad" viewBox="0 0 24 24"><circle cx="6" cy="16" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="16" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 16 9.5 8h6L18 16M9.5 8 12 16h-6M14 5h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-auto" viewBox="0 0 24 24"><path d="M4 16v-4l2.2-5h11.6L20 12v4M4 16h16v3h-3v-3M7 16v3H4v-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M4 12h16" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-rolli" viewBox="0 0 24 24"><circle cx="11" cy="4" r="2" fill="currentColor"/><path d="M11 7v6h6l2 6M8.5 10a6 6 0 1 0 7.3 8.6" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-instagram" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor"/></symbol>
+</svg>
+
+<!-- ============ NAVIGATION ============ -->
+<header class="nav" data-nav>
+  <div class="nav__bar container">
+    <!-- Logo: Linienschild + Name. Name hier und im Footer ändern -->
+    <a class="logo" href="#top" aria-label="Linie 12 – zum Seitenanfang">
+      <span class="logo__schild" aria-hidden="true">12</span>
+      <span class="logo__name">Linie 12</span>
+    </a>
+    <nav class="nav__links" aria-label="Hauptnavigation">
+      <a href="#tageskarte" data-spy>Tageskarte</a>
+      <a href="#brunch" data-spy>Brunch</a>
+      <a href="#karte" data-spy>Karte</a>
+      <a href="#baukasten" data-spy>Bowl bauen</a>
+      <a href="#besuch" data-spy>Besuch</a>
+    </nav>
+    <div class="nav__aktion">
+      <a class="btn btn--gelb btn--sm nav__cta" href="#reservieren">Gruppe anmelden</a>
+      <button class="nav__burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menü öffnen" data-menu-open>
+        <span aria-hidden="true"><i></i><i></i></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobiles Menü (Vollbild-Dialog) -->
+<dialog class="menu" id="menu" aria-label="Menü" data-menu>
+  <div class="menu__innen">
+    <div class="menu__kopf">
+      <span class="logo"><span class="logo__schild" aria-hidden="true">12</span><span class="logo__name">Linie 12</span></span>
+      <button class="menu__zu" type="button" aria-label="Menü schließen" data-menu-close><svg aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <nav aria-label="Menü">
+      <ol class="menu__links">
+        <li style="--i:0"><a href="#tageskarte"><span>01</span>Tageskarte</a></li>
+        <li style="--i:1"><a href="#brunch"><span>02</span>Brunch</a></li>
+        <li style="--i:2"><a href="#karte"><span>03</span>Karte</a></li>
+        <li style="--i:3"><a href="#baukasten"><span>04</span>Bowl bauen</a></li>
+        <li style="--i:4"><a href="#reservieren"><span>05</span>Gruppen</a></li>
+        <li style="--i:5"><a href="#besuch"><span>06</span>Besuch</a></li>
+      </ol>
+    </nav>
+    <div class="menu__fuss">
+      <a class="btn btn--gelb btn--lg" href="#reservieren">Gruppe anmelden</a>
+      <p class="status" data-status><span class="status__punkt" aria-hidden="true"></span><span data-status-text>Di – So geöffnet</span></p>
+      <p><a href="tel:+49123456789">0123 456 789</a> · Gleisstraße 12</p>
+    </div>
+  </div>
+</dialog>
+
+<main id="main">
+
+<!-- ============ HERO: Foto rückt als Zweifarbdruck nach hinten, die Schrift nach vorn ============ -->
+<section class="hero" id="top" aria-labelledby="hero-titel" tabindex="-1" data-hero>
+  <div class="hero__medien" data-hero-medien>
+    <!-- Hero-Bild: Dateien in img/hero/ (siehe README). "hoch" = Hochformat fürs Handy.
+         Aus diesem einen <picture> baut das Skript die Streifen fürs Intro, es muss nur hier gepflegt werden. -->
+    <div class="hero__foto" data-hero-foto>
+      <picture>
+        <source media="(max-aspect-ratio: 4/5)" srcset="img/hero/halle-hoch.webp" width="1080" height="1920">
+        <img src="img/hero/halle-1400.webp"
+             srcset="img/hero/halle-800.webp 800w, img/hero/halle-1400.webp 1400w, img/hero/halle-1800.webp 1800w"
+             sizes="(max-aspect-ratio: 4/3) 134vh, 100vw" width="1800" height="1350"
+             alt="Das Bistro von innen: hohe Industriehalle mit Stahlträgern, Hängelampen, Holztischen und großer Fensterfront"
+             fetchpriority="high" data-hero-img>
+      </picture>
+    </div>
+    <!-- Streifen fürs Intro: werden direkt darunter per Skript mit Kopien des Fotos gefüllt -->
+    <div class="hero__streifen" aria-hidden="true" data-streifen>
+      <div class="streifen" style="--k:0"></div><div class="streifen" style="--k:1"></div><div class="streifen" style="--k:2"></div>
+      <div class="streifen" style="--k:3"></div><div class="streifen" style="--k:4"></div><div class="streifen" style="--k:5"></div>
+    </div>
+    <script>
+      /* Läuft sofort beim Einlesen: Kopien des Fotos in die Streifen, bevor das erste Bild gemalt wird */
+      (function () {
+        var h = document.documentElement;
+        if (!h.classList.contains('motion')) return;
+        var bild = document.querySelector('[data-hero-foto] picture');
+        document.querySelectorAll('[data-streifen] .streifen').forEach(function (s) {
+          var c = bild.cloneNode(true), img = c.querySelector('img');
+          img.alt = ''; img.removeAttribute('fetchpriority'); img.removeAttribute('data-hero-img');
+          s.appendChild(c);
+        });
+        h.classList.add('has-streifen');
+      })();
+    </script>
+  </div>
+  <div class="hero__schatten" aria-hidden="true"></div>
+  <div class="hero__linien" aria-hidden="true">
+    <i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i><i style="--i:5"></i><i style="--i:6"></i>
+    <i style="--i:7"></i><i style="--i:8"></i><i style="--i:9"></i><i style="--i:10"></i><i style="--i:11"></i><i style="--i:12"></i>
+  </div>
+
+  <div class="hero__inhalt container" data-hero-inhalt>
+    <p class="hero__zeile mono" data-intro style="--d:0"><span>Bistro</span><span>Gleisstraße 12</span><span class="hero__tram"><svg aria-hidden="true"><use href="#i-tram"/></svg>Tram 12 bis Gleispark</span></p>
+
+    <h1 class="hero__titel" id="hero-titel">
+      <span class="sr-only">Linie 12 – Bistro für Brunch, Bowls und Burger</span>
+      <!-- Name: jeder Buchstabe ein <span> (für das Intro). Leerzeichen als eigenes Element .hero__luft -->
+      <span class="hero__wort" aria-hidden="true" data-hero-wort>
+        <span class="hero__maske"><span class="hero__b" style="--j:0">L</span></span><span class="hero__maske"><span class="hero__b" style="--j:1">i</span></span><span class="hero__maske"><span class="hero__b" style="--j:2">n</span></span><span class="hero__maske"><span class="hero__b" style="--j:3">i</span></span><span class="hero__maske"><span class="hero__b" style="--j:4">e</span></span><span class="hero__luft"></span><span class="hero__maske hero__maske--zahl"><span class="hero__b" style="--j:5">1</span></span><span class="hero__maske hero__maske--zahl"><span class="hero__b" style="--j:6">2</span></span>
+      </span>
+      <!-- Sticker: dreht sich langsam, Text im Kreis -->
+      <span class="hero__sticker" aria-hidden="true">
+        <span class="aufkleber">
+          <svg class="aufkleber__ring" viewBox="0 0 200 200">
+            <defs><path id="kreis" d="M100 100m-78 0a78 78 0 1 1 156 0a78 78 0 1 1-156 0"/></defs>
+            <text><textPath href="#kreis" startOffset="0">EINFACH VORBEIKOMMEN • KEIN TISCH NÖTIG •</textPath></text>
+          </svg>
+          <span class="aufkleber__mitte">Walk-ins<br><span>willkommen!</span></span>
+        </span>
+      </span>
+    </h1>
+
+    <div class="hero__unten">
+      <p class="hero__claim" data-intro style="--d:1">Brunch, Bowls <span>&amp;</span> Burger</p>
+      <p class="hero__lead" data-intro style="--d:2">Bowls am Mittag, Smash-Burger am Abend, Brunch am Wochenende. Kommen Sie einfach vorbei – ab sechs Personen halten wir Ihnen gern einen Tisch frei.</p>
+      <div class="hero__ctas" data-intro style="--d:3">
+        <a class="btn btn--gelb btn--lg" href="#tageskarte">Zur Tageskarte <svg class="btn__icon" aria-hidden="true"><use href="#i-pfeil"/></svg></a>
+        <a class="btn btn--rand-hell btn--lg" href="#reservieren">Gruppe anmelden</a>
+      </div>
+    </div>
+
+    <div class="hero__meta mono" data-intro style="--d:4">
+      <p class="status status--hell" data-status><span class="status__punkt" aria-hidden="true"></span><span data-status-text>Di – So geöffnet</span></p>
+      <p class="hero__heute" data-heute-hero>Heute auf der Tafel: <a href="#tageskarte">siehe Tageskarte</a></p>
+      <a class="hero__runter" href="#tageskarte"><span>Runter</span><svg aria-hidden="true"><use href="#i-runter"/></svg></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ KLEBEBAND: Laufband zwischen Hero und Tageskarte (Texte frei änderbar) ============ -->
+<div class="band" aria-label="Kurz gesagt" data-band>
+  <div class="band__streifen">
+    <ul class="band__lauf">
+      <li>Walk-ins willkommen</li><li>Brunch Sa + So 9–15 Uhr</li><li>Mittagstisch Di–Fr ab 11:30</li><li>Gruppen ab 6: bitte anmelden</li><li>Buns &amp; Saucen hausgemacht</li>
+    </ul>
+    <ul class="band__lauf" aria-hidden="true">
+      <li>Walk-ins willkommen</li><li>Brunch Sa + So 9–15 Uhr</li><li>Mittagstisch Di–Fr ab 11:30</li><li>Gruppen ab 6: bitte anmelden</li><li>Buns &amp; Saucen hausgemacht</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ 01 TAGESKARTE: ein Special pro Tag. data-tag: 0 = Sonntag … 6 = Samstag ============ -->
+<section class="sektion tageskarte raster-linien" id="tageskarte" aria-labelledby="tageskarte-titel">
+  <div class="container">
+    <header class="kopf raster">
+      <p class="kopf__nr mono" data-rv>01 / Tageskarte</p>
+      <h2 class="h2 kopf__titel" id="tageskarte-titel" data-rv>Heute auf <br>der Tafel</h2>
+      <p class="kopf__text" data-rv>Jeden Tag ein Special, solange der Vorrat reicht. Mittagstisch Dienstag bis Freitag, 11:30 bis 15 Uhr – mit Hauslimo oder Kaffee für 2 € mehr.</p>
+    </header>
+
+    <div class="tafel" data-tabs="tag">
+      <!-- Tage-Leiste: erscheint nur mit JavaScript. Ohne JS stehen alle Tage untereinander. -->
+      <div class="tafel__tage" role="tablist" aria-label="Wochentag wählen" data-tablist>
+        <button class="tag-knopf" type="button" role="tab" id="tab-tag-1" aria-controls="tag-1" aria-selected="false" data-tab="1"><span class="tag-knopf__kurz">Mo</span><span class="tag-knopf__klein mono" data-datum-tag="1">Ruhetag</span></button>
+        <button class="tag-knopf" type="button" role="tab" id="tab-tag-2" aria-controls="tag-2" aria-selected="true" data-tab="2"><span class="tag-knopf__kurz">Di</span><span class="tag-knopf__klein mono" data-datum-tag="2">Bowl</span></button>
+        <button class="tag-knopf" type="button" role="tab" id="tab-tag-3" aria-controls="tag-3" aria-selected="false" data-tab="3"><span class="tag-knopf__kurz">Mi</span><span class="tag-knopf__klein mono" data-datum-tag="3">Burger</span></button>
+        <button class="tag-knopf" type="button" role="tab" id="tab-tag-4" aria-controls="tag-4" aria-selected="false" data-tab="4"><span class="tag-knopf__kurz">Do</span><span class="tag-knopf__klein mono" data-datum-tag="4">Bowl</span></button>
+        <button class="tag-knopf" type="button" role="tab" id="tab-tag-5" aria-controls="tag-5" aria-selected="false" data-tab="5"><span class="tag-knopf__kurz">Fr</span><span class="tag-knopf__klein mono" data-datum-tag="5">Bowl</span></button>
+        <button class="tag-knopf" type="button" role="tab" id="tab-tag-6" aria-controls="tag-6" aria-selected="false" data-tab="6"><span class="tag-knopf__kurz">Sa</span><span class="tag-knopf__klein mono" data-datum-tag="6">Brunch</span></button>
+        <button class="tag-knopf" type="button" role="tab" id="tab-tag-0" aria-controls="tag-0" aria-selected="false" data-tab="0"><span class="tag-knopf__kurz">So</span><span class="tag-knopf__klein mono" data-datum-tag="0">Brunch</span></button>
+      </div>
+
+      <div class="tafel__flaeche">
+        <!-- Ein Tag = ein <article>. Bild, Name, Beschreibung, Preis und Sticker anpassen. -->
+        <article class="special special--zu" id="tag-1" role="tabpanel" aria-labelledby="tab-tag-1" data-panel="1" data-name="Ruhetag">
+          <div class="special__poster" aria-hidden="true"><span>Zu.</span></div>
+          <div class="special__text">
+            <p class="special__tag mono">Montag</p>
+            <h3 class="special__name"><span>Markttag</span></h3>
+            <p class="special__desc">Montags kaufen wir für die Woche ein und backen Buns vor. Ab Dienstag um 8 Uhr sind wir wieder für Sie da – mit frischem Kaffee und der neuen Tafel.</p>
+          </div>
+        </article>
+
+        <article class="special" id="tag-2" role="tabpanel" aria-labelledby="tab-tag-2" data-panel="2" data-name="Grüne Linie · 12,90 €">
+          <figure class="special__bild"><img src="img/gerichte/gruene-bowl-600.webp" srcset="img/gerichte/gruene-bowl-600.webp 600w, img/gerichte/gruene-bowl-1000.webp 1000w" sizes="(min-width: 900px) 38vw, 92vw" width="1000" height="1000" loading="lazy" decoding="async" alt="Bunte Bowl von oben: Avocado, Kirschtomaten, Kichererbsen, Süßkartoffel, Rotkohl und Salat"></figure>
+          <div class="special__text">
+            <p class="special__tag mono">Dienstag · Mittagstisch</p>
+            <h3 class="special__name"><span>Grüne Linie</span></h3>
+            <p class="special__desc">Quinoa, Avocado, geröstete Kichererbsen, Süßkartoffel, Wassermelonen-Rettich und Tahini-Zitrone.</p>
+            <ul class="sticker-reihe"><li class="sticker sticker--gruen">vegan</li><li class="sticker">glutenfrei</li></ul>
+          </div>
+          <p class="preis-sticker" aria-label="Preis 12,90 Euro"><span>12,90</span><small>€</small></p>
+        </article>
+
+        <article class="special" id="tag-3" role="tabpanel" aria-labelledby="tab-tag-3" data-panel="3" data-name="Smash-Mittwoch · 14,50 €">
+          <figure class="special__bild"><img src="img/gerichte/burger-600.webp" srcset="img/gerichte/burger-600.webp 600w, img/gerichte/burger-1000.webp 1000w" sizes="(min-width: 900px) 38vw, 92vw" width="1000" height="1000" loading="lazy" decoding="async" alt="Doppelter Cheeseburger mit Salat, Tomate, Gurke und Sauce vor dunklem Hintergrund"></figure>
+          <div class="special__text">
+            <p class="special__tag mono">Mittwoch · Burgertag</p>
+            <h3 class="special__name"><span>Smash-Mittwoch</span></h3>
+            <p class="special__desc">Doppelter Smash-Burger mit Cheddar, Gurke, roter Zwiebel und Haus-Sauce. Dazu Pommes oder Salat.</p>
+            <ul class="sticker-reihe"><li class="sticker sticker--rot">Hit</li><li class="sticker">auch vegan</li></ul>
+          </div>
+          <p class="preis-sticker" aria-label="Preis 14,50 Euro"><span>14,50</span><small>€</small></p>
+        </article>
+
+        <article class="special" id="tag-4" role="tabpanel" aria-labelledby="tab-tag-4" data-panel="4" data-name="Crunch-Tofu-Bowl · 13,50 €">
+          <figure class="special__bild"><img src="img/gerichte/tofu-bowl-600.webp" srcset="img/gerichte/tofu-bowl-600.webp 600w, img/gerichte/tofu-bowl-1000.webp 1000w" sizes="(min-width: 900px) 38vw, 92vw" width="1000" height="1000" loading="lazy" decoding="async" alt="Bowl im Pappbecher von oben: gebratener Tofu, Mais, Edamame, Gurke, Tomate und Ei"></figure>
+          <div class="special__text">
+            <p class="special__tag mono">Donnerstag · Mittagstisch</p>
+            <h3 class="special__name"><span>Crunch-Tofu</span></h3>
+            <p class="special__desc">Knuspriger Tofu auf Jasminreis, Edamame, Mais, Gurke, Rotkohl und Erdnuss-Limette. Auf Wunsch mit Chili-Crunch.</p>
+            <ul class="sticker-reihe"><li class="sticker sticker--gruen">vegan</li><li class="sticker sticker--rot">scharf auf Wunsch</li></ul>
+          </div>
+          <p class="preis-sticker" aria-label="Preis 13,50 Euro"><span>13,50</span><small>€</small></p>
+        </article>
+
+        <article class="special" id="tag-5" role="tabpanel" aria-labelledby="tab-tag-5" data-panel="5" data-name="Herbst-Bowl · 12,50 €">
+          <figure class="special__bild"><img src="img/gerichte/herbst-bowl-600.webp" srcset="img/gerichte/herbst-bowl-600.webp 600w, img/gerichte/herbst-bowl-1000.webp 1000w" sizes="(min-width: 900px) 38vw, 92vw" width="1000" height="1000" loading="lazy" decoding="async" alt="Salat-Bowl auf dunklem Teller mit roten Zwiebeln, Walnüssen, Feta und Oliven, daneben Orangensaft"></figure>
+          <div class="special__text">
+            <p class="special__tag mono">Freitag · Mittagstisch</p>
+            <h3 class="special__name"><span>Herbst-Bowl</span></h3>
+            <p class="special__desc">Grünkohl und Blattsalat, Walnüsse, Feta, Birne, rote Zwiebel und Senf-Honig-Dressing. Freitags mit frisch gepresstem O-Saft.</p>
+            <ul class="sticker-reihe"><li class="sticker">vegetarisch</li></ul>
+          </div>
+          <p class="preis-sticker" aria-label="Preis 12,50 Euro"><span>12,50</span><small>€</small></p>
+        </article>
+
+        <article class="special" id="tag-6" role="tabpanel" aria-labelledby="tab-tag-6" data-panel="6" data-name="Waffel-Brunch · 13,90 €">
+          <figure class="special__bild"><img src="img/gerichte/waffeln-600.webp" srcset="img/gerichte/waffeln-600.webp 600w, img/gerichte/waffeln-1000.webp 1000w" sizes="(min-width: 900px) 38vw, 92vw" width="1000" height="1000" loading="lazy" decoding="async" alt="Waffel mit Erdbeeren und Blaubeeren, daneben Spiegelei-Toasts und Orangensaft"></figure>
+          <div class="special__text">
+            <p class="special__tag mono">Samstag · Brunch 9–15 Uhr</p>
+            <h3 class="special__name"><span>Waffel-Brunch</span></h3>
+            <p class="special__desc">Buttermilchwaffel mit Beeren, Vanille-Skyr und Ahornsirup, dazu ein Spiegelei-Toast mit Avocado.</p>
+            <ul class="sticker-reihe"><li class="sticker">vegetarisch</li><li class="sticker sticker--gelb">nur am Wochenende</li></ul>
+          </div>
+          <p class="preis-sticker" aria-label="Preis 13,90 Euro"><span>13,90</span><small>€</small></p>
+        </article>
+
+        <article class="special" id="tag-0" role="tabpanel" aria-labelledby="tab-tag-0" data-panel="0" data-name="Brunch-Platte · 19,50 €">
+          <figure class="special__bild"><img src="img/gerichte/brunch-platte-600.webp" srcset="img/gerichte/brunch-platte-600.webp 600w, img/gerichte/brunch-platte-1000.webp 1000w" sizes="(min-width: 900px) 38vw, 92vw" width="1000" height="1000" loading="lazy" decoding="async" alt="Brunch-Tisch von oben mit Waffel, Shakshuka in der Pfanne, Salat, Kaffee und Wasser"></figure>
+          <div class="special__text">
+            <p class="special__tag mono">Sonntag · Brunch 9–15 Uhr</p>
+            <h3 class="special__name"><span>Brunch-Platte</span></h3>
+            <p class="special__desc">Für zwei oder mehr: Shakshuka, Rührei, Bacon oder Halloumi, Sauerteigbrot, drei Aufstriche und Obst. Preis pro Person.</p>
+            <ul class="sticker-reihe"><li class="sticker">ab 2 Personen</li><li class="sticker sticker--gelb">nur am Wochenende</li></ul>
+          </div>
+          <p class="preis-sticker" aria-label="Preis 19,50 Euro pro Person"><span>19,50</span><small>€ p. P.</small></p>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 ÜBER UNS ============ -->
+<section class="sektion konzept raster-linien" id="konzept" aria-labelledby="konzept-titel">
+  <div class="container">
+    <header class="kopf raster">
+      <p class="kopf__nr mono" data-rv>02 / Über uns</p>
+      <h2 class="sr-only" id="konzept-titel">Über uns</h2>
+    </header>
+    <p class="statement" data-rv>Eine Kantine fürs Viertel: <mark>morgens Kaffee,</mark> mittags Bowl, <mark>abends Burger</mark> – und immer ein Platz am langen Tisch.</p>
+
+    <div class="konzept__raster raster">
+      <figure class="konzept__bild konzept__bild--gross" data-rv="clip">
+        <span class="rahmen"><img src="img/bilder/bar-700.webp" srcset="img/bilder/bar-700.webp 700w, img/bilder/bar-1300.webp 1300w" sizes="(min-width: 900px) 56vw, 92vw" width="1300" height="975" loading="lazy" decoding="async" alt="Der Tresen mit Kreidetafeln, Hängelampen und Barhockern aus Holz"></span>
+        <figcaption class="sticker sticker--gelb sticker--schraeg">Der Tresen · Kaffee ab 8 Uhr</figcaption>
+      </figure>
+      <div class="konzept__text" data-rv>
+        <p>Seit 2019 kochen wir in der alten Stellwerkhalle am Gleispark. Die Buns backen wir selbst, jede Sauce rühren wir selbst an, und montags stehen wir auf dem Markt.</p>
+        <p>Reservieren müssen Sie nicht: Setzen Sie sich einfach dazu, bestellen Sie am Tresen, und wenn es voll ist, rücken wir zusammen.</p>
+        <a class="link-pfeil" href="#karte">Zur ganzen Karte <svg aria-hidden="true"><use href="#i-pfeil"/></svg></a>
+      </div>
+      <figure class="konzept__bild konzept__bild--klein" data-rv="clip">
+        <span class="rahmen"><img src="img/bilder/koch-700.webp" srcset="img/bilder/koch-700.webp 700w, img/bilder/koch-900.webp 900w" sizes="(min-width: 900px) 24vw, 60vw" width="900" height="1125" loading="lazy" decoding="async" alt="Ein Koch richtet unter Wärmelampen Teller an"></span>
+        <figcaption class="sticker sticker--schraeg-r">Küche bis 21:30 Uhr</figcaption>
+      </figure>
+    </div>
+
+    <!-- Zahlen: frei änderbar -->
+    <ul class="fakten raster">
+      <li class="fakt" data-rv style="--d:0"><span class="fakt__zahl">08:00</span><span class="fakt__text">Frühstück ab Dienstag</span></li>
+      <li class="fakt" data-rv style="--d:1"><span class="fakt__zahl">96</span><span class="fakt__text">Plätze drinnen, 40 auf dem Gleisplatz</span></li>
+      <li class="fakt" data-rv style="--d:2"><span class="fakt__zahl">2 Min.</span><span class="fakt__text">zu Fuß von der Tram 12</span></li>
+      <li class="fakt" data-rv style="--d:3"><span class="fakt__zahl">100 %</span><span class="fakt__text">hausgemacht: Buns, Saucen, Limo</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 03 BRUNCH AM WOCHENENDE ============ -->
+<section class="sektion brunch" id="brunch" aria-labelledby="brunch-titel">
+  <div class="brunch__riesig" aria-hidden="true" data-riesig><span>Brunch Brunch Brunch Brunch</span></div>
+  <div class="container">
+    <header class="kopf raster">
+      <p class="kopf__nr mono" data-rv>03 / Wochenende</p>
+      <h2 class="h2 kopf__titel" id="brunch-titel" data-rv>Brunch. <br>Sa + So, 9–15 Uhr</h2>
+      <p class="kopf__text" data-rv>À la carte statt Buffet: Alles kommt frisch aus der Pfanne. Kaffee gibt’s am Wochenende so oft Sie möchten.</p>
+    </header>
+
+    <div class="brunch__raster raster">
+      <figure class="brunch__bild" data-rv="clip">
+        <span class="rahmen"><img src="img/bilder/brunch-waffeln-700.webp" srcset="img/bilder/brunch-waffeln-700.webp 700w, img/bilder/brunch-waffeln-1300.webp 1300w" sizes="(min-width: 900px) 50vw, 92vw" width="1300" height="866" loading="lazy" decoding="async" alt="Brunch von oben: Waffeln mit Beeren, Spiegeleier auf Toast, Orangensaft und Kaffee auf einer bunten Tischdecke"></span>
+        <p class="brunch__kaffee sticker sticker--gelb sticker--rund" aria-label="Bottomless Filterkaffee 4,50 Euro"><span>Bottom&shy;less Kaffee</span><strong>4,50</strong></p>
+      </figure>
+
+      <div class="brunch__liste">
+        <!-- Brunch-Gerichte: Name, Beschreibung, Preis -->
+        <ul class="zeilen">
+          <li class="zeile" data-rv style="--d:0"><h3 class="zeile__name">Shakshuka</h3><p class="zeile__desc">Tomaten-Paprika, zwei Eier, Feta, Sauerteig</p><p class="zeile__preis mono">11,50</p></li>
+          <li class="zeile" data-rv style="--d:1"><h3 class="zeile__name">Avocado-Toast</h3><p class="zeile__desc">Pochiertes Ei, Chili-Crunch, Kresse</p><p class="zeile__preis mono">10,90</p></li>
+          <li class="zeile" data-rv style="--d:2"><h3 class="zeile__name">Pancake-Stapel</h3><p class="zeile__desc">Buttermilch, Ahornsirup, Beeren, Skyr</p><p class="zeile__preis mono">9,80</p></li>
+          <li class="zeile" data-rv style="--d:3"><h3 class="zeile__name">French Toast</h3><p class="zeile__desc">Brioche, Zimt-Apfel, gesalzene Butter</p><p class="zeile__preis mono">10,50</p></li>
+          <li class="zeile" data-rv style="--d:4"><h3 class="zeile__name">Brunch-Platte</h3><p class="zeile__desc">Ab 2 Personen, alles zum Teilen · pro Person</p><p class="zeile__preis mono">19,50</p></li>
+          <li class="zeile" data-rv style="--d:5"><h3 class="zeile__name">Mimosa</h3><p class="zeile__desc">Sekt und frisch gepresster O-Saft</p><p class="zeile__preis mono">6,50</p></li>
+        </ul>
+        <div class="brunch__tipps">
+          <p class="tipp" data-rv><strong class="mono">Tipp</strong> Bis 10:30 Uhr sind fast immer Tische frei. Danach wird’s voll – und gemütlich.</p>
+          <a class="btn btn--dunkel btn--lg" href="#reservieren" data-anlass="Brunch">Brunch-Tisch für Gruppen <svg class="btn__icon" aria-hidden="true"><use href="#i-pfeil"/></svg></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 04 SPEISEKARTE: Kategorien als Tabs. Ohne JS stehen alle untereinander. ============ -->
+<section class="sektion karte raster-linien" id="karte" aria-labelledby="karte-titel">
+  <div class="container">
+    <header class="kopf raster">
+      <p class="kopf__nr mono" data-rv>04 / Speisekarte</p>
+      <h2 class="h2 kopf__titel" id="karte-titel" data-rv>Die ganze <br>Karte</h2>
+      <p class="kopf__text" data-rv>Alle Burger mit Pommes oder Salat, jeder Burger auch mit Beyond-Patty (+1,50 €). Fragen Sie uns gern nach Allergenen.</p>
+    </header>
+
+    <div class="karte__tabs" data-tabs="karte">
+      <div class="reiter" role="tablist" aria-label="Kategorie wählen" data-tablist>
+        <button class="reiter__knopf" type="button" role="tab" id="tab-fruehstueck" aria-controls="k-fruehstueck" aria-selected="true" data-tab="fruehstueck">Frühstück</button>
+        <button class="reiter__knopf" type="button" role="tab" id="tab-bowls" aria-controls="k-bowls" aria-selected="false" data-tab="bowls">Bowls</button>
+        <button class="reiter__knopf" type="button" role="tab" id="tab-burger" aria-controls="k-burger" aria-selected="false" data-tab="burger">Burger</button>
+        <button class="reiter__knopf" type="button" role="tab" id="tab-kleines" aria-controls="k-kleines" aria-selected="false" data-tab="kleines">Kleines &amp; Süßes</button>
+        <button class="reiter__knopf" type="button" role="tab" id="tab-getraenke" aria-controls="k-getraenke" aria-selected="false" data-tab="getraenke">Getränke</button>
+        <span class="reiter__marke" aria-hidden="true" data-marke></span>
+      </div>
+
+      <!-- Ein Gericht:
+           <li class="gericht"><span class="gericht__nr mono">F01</span><h4 class="gericht__name">Name</h4>
+             <p class="gericht__desc">Beschreibung</p><p class="gericht__preis mono">8,90</p>
+             <ul class="gericht__sticker"><li class="sticker sticker--gruen">vegan</li></ul></li>
+           Sticker: sticker (neutral), sticker--gruen (vegan), sticker--rot (scharf/Hit), sticker--gelb -->
+      <div class="karte__panel" id="k-fruehstueck" role="tabpanel" aria-labelledby="tab-fruehstueck" data-panel="fruehstueck">
+        <h3 class="karte__kat">Frühstück <span class="mono">Di–Fr 8–12 Uhr · Sa + So bis 15 Uhr</span></h3>
+        <ul class="gerichte">
+          <li class="gericht"><span class="gericht__nr mono">F01</span><h4 class="gericht__name">Rührei-Brioche</h4><p class="gericht__desc">Cremiges Rührei, Schnittlauch, Brioche, Salatherz</p><p class="gericht__preis mono">8,90</p><ul class="gericht__sticker"><li class="sticker">vegetarisch</li></ul></li>
+          <li class="gericht"><span class="gericht__nr mono">F02</span><h4 class="gericht__name">Shakshuka</h4><p class="gericht__desc">Tomaten-Paprika, zwei Eier, Feta, Sauerteigbrot</p><p class="gericht__preis mono">11,50</p><ul class="gericht__sticker"><li class="sticker sticker--rot">Hit</li></ul></li>
+          <li class="gericht"><span class="gericht__nr mono">F03</span><h4 class="gericht__name">Avocado-Toast</h4><p class="gericht__desc">Sauerteig, Avocado, pochiertes Ei, Chili-Crunch, Kresse</p><p class="gericht__preis mono">10,90</p><ul class="gericht__sticker"><li class="sticker">vegetarisch</li></ul></li>
+          <li class="gericht"><span class="gericht__nr mono">F04</span><h4 class="gericht__name">Buttermilch-Pancakes</h4><p class="gericht__desc">Ahornsirup, Beeren, Vanille-Skyr</p><p class="gericht__preis mono">9,80</p></li>
+          <li class="gericht"><span class="gericht__nr mono">F05</span><h4 class="gericht__name">Granola-Schale</h4><p class="gericht__desc">Nuss-Granola aus dem Ofen, Hafer-Joghurt, Obst der Saison</p><p class="gericht__preis mono">7,50</p><ul class="gericht__sticker"><li class="sticker sticker--gruen">vegan</li></ul></li>
+          <li class="gericht"><span class="gericht__nr mono">F06</span><h4 class="gericht__name">Linie-12-Frühstück</h4><p class="gericht__desc">Zwei Spiegeleier, Bacon oder Halloumi, Bohnen, Toast, Tomate</p><p class="gericht__preis mono">12,90</p></li>
+        </ul>
+      </div>
+
+      <div class="karte__panel" id="k-bowls" role="tabpanel" aria-labelledby="tab-bowls" data-panel="bowls">
+        <h3 class="karte__kat">Bowls <span class="mono">ab 11:30 Uhr</span></h3>
+        <ul class="gerichte">
+          <li class="gericht"><span class="gericht__nr mono">B01</span><h4 class="gericht__name">Grüne Linie</h4><p class="gericht__desc">Quinoa, Avocado, Kichererbsen, Süßkartoffel, Rettich, Tahini-Zitrone</p><p class="gericht__preis mono">12,90</p><ul class="gericht__sticker"><li class="sticker sticker--gruen">vegan</li></ul></li>
+          <li class="gericht"><span class="gericht__nr mono">B02</span><h4 class="gericht__name">Crunch-Tofu</h4><p class="gericht__desc">Jasminreis, Knuspertofu, Edamame, Mais, Rotkohl, Erdnuss-Limette</p><p class="gericht__preis mono">13,50</p><ul class="gericht__sticker"><li class="sticker sticker--gruen">vegan</li><li class="sticker sticker--rot">scharf</li></ul></li>
+          <li class="gericht"><span class="gericht__nr mono">B03</span><h4 class="gericht__name">Lachs-Poke</h4><p class="gericht__desc">Sushireis, Lachs, Mango, Gurke, Wakame, Miso-Ingwer</p><p class="gericht__preis mono">15,90</p></li>
+          <li class="gericht"><span class="gericht__nr mono">B04</span><h4 class="gericht__name">Falafel-Bowl</h4><p class="gericht__desc">Bulgur, Falafel, Hummus, Gurke, Tomate, Kräuterjoghurt</p><p class="gericht__preis mono">12,50</p><ul class="gericht__sticker"><li class="sticker">vegetarisch</li></ul></li>
+          <li class="gericht gericht--link"><span class="gericht__nr mono">B05</span><h4 class="gericht__name"><a href="#baukasten">Ihre eigene Bowl</a></h4><p class="gericht__desc">Basis, Protein, Toppings und Sauce selbst wählen – im Bowl-Baukasten</p><p class="gericht__preis mono">ab 9,50</p><ul class="gericht__sticker"><li class="sticker sticker--gelb">neu</li></ul></li>
+        </ul>
+      </div>
+
+      <div class="karte__panel" id="k-burger" role="tabpanel" aria-labelledby="tab-burger" data-panel="burger">
+        <h3 class="karte__kat">Burger <span class="mono">ab 11:30 Uhr · mit Pommes oder Salat</span></h3>
+        <ul class="gerichte">
+          <li class="gericht"><span class="gericht__nr mono">U01</span><h4 class="gericht__name">Smash Classic</h4><p class="gericht__desc">Zwei Smash-Patties, Cheddar, Gurke, Zwiebel, Haus-Sauce</p><p class="gericht__preis mono">13,90</p><ul class="gericht__sticker"><li class="sticker sticker--rot">Hit</li></ul></li>
+          <li class="gericht"><span class="gericht__nr mono">U02</span><h4 class="gericht__name">Gleispark BBQ</h4><p class="gericht__desc">Rind, Bacon, Röstzwiebeln, rauchige BBQ-Sauce</p><p class="gericht__preis mono">14,90</p></li>
+          <li class="gericht"><span class="gericht__nr mono">U03</span><h4 class="gericht__name">Halloumi Hot</h4><p class="gericht__desc">Gegrillter Halloumi, Jalapeño-Mayo, Rotkohl-Slaw</p><p class="gericht__preis mono">13,50</p><ul class="gericht__sticker"><li class="sticker">vegetarisch</li><li class="sticker sticker--rot">scharf</li></ul></li>
+          <li class="gericht"><span class="gericht__nr mono">U04</span><h4 class="gericht__name">Crispy Chick</h4><p class="gericht__desc">Knuspriges Hähnchen, Kimchi-Mayo, Eisbergsalat</p><p class="gericht__preis mono">13,90</p></li>
+          <li class="gericht"><span class="gericht__nr mono">U05</span><h4 class="gericht__name">Green Smash</h4><p class="gericht__desc">Beyond-Patty, veganer Cheddar, Gurke, Senf-Mayo</p><p class="gericht__preis mono">14,50</p><ul class="gericht__sticker"><li class="sticker sticker--gruen">vegan</li></ul></li>
+        </ul>
+      </div>
+
+      <div class="karte__panel" id="k-kleines" role="tabpanel" aria-labelledby="tab-kleines" data-panel="kleines">
+        <h3 class="karte__kat">Kleines &amp; Süßes</h3>
+        <ul class="gerichte">
+          <li class="gericht"><span class="gericht__nr mono">K01</span><h4 class="gericht__name">Pommes mit Dip</h4><p class="gericht__desc">Trüffel-Mayo oder Sriracha-Mayo</p><p class="gericht__preis mono">4,90</p></li>
+          <li class="gericht"><span class="gericht__nr mono">K02</span><h4 class="gericht__name">Süßkartoffel-Pommes</h4><p class="gericht__desc">Limettensalz, Kräuterjoghurt</p><p class="gericht__preis mono">5,90</p><ul class="gericht__sticker"><li class="sticker">vegetarisch</li></ul></li>
+          <li class="gericht"><span class="gericht__nr mono">K03</span><h4 class="gericht__name">Suppe des Tages</h4><p class="gericht__desc">Mit Sauerteigbrot – was heute im Topf ist, steht an der Tafel</p><p class="gericht__preis mono">6,50</p></li>
+          <li class="gericht"><span class="gericht__nr mono">K04</span><h4 class="gericht__name">Warmer Brownie</h4><p class="gericht__desc">Salzkaramell, Vanilleeis</p><p class="gericht__preis mono">6,90</p><ul class="gericht__sticker"><li class="sticker sticker--rot">Hit</li></ul></li>
+          <li class="gericht"><span class="gericht__nr mono">K05</span><h4 class="gericht__name">Zimtschnecke</h4><p class="gericht__desc">Frisch aus dem Ofen, Frischkäse-Glasur</p><p class="gericht__preis mono">4,50</p></li>
+        </ul>
+      </div>
+
+      <div class="karte__panel" id="k-getraenke" role="tabpanel" aria-labelledby="tab-getraenke" data-panel="getraenke">
+        <h3 class="karte__kat">Getränke</h3>
+        <ul class="gerichte">
+          <li class="gericht"><span class="gericht__nr mono">G01</span><h4 class="gericht__name">Filterkaffee</h4><p class="gericht__desc">Am Wochenende bottomless für 4,50</p><p class="gericht__preis mono">3,20</p></li>
+          <li class="gericht"><span class="gericht__nr mono">G02</span><h4 class="gericht__name">Flat White · Cappuccino</h4><p class="gericht__desc">Hafermilch ohne Aufpreis</p><p class="gericht__preis mono">3,90</p></li>
+          <li class="gericht"><span class="gericht__nr mono">G03</span><h4 class="gericht__name">Hauslimo</h4><p class="gericht__desc">Rhabarber, Ingwer-Zitrone oder Himbeer-Minze · 0,4 l</p><p class="gericht__preis mono">4,50</p><ul class="gericht__sticker"><li class="sticker sticker--gelb">hausgemacht</li></ul></li>
+          <li class="gericht"><span class="gericht__nr mono">G04</span><h4 class="gericht__name">O-Saft, frisch gepresst</h4><p class="gericht__desc">0,3 l</p><p class="gericht__preis mono">4,90</p></li>
+          <li class="gericht"><span class="gericht__nr mono">G05</span><h4 class="gericht__name">Craft-Bier vom Fass</h4><p class="gericht__desc">0,4 l, wechselnd aus der Region</p><p class="gericht__preis mono">5,20</p></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 05 BOWL-BAUKASTEN: Preise in Cent (data-preis), Farbe für die Grafik (data-farbe) ============ -->
+<section class="sektion baukasten" id="baukasten" aria-labelledby="baukasten-titel">
+  <div class="container">
+    <header class="kopf raster">
+      <p class="kopf__nr mono" data-rv>05 / Bowl-Baukasten</p>
+      <h2 class="h2 kopf__titel" id="baukasten-titel" data-rv>Bauen Sie <br>Ihre Bowl</h2>
+      <p class="kopf__text" data-rv>Grundpreis 9,50 € mit Basis, Protein, drei Toppings und Sauce. Am Tresen nennen Sie einfach Ihre Bon-Nummer.</p>
+    </header>
+
+    <form class="bau raster" data-bau data-grundpreis="950" data-inklusive="3" data-max="5" data-extra="90" aria-describedby="bau-hinweis" onsubmit="return false">
+      <div class="bau__schritte">
+        <fieldset class="schritt">
+          <legend class="schritt__titel"><span class="schritt__nr mono">1</span>Basis</legend>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="basis" value="Jasminreis" data-preis="0" data-farbe="#F4EEDD" checked><span>Jasminreis</span></label>
+            <label class="chip"><input type="radio" name="basis" value="Quinoa" data-preis="50" data-farbe="#E2C48E"><span>Quinoa <small>+0,50</small></span></label>
+            <label class="chip"><input type="radio" name="basis" value="Soba-Nudeln" data-preis="50" data-farbe="#9C7A55"><span>Soba-Nudeln <small>+0,50</small></span></label>
+            <label class="chip"><input type="radio" name="basis" value="Blattsalat" data-preis="0" data-farbe="#9CCB6E"><span>Blattsalat</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="schritt">
+          <legend class="schritt__titel"><span class="schritt__nr mono">2</span>Protein</legend>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="protein" value="Knuspertofu" data-preis="0" data-farbe="#F2B84B" checked><span>Knuspertofu</span></label>
+            <label class="chip"><input type="radio" name="protein" value="Falafel" data-preis="0" data-farbe="#A5732E"><span>Falafel</span></label>
+            <label class="chip"><input type="radio" name="protein" value="Hähnchen" data-preis="150" data-farbe="#D99352"><span>Hähnchen <small>+1,50</small></span></label>
+            <label class="chip"><input type="radio" name="protein" value="Lachs" data-preis="300" data-farbe="#FF8C66"><span>Lachs <small>+3,00</small></span></label>
+          </div>
+        </fieldset>
+        <fieldset class="schritt">
+          <legend class="schritt__titel"><span class="schritt__nr mono">3</span>Toppings <em class="schritt__info mono" data-topping-info>3 inklusive, bis zu 5</em></legend>
+          <div class="chips">
+            <label class="chip"><input type="checkbox" name="topping" value="Avocado" data-farbe="#6FA84C" checked><span>Avocado</span></label>
+            <label class="chip"><input type="checkbox" name="topping" value="Edamame" data-farbe="#B5DB78" checked><span>Edamame</span></label>
+            <label class="chip"><input type="checkbox" name="topping" value="Mais" data-farbe="#FFD23F"><span>Mais</span></label>
+            <label class="chip"><input type="checkbox" name="topping" value="Gurke" data-farbe="#3F8F5B" checked><span>Gurke</span></label>
+            <label class="chip"><input type="checkbox" name="topping" value="Rotkohl" data-farbe="#8C3A8A"><span>Rotkohl</span></label>
+            <label class="chip"><input type="checkbox" name="topping" value="Mango" data-farbe="#FFAA2B"><span>Mango</span></label>
+            <label class="chip"><input type="checkbox" name="topping" value="Kimchi" data-farbe="#E4502B"><span>Kimchi</span></label>
+            <label class="chip"><input type="checkbox" name="topping" value="Süßkartoffel" data-farbe="#F28A2E"><span>Süßkartoffel</span></label>
+            <label class="chip"><input type="checkbox" name="topping" value="Radieschen" data-farbe="#E8729A"><span>Radieschen</span></label>
+            <label class="chip"><input type="checkbox" name="topping" value="Ei" data-farbe="#FFF3CF"><span>Wachsweiches Ei</span></label>
+          </div>
+          <p class="schritt__hinweis mono" data-topping-voll hidden role="status">Die Schale ist voll: höchstens fünf Toppings.</p>
+        </fieldset>
+        <fieldset class="schritt">
+          <legend class="schritt__titel"><span class="schritt__nr mono">4</span>Sauce</legend>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="sauce" value="Erdnuss-Limette" data-preis="0" data-farbe="#C4843A" checked><span>Erdnuss-Limette</span></label>
+            <label class="chip"><input type="radio" name="sauce" value="Miso-Ingwer" data-preis="0" data-farbe="#DDA640"><span>Miso-Ingwer</span></label>
+            <label class="chip"><input type="radio" name="sauce" value="Kräuterjoghurt" data-preis="0" data-farbe="#E9F1D8"><span>Kräuterjoghurt</span></label>
+            <label class="chip"><input type="radio" name="sauce" value="Sriracha-Mayo" data-preis="0" data-farbe="#FF6A3D"><span>Sriracha-Mayo</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="schritt">
+          <legend class="schritt__titel"><span class="schritt__nr mono">5</span>Crunch <em class="schritt__info mono">optional, je +0,50</em></legend>
+          <div class="chips">
+            <label class="chip"><input type="checkbox" name="crunch" value="Sesam" data-preis="50"><span>Sesam</span></label>
+            <label class="chip"><input type="checkbox" name="crunch" value="Röstzwiebeln" data-preis="50"><span>Röstzwiebeln</span></label>
+            <label class="chip"><input type="checkbox" name="crunch" value="Cashews" data-preis="50"><span>Cashews</span></label>
+          </div>
+        </fieldset>
+      </div>
+
+      <!-- Handy: kleine Summenleiste, die beim Auswählen unten mitläuft -->
+      <div class="bau__mini" aria-hidden="true"><span class="mono">Ihre Bowl</span><output data-mini-summe>9,50 €</output><a href="#bon" tabindex="-1">Zum Bon ↓</a></div>
+
+      <div class="bau__ergebnis">
+        <div class="bau__klebe">
+          <!-- Schale von oben: Keile füllen sich mit der Auswahl -->
+          <div class="schale" aria-hidden="true">
+            <svg viewBox="0 0 400 400" data-schale>
+              <circle class="schale__rand" cx="200" cy="200" r="186"/>
+              <circle class="schale__basis" cx="200" cy="200" r="164" data-schale-basis/>
+              <g data-keile></g>
+              <path class="schale__sauce" d="M122 214c20-26 36 18 56-6s34 22 54-2 36 20 50-4" data-schale-sauce/>
+              <g class="schale__crunch" data-schale-crunch>
+                <circle cx="160" cy="150" r="4"/><circle cx="246" cy="142" r="4"/><circle cx="272" cy="236" r="4"/><circle cx="150" cy="262" r="4"/><circle cx="206" cy="282" r="4"/><circle cx="118" cy="190" r="4"/><circle cx="290" cy="190" r="4"/><circle cx="226" cy="118" r="4"/>
+              </g>
+            </svg>
+            <button class="btn btn--gelb btn--sm schale__zufall" type="button" data-zufall hidden><svg class="btn__icon" aria-hidden="true"><use href="#i-wuerfel"/></svg>Überraschen Sie mich</button>
+          </div>
+
+          <!-- Bon: wird aus der Auswahl erzeugt -->
+          <div class="bon" id="bon" data-bon>
+            <p class="bon__kopf mono"><strong>Linie 12 · Bowl-Bon</strong><span data-bon-nr>Nr. —</span></p>
+            <ul class="bon__zeilen mono" data-bon-zeilen aria-live="polite">
+              <li><span>Bowl, Grundpreis</span><span>9,50</span></li>
+            </ul>
+            <p class="bon__summe"><span class="mono">Summe</span><output class="bon__betrag" data-bon-summe>9,50 €</output></p>
+            <noscript><p class="bon__hinweis mono">Die Summe wird mit JavaScript berechnet.</p></noscript>
+            <p class="bon__hinweis mono" id="bau-hinweis">Demo-Funktion: Der Bon wird nirgends gespeichert oder versendet.</p>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ============ 06 BILDSTRECKE: zwei Reihen, die beim Scrollen gegeneinander laufen ============ -->
+<section class="sektion galerie" id="galerie" aria-labelledby="galerie-titel">
+  <div class="container">
+    <header class="kopf raster">
+      <p class="kopf__nr mono" data-rv>06 / Einblicke</p>
+      <h2 class="h2 kopf__titel" id="galerie-titel" data-rv>Laut, voll, <br>gemütlich</h2>
+    </header>
+  </div>
+  <div class="strecke" data-strecke>
+    <ul class="strecke__reihe" data-reihe="links">
+      <li class="foto foto--quer"><img src="img/bilder/gaeste-700.webp" srcset="img/bilder/gaeste-700.webp 700w, img/bilder/gaeste-1300.webp 1300w" sizes="(min-width: 900px) 40vw, 80vw" width="1300" height="866" loading="lazy" decoding="async" alt="Gäste lachen und essen an einem langen Holztisch"><span class="foto__notiz mono">Fr, 19:40 · Feierabend</span></li>
+      <li class="foto foto--hoch"><img src="img/bilder/limo-700.webp" srcset="img/bilder/limo-700.webp 700w, img/bilder/limo-1300.webp 1300w" sizes="(min-width: 700px) 24vw, 60vw" width="700" height="875" loading="lazy" decoding="async" alt="Drei Gläser rote Hauslimonade mit Erdbeeren, Minze und Limette"><span class="foto__notiz mono">Hauslimo · Himbeer-Minze</span></li>
+      <li class="foto foto--quer"><img src="img/bilder/runde-700.webp" srcset="img/bilder/runde-700.webp 700w, img/bilder/runde-1300.webp 1300w" sizes="(min-width: 900px) 36vw, 76vw" width="1300" height="975" loading="lazy" decoding="async" alt="Freunde von oben an einem runden Tisch mit Burgern, Pommes und Wassergläsern"><span class="foto__notiz mono">Mi, 12:15 · Smash-Mittwoch</span></li>
+      <li class="foto foto--quadrat"><img src="img/gerichte/brownie-600.webp" srcset="img/gerichte/brownie-600.webp 600w, img/gerichte/brownie-1000.webp 1000w" sizes="(min-width: 700px) 28vw, 60vw" width="600" height="600" loading="lazy" decoding="async" alt="Ein Stück Brownie, über das Schokoladensauce läuft"><span class="foto__notiz mono">Brownie · warm</span></li>
+      <li class="foto foto--quer"><img src="img/bilder/tafel-700.webp" srcset="img/bilder/tafel-700.webp 700w, img/bilder/tafel-1300.webp 1300w" sizes="(min-width: 900px) 40vw, 80vw" width="1300" height="867" loading="lazy" decoding="async" alt="Eine größere Gruppe sitzt an einer langen Tafel unter einem Vordach"><span class="foto__notiz mono">Sa · Gruppe mit 14 Personen</span></li>
+    </ul>
+    <ul class="strecke__reihe" data-reihe="rechts">
+      <li class="foto foto--quer"><img src="img/bilder/brunch-tisch-700.webp" srcset="img/bilder/brunch-tisch-700.webp 700w, img/bilder/brunch-tisch-1300.webp 1300w" sizes="(min-width: 900px) 40vw, 80vw" width="1300" height="866" loading="lazy" decoding="async" alt="Brunch-Tisch von oben: Hände greifen nach Waffeln, Shakshuka und Kaffee"><span class="foto__notiz mono">So, 11:02 · Brunch</span></li>
+      <li class="foto foto--quadrat"><img src="img/gerichte/tofu-bowl-600.webp" width="600" height="600" loading="lazy" decoding="async" alt="Bowl mit Tofu, Mais, Edamame und Ei von oben"><span class="foto__notiz mono">Crunch-Tofu · Do</span></li>
+      <li class="foto foto--quer"><img src="img/bilder/bar-700.webp" width="700" height="525" loading="lazy" decoding="async" alt="Tresen mit Kreidetafeln und warmen Lampen"><span class="foto__notiz mono">Tresen · ab 8 Uhr</span></li>
+      <li class="foto foto--hoch"><img src="img/bilder/koch-700.webp" width="700" height="875" loading="lazy" decoding="async" alt="Koch beim Anrichten unter Wärmelampen"><span class="foto__notiz mono">Küche · offen</span></li>
+      <li class="foto foto--quer"><img src="img/hero/halle-800.webp" width="800" height="600" loading="lazy" decoding="async" alt="Die Halle mit Stahlträgern und großen Fenstern am Vormittag"><span class="foto__notiz mono">Di, 9:30 · noch ruhig</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 07 GRUPPEN & WALK-INS: Reservierung nur für Gruppen ============ -->
+<section class="sektion gruppen" id="reservieren" aria-labelledby="gruppen-titel">
+  <div class="container raster gruppen__raster">
+    <div class="gruppen__info">
+      <p class="kopf__nr mono" data-rv>07 / Gruppen</p>
+      <h2 class="h2" id="gruppen-titel" data-rv>Walk-ins willkommen. <span>Gruppen, bitte anmelden.</span></h2>
+      <!-- Regeln: Personenzahlen hier und im Formular (min/max) gleich halten -->
+      <ol class="regeln">
+        <li class="regel" data-rv style="--d:0"><span class="regel__zahl">1–5</span><p><strong>Einfach vorbeikommen.</strong> Kein Tisch nötig, meistens ist sofort etwas frei. Bestellt wird am Tresen.</p></li>
+        <li class="regel" data-rv style="--d:1"><span class="regel__zahl">6–30</span><p><strong>Bitte anmelden.</strong> Wir stellen Tische zusammen und halten sie 15 Minuten für Sie frei.</p></li>
+        <li class="regel" data-rv style="--d:2"><span class="regel__zahl">30+</span><p><strong>Halle mieten.</strong> Für Feiern und Team-Events rufen Sie uns am besten an: <a href="tel:+49123456789">0123 456 789</a>.</p></li>
+      </ol>
+    </div>
+
+    <!-- Formular: Ohne data-endpoint läuft es im Demo-Modus (nichts wird versendet).
+         Für echten Versand z. B. data-endpoint="https://formspree.io/f/DEINE-ID" eintragen. -->
+    <div class="anfrage" data-rv>
+      <form class="anfrage__form" data-anfrage data-endpoint="" action="mailto:hallo@linie-12.example" method="post" enctype="text/plain">
+        <p class="anfrage__titel mono">Gruppen-Anfrage</p>
+        <div class="felder">
+          <div class="feld feld--drittel feld--personen">
+            <label for="a-personen">Personen</label>
+            <div class="stepper">
+              <button class="stepper__knopf" type="button" data-step="-1" aria-label="Eine Person weniger" hidden>−</button>
+              <input id="a-personen" name="personen" type="number" inputmode="numeric" min="6" max="30" value="8" required aria-describedby="a-personen-hinweis a-personen-fehler">
+              <button class="stepper__knopf" type="button" data-step="1" aria-label="Eine Person mehr" hidden>+</button>
+            </div>
+            <p class="feld__hinweis" id="a-personen-hinweis">6 bis 30 Personen</p>
+            <p class="feld__fehler" id="a-personen-fehler" data-fehler="personen" hidden></p>
+          </div>
+          <div class="feld feld--drittel">
+            <label for="a-datum">Datum</label>
+            <input id="a-datum" name="datum" type="date" required aria-describedby="a-datum-fehler">
+            <p class="feld__fehler" id="a-datum-fehler" data-fehler="datum" hidden></p>
+          </div>
+          <div class="feld feld--drittel">
+            <label for="a-zeit">Uhrzeit</label>
+            <select id="a-zeit" name="uhrzeit" required aria-describedby="a-zeit-fehler" data-zeit>
+              <option value="">Bitte wählen</option>
+              <option>09:00</option><option>10:00</option><option>11:00</option><option>12:00</option><option>13:00</option>
+              <option>17:00</option><option>18:00</option><option>19:00</option><option>20:00</option>
+            </select>
+            <p class="feld__fehler" id="a-zeit-fehler" data-fehler="uhrzeit" hidden></p>
+          </div>
+          <fieldset class="feld feld--voll anlass">
+            <legend>Anlass <span>(optional)</span></legend>
+            <div class="chips chips--klein">
+              <label class="chip"><input type="radio" name="anlass" value="Brunch"><span>Brunch</span></label>
+              <label class="chip"><input type="radio" name="anlass" value="Mittag"><span>Mittag</span></label>
+              <label class="chip"><input type="radio" name="anlass" value="Abendessen"><span>Abendessen</span></label>
+              <label class="chip"><input type="radio" name="anlass" value="Geburtstag"><span>Geburtstag</span></label>
+              <label class="chip"><input type="radio" name="anlass" value="Team-Event"><span>Team-Event</span></label>
+            </div>
+          </fieldset>
+          <div class="feld feld--drittel">
+            <label for="a-name">Name</label>
+            <input id="a-name" name="name" autocomplete="name" required aria-describedby="a-name-fehler">
+            <p class="feld__fehler" id="a-name-fehler" data-fehler="name" hidden></p>
+          </div>
+          <div class="feld feld--drittel">
+            <label for="a-mail">E-Mail</label>
+            <input id="a-mail" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" required aria-describedby="a-mail-fehler">
+            <p class="feld__fehler" id="a-mail-fehler" data-fehler="email" hidden></p>
+          </div>
+          <div class="feld feld--drittel">
+            <label for="a-tel">Telefon <span>(optional)</span></label>
+            <input id="a-tel" name="telefon" type="tel" autocomplete="tel" aria-describedby="a-tel-fehler">
+            <p class="feld__fehler" id="a-tel-fehler" data-fehler="telefon" hidden></p>
+          </div>
+          <div class="feld feld--voll">
+            <label for="a-nachricht">Nachricht <span>(optional)</span></label>
+            <textarea id="a-nachricht" name="nachricht" rows="3" placeholder="Kinderstühle, Allergien, Wünsche …"></textarea>
+          </div>
+        </div>
+        <label class="check">
+          <input type="checkbox" name="datenschutz" required aria-describedby="a-ds-fehler">
+          <span class="check__box" aria-hidden="true"><svg><use href="#i-haken"/></svg></span>
+          <span>Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Anfrage gespeichert werden. Mehr in der <a href="../../restaurant/datenschutz.html">Datenschutzerklärung</a>.</span>
+        </label>
+        <p class="feld__fehler" id="a-ds-fehler" data-fehler="datenschutz" hidden></p>
+        <div class="anfrage__fuss">
+          <p class="anfrage__summe mono" data-summe aria-live="polite">8 Personen · Datum wählen</p>
+          <button class="btn btn--rot btn--lg" type="submit" data-senden><span data-senden-text>Anfrage senden</span><svg class="btn__icon" aria-hidden="true"><use href="#i-pfeil"/></svg></button>
+        </div>
+      </form>
+
+      <div class="anfrage__danke" data-danke hidden tabindex="-1">
+        <p class="anfrage__stempel" aria-hidden="true">Notiert!</p>
+        <h3 class="anfrage__danke-titel">Danke<span data-danke-name></span>!</h3>
+        <p data-danke-text>Ihre Anfrage ist angekommen.</p>
+        <p class="anfrage__demo mono" data-danke-demo hidden><strong>Demo-Modus:</strong> Es wurde nichts versendet. Auf der echten Website ginge die Anfrage jetzt per E-Mail ans Team.</p>
+        <button class="btn btn--rand btn--sm" type="button" data-neu>Neue Anfrage</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 08 BESUCH: Öffnungszeiten (einzige Quelle für Status + Formular) und Anfahrt ============ -->
+<section class="sektion besuch raster-linien" id="besuch" aria-labelledby="besuch-titel">
+  <div class="container">
+    <header class="kopf raster">
+      <p class="kopf__nr mono" data-rv>08 / Besuch</p>
+      <h2 class="h2 kopf__titel" id="besuch-titel" data-rv>Zeiten &amp; <br>Anfahrt</h2>
+    </header>
+
+    <div class="besuch__raster raster">
+      <div class="zeiten" data-rv>
+        <p class="status status--gross" data-status><span class="status__punkt" aria-hidden="true"></span><span data-status-text>Di – So geöffnet</span></p>
+        <!-- data-tag: 0 = Sonntag … 6 = Samstag. data-zeiten leer = Ruhetag. Sichtbaren Text und JSON-LD im <head> mitpflegen.
+             data-letzte-anfrage = letzte Uhrzeit für Gruppen, Minuten vor Schluss. -->
+        <table class="zeiten__tabelle" data-oeffnungszeiten data-zeitzone="Europe/Berlin" data-letzte-anfrage="120">
+          <caption class="sr-only">Öffnungszeiten</caption>
+          <tbody>
+            <tr data-tag="1" data-zeiten=""><th scope="row">Montag</th><td>Ruhetag</td></tr>
+            <tr data-tag="2" data-zeiten="08:00-22:00"><th scope="row">Dienstag</th><td>8 – 22 Uhr</td></tr>
+            <tr data-tag="3" data-zeiten="08:00-22:00"><th scope="row">Mittwoch</th><td>8 – 22 Uhr</td></tr>
+            <tr data-tag="4" data-zeiten="08:00-22:00"><th scope="row">Donnerstag</th><td>8 – 22 Uhr</td></tr>
+            <tr data-tag="5" data-zeiten="08:00-23:00"><th scope="row">Freitag</th><td>8 – 23 Uhr</td></tr>
+            <tr data-tag="6" data-zeiten="09:00-23:00"><th scope="row">Samstag</th><td>9 – 23 Uhr <span class="zeiten__extra mono">Brunch bis 15</span></td></tr>
+            <tr data-tag="0" data-zeiten="09:00-17:00"><th scope="row">Sonntag</th><td>9 – 17 Uhr <span class="zeiten__extra mono">Brunch bis 15</span></td></tr>
+          </tbody>
+        </table>
+        <p class="zeiten__fuss mono">Küche bis 30 Minuten vor Schluss. An Feiertagen wie sonntags.</p>
+      </div>
+
+      <div class="anfahrt" data-rv>
+        <!-- Liniennetz-Skizze statt eingebetteter Karte (keine Daten an Dritte). Namen im SVG anpassen. -->
+        <figure class="netz">
+          <svg viewBox="0 0 560 380" role="img" aria-labelledby="netz-titel netz-desc" data-netz>
+            <title id="netz-titel">Anfahrt als Liniennetz</title>
+            <desc id="netz-desc">Die Tram 12 hält an der Haltestelle Gleispark, von dort sind es zwei Minuten zu Fuß. Der Bus 34 hält an der Haltestelle Stellwerk, drei Minuten entfernt.</desc>
+            <g class="netz__zeichnen">
+              <path class="netz__bus" d="M430 20V360"/>
+              <path class="netz__tram" d="M24 300H200q22 0 34-18l52-100q10-18 32-18H536"/>
+              <path class="netz__weg" d="M330 164v44q0 14 14 14h28"/>
+              <path class="netz__weg" d="M430 262v-26q0-14-14-14h-10"/>
+            </g>
+            <g class="netz__halt"><circle cx="84" cy="300" r="9"/><circle cx="200" cy="300" r="9"/><circle cx="480" cy="164" r="9"/><circle cx="430" cy="262" r="9"/></g>
+            <g class="netz__ziel-halt"><circle cx="330" cy="164" r="14"/></g>
+            <g class="netz__puls" aria-hidden="true"><circle cx="389" cy="222" r="18"/></g>
+            <rect class="netz__haus" x="372" y="205" width="34" height="34"/>
+            <g class="netz__schrift">
+              <text x="72" y="338" text-anchor="middle">Hauptbf.</text>
+              <text x="206" y="338" text-anchor="middle">Markthalle</text>
+              <text x="330" y="132" text-anchor="middle" class="netz__fett">Gleispark</text>
+              <text x="496" y="140" text-anchor="middle">Nordufer</text>
+              <text x="444" y="302">Stellwerk</text>
+              <text x="318" y="250" text-anchor="end" class="netz__klein">2 Min.</text>
+              <text x="460" y="214" class="netz__klein">3 Min.</text>
+            </g>
+            <g class="netz__schild netz__schild--tram"><circle cx="44" cy="258" r="24"/><text x="44" y="267" text-anchor="middle">12</text></g>
+            <g class="netz__schild netz__schild--bus"><rect x="404" y="24" width="52" height="34" rx="6"/><text x="430" y="48" text-anchor="middle">34</text></g>
+            <text x="389" y="228" text-anchor="middle" class="netz__haus-text">L12</text>
+          </svg>
+          <figcaption class="sr-only">Skizze, nicht maßstabsgetreu</figcaption>
+        </figure>
+
+        <address class="adresse">
+          <strong>Linie 12</strong><br>Gleisstraße 12<br>00000 Musterstadt
+        </address>
+        <ul class="wege">
+          <li><svg aria-hidden="true"><use href="#i-tram"/></svg><p><strong>Tram 12</strong> bis Gleispark, 2 Minuten zu Fuß</p></li>
+          <li><svg aria-hidden="true"><use href="#i-bus"/></svg><p><strong>Bus 34</strong> bis Stellwerk, 3 Minuten zu Fuß</p></li>
+          <li><svg aria-hidden="true"><use href="#i-rad"/></svg><p><strong>Fahrrad:</strong> 20 Bügel direkt vor der Tür</p></li>
+          <li><svg aria-hidden="true"><use href="#i-auto"/></svg><p><strong>Auto:</strong> Parkhaus Markthalle, 300 m</p></li>
+          <li><svg aria-hidden="true"><use href="#i-rolli"/></svg><p><strong>Stufenlos</strong> rein, barrierefreies WC</p></li>
+        </ul>
+        <div class="anfahrt__links">
+          <!-- Nur ein Link, keine eingebettete Karte -->
+          <a class="btn btn--dunkel" href="https://www.google.com/maps/search/?api=1&amp;query=Gleisstra%C3%9Fe+12+Musterstadt" target="_blank" rel="noopener">Route planen <svg class="btn__icon" aria-hidden="true"><use href="#i-aussen"/></svg><span class="sr-only">(öffnet Google Maps in neuem Tab)</span></a>
+          <a class="btn btn--rand" href="tel:+49123456789"><svg class="btn__icon" aria-hidden="true"><use href="#i-telefon"/></svg>0123 456 789</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="fuss">
+  <div class="container">
+    <div class="fuss__raster raster">
+      <div class="fuss__spalte">
+        <p class="fuss__titel mono">Adresse</p>
+        <p>Gleisstraße 12<br>00000 Musterstadt</p>
+      </div>
+      <div class="fuss__spalte">
+        <p class="fuss__titel mono">Kontakt</p>
+        <p><a href="tel:+49123456789">0123 456 789</a><br><a href="mailto:hallo@linie-12.example">hallo@linie-12.example</a></p>
+      </div>
+      <div class="fuss__spalte">
+        <p class="fuss__titel mono">Offen</p>
+        <p>Di – Fr ab 8 Uhr<br>Sa + So ab 9 Uhr · Mo Ruhetag</p>
+      </div>
+      <div class="fuss__spalte">
+        <p class="fuss__titel mono">Folgen</p>
+        <!-- Eigene Profil-Adresse eintragen oder Zeile löschen -->
+        <p><a class="fuss__insta" href="https://www.instagram.com/" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-instagram"/></svg>Instagram</a></p>
+      </div>
+    </div>
+    <p class="fuss__marke" aria-hidden="true">Linie 12</p>
+    <div class="fuss__unten mono">
+      <p>© <span data-jahr>2026</span> Linie 12 · Demo-Website, alle Inhalte sind Beispiele.</p>
+      <p class="fuss__recht"><a href="../../restaurant/impressum.html">Impressum</a><a href="../../restaurant/datenschutz.html">Datenschutz</a><a href="#top">Nach oben ↑</a></p>
+    </div>
+  </div>
+</footer>
+
+<!-- Handy: feste Leiste unten (erscheint nach dem Hero) -->
+<div class="leiste" data-leiste>
+  <a class="leiste__knopf" href="tel:+49123456789"><svg aria-hidden="true"><use href="#i-telefon"/></svg>Anrufen</a>
+  <a class="leiste__knopf leiste__knopf--gelb" href="#reservieren">Gruppe anmelden</a>
+</div>
+
+<script src="../../restaurant/assets/vendor/gsap.min.js" defer></script>
+<script src="../../restaurant/assets/vendor/ScrollTrigger.min.js" defer></script>
+<script src="js/main.js" defer></script>
+</body>
+</html>
