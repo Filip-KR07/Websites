@@ -6,7 +6,7 @@
 <meta name="description" content="Hoyer Tank-Treff Hamburg an der A1, Abfahrt 38: Preise, Öffnungszeiten, Bistro und LKW-Tanken bis 4,20 m.">
 <title>Hoyer Tank-Treff Hamburg</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@700;800&family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&display=swap">
 <style>
 /* Layout: Straßenraum. Links die Beschilderung (Titel), rechts der Preismast; darunter ein Autobahnschild als Infoband, Öffnungszeiten als 24-h-Zeitleiste. */
 :root{
@@ -39,7 +39,7 @@ h1,h2,h3{font-family:var(--display);font-weight:800;text-transform:uppercase;let
 @keyframes bg-in{from{opacity:0;transform:scale(1.05)}}
 .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(27,28,30,.92) 0%,rgba(27,28,30,.55) 55%,rgba(27,28,30,.2) 100%);pointer-events:none}
 .hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1fr auto;gap:48px;align-items:end;padding-block:clamp(56px,9vw,112px) 0}
-.hero h1{font-size:clamp(3.4rem,9vw,8rem)}
+.hero h1{font-family:Lexend,var(--body);font-weight:800;text-transform:none;letter-spacing:-.035em;line-height:1;font-size:clamp(2.8rem,7vw,6.2rem)}
 .hero h1 span{display:block;overflow:hidden}
 .hero h1 span b{display:block;font-weight:inherit;animation:rise 900ms var(--ease-out) both}
 .hero h1 span:nth-child(2) b{animation-delay:90ms;color:var(--signal)}
@@ -50,7 +50,7 @@ h1,h2,h3{font-family:var(--display);font-weight:800;text-transform:uppercase;let
 .btn:active{transform:scale(.97)}
 .btn-red{background:var(--signal);border-color:var(--signal)}
 @media (hover:hover) and (pointer:fine){.btn-line:hover{background:#fff;color:var(--asphalt)}.btn-red:hover{background:#b80f18;border-color:#b80f18}}
-.status{display:inline-flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:15px}
+.status{display:inline-flex;align-items:center;gap:10px;font-weight:500;font-size:15px;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.1)}
 .status::before{content:"";width:10px;height:10px;border-radius:50%;background:#8a8d93}
 .status.open::before{background:#35d06f;box-shadow:0 0 0 4px rgba(53,208,111,.25)}
 .status.closed::before{background:var(--signal)}
@@ -72,18 +72,20 @@ h1,h2,h3{font-family:var(--display);font-weight:800;text-transform:uppercase;let
 .price .tenth{font-size:.5em;margin-left:2px}
 .pylon-foot{padding:0 18px 16px;font-size:12px;color:#8a8d93}
 
-/* Autobahnschild */
-.sign{background:var(--autobahn);color:#fff;padding:18px 0}
-.sign .wrap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.plate{border:3px solid #fff;border-radius:10px;padding:14px 18px;min-width:0}
-.plate .label{color:rgba(255,255,255,.75);font-size:13px}
-.plate strong{display:block;font-family:var(--display);font-weight:700;font-size:clamp(1.25rem,2.4vw,1.8rem);text-transform:uppercase;line-height:1.05;margin-top:4px;overflow-wrap:anywhere}
-.plate .a1{display:inline-block;background:var(--autobahn);border:2px solid #fff;border-radius:4px;padding:0 6px;margin-right:6px}
-
+/* Infopanel: schwebt über der Kante des Hero */
+.info{position:relative;z-index:2;margin-top:-1px;background:linear-gradient(var(--asphalt-2) 50%,var(--concrete) 50%)}
+.info-panel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:#fff;box-shadow:0 24px 48px -24px rgba(27,28,30,.35)}
+.fact{display:flex;gap:14px;padding:26px 24px;min-width:0}
+.fact+.fact{border-left:1px solid var(--line)}
+.fact svg{width:22px;height:22px;flex:none;margin-top:2px;fill:none;stroke:var(--signal);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.fact div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fact .label{font-size:12px}
+.fact strong{font-weight:600;font-size:17px;overflow-wrap:anywhere}
+.fact a,.fact button{align-self:flex-start;margin-top:6px;font:500 14px var(--body);color:var(--autobahn);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 /* Abschnitte */
 section.block{padding-block:clamp(64px,9vw,112px)}
 .head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px 32px;margin-bottom:40px;border-bottom:3px solid var(--asphalt);padding-bottom:14px}
-.head h2{font-size:clamp(2.2rem,6vw,4.6rem);overflow-wrap:anywhere;min-width:0}
+.head h2{font-size:clamp(2rem,6vw,4.6rem);overflow-wrap:anywhere;min-width:0}
 
 /* Öffnungszeiten als Zeitleiste */
 .hours{display:grid;gap:6px}
@@ -102,7 +104,7 @@ section.block{padding-block:clamp(64px,9vw,112px)}
 
 /* Bistro */
 .bistro{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(24px,5vw,72px);align-items:center}
-.bistro h2{font-size:clamp(2.6rem,6vw,4.6rem)}
+.bistro h2{font-size:clamp(2.2rem,6vw,4.6rem)}
 .bistro p{max-width:46ch;color:#3d4046}
 .menu{background:var(--paper);border-top:6px solid var(--signal);padding:24px 28px}
 .menu li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line)}
@@ -116,10 +118,23 @@ section.block{padding-block:clamp(64px,9vw,112px)}
 .pay{margin-top:48px;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline}
 .pay b{font-family:var(--display);font-weight:700;font-size:22px;text-transform:uppercase}
 
-footer{background:var(--asphalt);color:#b9bbbf;padding-block:40px calc(40px + env(safe-area-inset-bottom,0px));font-size:15px}
-footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px}
-footer a{color:#fff}
-
+.foot{background:var(--paper);padding-block:64px;font-size:15px;border-top:1px solid var(--line)}
+.foot-grid{display:grid;grid-template-columns:1.3fr repeat(4,minmax(0,1fr));gap:32px}
+.foot h3{font-family:var(--body);text-transform:none;font-weight:600;font-size:16px;margin-bottom:12px;letter-spacing:0}
+.foot p{margin:0 0 16px;color:#3d4046;white-space:pre-line}
+.foot ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.foot a{color:#3d4046;text-underline-offset:3px}
+.foot-btn{display:inline-block;background:var(--asphalt);color:#fff!important;text-decoration:none;padding:10px 18px;font-weight:600}
+.search{background:var(--signal);color:#fff;padding-block:56px calc(56px + env(safe-area-inset-bottom,0px));text-align:center}
+.search h2{font-family:var(--body);text-transform:none;font-weight:600;font-size:1.4rem;letter-spacing:0;margin-bottom:18px}
+.search form{display:flex;max-width:520px;margin:0 auto;background:#fff}
+.search input{flex:1;min-width:0;border:0;padding:0 16px;height:50px;font:16px var(--body);color:var(--asphalt);background:none}
+.search input:focus{outline:none}.search form:focus-within{outline:3px solid var(--asphalt);outline-offset:2px}
+.search button{width:52px;border:0;background:none;cursor:pointer;color:var(--asphalt)}
+.search button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.search-hint{margin:14px 0 0;font-size:15px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (max-width:900px){.foot-grid{grid-template-columns:1fr 1fr}.foot-grid>div:first-child{grid-column:1/-1}}
 /* Scroll-Reveal: sichtbar in Ruhe, nur leichtes Nachziehen */
 .rv{transition:opacity 700ms var(--ease-out),transform 700ms var(--ease-out)}
 .js .rv:not(.in){opacity:.001;transform:translateY(18px)}
@@ -127,13 +142,13 @@ footer a{color:#fff}
 @media (max-width:900px){
   .hero .wrap{grid-template-columns:1fr}
   .pylon{justify-self:start}
-  .sign .wrap{grid-template-columns:1fr 1fr}
+  .info-panel{grid-template-columns:1fr 1fr}.fact:nth-child(3){border-left:0}.fact:nth-child(n+3){border-top:1px solid var(--line)}
   .bistro{grid-template-columns:1fr}
   .svc{grid-template-columns:repeat(3,minmax(0,1fr))}
   .top nav{display:none}
 }
 @media (max-width:560px){
-  .row,.scale{grid-template-columns:34px 1fr 84px;gap:8px}.time{font-size:13px}.sign .wrap{grid-template-columns:1fr}
+  .row,.scale{grid-template-columns:34px 1fr 84px;gap:8px}.time{font-size:13px}.info-panel{grid-template-columns:1fr}.fact+.fact{border-left:0;border-top:1px solid var(--line)}.fact .label{letter-spacing:.06em}
   .day{font-size:16px}.row.today .day::after{content:""}
   .svc{grid-template-columns:repeat(2,minmax(0,1fr))}
   .cta .btn{flex:1;justify-content:center}
@@ -146,6 +161,7 @@ footer a{color:#fff}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="road" viewBox="0 0 24 24"><path d="M8 3 5 21M16 3l3 18M12 4v3M12 11v3M12 18v2"/></symbol><symbol id="height" viewBox="0 0 24 24"><path d="M4 3h16M4 21h16M12 7v10M9 10l3-3 3 3M9 14l3 3 3-3"/></symbol><symbol id="pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></symbol><symbol id="phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></symbol>
 <symbol id="coffee" viewBox="0 0 24 24"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9Z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 3v3"/></symbol>
 <symbol id="food" viewBox="0 0 24 24"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M16 3c-2 1-3 4-3 7h3v11"/></symbol>
 <symbol id="shop" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></symbol>
@@ -171,7 +187,7 @@ footer a{color:#fff}
   <div class="wrap">
     <div>
       <span class="status" data-status>Öffnungszeiten</span>
-      <h1 style="margin-top:18px"><span><b>Hoyer Tank-Treff</b></span><span><b>Hamburg</b></span></h1>
+      <h1 style="margin-top:18px"><span><b>Hoyer Tank-Treff</b></span><span><b>in Hamburg</b></span></h1>
       <p>Direkt an der A1, Abfahrt 38. Volltanken, Kaffee holen, weiterfahren. Auch für LKW bis 4,20 m.</p>
       <div class="cta">
         <a class="btn btn-red" href="https://www.google.com/maps/dir/?api=1&amp;destination=Nartenstr.+31,+21079+Hamburg" target="_blank" rel="noopener">Route planen</a>
@@ -186,12 +202,12 @@ footer a{color:#fff}
   </div>
 </section>
 
-<div class="sign"><div class="wrap">
-  <div class="plate"><div class="label">Anfahrt</div><strong><span class="a1">A1</span>Abfahrt 38</strong></div>
-  <div class="plate"><div class="label">Durchfahrtshöhe</div><strong>max. 4,20 m</strong></div>
-  <div class="plate"><div class="label">Adresse</div><strong>Nartenstraße 31</strong></div>
-  <div class="plate"><div class="label">Telefon</div><strong style="user-select:all">+49 175 8859618</strong></div>
-</div></div>
+<div class="info"><div class="wrap"><div class="info-panel">
+  <div class="fact"><svg><use href="#road"/></svg><div><span class="label">Anfahrt</span><strong>A1, Abfahrt 38</strong></div></div>
+  <div class="fact"><svg><use href="#height"/></svg><div><span class="label">Durchfahrtshöhe</span><strong>max. 4,20 m</strong></div></div>
+  <div class="fact"><svg><use href="#pin"/></svg><div><span class="label">Adresse</span><strong>Nartenstr. 31, 21079 Hamburg</strong><a href="https://www.google.com/maps/dir/?api=1&amp;destination=Nartenstr.+31,+21079+Hamburg" target="_blank" rel="noopener">Routenplaner</a></div></div>
+  <div class="fact"><svg><use href="#phone"/></svg><div><span class="label">Telefon</span><strong style="user-select:all">+49 175 8859618</strong><button type="button" data-copy="+49 175 8859618">Nummer kopieren</button></div></div>
+</div></div></div>
 
 <section class="block" id="zeiten"><div class="wrap">
   <div class="head rv"><h2>Öffnungszeiten</h2><span class="label">24-Stunden-Ansicht</span></div>
@@ -221,7 +237,22 @@ footer a{color:#fff}
 </div></section>
 </main>
 
-<footer><div class="wrap"><span>Hoyer Tank-Treff · Nartenstraße 31</span><span><a href="../impressum.html">Impressum</a> · <a href="../datenschutz.html">Datenschutz</a></span></div></footer>
+<footer class="foot"><div class="wrap foot-grid">
+  <div><h3>Kontakt</h3><p>Wilhelm Hoyer B.V. &amp; Co. KG
+Rudolf-Diesel-Straße 1
+27374 Visselhövede
+Deutschland
+<a href="https://www.hoyer.de">www.hoyer.de</a></p><a class="foot-btn" href="https://www.hoyer.de">Kontaktformular</a></div>
+  <div><h3>Partner</h3><ul><li><a href="https://www.hoyer.de">Sonnentau Erlebniscampus</a></li><li><a href="https://www.hoyer.de">HARLAPP</a></li><li><a href="https://www.hoyer.de">Fairox</a></li></ul></div>
+  <div><h3>Services</h3><ul><li><a href="https://www.hoyer.de">Energiesparen</a></li><li><a href="https://www.hoyer.de">Rücknahme Verpackungen</a></li><li><a href="https://www.hoyer.de">Mittagsangebote</a></li><li><a href="https://www.hoyer.de">Mittagstisch in Visselhövede</a></li><li><a href="https://www.hoyer.de">Standorte</a></li><li><a href="https://www.hoyer.de">Newsletter</a></li><li><a href="https://www.hoyer.de">Tankbelege</a></li></ul></div>
+  <div><h3>Rechtliches</h3><ul><li><a href="../impressum.html">Impressum</a></li><li><a href="../datenschutz.html">Datenschutz</a></li><li><a href="https://www.hoyer.de">Störfallbetriebe</a></li><li><a href="https://www.hoyer.de">AGB</a></li><li><a href="https://www.hoyer.de">Widerrufsbelehrung</a></li><li><a href="https://www.hoyer.de">Cookies</a></li><li><a href="https://www.hoyer.de">Integritätskanal</a></li><li><a href="https://www.hoyer.de">Barrierefreiheit</a></li></ul></div>
+  <div><h3>Weitere Themen</h3><ul><li><a href="https://www.hoyer.de">Produktinformationen</a></li><li><a href="https://www.hoyer.de">Sicherheitsdatenblätter</a></li><li><a href="https://www.hoyer.de">Zertifizierungen</a></li></ul></div>
+</div></footer>
+<section class="search" aria-labelledby="search-h"><div class="wrap">
+  <h2 id="search-h">Nicht gefunden, was du suchst?</h2>
+  <form role="search" data-search><label class="sr" for="q">Suche</label><input id="q" type="search" placeholder="Suche" autocomplete="off"><button type="submit" aria-label="Suchen"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button></form>
+  <p class="search-hint" data-hint hidden></p>
+</div></section>
 
 <script>
 (function(){
@@ -252,6 +283,13 @@ footer a{color:#fff}
   st.textContent=open?'Jetzt geöffnet bis '+f(h[1])+' Uhr':'Gerade geschlossen';
   st.classList.add(open?'open':'closed');
 
+  document.querySelectorAll('[data-copy]').forEach(function(b){b.addEventListener('click',function(){
+    var done=function(){b.textContent='Kopiert';setTimeout(function(){b.textContent='Nummer kopieren'},1600)};
+    if(navigator.clipboard)navigator.clipboard.writeText(b.dataset.copy).then(done,function(){});});});
+  var form=document.querySelector('[data-search]'),hint=document.querySelector('[data-hint]');
+  form.addEventListener('submit',function(e){e.preventDefault();var q=form.q.value.trim().toLowerCase();if(!q)return;
+    var hit=[].slice.call(document.querySelectorAll('main h2, main li, main strong')).find(function(el){return el.textContent.toLowerCase().indexOf(q)>-1});
+    hint.hidden=false;if(hit){hint.textContent='Gefunden: '+hit.textContent.trim().slice(0,60);hit.scrollIntoView({behavior:'smooth',block:'center'})}else{hint.textContent='Kein Treffer für „'+form.q.value+'“ auf dieser Seite.'}});
   if(!('IntersectionObserver' in window)){hours.classList.add('in');return}
   document.documentElement.classList.add('js');
   var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{rootMargin:'0px 0px -10% 0px'});
