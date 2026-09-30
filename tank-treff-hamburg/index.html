@@ -16,7 +16,7 @@
   --display:"Barlow Condensed","Arial Narrow",sans-serif; --body:Barlow,"Helvetica Neue",Arial,sans-serif;
   --ease-out:cubic-bezier(.23,1,.32,1);
 }
-*{box-sizing:border-box}
+*{box-sizing:border-box}[hidden]{display:none!important}
 html{-webkit-tap-highlight-color:transparent;scroll-behavior:smooth}
 body{margin:0;background:var(--concrete);color:var(--asphalt);font:400 17px/1.55 var(--body)}
 a{color:inherit}
@@ -35,9 +35,9 @@ h1,h2,h3{font-family:var(--display);font-weight:800;text-transform:uppercase;let
 
 /* Hero */
 .hero{position:relative;overflow:hidden;background:var(--asphalt-2);color:#fff}
-.hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:30% 55%;opacity:.55;animation:bg-in 1400ms var(--ease-out) both}
+.hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:62% 60%;opacity:.95;animation:bg-in 1400ms var(--ease-out) both}
 @keyframes bg-in{from{opacity:0;transform:scale(1.05)}}
-.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(27,28,30,.92) 0%,rgba(27,28,30,.55) 55%,rgba(27,28,30,.2) 100%);pointer-events:none}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,14,28,.85) 0%,rgba(10,14,28,.45) 50%,rgba(10,14,28,.1) 100%);pointer-events:none}
 .hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1fr auto;gap:48px;align-items:end;padding-block:clamp(56px,9vw,112px) 0}
 .hero h1{font-family:Lexend,var(--body);font-weight:800;text-transform:none;letter-spacing:-.035em;line-height:1;font-size:clamp(2.8rem,7vw,6.2rem)}
 .hero h1 span{display:block;overflow:hidden}
@@ -186,7 +186,7 @@ section.block{padding-block:clamp(64px,9vw,112px)}
   <img class="hero-bg" src="img/station.jpg" alt="">
   <div class="wrap">
     <div>
-      <span class="status" data-status>Öffnungszeiten</span>
+      <span class="status" data-status hidden>Öffnungszeiten</span>
       <h1 style="margin-top:18px"><span><b>Hoyer Tank-Treff</b></span><span><b>in Hamburg</b></span></h1>
       <p>Direkt an der A1, Abfahrt 38. Volltanken, Kaffee holen, weiterfahren. Auch für LKW bis 4,20 m.</p>
       <div class="cta">
