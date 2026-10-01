@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="de" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- ANPASSEN: Titel, Beschreibung, Social-Media-Angaben -->
+<title>Aurel — Degustationsrestaurant am Schlossgarten</title>
+<meta name="description" content="Aurel: vierundzwanzig Plätze, eine Sitzung am Abend, ein Menü in fünf oder sieben Gängen mit Wein- oder alkoholfreier Begleitung. Reservierung online.">
+<!-- DEMO: Seite nicht indexieren. Für ein echtes Restaurant diese Zeile löschen. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#F4F0E8">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Aurel — Degustationsrestaurant am Schlossgarten">
+<meta property="og:description" content="Sieben Gänge, eine Sitzung am Abend. Jetzt Tisch anfragen.">
+<meta property="og:image" content="img/gastraum-1400.webp">
+<meta property="og:locale" content="de_DE">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F4F0E8'/%3E%3Cpath d='M9 27V15a7 7 0 0 1 14 0v12' fill='none' stroke='%231A1714' stroke-width='1.6'/%3E%3Cpath d='M5 27h22' stroke='%237A5D32' stroke-width='1.6'/%3E%3C/svg%3E">
+<link rel="preload" as="font" type="font/woff2" href="fonts/bodoni-moda-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/jost-latin.woff2" crossorigin>
+<link rel="preload" as="image" href="img/gastraum-1400.webp" imagesrcset="img/gastraum-800.webp 800w, img/gastraum-1400.webp 1400w, img/gastraum-2000.webp 2000w" imagesizes="100vw" media="(min-aspect-ratio: 4/5)">
+<link rel="stylesheet" href="css/style.css">
+<script>
+  /* Vor dem ersten Rendern: Klassen für JS und Bewegung setzen (kein Aufblitzen).
+     motion  = Animationen erlaubt (nicht bei "Bewegung reduzieren" oder ?motion=off)
+     is-ready = Intro darf starten (setzt main.js, sobald das Hero-Bild dekodiert ist) */
+  (function (h) {
+    h.classList.remove('no-js'); h.classList.add('js');
+    var still = /[?&]motion=off\b/.test(location.search) || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (!still) h.classList.add('motion');
+    /* Sicherheitsnetz: Falls main.js nicht lädt, läuft das Intro trotzdem und alles wird sichtbar */
+    setTimeout(function () { h.classList.add('is-ready'); }, 1800);
+    /* Falls main.js gar nicht läuft: alle Einblend-Elemente sofort zeigen */
+    setTimeout(function () { if (!h.classList.contains('js-ok')) h.classList.add('js-kaputt'); }, 4000);
+  })(document.documentElement);
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Restaurant",
+  "name": "Aurel",
+  "description": "Degustationsrestaurant am Schlossgarten. Menü in fünf oder sieben Gängen.",
+  "servesCuisine": ["Moderne europäische Küche", "Degustationsmenü"],
+  "priceRange": "€€€€",
+  "acceptsReservations": "True",
+  "telephone": "+49 123 456780",
+  "email": "tafel@aurel.example",
+  "address": { "@type": "PostalAddress", "streetAddress": "Am Schlossgarten 7", "postalCode": "00000", "addressLocality": "Musterstadt", "addressCountry": "DE" },
+  "openingHoursSpecification": [
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Wednesday", "Thursday", "Friday"], "opens": "18:30", "closes": "23:30" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "12:30", "closes": "15:00" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "18:30", "closes": "23:30" }
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+
+<!-- Icons: einmal definiert, überall per <use> -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-pfeil" viewBox="0 0 24 24"><path d="M4 12h15m-5-5 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-aussen" viewBox="0 0 24 24"><path d="M8 16 16 8m-7 0h7v7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></symbol>
+  <symbol id="i-telefon" viewBox="0 0 24 24"><path d="M6.6 3.5h2.6l1.4 4.1-2 1.4a12.5 12.5 0 0 0 6.4 6.4l1.4-2 4.1 1.4v2.6a2 2 0 0 1-2.1 2A16.6 16.6 0 0 1 4.6 5.6a2 2 0 0 1 2-2.1Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></symbol>
+  <symbol id="i-glas" viewBox="0 0 24 24"><path d="M8 3h8l-.4 5.2a3.6 3.6 0 0 1-7.2 0L8 3Zm4 8.8V20m-3.5 0h7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-haken" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<!-- ============ NAVIGATION ============ -->
+<header class="nav" data-nav>
+  <div class="nav__bar wrap">
+    <!-- ANPASSEN: Name des Restaurants -->
+    <a class="nav__marke" href="#top" aria-label="Aurel – zum Seitenanfang">Aurel</a>
+    <nav class="nav__links" aria-label="Hauptnavigation">
+      <a href="#philosophie" data-spy>Philosophie</a>
+      <a href="#menue" data-spy>Menü</a>
+      <a href="#kuechenchef" data-spy>Küchenchef</a>
+      <a href="#abend" data-spy>Ein Abend</a>
+      <a href="#besuch" data-spy>Besuch</a>
+    </nav>
+    <div class="nav__aktion">
+      <a class="knopf knopf--klein nav__cta" href="#reservierung">Tisch anfragen</a>
+      <button class="nav__burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menü öffnen" data-menu-auf>
+        <span aria-hidden="true"><i></i><i></i></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobiles Menü (Vollbild-Dialog) -->
+<dialog class="menu" id="menu" aria-label="Menü" data-menu>
+  <div class="menu__innen" data-lenis-prevent>
+    <div class="menu__kopf">
+      <span class="nav__marke">Aurel</span>
+      <button class="menu__zu" type="button" aria-label="Menü schließen" data-menu-zu><svg aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <nav aria-label="Menü">
+      <ol class="menu__links">
+        <li><a href="#philosophie"><span class="menu__nr">I</span>Philosophie</a></li>
+        <li><a href="#menue"><span class="menu__nr">II</span>Das Menü</a></li>
+        <li><a href="#kuechenchef"><span class="menu__nr">III</span>Küchenchef</a></li>
+        <li><a href="#abend"><span class="menu__nr">IV</span>Ein Abend</a></li>
+        <li><a href="#reservierung"><span class="menu__nr">V</span>Reservierung</a></li>
+        <li><a href="#besuch"><span class="menu__nr">VI</span>Besuch</a></li>
+      </ol>
+    </nav>
+    <div class="menu__fuss">
+      <p class="status" data-status><span class="status__punkt" aria-hidden="true"></span><span data-status-text>Mi – Sa ab 18:30 Uhr</span></p>
+      <p><a href="tel:+49123456780">0123 456 780</a><br>Am Schlossgarten 7 · Musterstadt</p>
+    </div>
+  </div>
+</dialog>
+
+<main id="main">
+
+<!-- ============ HERO ============
+     Ablauf: Das Foto steht zuerst randlos da. Dann zieht es sich wie ein Bild im Passepartout in einen Bogen zurück,
+     das Papier kommt zum Vorschein, und der Name steigt davor auf: hell über dem Foto, dunkel auf dem Papier.
+     Die Form des Bogens steuern die Variablen --bogen-* in css/style.css (Abschnitt 6). -->
+<section class="hero" id="top" aria-labelledby="hero-titel" tabindex="-1" data-hero>
+
+  <!-- Schrift, dunkle Fassung (liegt auf dem Papier). Das ist die echte Überschrift. -->
+  <div class="hero__schrift" data-hero-schrift>
+    <h1 class="hero__titel" id="hero-titel">
+      <span class="hero__maske" aria-hidden="true"><span class="hero__b" style="--i:0">A</span><span class="hero__b" style="--i:1">U</span><span class="hero__b" style="--i:2">R</span><span class="hero__b" style="--i:3">E</span><span class="hero__b" style="--i:4">L</span></span>
+      <span class="sr-only">Aurel – Degustationsrestaurant am Schlossgarten</span>
+    </h1>
+  </div>
+
+  <!-- Das Foto im Bogen. Alles hier drin wird auf die Bogenform zugeschnitten. -->
+  <div class="hero__rahmen" data-hero-rahmen>
+    <div class="hero__tiefe" data-hero-tiefe>
+      <!-- ANPASSEN: Hero-Foto. Querformat für Desktop/Tablet, "hoch" (1080 × 1920) fürs Handy -->
+      <picture class="hero__bild">
+        <source media="(max-aspect-ratio: 4/5)" srcset="img/gastraum-hoch.webp" width="1080" height="1920">
+        <img src="img/gastraum-1400.webp"
+             srcset="img/gastraum-800.webp 800w, img/gastraum-1400.webp 1400w, img/gastraum-2000.webp 2000w"
+             sizes="100vw" width="2000" height="1250"
+             alt="Der Gastraum am Abend: weiß gedeckte Tische, zwei Weingläser, warmes Licht von Wandleuchten" fetchpriority="high" data-hero-img>
+      </picture>
+    </div>
+    <div class="hero__schleier" aria-hidden="true"></div>
+    <!-- Schrift, helle Fassung (nur sichtbar, wo das Foto ist) -->
+    <div class="hero__schrift hero__schrift--hell" aria-hidden="true" data-hero-schrift>
+      <p class="hero__titel"><span class="hero__maske"><span class="hero__b" style="--i:0">A</span><span class="hero__b" style="--i:1">U</span><span class="hero__b" style="--i:2">R</span><span class="hero__b" style="--i:3">E</span><span class="hero__b" style="--i:4">L</span></span></p>
+    </div>
+  </div>
+
+  <span class="hero__kontur" aria-hidden="true"></span>
+  <span class="hero__boden" aria-hidden="true"></span>
+
+  <div class="hero__oben wrap">
+    <p class="hero__notiz" data-intro style="--i:0"><span class="versal">Degustationsrestaurant</span><span class="hero__notiz-zeile">am Schlossgarten, Musterstadt</span></p>
+    <p class="hero__notiz hero__notiz--rechts" data-intro style="--i:1"><span class="versal">Herbstmenü 2026</span><span class="hero__notiz-zeile">fünf oder sieben Gänge</span></p>
+  </div>
+
+  <div class="hero__unten wrap">
+    <p class="versal hero__mobil-versal" data-intro style="--i:1">Degustationsrestaurant</p>
+    <p class="hero__lead" data-intro style="--i:2">Vierundzwanzig Plätze, eine Sitzung am Abend und ein Menü, das der Jahreszeit folgt.</p>
+    <div class="hero__ctas" data-intro style="--i:3">
+      <a class="knopf" href="#reservierung">Tisch anfragen</a>
+      <a class="linie-link" href="#menue">Das Menü<svg aria-hidden="true"><use href="#i-pfeil"/></svg></a>
+    </div>
+  </div>
+
+  <div class="hero__meta wrap" data-intro style="--i:4">
+    <p class="status" data-status><span class="status__punkt" aria-hidden="true"></span><span data-status-text>Mi – Sa ab 18:30 Uhr</span></p>
+    <p class="hero__adresse">Am Schlossgarten 7 · 00000 Musterstadt</p>
+  </div>
+</section>
+
+<!-- ============ I · PHILOSOPHIE ============ -->
+<section class="abschnitt philosophie" id="philosophie" aria-labelledby="philosophie-titel">
+  <div class="wrap philosophie__raster">
+    <p class="kicker" data-reveal><span class="kicker__nr">I</span>Philosophie</p>
+    <h2 class="statement" id="philosophie-titel" data-zeilen>Wir kochen wenig. Das aber mit <em>ganzer Aufmerksamkeit</em> – und nur mit dem, was in diesem Moment am besten ist.</h2>
+
+    <div class="philosophie__text">
+      <p data-reveal>Das Aurel ist ein kleines Restaurant am Rand des Schlossgartens: vierundzwanzig Plätze, eine offene Küche, ein Menü. Der Service beginnt für alle Gäste zur gleichen Zeit – so bekommt jeder Gang die Aufmerksamkeit, die er verlangt.</p>
+      <p data-reveal>Unsere Produkte kommen von wenigen Höfen, Fischern und Winzern, die wir seit Jahren kennen. Was keine Saison hat, kommt nicht auf den Teller. Deshalb ändert sich das Menü mit jeder Jahreszeit, manchmal von Woche zu Woche.</p>
+    </div>
+
+    <!-- ANPASSEN: Zahlen zum Restaurant -->
+    <dl class="fakten">
+      <div class="fakt" data-reveal><dt>Plätze</dt><dd>24</dd></div>
+      <div class="fakt" data-reveal><dt>Sitzung am Abend</dt><dd>1</dd></div>
+      <div class="fakt" data-reveal><dt>Erzeuger aus der Region</dt><dd>12</dd></div>
+      <div class="fakt" data-reveal><dt>Weine auf der Karte</dt><dd>380</dd></div>
+    </dl>
+  </div>
+
+  <figure class="breitbild wrap" data-reveal="vorhang">
+    <div class="breitbild__rahmen">
+      <img src="img/anrichten-1600.webp" srcset="img/anrichten-900.webp 900w, img/anrichten-1600.webp 1600w" sizes="(min-width: 1400px) 1320px, 94vw"
+           width="1600" height="1000" loading="lazy" decoding="async" data-parallax="0.08"
+           alt="Ein Koch richtet mit Pinzette und Löffel Kräuter auf weißen Tellern an">
+    </div>
+    <figcaption><span class="versal">Kurz vor dem Service</span>Jeder Teller wird am Pass fertig gemacht – von Hand und in Ruhe.</figcaption>
+  </figure>
+</section>
+
+<!-- ============ II · DAS MENÜ ============
+     So funktioniert es: Ein Gang ist ein <li class="gang">. Gänge mit data-nur7 gibt es nur im 7-Gang-Menü.
+     .gang__klassisch / .gang__vegetarisch = die beiden Fassungen, .gang__wein / .gang__frei = die Begleitung.
+     data-bild (optional data-bild-veg) = Foto im Bogen daneben, data-bild-name = Bildunterschrift, falls das Foto nicht den Gang selbst zeigt.
+     Die römischen Ziffern zählt das CSS selbst.
+     Preise stehen an den Auswahlknöpfen (data-preis) und in der Preisliste darunter – bitte beides pflegen. -->
+<section class="abschnitt menue" id="menue" aria-labelledby="menue-titel" data-menue>
+  <div class="wrap">
+    <header class="kopf">
+      <p class="kicker" data-reveal><span class="kicker__nr">II</span>Das Menü</p>
+      <h2 class="h2" id="menue-titel" data-reveal>Herbst, in <em>sieben</em> Gängen</h2>
+      <p class="kopf__lead" data-reveal>Stellen Sie sich Ihren Abend zusammen: fünf oder sieben Gänge, klassisch oder vegetarisch, mit Wein, alkoholfrei oder ohne Begleitung.</p>
+    </header>
+
+    <div class="konfig" role="group" aria-label="Menü zusammenstellen" data-konfig>
+      <fieldset class="wahl" data-wahl>
+        <legend class="versal">Umfang</legend>
+        <div class="wahl__reihe" style="--n:2">
+          <label class="wahl__opt"><input type="radio" name="umfang" value="7" data-preis="185" checked><span>7 Gänge</span><small>185 €</small></label>
+          <label class="wahl__opt"><input type="radio" name="umfang" value="5" data-preis="145"><span>5 Gänge</span><small>145 €</small></label>
+          <span class="wahl__invers" aria-hidden="true"><span><span>7 Gänge</span><small>185 €</small></span><span><span>5 Gänge</span><small>145 €</small></span></span>
+        </div>
+      </fieldset>
+      <fieldset class="wahl" data-wahl>
+        <legend class="versal">Küche</legend>
+        <div class="wahl__reihe" style="--n:2">
+          <label class="wahl__opt"><input type="radio" name="kueche" value="klassisch" checked><span>Klassisch</span><small>Fisch &amp; Fleisch</small></label>
+          <label class="wahl__opt"><input type="radio" name="kueche" value="vegetarisch"><span>Vegetarisch</span><small>gleicher Preis</small></label>
+          <span class="wahl__invers" aria-hidden="true"><span><span>Klassisch</span><small>Fisch &amp; Fleisch</small></span><span><span>Vegetarisch</span><small>gleicher Preis</small></span></span>
+        </div>
+      </fieldset>
+      <fieldset class="wahl wahl--breit" data-wahl>
+        <legend class="versal">Begleitung</legend>
+        <div class="wahl__reihe" style="--n:3">
+          <label class="wahl__opt"><input type="radio" name="begleitung" value="wein" data-preis-7="115" data-preis-5="85" checked><span>Wein</span><small data-preis-anzeige>+ 115 €</small></label>
+          <label class="wahl__opt"><input type="radio" name="begleitung" value="frei" data-preis-7="75" data-preis-5="55"><span>Alkoholfrei</span><small data-preis-anzeige>+ 75 €</small></label>
+          <label class="wahl__opt"><input type="radio" name="begleitung" value="ohne" data-preis-7="0" data-preis-5="0"><span>Ohne</span><small>à la carte</small></label>
+          <span class="wahl__invers" aria-hidden="true"><span><span>Wein</span><small data-preis-anzeige>+ 115 €</small></span><span><span>Alkoholfrei</span><small data-preis-anzeige>+ 75 €</small></span><span><span>Ohne</span><small>à la carte</small></span></span>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="menue__buehne">
+      <!-- Foto im Bogen: wechselt mit dem Gang, der gerade in der Bildschirmmitte steht (oder unter der Maus) -->
+      <figure class="menue__bogen" aria-hidden="true" data-menue-bogen>
+        <div class="bogen bogen--hoch">
+          <img class="is-an" src="img/gang-auftakt-800.webp" width="800" height="1000" alt="" loading="lazy" decoding="async" data-bogen-img>
+          <img src="img/gang-auftakt-800.webp" width="800" height="1000" alt="" loading="lazy" decoding="async" data-bogen-img>
+        </div>
+        <figcaption><span class="versal" data-bogen-nr>Gang I</span><span data-bogen-name>Gelbschwanzmakrele</span></figcaption>
+      </figure>
+
+      <div class="menue__karte">
+        <ol class="gaenge" data-gaenge>
+          <li class="gang" data-bild="img/gang-auftakt-800.webp" data-bild-veg="img/kraeuter-800.webp">
+            <p class="gang__art versal">Auftakt</p>
+            <h3 class="gang__name"><span class="gang__klassisch">Gelbschwanzmakrele</span><span class="gang__vegetarisch">Rettich</span></h3>
+            <p class="gang__teile"><span class="gang__klassisch">Rettich · Yuzu · Buttermilch</span><span class="gang__vegetarisch">Yuzu · Buttermilch · Shiso</span></p>
+            <p class="gang__begleitung"><span class="gang__wein"><svg aria-hidden="true"><use href="#i-glas"/></svg>Riesling, trocken · 2023 · Mosel</span><span class="gang__frei"><svg aria-hidden="true"><use href="#i-glas"/></svg>Grüner Tee · Apfel · Verjus</span></p>
+          </li>
+          <li class="gang" data-nur7 data-bild="img/gang-muschel-800.webp" data-bild-veg="img/kraeuter-800.webp">
+            <p class="gang__art versal">Aus dem Meer <span class="gang__nur7">· nur im 7-Gang-Menü</span></p>
+            <h3 class="gang__name"><span class="gang__klassisch">Venusmuschel</span><span class="gang__vegetarisch">Knollensellerie</span></h3>
+            <p class="gang__teile"><span class="gang__klassisch">Sellerie · Beurre blanc · Dill</span><span class="gang__vegetarisch">Beurre blanc · Dill · Apfel</span></p>
+            <p class="gang__begleitung"><span class="gang__wein"><svg aria-hidden="true"><use href="#i-glas"/></svg>Chardonnay · 2022 · Burgund</span><span class="gang__frei"><svg aria-hidden="true"><use href="#i-glas"/></svg>Sellerie-Kombucha · Fenchel</span></p>
+          </li>
+          <li class="gang" data-bild="img/gang-saibling-800.webp" data-bild-veg="img/kraeuter-800.webp">
+            <p class="gang__art versal">Fluss &amp; See</p>
+            <h3 class="gang__name"><span class="gang__klassisch">Saibling</span><span class="gang__vegetarisch">Kürbis</span></h3>
+            <p class="gang__teile"><span class="gang__klassisch">Sanddorn · Kräuterrisotto · Kapuzinerkresse</span><span class="gang__vegetarisch">Sanddorn · Kräuterrisotto · Kürbiskern</span></p>
+            <p class="gang__begleitung"><span class="gang__wein"><svg aria-hidden="true"><use href="#i-glas"/></svg>Grauburgunder Reserve · 2021 · Kaiserstuhl</span><span class="gang__frei"><svg aria-hidden="true"><use href="#i-glas"/></svg>Sanddorn · Rosmarin · Tonic</span></p>
+          </li>
+          <li class="gang" data-bild="img/anrichten-900.webp" data-bild-name="Anrichten am Pass">
+            <p class="gang__art versal">Zwischengang</p>
+            <h3 class="gang__name"><span class="gang__klassisch">Kalbsbries</span><span class="gang__vegetarisch">Topinambur</span></h3>
+            <p class="gang__teile"><span class="gang__klassisch">Topinambur · Haselnuss · Liebstöckel</span><span class="gang__vegetarisch">Haselnuss · Trüffel · Liebstöckel</span></p>
+            <p class="gang__begleitung"><span class="gang__wein"><svg aria-hidden="true"><use href="#i-glas"/></svg>Spätburgunder · 2020 · Ahr</span><span class="gang__frei"><svg aria-hidden="true"><use href="#i-glas"/></svg>Rote Bete · Kirsche · Wacholder</span></p>
+          </li>
+          <li class="gang" data-bild="img/gang-rind-1000.webp" data-bild-veg="img/kraeuter-800.webp">
+            <p class="gang__art versal">Hauptgang</p>
+            <h3 class="gang__name"><span class="gang__klassisch">Rücken vom Weiderind</span><span class="gang__vegetarisch">Schwarzwurzel</span></h3>
+            <p class="gang__teile"><span class="gang__klassisch">Schwarzwurzel · Mark · Jus</span><span class="gang__vegetarisch">Pilzjus · Petersilienwurzel · Mark vom Grill</span></p>
+            <p class="gang__begleitung"><span class="gang__wein"><svg aria-hidden="true"><use href="#i-glas"/></svg>Lemberger Reserve · 2019 · Württemberg</span><span class="gang__frei"><svg aria-hidden="true"><use href="#i-glas"/></svg>Schwarzer Tee · Pflaume · Pfeffer</span></p>
+          </li>
+          <li class="gang" data-nur7 data-bild="img/wein-800.webp" data-bild-name="Tawny Port zum Käse">
+            <p class="gang__art versal">Vom Wagen <span class="gang__nur7">· nur im 7-Gang-Menü</span></p>
+            <h3 class="gang__name">Rohmilchkäse</h3>
+            <p class="gang__teile">Quitte · Walnussbrot · Honig</p>
+            <p class="gang__begleitung"><span class="gang__wein"><svg aria-hidden="true"><use href="#i-glas"/></svg>Tawny Port · zehn Jahre</span><span class="gang__frei"><svg aria-hidden="true"><use href="#i-glas"/></svg>Quitte · Verjus · Kamille</span></p>
+          </li>
+          <li class="gang" data-bild="img/gang-schokolade-800.webp">
+            <p class="gang__art versal">Zum Schluss</p>
+            <h3 class="gang__name">Schokolade</h3>
+            <p class="gang__teile">Sauerkirsche · Rauch · Tonkabohne</p>
+            <p class="gang__begleitung"><span class="gang__wein"><svg aria-hidden="true"><use href="#i-glas"/></svg>Banyuls · 2018 · Roussillon</span><span class="gang__frei"><svg aria-hidden="true"><use href="#i-glas"/></svg>Kakaoschale · Sauerkirsche</span></p>
+          </li>
+        </ol>
+
+        <!-- Summe: rechnet main.js aus den Auswahlknöpfen. Ohne JS bleibt der Text so stehen. -->
+        <div class="summe" data-reveal>
+          <p class="summe__text"><span class="versal">Ihr Abend</span><span class="summe__wert" data-summe-text aria-live="polite">7 Gänge mit Weinbegleitung · 300 € pro Person</span></p>
+          <a class="knopf" href="#reservierung" data-menue-uebernehmen>Mit diesem Menü anfragen</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preisliste in Kategorien -->
+    <div class="preise">
+      <section class="preise__gruppe" aria-labelledby="preise-menue" data-reveal>
+        <h3 class="preise__titel" id="preise-menue">Menüs</h3>
+        <ul class="preisliste">
+          <li><span>Sieben Gänge <em>klassisch oder vegetarisch</em></span><span class="preis">185 €</span></li>
+          <li><span>Fünf Gänge <em>klassisch oder vegetarisch</em></span><span class="preis">145 €</span></li>
+          <li><span>Mittagsmenü, samstags <em>vier Gänge</em></span><span class="preis">95 €</span></li>
+        </ul>
+      </section>
+      <section class="preise__gruppe" aria-labelledby="preise-begleitung" data-reveal>
+        <h3 class="preise__titel" id="preise-begleitung">Begleitung</h3>
+        <ul class="preisliste">
+          <li><span>Weinbegleitung <em>zu sieben / fünf Gängen</em></span><span class="preis">115 / 85 €</span></li>
+          <li><span>Alkoholfreie Begleitung <em>zu sieben / fünf Gängen</em></span><span class="preis">75 / 55 €</span></li>
+          <li><span>Wasser, gefiltert <em>still oder sprudelnd, pro Person</em></span><span class="preis">6 €</span></li>
+        </ul>
+      </section>
+      <section class="preise__gruppe" aria-labelledby="preise-extra" data-reveal>
+        <h3 class="preise__titel" id="preise-extra">Ergänzungen</h3>
+        <ul class="preisliste">
+          <li><span>Champagner zum Aperitif <em>Brut Nature, 0,1 l</em></span><span class="preis">19 €</span></li>
+          <li><span>Kaviar-Zwischengang <em>10 g Oscietra, Kartoffel, Crème fraîche</em></span><span class="preis">48 €</span></li>
+          <li><span>Käse vom Wagen <em>als zusätzlicher Gang zum 5-Gang-Menü</em></span><span class="preis">22 €</span></li>
+          <li><span>Digestif vom Wagen <em>Obstbrände aus der Region</em></span><span class="preis">ab 12 €</span></li>
+        </ul>
+      </section>
+    </div>
+    <p class="preise__notiz" data-reveal>Alle Preise pro Person inklusive Mehrwertsteuer. Unverträglichkeiten berücksichtigen wir gern, wenn Sie uns spätestens 48 Stunden vorher Bescheid geben.</p>
+  </div>
+</section>
+
+<!-- ============ III · KÜCHENCHEF ============ -->
+<section class="abschnitt chef" id="kuechenchef" aria-labelledby="chef-titel">
+  <div class="wrap chef__raster">
+    <figure class="chef__bild" data-reveal="vorhang">
+      <div class="bogen bogen--hoch">
+        <!-- ANPASSEN: Porträt des Küchenchefs (Hochformat 4:5) -->
+        <img src="img/chef-900.webp" srcset="img/chef-500.webp 500w, img/chef-900.webp 900w" sizes="(min-width: 960px) 38vw, 88vw"
+             width="900" height="1125" loading="lazy" decoding="async" data-parallax="0.1"
+             alt="Küchenchef Matthis Kerner richtet unter Wärmelampen einen Teller an">
+      </div>
+    </figure>
+
+    <div class="chef__text">
+      <p class="kicker" data-reveal><span class="kicker__nr">III</span>Küchenchef</p>
+      <h2 class="h2" id="chef-titel" data-reveal>Matthis <em>Kerner</em></h2>
+      <p class="versal chef__rolle" data-reveal>Küchenchef &amp; Gastgeber seit 2019</p>
+      <blockquote class="zitat" data-reveal>
+        <p>„Ein Teller ist fertig, wenn man nichts mehr weglassen kann.“</p>
+      </blockquote>
+      <p data-reveal>Aufgewachsen an der Mosel, ausgebildet im Schwarzwald, geprägt von Jahren in Lyon und Kopenhagen. 2019 hat Matthis Kerner das Aurel eröffnet – mit dem Wunsch, weniger Teller zu kochen und jeden davon besser.</p>
+      <!-- ANPASSEN: Stationen -->
+      <ol class="stationen" data-reveal>
+        <li><span>2009</span>Ausbildung im Schwarzwald</li>
+        <li><span>2014</span>Sous-Chef in Lyon</li>
+        <li><span>2017</span>Küchenchef in Kopenhagen</li>
+        <li><span>2019</span>Eröffnung des Aurel</li>
+      </ol>
+
+      <aside class="sommeliere" data-reveal aria-label="Sommelière">
+        <div class="bogen bogen--klein"><img src="img/wein-480.webp" width="480" height="600" loading="lazy" decoding="async" alt="Rotwein wird in ein Glas eingeschenkt"></div>
+        <div>
+          <p class="versal">Sommelière</p>
+          <p class="sommeliere__name">Johanna Veit</p>
+          <p>380 Positionen, mit Schwerpunkt auf Riesling, Spätburgunder und Burgund. Die alkoholfreie Begleitung entsteht bei uns in der Küche – aus Tees, Säften und Fermenten.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ IV · EIN ABEND (Bildstrecke) ============ -->
+<section class="abschnitt abend" id="abend" aria-labelledby="abend-titel">
+  <div class="wrap abend__kopf">
+    <p class="kicker kicker--hell" data-reveal><span class="kicker__nr">IV</span>Ein Abend im Aurel</p>
+    <h2 class="h2" id="abend-titel" data-reveal>Vom ersten Glas bis zum <em>letzten Löffel</em></h2>
+  </div>
+
+  <!-- Der Raum: Beim Scrollen öffnet sich der Bogen bis zum Bildrand (Desktop). Auf dem Handy blendet das Bild ein. -->
+  <div class="raum" data-raum>
+    <div class="raum__buehne">
+      <div class="raum__bild" data-raum-bild>
+        <picture>
+          <source media="(max-aspect-ratio: 4/5)" srcset="img/saal-hoch.webp" width="900" height="1400">
+          <img src="img/saal-1200.webp" srcset="img/saal-1200.webp 1200w, img/saal-2000.webp 2000w" sizes="100vw" width="2000" height="1250" loading="lazy" decoding="async"
+               alt="Der Salon bei Tag: weiß eingedeckte Tische, Holzstühle und große Fenster mit Blick ins Grüne">
+        </picture>
+      </div>
+      <p class="raum__text" data-raum-text><span class="versal">Der Salon</span>Vierundzwanzig Plätze. Ein Raum, der leiser wird, sobald der erste Gang kommt.</p>
+    </div>
+  </div>
+
+  <!-- ANPASSEN: Ablauf des Abends. Uhrzeit, Titel, Text und Bild pro Station -->
+  <ol class="wrap stationen-abend">
+    <li class="station" data-reveal>
+      <figure class="station__bild" data-reveal="vorhang">
+        <img src="img/tisch-1400.webp" srcset="img/tisch-700.webp 700w, img/tisch-1400.webp 1400w" sizes="(min-width: 960px) 56vw, 92vw" width="1400" height="933" loading="lazy" decoding="async" data-parallax="0.06"
+             alt="Ein fein angerichteter Fischgang auf einem weißen Teller, daneben Weingläser und Brot">
+      </figure>
+      <div class="station__text">
+        <p class="station__zeit">19:00</p>
+        <h3 class="station__titel">Der erste Gang</h3>
+        <p>Um sieben beginnt das Menü für alle Gäste zugleich. Vorher gibt es ein Glas im Salon – und die Gelegenheit, uns von Vorlieben und Unverträglichkeiten zu erzählen.</p>
+      </div>
+    </li>
+    <li class="station station--rechts" data-reveal>
+      <figure class="station__bild station__bild--hoch" data-reveal="vorhang">
+        <img src="img/kraeuter-800.webp" srcset="img/kraeuter-480.webp 480w, img/kraeuter-800.webp 800w" sizes="(min-width: 960px) 34vw, 92vw" width="800" height="1000" loading="lazy" decoding="async" data-parallax="0.08"
+             alt="Hände schneiden frische Kräuter auf einem weißen Brett">
+      </figure>
+      <div class="station__text">
+        <p class="station__zeit">20:30</p>
+        <h3 class="station__titel">Die offene Küche</h3>
+        <p>Zwischen den Gängen sind Sie in der Küche willkommen. Hier sehen Sie, wie die Kräuter aus dem Schlossgarten auf den Teller kommen.</p>
+      </div>
+    </li>
+    <li class="station" data-reveal>
+      <figure class="station__bild" data-reveal="vorhang">
+        <img src="img/digestif-1400.webp" srcset="img/digestif-700.webp 700w, img/digestif-1400.webp 1400w" sizes="(min-width: 960px) 56vw, 92vw" width="1400" height="933" loading="lazy" decoding="async" data-parallax="0.06"
+             alt="Ein Glas mit bernsteinfarbenem Digestif auf einem Holztablett, dahinter dunkles Licht">
+      </figure>
+      <div class="station__text">
+        <p class="station__zeit">22:30</p>
+        <h3 class="station__titel">Ausklang</h3>
+        <p>Petits Fours, ein Digestif vom Wagen, kein Zeitdruck. Ihr Tisch gehört Ihnen bis zum Schluss – wir vergeben ihn an diesem Abend nicht noch einmal.</p>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<!-- ============ V · RESERVIERUNG ============ -->
+<section class="abschnitt reservierung" id="reservierung" aria-labelledby="reservierung-titel">
+  <div class="wrap reservierung__raster">
+    <div class="reservierung__intro">
+      <p class="kicker" data-reveal><span class="kicker__nr">V</span>Reservierung</p>
+      <h2 class="h2" id="reservierung-titel" data-reveal>Ihr Tisch im <em>Aurel</em></h2>
+      <p class="kopf__lead" data-reveal>Online sehen Sie die freien Abende der nächsten vier Wochen. Weiter im Voraus, für Gruppen ab sieben Personen oder den Salon für private Anlässe rufen Sie uns bitte an.</p>
+      <a class="telefon" href="tel:+49123456780" data-reveal><svg aria-hidden="true"><use href="#i-telefon"/></svg>0123 456 780</a>
+
+      <!-- ANPASSEN: Stornobedingungen (auch im Formular-Häkchen unten verlinkt) -->
+      <aside class="storno" id="storno" aria-labelledby="storno-titel" data-reveal>
+        <h3 class="storno__titel" id="storno-titel">Stornobedingungen</h3>
+        <ul>
+          <li><span>bis 72 Stunden vorher</span>kostenfrei</li>
+          <li><span>ab 72 Stunden vorher</span>50 % des Menüpreises pro Person</li>
+          <li><span>am selben Tag oder ohne Absage</span>100 % des Menüpreises pro Person</li>
+        </ul>
+        <p>Die Personenzahl können Sie bis 24 Stunden vorher kostenfrei ändern. Wir fragen keine Kreditkarte ab – Sie erhalten eine Bestätigung per E-Mail und bestätigen diese mit einem Klick.</p>
+      </aside>
+    </div>
+
+    <!-- Formular: Ohne data-endpoint läuft es im Demo-Modus (es wird nichts versendet).
+         Für echten Versand z. B. data-endpoint="https://formspree.io/f/DEINE-ID" eintragen. -->
+    <div class="buchung" data-reveal>
+      <form class="buchung__form" data-buchung data-endpoint="" action="mailto:tafel@aurel.example" method="post" enctype="text/plain" novalidate>
+        <fieldset class="feld-gruppe">
+          <legend class="versal">Datum</legend>
+          <div class="chips chips--daten" data-daten hidden></div>
+          <input class="feld feld--nativ" type="date" name="datum" aria-label="Datum" required data-datum aria-describedby="fehler-datum">
+          <p class="feld-fehler" id="fehler-datum" data-fehler="datum" hidden>Bitte wählen Sie einen Abend.</p>
+        </fieldset>
+
+        <fieldset class="feld-gruppe">
+          <legend class="versal">Ankunft</legend>
+          <div class="chips chips--zeiten" data-zeiten hidden></div>
+          <input class="feld feld--nativ" type="time" name="uhrzeit" aria-label="Uhrzeit" step="1800" required data-uhrzeit aria-describedby="fehler-uhrzeit">
+          <p class="feld-hinweis" data-zeit-hinweis>Einlass bis eine Stunde nach Öffnung, das Menü beginnt für alle gemeinsam.</p>
+          <p class="feld-fehler" id="fehler-uhrzeit" data-fehler="uhrzeit" hidden>Bitte wählen Sie eine Uhrzeit.</p>
+        </fieldset>
+
+        <fieldset class="feld-gruppe">
+          <legend class="versal">Personen</legend>
+          <div class="chips chips--personen">
+            <label class="chip"><input type="radio" name="personen" value="1"><span class="chip__flaeche">1</span></label>
+            <label class="chip"><input type="radio" name="personen" value="2" checked><span class="chip__flaeche">2</span></label>
+            <label class="chip"><input type="radio" name="personen" value="3"><span class="chip__flaeche">3</span></label>
+            <label class="chip"><input type="radio" name="personen" value="4"><span class="chip__flaeche">4</span></label>
+            <label class="chip"><input type="radio" name="personen" value="5"><span class="chip__flaeche">5</span></label>
+            <label class="chip"><input type="radio" name="personen" value="6"><span class="chip__flaeche">6</span></label>
+          </div>
+          <p class="feld-hinweis">Ab sieben Personen bitte telefonisch.</p>
+        </fieldset>
+
+        <div class="buchung__menue">
+          <fieldset class="wahl" data-wahl>
+            <legend class="versal">Menü</legend>
+            <div class="wahl__reihe" style="--n:2">
+              <label class="wahl__opt"><input type="radio" name="b-umfang" value="7" checked><span>7 Gänge</span></label>
+              <label class="wahl__opt"><input type="radio" name="b-umfang" value="5"><span>5 Gänge</span></label>
+              <span class="wahl__invers" aria-hidden="true"><span><span>7 Gänge</span></span><span><span>5 Gänge</span></span></span>
+            </div>
+          </fieldset>
+          <fieldset class="wahl" data-wahl>
+            <legend class="versal">Küche</legend>
+            <div class="wahl__reihe" style="--n:2">
+              <label class="wahl__opt"><input type="radio" name="b-kueche" value="klassisch" checked><span>Klassisch</span></label>
+              <label class="wahl__opt"><input type="radio" name="b-kueche" value="vegetarisch"><span>Vegetarisch</span></label>
+              <span class="wahl__invers" aria-hidden="true"><span><span>Klassisch</span></span><span><span>Vegetarisch</span></span></span>
+            </div>
+          </fieldset>
+          <fieldset class="wahl wahl--breit" data-wahl>
+            <legend class="versal">Begleitung</legend>
+            <div class="wahl__reihe" style="--n:3">
+              <label class="wahl__opt"><input type="radio" name="b-begleitung" value="wein" checked><span>Wein</span></label>
+              <label class="wahl__opt"><input type="radio" name="b-begleitung" value="frei"><span>Alkoholfrei</span></label>
+              <label class="wahl__opt"><input type="radio" name="b-begleitung" value="ohne"><span>Am Abend</span></label>
+              <span class="wahl__invers" aria-hidden="true"><span><span>Wein</span></span><span><span>Alkoholfrei</span></span><span><span>Am Abend</span></span></span>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="felder">
+          <div class="feld-wrap">
+            <label for="b-name">Name</label>
+            <input class="feld" id="b-name" name="name" autocomplete="name" required aria-describedby="fehler-name">
+            <p class="feld-fehler" id="fehler-name" data-fehler="name" hidden>Bitte geben Sie Ihren Namen an.</p>
+          </div>
+          <div class="feld-wrap">
+            <label for="b-mail">E-Mail</label>
+            <input class="feld" id="b-mail" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" required aria-describedby="fehler-email">
+            <p class="feld-fehler" id="fehler-email" data-fehler="email" hidden>Bitte geben Sie eine gültige E-Mail-Adresse an.</p>
+          </div>
+          <div class="feld-wrap">
+            <label for="b-tel">Telefon <span>für Rückfragen am Tag</span></label>
+            <input class="feld" id="b-tel" name="telefon" type="tel" autocomplete="tel" inputmode="tel" required aria-describedby="fehler-telefon">
+            <p class="feld-fehler" id="fehler-telefon" data-fehler="telefon" hidden>Bitte geben Sie eine Telefonnummer an (mindestens sechs Ziffern).</p>
+          </div>
+          <div class="feld-wrap feld-wrap--voll">
+            <label for="b-notiz">Unverträglichkeiten &amp; Anlass <span>optional</span></label>
+            <textarea class="feld" id="b-notiz" name="anmerkung" rows="3" placeholder="z. B. keine Schalentiere, Hochzeitstag" data-notiz></textarea>
+          </div>
+        </div>
+
+        <label class="haken">
+          <input type="checkbox" name="storno" required aria-describedby="fehler-storno">
+          <span class="haken__box" aria-hidden="true"><svg><use href="#i-haken"/></svg></span>
+          <span>Ich habe die <a href="#storno">Stornobedingungen</a> gelesen.</span>
+        </label>
+        <p class="feld-fehler" id="fehler-storno" data-fehler="storno" hidden>Bitte bestätigen Sie die Stornobedingungen.</p>
+        <label class="haken">
+          <input type="checkbox" name="datenschutz" required aria-describedby="fehler-datenschutz">
+          <span class="haken__box" aria-hidden="true"><svg><use href="#i-haken"/></svg></span>
+          <span>Meine Angaben dürfen zur Bearbeitung der Anfrage gespeichert werden. Mehr in der <a href="./datenschutz.html">Datenschutzerklärung</a>.</span>
+        </label>
+        <p class="feld-fehler" id="fehler-datenschutz" data-fehler="datenschutz" hidden>Bitte stimmen Sie der Verarbeitung zu.</p>
+
+        <div class="buchung__fuss">
+          <p class="buchung__summe" data-buchung-summe aria-live="polite">Bitte wählen Sie Abend und Uhrzeit.</p>
+          <button class="knopf knopf--gross" type="submit" data-senden><span data-senden-text>Anfrage senden</span></button>
+        </div>
+        <p class="feld-fehler" data-fehler="senden" hidden role="alert">Das hat leider nicht geklappt. Bitte versuchen Sie es noch einmal oder rufen Sie uns an.</p>
+      </form>
+
+      <div class="danke" data-danke hidden tabindex="-1">
+        <span class="danke__bogen" aria-hidden="true"></span>
+        <p class="versal">Anfrage vorgemerkt</p>
+        <h3 class="danke__titel">Vielen Dank<span data-danke-name></span>.</h3>
+        <p data-danke-text>Wir melden uns mit einer Bestätigung per E-Mail.</p>
+        <p class="danke__demo" data-danke-demo hidden><strong>Demo-Modus:</strong> Diese Anfrage wurde nicht versendet und es wurde kein Tisch reserviert.</p>
+        <button class="linie-link" type="button" data-neu>Neue Anfrage<svg aria-hidden="true"><use href="#i-pfeil"/></svg></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VI · BESUCH ============ -->
+<section class="abschnitt besuch" id="besuch" aria-labelledby="besuch-titel">
+  <div class="wrap">
+    <header class="kopf">
+      <p class="kicker" data-reveal><span class="kicker__nr">VI</span>Besuch</p>
+      <h2 class="h2" id="besuch-titel" data-reveal>Am <em>Schlossgarten</em></h2>
+    </header>
+
+    <div class="besuch__raster">
+      <div class="besuch__spalte" data-reveal>
+        <div class="besuch__zeile">
+          <h3 class="besuch__titel">Öffnungszeiten</h3>
+          <p class="status" data-status><span class="status__punkt" aria-hidden="true"></span><span data-status-text>Mi – Sa ab 18:30 Uhr</span></p>
+        </div>
+        <!-- Öffnungszeiten: EINZIGE Quelle für Statusanzeige und Reservierungszeiten.
+             data-tag: 0 = Sonntag … 6 = Samstag. data-zeiten: "HH:MM-HH:MM", mehrere mit Komma, leer = Ruhetag.
+             data-einlass: bis wie viele Minuten nach Öffnung Gäste ankommen können (Reservierungszeiten im 30-Minuten-Takt).
+             Bei Änderungen auch das JSON-LD im <head> anpassen. -->
+        <table class="zeiten" data-oeffnungszeiten data-zeitzone="Europe/Berlin" data-einlass="60">
+          <caption class="sr-only">Öffnungszeiten nach Wochentag</caption>
+          <tbody>
+            <tr data-tag="1" data-zeiten=""><th scope="row">Montag</th><td>Ruhetag</td></tr>
+            <tr data-tag="2" data-zeiten=""><th scope="row">Dienstag</th><td>Ruhetag</td></tr>
+            <tr data-tag="3" data-zeiten="18:30-23:30"><th scope="row">Mittwoch</th><td>18:30 – 23:30</td></tr>
+            <tr data-tag="4" data-zeiten="18:30-23:30"><th scope="row">Donnerstag</th><td>18:30 – 23:30</td></tr>
+            <tr data-tag="5" data-zeiten="18:30-23:30"><th scope="row">Freitag</th><td>18:30 – 23:30</td></tr>
+            <tr data-tag="6" data-zeiten="12:30-15:00,18:30-23:30"><th scope="row">Samstag</th><td>12:30 – 15:00<br>18:30 – 23:30</td></tr>
+            <tr data-tag="0" data-zeiten=""><th scope="row">Sonntag</th><td>Ruhetag</td></tr>
+          </tbody>
+        </table>
+        <p class="besuch__notiz">Einlass bis 19:30 Uhr, mittags bis 13:30 Uhr.</p>
+      </div>
+
+      <div class="besuch__spalte" data-reveal>
+        <h3 class="besuch__titel">Anfahrt</h3>
+        <!-- ANPASSEN: Adresse, Telefon, E-Mail -->
+        <address class="besuch__adresse">Aurel<br>Am Schlossgarten 7<br>00000 Musterstadt</address>
+        <dl class="anfahrt">
+          <div><dt>Bus &amp; Bahn</dt><dd>Haltestelle „Schlossgarten“, Linie 4 – drei Minuten zu Fuß durch den Park.</dd></div>
+          <div><dt>Auto</dt><dd>Parkplätze im Schlosshof, Einfahrt über die Gartenstraße. Die Parkgebühr übernehmen wir.</dd></div>
+        </dl>
+        <a class="linie-link" href="https://www.google.com/maps/search/?api=1&amp;query=Am+Schlossgarten+7+Musterstadt" target="_blank" rel="noopener">Route planen<span class="sr-only"> (öffnet Google Maps in neuem Fenster)</span><svg aria-hidden="true"><use href="#i-aussen"/></svg></a>
+      </div>
+
+      <div class="besuch__spalte" data-reveal>
+        <h3 class="besuch__titel">Gut zu wissen</h3>
+        <dl class="anfahrt">
+          <div><dt>Kleidung</dt><dd>Elegant, ohne Krawattenpflicht.</dd></div>
+          <div><dt>Kinder</dt><dd>Herzlich willkommen ab zwölf Jahren.</dd></div>
+          <div><dt>Zugang</dt><dd>Ebenerdig, Toiletten im Erdgeschoss.</dd></div>
+          <div><dt>Gutscheine</dt><dd>Für ein Menü oder einen Betrag – per Telefon oder E-Mail.</dd></div>
+        </dl>
+        <p class="besuch__kontakt"><a href="tel:+49123456780">0123 456 780</a><br><a href="mailto:tafel@aurel.example">tafel@aurel.example</a></p>
+      </div>
+    </div>
+
+    <!-- Lageplan als feine Linienzeichnung: lädt nichts von Dritten (keine eingebettete Karte) -->
+    <svg class="lageplan" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Lageplan: Das Aurel liegt am Südrand des Schlossgartens, gegenüber der Haltestelle Schlossgarten." data-reveal="vorhang">
+      <g class="lp-strasse"><path d="M0 232h1200M0 70h1200M160 0v300M1040 0v300"/></g>
+      <g class="lp-weg"><path d="M600 232c0-40-60-60-140-70M600 232c0-40 60-60 140-70M460 162C380 150 300 120 290 70M740 162c80-12 160-42 170-92"/></g>
+      <ellipse class="lp-park" cx="600" cy="140" rx="330" ry="62"/>
+      <ellipse class="lp-park lp-park--innen" cx="600" cy="140" rx="120" ry="24"/>
+      <text class="lp-text" x="600" y="146" text-anchor="middle">Schlossgarten</text>
+      <text class="lp-text lp-text--klein" x="330" y="258">Gartenstraße</text>
+      <text class="lp-text lp-text--klein" x="802" y="258" text-anchor="middle">Haltestelle</text>
+      <circle class="lp-halt" cx="802" cy="232" r="5"/>
+      <path class="lp-bogen" d="M586 232v-16a14 14 0 0 1 28 0v16"/>
+      <text class="lp-text lp-text--marke" x="600" y="270" text-anchor="middle">Aurel</text>
+    </svg>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="fuss">
+  <div class="wrap">
+    <div class="fuss__oben">
+      <p class="fuss__claim">Wir freuen uns <em>auf Sie.</em></p>
+      <a class="knopf knopf--hell" href="#reservierung">Tisch anfragen</a>
+    </div>
+    <div class="fuss__raster">
+      <div><p class="versal">Adresse</p><p>Am Schlossgarten 7<br>00000 Musterstadt</p></div>
+      <div><p class="versal">Geöffnet</p><p>Mi – Fr ab 18:30 Uhr<br>Sa 12:30 &amp; 18:30 Uhr</p></div>
+      <div><p class="versal">Kontakt</p><p><a href="tel:+49123456780">0123 456 780</a><br><a href="mailto:tafel@aurel.example">tafel@aurel.example</a></p></div>
+      <nav aria-label="Fußzeile"><p class="versal">Seite</p><p><a href="#menue">Das Menü</a><br><a href="#reservierung">Reservierung</a><br><a href="#besuch">Anfahrt</a></p></nav>
+    </div>
+    <p class="fuss__marke" aria-hidden="true">Aurel</p>
+    <div class="fuss__unten">
+      <p>© <span data-jahr>2026</span> Aurel · Demo-Website, alle Inhalte sind Beispiele.</p>
+      <p class="fuss__recht"><a href="./impressum.html">Impressum</a><a href="./datenschutz.html">Datenschutz</a></p>
+      <p>Website von <a href="https://filipkramar.de">Filip Kramar</a></p>
+    </div>
+  </div>
+</footer>
+
+<!-- Handy: schmale Leiste unten, erscheint nach dem Hero -->
+<div class="leiste" data-leiste>
+  <a class="leiste__anruf" href="tel:+49123456780"><svg aria-hidden="true"><use href="#i-telefon"/></svg>Anrufen</a>
+  <a class="knopf leiste__knopf" href="#reservierung">Tisch anfragen</a>
+</div>
+
+<script src="js/vendor/gsap.min.js" defer></script>
+<script src="js/vendor/ScrollTrigger.min.js" defer></script>
+<script src="js/vendor/lenis.min.js" defer></script>
+<script src="js/main.js" defer></script>
+</body>
+</html>
