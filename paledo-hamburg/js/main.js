@@ -30,8 +30,9 @@
     warm: 'Warm', kalt: 'Cold', mit: 'with', extra: 'extra', leer: 'Still empty – start with a base.', schritt: 'Step',
     teilenText: 'My bowl at Paledo:', teilenTitel: 'My Paledo bowl', kopiert: 'Copied', teilen: 'Share bowl',
     tage: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], morgen: 'tomorrow',
+    zeit: (h, m) => `${h % 12 || 12}${m ? `:${String(m).padStart(2, '0')}` : ''} ${h < 12 ? 'am' : 'pm'}`,
     offen: (z) => `Open now · until ${z}`, bald: (d, z) => `Opens in ${d} min · ${z}`, heute: (z) => `Opens today at ${z}`,
-    wieder: (tag, z) => `Closed · opens ${tag} at ${z}`, zu: 'Closed for now',
+    wieder: (tag, z) => `Opens again ${tag} at ${z}`, zu: 'Closed for now',
   } : {
     locale: 'de-DE',
     wort: { base: ['Base', 'Bases'], dressing: ['Dressing', 'Dressings'], topping: ['Topping', 'Toppings'], extra: ['Extra', 'Extras'] },
@@ -42,8 +43,9 @@
     warm: 'Warm', kalt: 'Kalt', mit: 'mit', extra: 'extra', leer: 'Noch leer – fang mit einer Base an.', schritt: 'Schritt',
     teilenText: 'Meine Bowl bei Paledo:', teilenTitel: 'Meine Paledo-Bowl', kopiert: 'Kopiert', teilen: 'Bowl teilen',
     tage: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'], morgen: 'morgen',
-    offen: (z) => `Jetzt geöffnet · bis ${z} Uhr`, bald: (d, z) => `Öffnet in ${d} Min. · ${z} Uhr`, heute: (z) => `Heute ab ${z} Uhr geöffnet`,
-    wieder: (tag, z) => `Geschlossen · wieder ${tag} ab ${z} Uhr`, zu: 'Derzeit geschlossen',
+    zeit: (h, m) => `${h}${m ? `:${String(m).padStart(2, '0')}` : ''} Uhr`,
+    offen: (z) => `Jetzt geöffnet · bis ${z}`, bald: (d, z) => `Öffnet in ${d} Min. · ${z}`, heute: (z) => `Öffnet heute ab ${z}`,
+    wieder: (tag, z) => `Öffnet wieder ${tag} ab ${z}`, zu: 'Derzeit geschlossen',
   };
 
   if (hasGSAP) {
@@ -398,7 +400,7 @@
   const tabelle = $('[data-oeffnungszeiten]');
   const zone = tabelle?.dataset.zeitzone || undefined;
   const minuten = (s) => { const [h, m] = s.split(':').map(Number); return h * 60 + (m || 0); };
-  const uhr = (m) => { const t = ((m % 1440) + 1440) % 1440; return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
+  const uhr = (m) => { const t = ((m % 1440) + 1440) % 1440; return TEXT.zeit(Math.floor(t / 60), t % 60); };
   const zeiten = {};
   $$('tr[data-tag]', tabelle || document.createElement('table')).forEach((tr) => {
     zeiten[+tr.dataset.tag] = (tr.dataset.zeiten || '').split(',').map((r) => r.trim()).filter(Boolean).map((r) => {
