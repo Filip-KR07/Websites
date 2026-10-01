@@ -43,6 +43,8 @@
   // zeigen so auch nach einem Refresh sofort ihren Startzustand.
   const window01 = (from, span, ease) => (p) => ease(Math.min(1, Math.max(0, (p - from) / span)));
 
+  // Text aus textContent ist dekodiert: vor dem Einsetzen per innerHTML escapen (sonst XSS)
+  const esc = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   // Woerter + Zeichen zerlegen, <em> bleibt erhalten; Volltext als aria-label
   const splitKeepEm = (el, label = true) => {
     if (el.dataset.kxSplit) return Array.from(el.querySelectorAll('.kx-ch'));
@@ -54,7 +56,7 @@
       node.textContent.split(/(\s+)/).forEach((part) => {
         if (!part) return;
         if (/^\s+$/.test(part)) { out.push(' '); return; }
-        const chars = Array.from(part).map((c) => `<span class="kx-ch">${c}</span>`).join('');
+        const chars = Array.from(part).map((c) => `<span class="kx-ch">${esc(c)}</span>`).join('');
         out.push(`<span class="kx-word" aria-hidden="true">${em ? `<em>${chars}</em>` : chars}</span>`);
       });
     });

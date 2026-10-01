@@ -30,6 +30,9 @@
   const themeMeta = $('meta[name="theme-color"]');
   const setThemeColor = (hex) => { if (themeMeta && themeMeta.content !== hex) themeMeta.content = hex; };
   const THEME = { light: '#F6F3EC', dark: '#0F1420', hero: '#DCEAF7' };
+  // textContent ist bereits dekodiert ("&lt;" wird zu "<"). Bevor Text wieder per innerHTML
+  // eingesetzt wird, muss er escaped werden, sonst wird aus Text ausfuehrbares Markup.
+  const esc = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
   const splitWords = (el) => {
     if (el.dataset.splitDone) return $$('.w-in', el);
@@ -39,13 +42,13 @@
       if (node.nodeType === Node.TEXT_NODE) {
         node.textContent.split(/(\s+)/).forEach((part) => {
           if (!part) return;
-          html.push(/^\s+$/.test(part) ? ' ' : `<span class="w"><span class="w-in">${part}</span></span>`);
+          html.push(/^\s+$/.test(part) ? ' ' : `<span class="w"><span class="w-in">${esc(part)}</span></span>`);
         });
       } else if (node.nodeType === Node.ELEMENT_NODE) {
         const tag = node.tagName.toLowerCase();
         node.textContent.split(/(\s+)/).forEach((part) => {
           if (!part) return;
-          html.push(/^\s+$/.test(part) ? ' ' : `<span class="w"><span class="w-in"><${tag}>${part}</${tag}></span></span>`);
+          html.push(/^\s+$/.test(part) ? ' ' : `<span class="w"><span class="w-in"><${tag}>${esc(part)}</${tag}></span></span>`);
         });
       }
     });
@@ -60,7 +63,7 @@
   const splitChars = (el) => {
     const text = el.textContent;
     // Wortweise gruppiert: umbrechen darf die Zeile nur zwischen Woertern (geschuetzte Leerzeichen halten zusammen)
-    const chars = (w) => Array.from(w).map((c) => `<span class="ch" aria-hidden="true">${c === '\u00a0' ? '&nbsp;' : c}</span>`).join('');
+    const chars = (w) => Array.from(w).map((c) => `<span class="ch" aria-hidden="true">${c === '\u00a0' ? '&nbsp;' : esc(c)}</span>`).join('');
     el.innerHTML = text.trim().split(/ +/).map((w) => `<span class="chw">${chars(w)}</span>`).join(' ');
     return $$('.ch', el);
   };
@@ -1885,7 +1888,7 @@
           const b = document.createElement('button');
           b.type = 'button';
           b.setAttribute('aria-label', 'Zum Abschnitt ' + label);
-          b.innerHTML = '<span class="lbl">' + label + '</span><span class="dot"></span>';
+          b.innerHTML = '<span class="lbl">' + esc(label) + '</span><span class="dot"></span>';
           b.addEventListener('click', () => scrollToTarget(sec));
           li.appendChild(b); list.appendChild(li);
           return b;
