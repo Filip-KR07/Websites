@@ -4,6 +4,8 @@ Mehrere Agenten haben unabhängig voneinander Varianten zur Demo in `../restaura
 Jury alle Varianten selbst geöffnet, getestet und bewertet. **Nichts davon ist in `restaurant/` übernommen** – das hier
 ist die Auswahl zum Anschauen und Entscheiden.
 
+Übersicht mit allen Seiten: `arena/index.html`.
+
 Anschauen: im Repo-Root `python3 -m http.server 8080` und dann z. B. `http://127.0.0.1:8080/arena/hero-durchblick/`.
 Die Varianten nutzen Bilder, Schriften und Bibliotheken aus `../restaurant/assets/` mit.
 

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Restaurant-Demo Arena</title>
+<link rel="icon" href="../restaurant/favicon.svg" type="image/svg+xml">
+<meta name="description" content="Basis-Demo und sechs Varianten zum Anschauen.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#F5F0E7; --flaeche:#FFFDF8; --fg:#201A15; --leise:#6A5E52; --linie:#DDD3C4;
+    --akzent:#B04A22; --akzent-fg:#FFF8F2; --gold:#8A6A2E; --schatten:rgba(52,36,20,.10);
+    --serif:"Fraunces",Georgia,"Times New Roman",serif;
+    --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --ease-out:cubic-bezier(.23,1,.32,1);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14110E; --flaeche:#1D1915; --fg:#EFE7DA; --leise:#A89A88; --linie:#352E27;
+      --akzent:#E8814F; --akzent-fg:#1A120C; --gold:#D2B071; --schatten:rgba(0,0,0,.4);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14110E; --flaeche:#1D1915; --fg:#EFE7DA; --leise:#A89A88; --linie:#352E27;
+    --akzent:#E8814F; --akzent-fg:#1A120C; --gold:#D2B071; --schatten:rgba(0,0,0,.4);
+    color-scheme:dark;
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0}
+  img{max-width:100%}
+  body{background:var(--bg);color:var(--fg);font:400 1rem/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+  .seite{max-width:1120px;margin-inline:auto;padding-inline:clamp(16px,4vw,40px);padding-block:clamp(2.5rem,6vw,4.5rem) 3rem;display:grid;gap:clamp(2.75rem,6vw,4.5rem)}
+
+  .kopf{display:grid;gap:1rem;max-width:44rem}
+  .zeile{font:600 .74rem/1.2 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--akzent)}
+  h1{margin:0;font:400 clamp(2.6rem,1.6rem + 4.4vw,4.6rem)/1 var(--serif);letter-spacing:-.02em;text-wrap:balance}
+  h1 em{font-style:italic;color:var(--akzent)}
+  .lead{margin:0;font-size:1.08rem;color:var(--leise);max-width:62ch;text-wrap:pretty}
+  .hinweise{display:flex;flex-wrap:wrap;gap:.5rem;margin:0;padding:0;list-style:none}
+  .hinweise li{font-size:.82rem;padding:.3rem .7rem;border:1px solid var(--linie);border-radius:999px;color:var(--leise);background:var(--flaeche)}
+
+  .gang{display:grid;gap:1.4rem}
+  .gang__kopf{display:flex;align-items:baseline;gap:1rem;border-bottom:1px solid var(--linie);padding-bottom:.7rem}
+  .gang__kopf h2{margin:0;font:400 clamp(1.5rem,1.2rem + 1.2vw,2.1rem)/1.1 var(--serif);text-wrap:balance}
+  .gang__kopf p{margin:0 0 0 auto;font-size:.84rem;color:var(--leise);text-align:right}
+
+  .raster{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(1rem,2.4vw,1.6rem)}
+  @media (max-width:900px){.raster{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (max-width:600px){.raster{grid-template-columns:minmax(0,1fr)}.gang__kopf{flex-wrap:wrap}.gang__kopf p{margin:0;text-align:left}}
+
+  .karte{display:grid;grid-template-rows:auto 1fr;min-width:0;color:inherit;text-decoration:none;background:var(--flaeche);border:1px solid var(--linie);border-radius:14px;overflow:clip;box-shadow:0 1px 0 var(--schatten);transition:transform 220ms var(--ease-out),box-shadow 220ms var(--ease-out),border-color 220ms var(--ease-out)}
+  .karte:focus-visible{outline:3px solid var(--akzent);outline-offset:3px}
+  .karte:active{transform:scale(.985)}
+  @media (hover:hover) and (pointer:fine){
+    .karte:hover{transform:translateY(-3px);box-shadow:0 14px 34px -14px var(--schatten);border-color:color-mix(in srgb,var(--akzent) 40%,var(--linie))}
+    .karte:hover .bild img{transform:scale(1.03)}
+  }
+  .bild{position:relative;aspect-ratio:16/10;max-width:100%;overflow:clip;background:var(--linie)}
+  .bild img{display:block;width:100%;height:100%;object-fit:cover;transition:transform 600ms var(--ease-out)}
+  .platz{position:absolute;top:.7rem;left:.7rem;font:600 .72rem/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:.42rem .62rem;border-radius:999px;background:var(--flaeche);color:var(--fg)}
+  .platz--eins{background:var(--akzent);color:var(--akzent-fg)}
+
+  .text{display:grid;gap:.55rem;align-content:start;padding:1rem 1.1rem 1.15rem}
+  .posten{display:grid;grid-template-columns:auto minmax(1rem,1fr) auto;align-items:baseline;gap:.5rem}
+  .posten h3{margin:0;font:600 1.2rem/1.2 var(--serif)}
+  .posten::after{content:"";grid-column:2;grid-row:1;border-bottom:2px dotted var(--linie);transform:translateY(-.3em)}
+  .punkte{grid-column:3;font:600 .95rem/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--gold);white-space:nowrap}
+  .punkte small{font-weight:500;font-size:.72rem;color:var(--leise);margin-left:.15rem}
+  .text p{margin:0;font-size:.92rem;color:var(--leise);text-wrap:pretty}
+  .text .achtung{font-size:.82rem;color:var(--fg);border-left:2px solid var(--akzent);padding-left:.6rem}
+  .ordner{font:500 .74rem/1.3 ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:var(--leise)}
+
+  .karte--breit{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-rows:auto}
+  .karte--breit .bild{aspect-ratio:auto;min-height:100%}
+  .karte--breit .text{padding:clamp(1.1rem,3vw,2rem);align-content:center;gap:.8rem}
+  .karte--breit .posten h3{font-size:clamp(1.4rem,1.1rem + 1vw,1.9rem)}
+  .werte{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin:0}
+  .werte div{display:grid}
+  .werte dt{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--leise)}
+  .werte dd{margin:0;font:600 1.15rem/1.3 var(--sans);font-variant-numeric:tabular-nums;color:var(--gold)}
+  @media (max-width:760px){.karte--breit{grid-template-columns:minmax(0,1fr)}.karte--breit .bild{aspect-ratio:16/10}}
+
+  .offen{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(1.4rem,4vw,3rem);padding-top:1.6rem;border-top:1px solid var(--linie)}
+  @media (max-width:760px){.offen{grid-template-columns:minmax(0,1fr)}}
+  .offen h2{margin:0 0 .7rem;font:400 1.4rem/1.2 var(--serif)}
+  .offen ol,.offen ul{margin:0;padding-left:1.2rem;display:grid;gap:.45rem;color:var(--leise);font-size:.93rem}
+  .offen strong{color:var(--fg);font-weight:600}
+  .fuss{grid-column:1/-1;font-size:.8rem;color:var(--leise);margin:0}
+
+  @media (prefers-reduced-motion:reduce){.karte,.bild img{transition:none}.karte:hover{transform:none}}
+</style>
+</head>
+<body>
+<main class="seite">
+  <header class="kopf">
+    <span class="zeile">Arena · Stand 1. Oktober 2026</span>
+    <h1>Restaurant-Demo <em>zum Durchklicken</em></h1>
+    <p class="lead">Die Basis „Salz &amp; Glut“ plus sechs Varianten, die eine Jury getestet und bewertet hat. Tippe auf eine Karte, um die Seite zu öffnen. Mit der Zurück-Taste oder -Geste kommst du wieder hierher.</p>
+    <ul class="hinweise">
+      <li>Formulare sind Demos und senden nichts</li>
+      <li>Fürs Handy und den Desktop gebaut</li>
+      <li>Noch nichts übernommen</li>
+    </ul>
+  </header>
+
+  <section class="gang" aria-labelledby="g-basis">
+    <div class="gang__kopf"><h2 id="g-basis">Die Basis</h2><p>Ordner <span class="ordner">restaurant/</span></p></div>
+    <a class="karte karte--breit" href="../restaurant/index.html">
+      <div class="bild"><img src="vorschau/restaurant.jpg" alt="Startseite von Salz &amp; Glut: dunkles Restaurantfoto im Hintergrund, große helle Schrift davor" width="720" height="450"></div>
+      <div class="text">
+        <div class="posten"><h3>Salz &amp; Glut</h3><span class="punkte">Basis</span></div>
+        <p>Restaurant &amp; Bar in der Altstadt. Das Foto rückt zurück, die Wörter kommen scharf nach vorn. Mit Speisekarte, Galerie, Live-Öffnungsstatus, Tischreservierung und drei Stilen (Glut, Salon, Terrasse).</p>
+        <dl class="werte">
+          <div><dt>Hero-Jury</dt><dd>70</dd></div>
+          <div><dt>Design-Jury</dt><dd>79,5</dd></div>
+        </dl>
+      </div>
+    </a>
+  </section>
+
+  <section class="gang" aria-labelledby="g-hero">
+    <div class="gang__kopf"><h2 id="g-hero">Hero-Varianten</h2><p>Gleiche Seite, nur der Einstieg ist anders</p></div>
+    <div class="raster">
+      <a class="karte" href="hero-durchblick/index.html">
+        <div class="bild"><span class="platz platz--eins">Platz 1</span><img src="vorschau/hero-durchblick.jpg" alt="Hero-Variante Durchblick" width="720" height="450" loading="lazy"></div>
+        <div class="text">
+          <div class="posten"><h3>Durchblick</h3><span class="punkte">84<small>Pkt.</small></span></div>
+          <p>Das Foto ist zuerst nur durch die riesigen Buchstaben zu sehen. Dann wird es zum Hintergrund und die Schrift füllt sich hell.</p>
+          <span class="ordner">arena/hero-durchblick/</span>
+        </div>
+      </a>
+      <a class="karte" href="hero-kino/index.html">
+        <div class="bild"><span class="platz">Platz 2</span><img src="vorschau/hero-kino.jpg" alt="Hero-Variante Kino" width="720" height="450" loading="lazy"></div>
+        <div class="text">
+          <div class="posten"><h3>Kino</h3><span class="punkte">73<small>Pkt.</small></span></div>
+          <p>Cinemascope-Eröffnung: Die Balken öffnen sich, über der Schrift liegt ein Glut-Schimmer.</p>
+          <p class="achtung">Bekannt: Der Wort-für-Wort-Effekt im Abschnitt „Küche“ ist hier kaputt.</p>
+          <span class="ordner">arena/hero-kino/</span>
+        </div>
+      </a>
+      <a class="karte" href="hero-tiefe/index.html">
+        <div class="bild"><span class="platz">Platz 3</span><img src="vorschau/hero-tiefe.jpg" alt="Hero-Variante Tiefe" width="720" height="450" loading="lazy"></div>
+        <div class="text">
+          <div class="posten"><h3>Tiefe</h3><span class="punkte">71<small>Pkt.</small></span></div>
+          <p>3D-Kamerafahrt nach hinten, Parallaxe mit der Maus, Glutfunken.</p>
+          <p class="achtung">Bekannt: Die Funken kosten dauerhaft Bildrate.</p>
+          <span class="ordner">arena/hero-tiefe/</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section class="gang" aria-labelledby="g-design">
+    <div class="gang__kopf"><h2 id="g-design">Komplette Designs</h2><p>Eigenes Restaurant, eigenes Konzept</p></div>
+    <div class="raster">
+      <a class="karte" href="design-fine-dining/index.html">
+        <div class="bild"><span class="platz platz--eins">Platz 1</span><img src="vorschau/design-fine-dining.jpg" alt="Design Aurel: Elfenbein, große Bodoni-Schrift, Foto in einem Bogen" width="720" height="450" loading="lazy"></div>
+        <div class="text">
+          <div class="posten"><h3>Aurel</h3><span class="punkte">84,8<small>Pkt.</small></span></div>
+          <p>Degustationsrestaurant: Elfenbein, Bodoni, das Foto zieht sich in einen Bogen zurück. Mit Menü-Konfigurator.</p>
+          <span class="ordner">arena/design-fine-dining/</span>
+        </div>
+      </a>
+      <a class="karte" href="design-bistro/index.html">
+        <div class="bild"><span class="platz">Platz 2</span><img src="vorschau/design-bistro.jpg" alt="Design Linie 12: Plakatstil mit großer gelber und weißer Schrift über rotem Duotone-Foto" width="720" height="450" loading="lazy"></div>
+        <div class="text">
+          <div class="posten"><h3>Linie 12</h3><span class="punkte">83,8<small>Pkt.</small></span></div>
+          <p>Urbanes Bistro im Plakatstil, das Foto als Duotone-Hintergrund. Mit Tageskarte, Bowl-Baukasten und Gruppenanfrage.</p>
+          <span class="ordner">arena/design-bistro/</span>
+        </div>
+      </a>
+      <a class="karte" href="design-trattoria/index.html">
+        <div class="bild"><span class="platz">Platz 4</span><img src="vorschau/design-trattoria.jpg" alt="Design Trattoria da Rosella: Terrakotta-Schrift auf Creme, Foto in einem Rundbogen" width="720" height="450" loading="lazy"></div>
+        <div class="text">
+          <div class="posten"><h3>da Rosella</h3><span class="punkte">78,5<small>Pkt.</small></span></div>
+          <p>Familien-Trattoria: Terrakotta, Karo-Tischdecke und eine Galerie an der Wäscheleine.</p>
+          <span class="ordner">arena/design-trattoria/</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section class="offen" aria-label="Offene Punkte">
+    <div>
+      <h2>Was du entscheiden kannst</h2>
+      <ol>
+        <li><strong>A:</strong> Durchblick als neuen Hero in die Basis übernehmen, mit den Feinschliffen der Jury.</li>
+        <li><strong>B:</strong> Aurel und Linie 12 als eigene Vorlagen danebenstellen.</li>
+        <li><strong>C:</strong> Die vier Fehler der Basis beheben, die die Jury gefunden hat.</li>
+      </ol>
+    </div>
+    <div>
+      <h2>Von der Jury gefunden</h2>
+      <ul>
+        <li>Lädt das Skript nicht, bleiben Inhalte außerhalb des Heros unsichtbar.</li>
+        <li>Bei niedrigen Fenstern und Handy quer stößt der Titel an die Navigation.</li>
+        <li>In den ersten ca. 0,6 Sekunden ist der Hero schwarz.</li>
+        <li>Bei 320 px Breite ragen die Tabs der Speisekarte 8 px über den Rand.</li>
+      </ul>
+    </div>
+    <p class="fuss">Getestet in Chromium (Desktop und Handy-Simulation), noch nicht in Safari oder auf echten Geräten. Fotos: Unsplash.</p>
+  </section>
+</main>
+</body>
+</html>
