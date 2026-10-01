@@ -1,8 +1,8 @@
-/* Aurel — Degustationsrestaurant · Demo-Design "Fine Dining" · main.js
+/* Paledo – Café & Deli · Entwurf im Aurel-Design · main.js
    Progressive Enhancement: Ohne JavaScript, ohne GSAP/Lenis oder mit "Bewegung reduzieren" ist die Seite
    vollständig sichtbar und bedienbar. Alles steckt in einer IIFE, es gibt keine Globals.
    1. Grundlagen  2. Weiches Scrollen & Anker  3. Hero-Intro  4. Navigation  5. Menü-Dialog
-   6. Einblenden  7. Scroll-Effekte (GSAP)  8. Menü-Konfigurator  9. Öffnungszeiten  10. Reservierung  11. Aufräumen */
+   6. Einblenden  7. Scroll-Effekte (GSAP)  8. Bowl-Baukasten  9. Öffnungszeiten  10. Aufräumen */
 (() => {
   'use strict';
 
@@ -15,7 +15,6 @@
   const feinerZeiger = window.matchMedia('(hover: hover) and (pointer: fine)');
   const hasGSAP = typeof window.gsap !== 'undefined' && typeof window.ScrollTrigger !== 'undefined';
   const gsapAn = motion && hasGSAP;
-  const EASE_IN_OUT = 'cubic-bezier(.77,0,.175,1)';
   const ROEMISCH = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
   const neuMessen = () => { if (hasGSAP) ScrollTrigger.refresh(); };
   const neuStarten = (el, klasse) => { el.classList.remove(klasse); void el.offsetWidth; el.classList.add(klasse); };
@@ -76,7 +75,7 @@
   const leiste = $('[data-leiste]');
   const menu = $('[data-menu]');
   let letzteY = window.scrollY;
-  const verdeckt = new Set(); // Bereiche, in denen die Handy-Leiste stört (Reservierung, Footer)
+  const verdeckt = new Set(); // Bereiche, in denen die Handy-Leiste stört (Footer)
   let scrollRaf = 0;
   const beimScrollen = () => {
     scrollRaf = 0;
@@ -96,7 +95,7 @@
       eintraege.forEach((e) => (e.isIntersecting ? verdeckt.add(e.target) : verdeckt.delete(e.target)));
       beimScrollen();
     });
-    ['#reservierung', '.fuss'].forEach((s) => { const el = $(s); if (el) io.observe(el); });
+    ['.fuss'].forEach((s) => { const el = $(s); if (el) io.observe(el); });
   }
   // Aktiver Abschnitt
   const spyLinks = $$('[data-spy]');
@@ -241,100 +240,68 @@
     }
   }
 
-  /* ---------- 8. Menü-Konfigurator: Umfang, Küche, Begleitung, Summe, Foto im Bogen ---------- */
+  /* ---------- 8. Bowl-Baukasten: Zutaten wählen, Preis rechnen, Foto im Bogen ---------- */
   const menue = $('[data-menue]');
   const konfig = $('[data-konfig]');
   const liste = $('[data-gaenge]');
-  const buchungForm = $('[data-buchung]');
   const wert = (ctx, name) => ($(`input[name="${name}"]:checked`, ctx) || {}).value;
-  const preisVon = (ctx, prefix = '') => {
-    const u = wert(ctx, `${prefix}umfang`) || '7';
-    const menuePreis = parseInt($(`input[name="umfang"][value="${u}"]`, konfig)?.dataset.preis || '0', 10);
-    const b = wert(ctx, `${prefix}begleitung`) || 'ohne';
-    const bInput = $(`input[name="begleitung"][value="${b}"]`, konfig);
-    const begleitPreis = bInput ? parseInt(bInput.getAttribute(`data-preis-${u}`) || '0', 10) : 0;
-    return { u, b, menuePreis, begleitPreis, summe: menuePreis + begleitPreis };
-  };
+  const cent = (s) => Math.round(parseFloat(s || '0') * 100);
+  const euro = (c) => `${(c / 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
   if (menue && konfig && liste) {
-    const gaenge = $$('.gang', liste);
-    const extra = gaenge.filter((g) => g.hasAttribute('data-nur7'));
-    const summeBox = $('.summe', menue);
+    const schritte = $$('.gang', liste);
     const summeText = $('[data-summe-text]', menue);
-    const sichtbar = () => gaenge.filter((g) => !g.hidden);
-    const BEGLEITUNG_TEXT = { wein: 'mit Weinbegleitung', frei: 'mit alkoholfreier Begleitung', ohne: 'ohne Begleitung' };
+    const summeListe = $('[data-summe-liste]', menue);
+    const WORT = { base: ['Base', 'Bases'], dressing: ['Dressing', 'Dressings'], topping: ['Topping', 'Toppings'], extra: ['Extra', 'Extras'] };
+    const anzahl = (n, art) => `${n} ${WORT[art][n === 1 ? 0 : 1]}`;
+    const gewaehlt = (s) => $$('input:checked', s);
 
+    const zaehlerText = (s) => {
+      const n = gewaehlt(s).length;
+      const frei = parseInt(s.dataset.frei || '0', 10);
+      const max = parseInt(s.dataset.max || '0', 10);
+      const auf = cent(s.dataset.aufpreis);
+      if (s.dataset.schritt === 'extra') return n ? `· ${n} gewählt` : '· optional';
+      if (max) return `· ${n} von ${max}${n >= max ? ', mehr geht nicht' : ''}`;
+      const mehr = Math.max(0, n - frei);
+      if (mehr) return `· ${n} gewählt, ${mehr} × ${euro(auf)} extra`;
+      return `· ${n} von ${frei} inklusive${auf ? `, jede weitere ${euro(auf)}` : ''}`;
+    };
+
+    const rechne = () => {
+      let preis = cent(konfig.dataset.grundpreis);
+      const teile = {};
+      schritte.forEach((s) => {
+        const art = s.dataset.schritt;
+        const inputs = gewaehlt(s);
+        teile[art] = inputs.map((i) => i.value);
+        if (art === 'extra') inputs.forEach((i) => { preis += cent(i.dataset.preis); });
+        else preis += Math.max(0, inputs.length - parseInt(s.dataset.frei || '0', 10)) * cent(s.dataset.aufpreis);
+      });
+      const getraenk = $('input[name="getraenk"]:checked', konfig);
+      preis += cent(getraenk?.dataset.preis);
+      return { preis, teile, getraenk: getraenk && getraenk.value !== 'ohne' ? getraenk.value : '', temperatur: wert(konfig, 'temperatur') === 'warm' ? 'Warm' : 'Kalt' };
+    };
+
+    // Höchstzahl (z. B. zwei Dressings): übrige Zutaten sperren, solange das Maximum erreicht ist
+    const begrenze = (s) => {
+      const max = parseInt(s.dataset.max || '0', 10);
+      if (!max) return;
+      const voll = gewaehlt(s).length >= max;
+      $$('input', s).forEach((i) => { if (!i.checked) i.disabled = voll; });
+    };
+
+    let stand = null;
     const zeigeSumme = (anim) => {
-      const p = preisVon(konfig);
-      const veg = wert(konfig, 'kueche') === 'vegetarisch' ? ' vegetarisch' : '';
-      summeText.textContent = `${p.u} Gänge${veg} ${BEGLEITUNG_TEXT[p.b]} · ${p.summe} € pro Person`;
+      stand = rechne();
+      const { preis, teile, getraenk, temperatur } = stand;
+      const mengen = ['base', 'dressing', 'topping'].map((a) => anzahl((teile[a] || []).length, a)).join(', ');
+      const extras = (teile.extra || []).length ? ` + ${anzahl(teile.extra.length, 'extra')}` : '';
+      summeText.textContent = `${temperatur} · ${mengen}${extras}${getraenk ? ` · mit ${getraenk}` : ''} · ${euro(preis)}`;
+      const gruppen = ['base', 'dressing', 'topping'].map((a) => (teile[a] || []).join(', ')).filter(Boolean);
+      if ((teile.extra || []).length) gruppen.push(`extra ${teile.extra.join(', ')}`);
+      summeListe.textContent = gruppen.length ? gruppen.join(' · ') : 'Noch leer – fang mit einer Base an.';
+      schritte.forEach((s) => { const z = $('[data-zaehler]', s); if (z) z.textContent = zaehlerText(s); });
       if (anim && motion) neuStarten(summeText, 'is-neu');
-      // Begleitungspreise an den Knöpfen passend zum Umfang
-      const reihe = $('input[name="begleitung"]', konfig).closest('.wahl__reihe');
-      const inputs = $$('input[name="begleitung"]', reihe);
-      const labels = $$('.wahl__opt', reihe);
-      const invers = $$('.wahl__invers > span', reihe);
-      inputs.forEach((inp, j) => {
-        const preis = parseInt(inp.getAttribute(`data-preis-${p.u}`) || '0', 10);
-        if (!preis) return;
-        [labels[j], invers[j]].forEach((el) => { const s = el && $('[data-preis-anzeige]', el); if (s) s.textContent = `+ ${preis} €`; });
-      });
-    };
-
-    // FLIP: Positionen merken, ändern, von der alten Position aus sanft an die neue gleiten (nur transform)
-    const flip = (aendern) => {
-      const els = [...sichtbar(), summeBox].filter(Boolean);
-      const vorher = new Map(els.map((el) => [el, el.getBoundingClientRect().top]));
-      aendern();
-      const bewegt = [];
-      els.forEach((el) => {
-        if (el.hidden) return;
-        const dy = vorher.get(el) - el.getBoundingClientRect().top;
-        if (Math.abs(dy) < 1) return;
-        el.style.transition = 'none';
-        el.style.transform = `translateY(${dy}px)`;
-        bewegt.push(el);
-      });
-      if (!bewegt.length) return;
-      void liste.offsetWidth;
-      bewegt.forEach((el) => {
-        el.style.transition = `transform 300ms ${EASE_IN_OUT}`;
-        el.style.transform = '';
-      });
-      setTimeout(() => bewegt.forEach((el) => { el.style.transition = ''; }), 340);
-    };
-
-    let umfang = wert(konfig, 'umfang');
-    let lauf = 0;
-    const setzeUmfang = (u) => {
-      if (u === umfang) return;
-      umfang = u;
-      const meiner = ++lauf;
-      const fuenf = u === '5';
-      if (!motion) {
-        extra.forEach((g) => { g.hidden = fuenf; });
-        nachUmfang();
-        return;
-      }
-      if (fuenf) {
-        extra.forEach((g) => g.classList.add('is-weg'));
-        setTimeout(() => {
-          if (meiner !== lauf) return;
-          flip(() => extra.forEach((g) => { g.hidden = true; g.classList.remove('is-weg'); }));
-          nachUmfang();
-        }, 180);
-      } else {
-        flip(() => extra.forEach((g) => { g.classList.remove('is-weg'); g.hidden = false; g.classList.add('is-kommt'); }));
-        requestAnimationFrame(() => extra.forEach((g) => g.classList.add('is-kommt-an')));
-        setTimeout(() => { if (meiner === lauf) extra.forEach((g) => g.classList.remove('is-kommt', 'is-kommt-an')); }, 420);
-        nachUmfang();
-      }
-    };
-    const nachUmfang = () => {
-      if (motion) neuStarten(liste, 'is-neu-gezaehlt');
-      zeigeSumme(true);
-      if (aktiverGang && aktiverGang.hidden) aktiviere(sichtbar()[0]);
-      else aktiviere(aktiverGang, { erzwingen: true });
-      neuMessen();
     };
 
     // Foto im Bogen neben der Karte
@@ -344,21 +311,15 @@
     const nameEl = bogen && $('[data-bogen-name]', bogen);
     let vorne = imgA;
     let wunsch = 0;
-    let aktiverGang = gaenge[0];
-    const nameVon = (g, veg) => {
-      const teil = $(veg ? '.gang__name .gang__vegetarisch' : '.gang__name .gang__klassisch', g);
-      return (teil || $('.gang__name', g)).textContent.trim();
-    };
-    const aktiviere = (g, { erzwingen = false } = {}) => {
-      if (!g || g.hidden || (!erzwingen && g === aktiverGang && g.classList.contains('is-aktiv'))) return;
-      aktiverGang = g;
-      gaenge.forEach((x) => x.classList.toggle('is-aktiv', x === g));
+    let aktiver = null;
+    const aktiviere = (s) => {
+      if (!s || s === aktiver) return;
+      aktiver = s;
+      schritte.forEach((x) => x.classList.toggle('is-aktiv', x === s));
       if (!bogen || bogen.offsetParent === null) return; // auf dem Handy ausgeblendet: nichts laden
-      const veg = wert(konfig, 'kueche') === 'vegetarisch';
-      nrEl.textContent = `Gang ${ROEMISCH[sichtbar().indexOf(g)] || ''}`;
-      const src = (veg && g.dataset.bildVeg) || g.dataset.bild;
-      // Bildunterschrift: eigener Text, wenn das Foto nicht den Gang zeigt (z. B. die Weinbegleitung)
-      nameEl.textContent = (src === g.dataset.bild && g.dataset.bildName) || nameVon(g, veg);
+      nrEl.textContent = `Schritt ${ROEMISCH[schritte.indexOf(s)] || ''}`;
+      nameEl.textContent = s.dataset.bildName || $('.gang__name', s).textContent.trim();
+      const src = s.dataset.bild;
       if (!src || vorne.getAttribute('src') === src) return;
       const hinten = vorne === imgA ? imgB : imgA;
       const meiner = ++wunsch;
@@ -376,46 +337,41 @@
       const io = new IntersectionObserver((eintraege) => {
         eintraege.forEach((e) => { if (e.isIntersecting) aktiviere(e.target); });
       }, { rootMargin: '-38% 0px -52% 0px' });
-      gaenge.forEach((g) => io.observe(g));
+      schritte.forEach((s) => io.observe(s));
     }
-    gaenge.forEach((g) => {
-      g.addEventListener('pointerenter', () => { if (feinerZeiger.matches) aktiviere(g); });
+    schritte.forEach((s) => {
+      s.addEventListener('pointerenter', () => { if (feinerZeiger.matches) aktiviere(s); });
+      s.addEventListener('change', () => { begrenze(s); aktiviere(s); zeigeSumme(true); });
+      begrenze(s);
     });
-
-    konfig.addEventListener('change', (e) => {
-      const n = e.target.name;
-      if (n === 'umfang') setzeUmfang(e.target.value);
-      else {
-        if (motion) neuStarten(liste, 'is-wechsel');
-        zeigeSumme(true);
-        if (n === 'kueche') aktiviere(aktiverGang, { erzwingen: true });
-        neuMessen();
-      }
-    });
+    konfig.addEventListener('change', () => zeigeSumme(true));
     zeigeSumme(false);
-    aktiviere(gaenge[0], { erzwingen: true });
+    aktiviere(schritte[0]);
 
-    // "Mit diesem Menü anfragen": Auswahl ins Reservierungsformular übernehmen
-    $('[data-menue-uebernehmen]', menue)?.addEventListener('click', () => {
-      if (!buchungForm) return;
-      const setze = (name, value) => {
-        const r = $(`input[name="${name}"][value="${value}"]`, buchungForm);
-        if (r && !r.checked) { r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); }
-      };
-      setze('b-umfang', wert(konfig, 'umfang'));
-      setze('b-kueche', wert(konfig, 'kueche'));
-      setze('b-begleitung', wert(konfig, 'begleitung'));
-    });
+    // "Bowl teilen": Teilen-Menü des Geräts, sonst in die Zwischenablage
+    const teilen = $('[data-teilen]', menue);
+    const kannTeilen = typeof navigator.share === 'function';
+    if (teilen && (kannTeilen || navigator.clipboard)) {
+      teilen.hidden = false;
+      const knopfText = $('[data-teilen-text]', teilen);
+      let zurueck = 0;
+      teilen.addEventListener('click', () => {
+        const text = `Meine Bowl bei Paledo: ${summeListe.textContent} (${euro(stand.preis)})`;
+        const url = `${location.href.split('#')[0]}#bowls`;
+        if (kannTeilen) { navigator.share({ title: 'Meine Paledo-Bowl', text, url }).catch(() => {}); return; }
+        navigator.clipboard.writeText(`${text} ${url}`).then(() => {
+          knopfText.textContent = 'Kopiert';
+          clearTimeout(zurueck);
+          zurueck = setTimeout(() => { knopfText.textContent = 'Bowl teilen'; }, 2000);
+        }, () => {});
+      });
+    }
   }
 
-  /* ---------- 9. Öffnungszeiten: Live-Status und Grundlage für die Reservierungszeiten ---------- */
+  /* ---------- 9. Öffnungszeiten: Live-Status ---------- */
   const TAGE = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-  const TAGE_KURZ = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-  const MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
-  const MONATE_KURZ = ['Jan', 'Feb', 'März', 'Apr', 'Mai', 'Juni', 'Juli', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
   const tabelle = $('[data-oeffnungszeiten]');
   const zone = tabelle?.dataset.zeitzone || undefined;
-  const einlass = parseInt(tabelle?.dataset.einlass || '60', 10);
   const minuten = (s) => { const [h, m] = s.split(':').map(Number); return h * 60 + (m || 0); };
   const uhr = (m) => { const t = ((m % 1440) + 1440) % 1440; return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
   const zeiten = {};
@@ -469,212 +425,7 @@
   zeigeStatus();
   setInterval(zeigeStatus, 60 * 1000);
 
-  /* ---------- 10. Reservierung ---------- */
-  if (buchungForm) {
-    const form = buchungForm;
-    const datumNativ = $('[data-datum]', form);
-    const zeitNativ = $('[data-uhrzeit]', form);
-    const datenBox = $('[data-daten]', form);
-    const zeitenBox = $('[data-zeiten]', form);
-    const summe = $('[data-buchung-summe]', form);
-    const senden = $('[data-senden]', form);
-    const danke = $('[data-danke]');
-    const fehlerEl = (name) => $(`[data-fehler="${name}"]`, form);
-    const TAGE_VORAUS = 28;
-    let versucht = false;
-    const beruehrt = new Set();
-
-    const slotsFuer = (wochentag, abMin) => {
-      const out = [];
-      (zeiten[wochentag] || []).forEach(([a, b]) => {
-        for (let t = a; t <= a + einlass && t < b; t += 30) {
-          if (abMin == null || t >= abMin + 120) out.push({ t, teil: a < 16 * 60 ? 'Mittag' : 'Abend' });
-        }
-      });
-      return out;
-    };
-    const tage = [];
-    const baueDaten = () => {
-      const jetzt = jetztVorOrt();
-      tage.length = 0;
-      datenBox.textContent = '';
-      for (let i = 0; i < TAGE_VORAUS; i += 1) {
-        const d = new Date(Date.UTC(jetzt.j, jetzt.m - 1, jetzt.t + i));
-        const wt = d.getUTCDay();
-        const slots = slotsFuer(wt, i === 0 ? jetzt.min : null);
-        if (!slots.length) continue; // Ruhetage und vergangene Zeiten gar nicht erst anbieten
-        const iso = d.toISOString().slice(0, 10);
-        tage.push({ iso, wt, tagImMonat: d.getUTCDate(), monat: d.getUTCMonth(), slots });
-        const label = document.createElement('label');
-        label.className = 'chip';
-        const oben = i === 0 ? 'Heute' : i === 1 ? 'Morgen' : TAGE_KURZ[wt];
-        label.innerHTML = `<input type="radio" name="datum-wahl" value="${iso}"><span class="chip__flaeche" aria-hidden="true"><span class="chip__klein">${oben}</span><span class="chip__gross">${d.getUTCDate()}</span><span class="chip__klein">${MONATE_KURZ[d.getUTCMonth()]}</span></span>`;
-        $('input', label).setAttribute('aria-label', `${i < 2 ? `${oben}, ` : ''}${TAGE[wt]}, ${d.getUTCDate()}. ${MONATE[d.getUTCMonth()]}`);
-        datenBox.appendChild(label);
-      }
-    };
-    const gewaehlterTag = () => tage.find((t) => t.iso === datumNativ.value);
-    const baueZeiten = () => {
-      const tag = gewaehlterTag();
-      const vorher = zeitNativ.value;
-      zeitenBox.textContent = '';
-      if (!tag) { zeitenBox.innerHTML = '<p class="zeiten-leer">Bitte zuerst einen Abend wählen.</p>'; return; }
-      const mehrereTeile = new Set(tag.slots.map((s) => s.teil)).size > 1;
-      tag.slots.forEach(({ t, teil }) => {
-        const l = document.createElement('label');
-        l.className = 'chip';
-        l.innerHTML = `<input type="radio" name="uhrzeit-wahl" value="${uhr(t)}"><span class="chip__flaeche">${mehrereTeile ? `<span class="chip__klein">${teil}</span>` : ''}${uhr(t)} Uhr</span>`;
-        zeitenBox.appendChild(l);
-      });
-      const gleiche = $(`input[value="${vorher}"]`, zeitenBox);
-      if (gleiche) gleiche.checked = true; else zeitNativ.value = '';
-    };
-    const personen = () => parseInt(wert(form, 'personen') || '2', 10);
-    const BEGL = { wein: 'mit Weinbegleitung', frei: 'alkoholfrei begleitet', ohne: 'Begleitung am Abend wählen' };
-    const zeigeSumme = () => {
-      const tag = gewaehlterTag();
-      const n = personen();
-      const p = preisVon(form, 'b-');
-      const veg = wert(form, 'b-kueche') === 'vegetarisch' ? ' vegetarisch' : '';
-      const menueTeil = `${p.u} Gänge${veg}, ${BEGL[p.b] || ''}`;
-      const richtwert = `Richtwert ${p.summe * n} € für ${n === 1 ? 'eine Person' : `${n} Personen`}`;
-      if (!tag) { summe.textContent = `Bitte wählen Sie einen Abend · ${menueTeil}`; return; }
-      const d = `${TAGE[tag.wt]}, ${tag.tagImMonat}. ${MONATE[tag.monat]}`;
-      summe.textContent = zeitNativ.value ? `${d} · ${zeitNativ.value} Uhr · ${menueTeil} · ${richtwert}` : `${d} · bitte Uhrzeit wählen · ${menueTeil}`;
-    };
-
-    datenBox.addEventListener('change', (e) => {
-      if (e.target.name !== 'datum-wahl') return;
-      datumNativ.value = e.target.value;
-      baueZeiten();
-      zeigeSumme();
-      if (versucht) pruefe();
-    });
-    zeitenBox.addEventListener('change', (e) => {
-      if (e.target.name !== 'uhrzeit-wahl') return;
-      zeitNativ.value = e.target.value;
-      zeigeSumme();
-      if (versucht) pruefe();
-    });
-    form.addEventListener('change', (e) => { if (/^(personen|b-)/.test(e.target.name)) zeigeSumme(); });
-
-    const initAuswahl = () => {
-      baueDaten();
-      // Ersten freien Abend vorwählen, damit die Uhrzeiten gleich sichtbar sind
-      const erster = $('input', datenBox);
-      if (erster) erster.checked = true;
-      datumNativ.value = erster ? erster.value : '';
-      zeitNativ.value = '';
-      baueZeiten();
-      zeigeSumme();
-    };
-    // Mit JS: Auswahl-Kacheln statt nativer Felder
-    datenBox.hidden = false;
-    zeitenBox.hidden = false;
-    [datumNativ, zeitNativ].forEach((f) => { f.hidden = true; f.tabIndex = -1; });
-    initAuswahl();
-
-    // Prüfen: Meldung direkt am Feld, beim Verlassen eines Feldes und nach dem ersten Absenden bei jeder Eingabe
-    const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-    const regeln = {
-      datum: () => !!datumNativ.value,
-      uhrzeit: () => !!zeitNativ.value,
-      name: () => form.elements.name.value.trim().length > 1,
-      email: () => EMAIL.test(form.elements.email.value.trim()),
-      telefon: () => form.elements.telefon.value.replace(/\D/g, '').length >= 6,
-      storno: () => form.elements.storno.checked,
-      datenschutz: () => form.elements.datenschutz.checked,
-    };
-    const feldFuer = {
-      datum: () => $('input', datenBox), uhrzeit: () => $('input', zeitenBox),
-      name: () => form.elements.name, email: () => form.elements.email, telefon: () => form.elements.telefon,
-      storno: () => form.elements.storno, datenschutz: () => form.elements.datenschutz,
-    };
-    const markiere = (name) => {
-      const ok = regeln[name]();
-      const f = fehlerEl(name);
-      if (f) f.hidden = ok;
-      const feld = feldFuer[name]();
-      if (feld && !['datum', 'uhrzeit'].includes(name)) feld.setAttribute('aria-invalid', String(!ok));
-      return ok;
-    };
-    const pruefe = () => {
-      let erstes = null;
-      Object.keys(regeln).forEach((name) => { if (!markiere(name) && !erstes) erstes = feldFuer[name](); });
-      return erstes;
-    };
-    ['name', 'email', 'telefon'].forEach((name) => {
-      const feld = form.elements[name];
-      feld.addEventListener('blur', () => { if (feld.value.trim()) beruehrt.add(name); if (beruehrt.has(name) || versucht) markiere(name); });
-      feld.addEventListener('input', () => { if (beruehrt.has(name) || versucht) markiere(name); });
-    });
-    ['storno', 'datenschutz'].forEach((name) => form.elements[name].addEventListener('change', () => { if (versucht) markiere(name); }));
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      versucht = true;
-      const problem = pruefe();
-      if (problem) {
-        problem.focus({ preventScroll: true });
-        scrollZu(problem.closest('.feld-gruppe, .feld-wrap, .haken') || problem, { fokus: false, dauer: 0.8 });
-        return;
-      }
-      fehlerEl('senden').hidden = true;
-      form.classList.add('is-laedt');
-      senden.setAttribute('aria-busy', 'true');
-      const daten = new FormData(form);
-      daten.delete('datum-wahl');
-      daten.delete('uhrzeit-wahl');
-      const ziel = (form.dataset.endpoint || '').trim();
-      try {
-        if (ziel) {
-          const antwort = await fetch(ziel, { method: 'POST', body: daten, headers: { Accept: 'application/json' } });
-          if (!antwort.ok) throw new Error(`HTTP ${antwort.status}`);
-        } else {
-          await new Promise((r) => setTimeout(r, 900)); // Demo: nichts wird versendet
-        }
-        zeigeDanke(!ziel);
-      } catch (_) {
-        fehlerEl('senden').hidden = false;
-      } finally {
-        form.classList.remove('is-laedt');
-        senden.removeAttribute('aria-busy');
-      }
-    });
-
-    const zeigeDanke = (demo) => {
-      const tag = gewaehlterTag();
-      const n = personen();
-      const vorname = form.elements.name.value.trim().split(/\s+/)[0];
-      const mail = form.elements.email.value.trim();
-      const wann = `${TAGE[tag.wt]}, ${tag.tagImMonat}. ${MONATE[tag.monat]} um ${zeitNativ.value} Uhr für ${n === 1 ? 'eine Person' : `${n} Personen`}`;
-      $('[data-danke-name]', danke).textContent = vorname ? `, ${vorname}` : '';
-      $('[data-danke-text]', danke).textContent = demo
-        ? `So sähe es im Livebetrieb aus: Ihre Anfrage für ${wann} ginge jetzt an das Restaurant, die Bestätigung käme per E-Mail an ${mail}.`
-        : `Ihre Anfrage für ${wann} ist bei uns angekommen. Wir bestätigen Ihren Tisch per E-Mail an ${mail}.`;
-      $('[data-danke-demo]', danke).hidden = !demo;
-      form.hidden = true;
-      danke.hidden = false;
-      danke.focus({ preventScroll: true });
-      const box = danke.closest('.buchung');
-      if (box && box.getBoundingClientRect().top < 0) scrollZu(box, { fokus: false, dauer: 0.8 });
-      neuMessen();
-    };
-    $('[data-neu]', danke)?.addEventListener('click', () => {
-      form.reset();
-      versucht = false;
-      beruehrt.clear();
-      $$('.feld-fehler', form).forEach((f) => { f.hidden = true; });
-      $$('[aria-invalid]', form).forEach((f) => f.removeAttribute('aria-invalid'));
-      danke.hidden = true;
-      form.hidden = false;
-      initAuswahl();
-      form.elements.name.focus();
-      neuMessen();
-    });
-  }
-
-  /* ---------- 11. Aufräumen: Maße neu messen, wenn Schriften und Bilder da sind ---------- */
+  /* ---------- 10. Aufräumen: Maße neu messen, wenn Schriften und Bilder da sind ---------- */
   if (document.fonts?.ready) document.fonts.ready.then(neuMessen);
   window.addEventListener('load', neuMessen, { once: true });
 })();

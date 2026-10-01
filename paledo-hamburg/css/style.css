@@ -1,43 +1,46 @@
 /* ==========================================================================
-   Aurel — Degustationsrestaurant · Demo-Design "Fine Dining" · style.css
+   Paledo – Café & Deli · Entwurf im Aurel-Design · style.css
    1. Schriften  2. Tokens  3. Basis  4. Bausteine  5. Navigation & Menü
-   6. Hero  7. Philosophie  8. Menü  9. Küchenchef  10. Ein Abend
-   11. Reservierung  12. Besuch  13. Footer  14. Handy-Leiste  15. Motion
+   6. Hero  7. Philosophie  8. Bowl-Baukasten  9. Gastgeber  10. Ein Tag
+   11. Gutscheine  12. Besuch  13. Footer  14. Handy-Leiste  15. Motion  16. Rechtstexte
    ========================================================================== */
 
 /* 1. Schriften (selbst gehostet, keine Anfragen an Dritte) */
 @font-face{font-family:'Bodoni Moda';font-style:normal;font-weight:400 700;font-display:swap;src:url(../fonts/bodoni-moda-latin.woff2) format('woff2')}
 @font-face{font-family:'Bodoni Moda';font-style:italic;font-weight:400 700;font-display:swap;src:url(../fonts/bodoni-moda-italic-latin.woff2) format('woff2')}
 @font-face{font-family:'Jost';font-style:normal;font-weight:300 600;font-display:swap;src:url(../fonts/jost-latin.woff2) format('woff2')}
+@font-face{font-family:'Pinyon Script';font-style:normal;font-weight:400;font-display:swap;src:url(../fonts/pinyon-script-latin.woff2) format('woff2')}
 
 /* 2. Tokens — hier Farben, Schriften und Abstände anpassen.
-      Kontraste (Fließtext) auf --papier: --tinte 16:1, --tinte-2 8,6:1, --leise 5,3:1, --messing 5,3:1 */
+      Paledo-Farben: Creme und Espresso-Braun aus dem Logo, Akzent in Kaffeebraun, Karamell für Linien.
+      Kontraste (Fließtext) auf --papier: --tinte 14,3:1, --tinte-2 8,9:1, --leise 5,5:1, --messing 6:1 */
 :root{
   color-scheme:light;
   /* Papier & Tinte */
-  --papier:#F4F0E8;       /* Seitenhintergrund, Elfenbein */
-  --papier-2:#ECE6DB;     /* Flächen */
-  --karte:#FAF7F1;        /* Formular-"Karte" */
-  --tinte:#1A1714;        /* Text, Knöpfe */
-  --tinte-2:#48413A;      /* Fließtext */
-  --leise:#6B6257;        /* Nebentext */
-  --linie:rgba(26,23,20,.13);
-  --linie-stark:rgba(26,23,20,.3);
-  /* Akzent: dunkles Messing (für Text geeignet) und helles Messing (nur Linien und Ornamente) */
-  --messing:#7A5D32;
-  --messing-hell:#B39364;
-  /* Abend-Abschnitt und Footer */
-  --nacht:#141210; --nacht-2:#221E1A; --nacht-tinte:#EFE9DE; --nacht-leise:#A89E90;
+  --papier:#F5EFE6;       /* Seitenhintergrund, Creme */
+  --papier-2:#ECE3D6;     /* Flächen */
+  --karte:#FBF8F3;        /* Gutschein-"Karte" */
+  --tinte:#2A1D15;        /* Text, Knöpfe (Espresso) */
+  --tinte-2:#4E3E33;      /* Fließtext */
+  --leise:#6E5D52;        /* Nebentext */
+  --linie:rgba(42,29,21,.13);
+  --linie-stark:rgba(42,29,21,.3);
+  /* Akzent: Kaffeebraun (für Text geeignet) und Karamell (Linien, Ornamente, Text auf Dunkel) */
+  --messing:#7B5136;
+  --messing-hell:#C2A07A;
+  /* Ein-Tag-Abschnitt und Footer */
+  --nacht:#1F1611; --nacht-2:#2E221A; --nacht-tinte:#F1E8DC; --nacht-leise:#B3A393;
   /* Schrift auf dem Foto */
-  --foto-tinte:#F7F2E9;
+  --foto-tinte:#F8F2EA;
   /* Status */
   --ok:#3F7A4E; --bald:#94681A; --fehler:#A3261D;
 
   /* Schriften */
   --display:'Bodoni Moda','Bodoni 72','Didot',Georgia,'Times New Roman',serif;
   --text:'Jost','Futura','Avenir Next',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --script:'Pinyon Script','Snell Roundhand','Segoe Script',cursive;
 
-  --fs-hero:min(21vw,37svh);
+  --fs-hero:min(17vw,31svh);
   --fs-h2:clamp(2.7rem,1.6rem + 4.2vw,6rem);
   --fs-statement:clamp(1.95rem,1.15rem + 2.7vw,4.1rem);
   --fs-h3:clamp(1.55rem,1.3rem + .9vw,2.15rem);
@@ -75,7 +78,7 @@ img,svg{display:block;max-width:100%;height:auto}
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 a,button,label,input,textarea,[role=button]{touch-action:manipulation}
-button,.knopf,.chip,.wahl__opt,.nav__links a,.menu__links a{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+button,.knopf,.zutat,.wahl__opt,.nav__links a,.menu__links a{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 ul,ol{list-style:none;margin:0;padding:0}
 h1,h2,h3,p,figure,blockquote,dl,dd{margin:0}
 input,textarea,select{font:inherit;font-size:max(16px,1rem);color:inherit}
@@ -151,7 +154,10 @@ input,textarea,select{font:inherit;font-size:max(16px,1rem);color:inherit}
 .nav.is-fest::before{opacity:1}
 .nav.is-weg{transform:translateY(-101%)}
 .nav__bar{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:var(--nav-h)}
-.nav__marke{justify-self:start;display:inline-flex;align-items:center;min-height:44px;font:400 1.3rem/1 var(--display);letter-spacing:.34em;text-transform:uppercase;margin-right:-.34em}
+.nav__marke{justify-self:start;display:inline-grid;justify-items:start;align-content:center;min-height:44px;font:400 1.3rem/1 var(--display);letter-spacing:.34em;text-transform:uppercase;margin-right:-.34em}
+.nav__script{margin:-.05rem 0 0 .1rem;font:400 1.05rem/1 var(--script);letter-spacing:0;text-transform:none;color:var(--messing)}
+/* Das & der Schreibschrift wirkt wie eine 4 – deshalb kursives & aus der Bodoni */
+.und{font:italic 400 .72em/1 var(--display);letter-spacing:0;margin-inline:.04em}
 .nav__links{display:flex;gap:.3rem}
 .nav__links a{position:relative;display:inline-flex;align-items:center;min-height:44px;padding:0 .9rem;font:500 var(--fs-versal)/1 var(--text);letter-spacing:.22em;text-transform:uppercase;color:var(--tinte-2)}
 .nav__links a::after{content:"";position:absolute;left:.9rem;right:.9rem;bottom:.7rem;height:1px;background:var(--messing);transform:scaleX(0);transform-origin:left;transition:transform 300ms var(--ease-out)}
@@ -211,7 +217,7 @@ input,textarea,select{font:inherit;font-size:max(16px,1rem);color:inherit}
   --bogen-unten:clamp(4.5rem,9.5vh,6rem);
   --bogen-radius:calc(16.5vw + 24px);
   --spalte:calc(33.5vw - var(--gutter) - 2.5rem); /* Breite der Textspalten neben dem Bogen (zu --bogen-seite passend halten) */
-  --titel-luft:clamp(1.25rem,6.5vh,4.5rem);
+  --titel-luft:clamp(1.25rem,5vh,3.5rem);
   --hero-fokus:50% 50%;
   position:relative;isolation:isolate;height:100vh;height:100svh;min-height:600px;overflow:hidden;background:var(--papier);
 }
@@ -232,6 +238,9 @@ input,textarea,select{font:inherit;font-size:max(16px,1rem);color:inherit}
 .hero__schrift--hell .hero__titel{text-shadow:0 2px 30px rgba(0,0,0,.25)}
 .hero__maske{display:block;clip-path:inset(-40% -10% 0 -10%)}
 .hero__b{display:inline-block}
+/* „Café & Deli“ in Schreibschrift unter dem Namen, rechtsbündig wie im Logo. Liegt in beiden Fassungen gleich. */
+.hero__script{display:block;margin:.02em .1em 0 0;text-align:right;font:400 .3em/1 var(--script);letter-spacing:0;color:var(--messing)}
+.hero__schrift--hell .hero__script{color:var(--messing-hell)}
 .hero__kontur{
   position:absolute;z-index:3;pointer-events:none;
   top:calc(var(--bogen-oben) - 14px);left:calc(var(--bogen-seite) - 14px);right:calc(var(--bogen-seite) - 14px);bottom:var(--bogen-unten);
@@ -248,27 +257,25 @@ input,textarea,select{font:inherit;font-size:max(16px,1rem);color:inherit}
 .hero__mobil-versal{display:none}
 .hero__lead{font:400 var(--fs-lead)/1.55 var(--text);color:var(--tinte-2);max-width:min(26ch,var(--spalte))}
 .hero__ctas{display:grid;justify-items:end;gap:.5rem}
-/* Der Knopf "Tisch anfragen" steht auf größeren Bildschirmen schon in der Navigation */
-.hero__ctas .knopf{display:none}
-@media (max-width:599px){.hero__ctas .knopf{display:inline-flex}}
 .hero__meta{position:absolute;left:0;right:0;bottom:0;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:1rem;height:var(--bogen-unten);padding-bottom:env(safe-area-inset-bottom)}
 .hero__adresse{font:500 .8rem/1.3 var(--text);letter-spacing:.06em;color:var(--tinte-2)}
 @media (max-height:700px) and (min-width:1024px){.hero__unten{top:calc(var(--bogen-oben) + 4.5rem)}.hero__lead{display:none}}
 
 /* Tablet und Handy: Bogen breiter, Text unter der Bodenlinie */
 @media (max-width:1023px){
-  .hero{--bogen-seite:21%;--bogen-unten:clamp(15rem,34svh,19rem);--bogen-radius:calc(29vw + 24px);--fs-hero:min(18vw,22svh)}
-  /* Schrift liegt hier im oberen Drittel des Bogens, über der dunklen Sitzbank im Foto (bessere Lesbarkeit) */
+  .hero{--bogen-seite:21%;--bogen-unten:clamp(15rem,34svh,19rem);--bogen-radius:calc(29vw + 24px);--fs-hero:min(15vw,19svh)}
+  /* Schrift liegt hier im oberen Drittel des Bogens */
   .hero__schrift{top:29%;bottom:auto;padding-bottom:0;align-items:flex-start}
   .hero__oben{display:none}
   .hero__unten{top:auto;bottom:calc(var(--bogen-unten) - 1.75rem);transform:translateY(100%);flex-direction:column;align-items:flex-start;gap:1rem}
   .hero__unten>*,.hero__lead{max-width:34rem}
+  .hero__schleier{background:linear-gradient(180deg,rgba(12,9,7,.5) 0%,rgba(12,9,7,.45) 45%,rgba(12,9,7,.2) 70%,rgba(12,9,7,.4) 100%)}
   .hero__mobil-versal{display:block}
   .hero__ctas{grid-auto-flow:column;align-items:center;gap:1.5rem}
   .hero__meta{height:auto;padding:0 0 calc(1.1rem + env(safe-area-inset-bottom))}
 }
 @media (max-width:699px){
-  .hero{--bogen-seite:19%;--bogen-unten:clamp(15rem,37svh,18.5rem);--bogen-radius:calc(31vw + 24px);--fs-hero:23vw;min-height:620px}
+  .hero{--bogen-seite:19%;--bogen-unten:clamp(15rem,37svh,18.5rem);--bogen-radius:calc(31vw + 24px);--fs-hero:18.5vw;min-height:620px}
   .hero__adresse{display:none}
   .hero__lead{font-size:1.06rem}
   .hero__unten{gap:.85rem}
@@ -302,9 +309,9 @@ input,textarea,select{font:inherit;font-size:max(16px,1rem);color:inherit}
   .breitbild figcaption{grid-template-columns:minmax(0,1fr);gap:.4rem}
 }
 
-/* 8. Menü */
+/* 8. Bowl-Baukasten */
 .menue{background:var(--papier)}
-.konfig{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.45fr);gap:1.5rem 2.25rem;padding:2rem 0;border-block:1px solid var(--linie)}
+.konfig{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.45fr);gap:1.5rem 2.25rem;padding:2rem 0;border-block:1px solid var(--linie)}
 .wahl{margin:0;padding:0;border:0;min-width:0}
 .wahl legend{padding:0;margin-bottom:.85rem}
 /* Segment-Auswahl: echte Radio-Knöpfe. Die dunkle Markierung ist eine Kopie der Beschriftung in Negativ,
@@ -356,60 +363,65 @@ input,textarea,select{font:inherit;font-size:max(16px,1rem);color:inherit}
 .gang.is-aktiv::after{transform:scaleY(1)}
 .gang>*{grid-column:2}
 .gang__art{color:var(--leise);margin-bottom:.7rem}
-.gang__nur7{letter-spacing:.12em;text-transform:none;font-weight:400}
+.gang__zaehler{letter-spacing:.12em;text-transform:none;font-weight:400}
 .gang__name{font:400 var(--fs-h3)/1.12 var(--display);letter-spacing:-.01em}
-.gang__teile{margin-top:.55rem;color:var(--tinte-2)}
-.gang__begleitung{margin-top:.9rem;font:italic 400 1.02rem/1.35 var(--display);color:var(--messing)}
-.gang__begleitung>span{align-items:center;gap:.55rem}
-.gang__wein{display:inline-flex}
-.gang__begleitung svg{width:17px;height:17px;flex:none}
-/* Auswahl wirkt ohne JavaScript per :has(); mit JavaScript übernimmt main.js das Ein- und Ausblenden (mit Bewegung) */
-.gang__vegetarisch,.gang__begleitung .gang__frei{display:none}
-.menue:has(input[name="kueche"][value="vegetarisch"]:checked) .gang__vegetarisch{display:inline}
-.menue:has(input[name="kueche"][value="vegetarisch"]:checked) .gang__klassisch{display:none}
-.menue:has(input[name="begleitung"][value="frei"]:checked) .gang__begleitung .gang__frei{display:inline-flex}
-.menue:has(input[name="begleitung"][value="frei"]:checked) .gang__begleitung .gang__wein{display:none}
-.menue:has(input[name="begleitung"][value="ohne"]:checked) .gang__begleitung{display:none}
-html:not(.js) .menue:has(input[name="umfang"][value="5"]:checked) .gang[data-nur7]{display:none}
-.gang.is-weg{opacity:0;transition:opacity 180ms ease}
-.gang.is-kommt{opacity:0}
-.gang.is-kommt-an{opacity:1;transition:opacity 260ms ease 60ms}
-.gaenge.is-wechsel .gang__name,.gaenge.is-wechsel .gang__teile,.gaenge.is-wechsel .gang__begleitung{animation:auftauchen 320ms var(--ease-out) both}
-.gaenge.is-neu-gezaehlt .gang::before{animation:auftauchen 300ms var(--ease-out) both}
 @keyframes auftauchen{from{opacity:0;transform:translateY(5px)}}
+
+/* Zutaten: echte Checkboxen, die Beschriftung ist die Fläche. Gewählt = dunkel gefüllt. */
+.zutaten{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.15rem 0 0;padding:0;border:0;min-width:0}
+.zutat{position:relative;display:block;cursor:pointer}
+.zutat input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.zutat>span{
+  display:inline-flex;align-items:baseline;gap:.5rem;min-height:44px;padding:.62rem 1rem;border:1px solid var(--linie-stark);border-radius:100vmax;
+  font:400 .95rem/1.2 var(--text);color:var(--tinte);
+  transition:background-color 200ms ease,border-color 200ms ease,color 200ms ease,transform 160ms var(--ease-out);
+}
+.zutat em,.zutat small{font:italic 400 .9rem/1 var(--display);color:var(--leise);transition:color 200ms ease}
+.zutat input:checked+span{background:var(--tinte);border-color:var(--tinte);color:var(--papier)}
+.zutat input:checked+span :is(em,small){color:rgba(245,239,230,.75)}
+.zutat input:focus-visible+span{outline:1.5px solid var(--messing);outline-offset:3px}
+.zutat input:disabled{cursor:not-allowed}
+.zutat input:disabled+span{opacity:.38}
+.zutat:active>span{transform:scale(.97)}
+@media (hover:hover) and (pointer:fine){.zutat input:not(:checked):not(:disabled):hover+span{border-color:var(--tinte)}}
 
 .summe{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.25rem 2rem;margin-top:2.5rem;padding:1.6rem 1.75rem;background:var(--papier-2)}
 .summe__text{display:grid;gap:.45rem}
 .summe__text .versal{color:var(--messing)}
 .summe__wert{font:400 1.3rem/1.3 var(--display)}
 .summe__wert.is-neu{animation:auftauchen 320ms var(--ease-out) both}
+.summe__liste{max-width:52ch;font-size:.92rem;line-height:1.55;color:var(--tinte-2)}
+.summe__aktion{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem 1.75rem}
+.summe .knopf svg{width:18px;height:18px}
 
-.preise{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2.5rem;margin-top:clamp(5rem,10vw,8.5rem);padding-top:3rem;border-top:1px solid var(--linie)}
+.preise{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3.5rem 2.5rem;margin-top:clamp(5rem,10vw,8.5rem);padding-top:3rem;border-top:1px solid var(--linie)}
 .preise__titel{margin-bottom:1.25rem;font:italic 400 1.6rem/1.2 var(--display)}
+.preise__titel em{display:block;margin-top:.35rem;font:500 var(--fs-versal)/1.3 var(--text);letter-spacing:.2em;text-transform:uppercase;color:var(--messing)}
 .preisliste li{display:flex;justify-content:space-between;align-items:baseline;gap:1.25rem;padding:.85rem 0;border-bottom:1px solid var(--linie)}
 .preisliste li>span:first-child{display:grid}
 .preisliste em{font-style:normal;font-size:.88rem;color:var(--leise)}
 .preis{flex:none;font:400 1.15rem/1 var(--display);font-variant-numeric:lining-nums tabular-nums;white-space:nowrap}
 .preise__notiz{max-width:60ch;margin-top:2rem;font-size:.9rem;color:var(--leise)}
 @media (max-width:1023px){
-  .konfig{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-  .wahl--breit{grid-column:1 / -1}
+  .konfig{grid-template-columns:minmax(0,1fr)}
+  .preise{grid-template-columns:repeat(2,minmax(0,1fr))}
   .menue__buehne{grid-template-columns:minmax(0,1fr)}
   .menue__bogen{display:none}
   .menue__karte{grid-column:1 / -1}
-  .preise{grid-template-columns:minmax(0,1fr);gap:2.5rem}
   .gang::after{display:none}
 }
 @media (max-width:599px){
-  .konfig{grid-template-columns:minmax(0,1fr);padding:1.5rem 0}
+  .konfig{padding:1.5rem 0}
+  .preise{grid-template-columns:minmax(0,1fr)}
   .wahl__opt,.wahl__invers>span{min-height:3.6rem;padding:.55rem .3rem}
   .wahl__opt>span,.wahl__invers>span>span{letter-spacing:.14em}
   .gang{grid-template-columns:2.75rem minmax(0,1fr);padding:1.75rem 0}
   .summe{padding:1.4rem 1.25rem}
   .summe .knopf{width:100%}
+  .zutat>span{padding:.6rem .85rem;font-size:.92rem}
 }
 
-/* 9. Küchenchef */
+/* 9. Gastgeber (Aufbau wie "Küchenchef" im Aurel-Design) */
 .chef{background:var(--papier-2)}
 .chef__raster{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:1.5rem;align-items:center}
 .chef__bild{grid-column:1 / 6}
@@ -425,6 +437,7 @@ html:not(.js) .menue:has(input[name="umfang"][value="5"]:checked) .gang[data-nur
 .sommeliere .versal{color:var(--messing)}
 .sommeliere__name{margin:.35rem 0 .45rem;font:400 1.45rem/1.2 var(--display)}
 .sommeliere p:not(.versal):not(.sommeliere__name){font-size:.92rem;line-height:1.6;color:var(--tinte-2)}
+.sommeliere a{color:var(--tinte);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;overflow-wrap:anywhere}
 .sommeliere p+p{margin-top:0}
 @media (max-width:899px){
   .chef__raster{grid-template-columns:minmax(0,1fr)}
@@ -434,7 +447,7 @@ html:not(.js) .menue:has(input[name="umfang"][value="5"]:checked) .gang[data-nur
 }
 @media (max-width:459px){.sommeliere{flex-direction:column;align-items:flex-start}}
 
-/* 10. Ein Abend — dunkler Abschnitt mit Bildstrecke */
+/* 10. Ein Tag — dunkler Abschnitt mit Bildstrecke */
 .abend{background:var(--nacht);color:var(--nacht-tinte);padding-bottom:calc(var(--abschnitt) * .8)}
 .abend .h2 em{color:var(--messing-hell)}
 .abend__kopf{margin-bottom:clamp(3.5rem,7vw,6rem)}
@@ -473,100 +486,46 @@ html:not(.js) .menue:has(input[name="umfang"][value="5"]:checked) .gang[data-nur
   .station__text,.station--rechts .station__text{grid-column:1;grid-row:2;margin-top:1.75rem}
 }
 
-/* 11. Reservierung */
+/* 11. Gutscheine (Aufbau wie "Reservierung" im Aurel-Design) */
 .reservierung__raster{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:1.5rem;align-items:start}
 .reservierung__intro{grid-column:1 / 6;position:sticky;top:calc(var(--nav-h) + 3rem)}
-.buchung{grid-column:7 / 13;min-width:0;padding:clamp(1.5rem,4vw,3.25rem);background:var(--karte);box-shadow:0 0 0 1px var(--linie)}
-.telefon{display:inline-flex;align-items:center;gap:.8rem;min-height:44px;margin-top:1.75rem;font:400 clamp(1.5rem,1.2rem + 1vw,2.1rem)/1 var(--display);font-variant-numeric:lining-nums}
-.telefon svg{width:22px;height:22px;color:var(--messing)}
 .storno{margin-top:clamp(2.5rem,5vw,3.5rem);padding-top:1.75rem;border-top:1px solid var(--messing-hell)}
 .storno__titel{margin-bottom:1rem;font:italic 400 1.5rem/1.2 var(--display)}
 .storno ul{border-top:1px solid var(--linie)}
-.storno li{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:1rem;padding:.75rem 0;border-bottom:1px solid var(--linie);font-size:.93rem}
+.storno li{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:1rem;padding:.75rem 0;border-bottom:1px solid var(--linie);font-size:.93rem}
 .storno li span{color:var(--leise)}
 .storno>p{margin-top:1.1rem;font-size:.9rem;color:var(--tinte-2)}
 
-.feld-gruppe{margin:0 0 2rem;padding:0;border:0;min-width:0}
-.feld-gruppe legend{padding:0;margin-bottom:.85rem}
-.feld-hinweis{margin-top:.65rem;font-size:.86rem;color:var(--leise)}
-.feld-fehler{margin-top:.55rem;font-size:.86rem;font-weight:500;color:var(--fehler)}
-.chips{display:grid;gap:.5rem}
-.chips--daten{grid-template-columns:repeat(auto-fill,minmax(4.6rem,1fr))}
-.chips--zeiten{grid-template-columns:repeat(auto-fill,minmax(5.4rem,1fr))}
-.chips--personen{grid-template-columns:repeat(6,minmax(0,1fr))}
-.chip{position:relative;display:block;cursor:pointer}
-.chip input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
-.chip__flaeche{
-  display:grid;place-items:center;gap:.2rem;min-height:48px;padding:.55rem .3rem;border:1px solid var(--linie-stark);
-  font:500 .9rem/1.1 var(--text);letter-spacing:.06em;text-align:center;transition:transform 160ms var(--ease-out);
+.gutschein{grid-column:7 / 13;min-width:0;display:grid;gap:2rem;justify-items:center}
+/* Die Karte: Papier im Bogen-Motiv, Proportion einer Geschenkkarte */
+.gutschein__karte{
+  position:relative;display:grid;justify-items:center;align-content:center;gap:.35rem;width:min(100%,30rem);aspect-ratio:4 / 5;
+  padding:clamp(2rem,6vw,3.5rem) clamp(1.5rem,4vw,2.5rem);background:var(--karte);text-align:center;
+  box-shadow:0 0 0 1px var(--linie),0 30px 60px -30px rgba(42,29,21,.35);transform:rotate(-2deg);
 }
-.chip__klein{font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--leise)}
-.chip__gross{font:400 1.45rem/1 var(--display);font-variant-numeric:lining-nums}
-.chip input:checked+.chip__flaeche{background:var(--tinte);border-color:var(--tinte);color:var(--papier)}
-.chip input:checked+.chip__flaeche .chip__klein{color:rgba(244,240,232,.75)}
-.chip input:focus-visible+.chip__flaeche{outline:1.5px solid var(--messing);outline-offset:3px}
-.chip:active .chip__flaeche{transform:scale(.97)}
-.chip input:disabled+.chip__flaeche{opacity:.4;cursor:default}
-@media (hover:hover) and (pointer:fine){.chip input:not(:checked):not(:disabled):hover+.chip__flaeche{border-color:var(--tinte)}}
-.feld--nativ{width:100%;max-width:18rem}
-.zeiten-leer{grid-column:1 / -1;font-size:.9rem;color:var(--leise)}
-
-.buchung__menue{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.5rem;margin-bottom:2rem;padding:1.75rem 0;border-block:1px solid var(--linie)}
-.buchung__menue .wahl--breit{grid-column:1 / -1}
-.buchung__menue .wahl__opt,.buchung__menue .wahl__invers>span{min-height:3rem}
-
-.felder{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.6rem 1.5rem}
-.feld-wrap{display:grid;gap:.25rem;min-width:0}
-.feld-wrap--voll{grid-column:1 / -1}
-.feld-wrap label{font:500 var(--fs-versal)/1.3 var(--text);letter-spacing:.22em;text-transform:uppercase;color:var(--tinte-2)}
-.feld-wrap label span{letter-spacing:.06em;text-transform:none;font-weight:400;color:var(--leise)}
-.feld{
-  width:100%;min-height:48px;padding:.7rem 0;border:0;border-bottom:1px solid var(--linie-stark);border-radius:0;background:transparent;
-  font:400 max(16px,1.05rem)/1.4 var(--text);color:var(--tinte);appearance:none;-webkit-appearance:none;
+.gutschein__bogen{position:absolute;inset:1.1rem 1.1rem 4.2rem;border:1px solid var(--messing-hell);border-bottom:0;border-radius:100vmax 100vmax 0 0;pointer-events:none}
+.gutschein__marke{position:relative;font:400 clamp(2.4rem,1.6rem + 3vw,3.6rem)/1 var(--display);letter-spacing:.24em;margin-right:-.24em;text-transform:uppercase}
+.gutschein__script{position:relative;margin-top:-.2rem;font:400 clamp(1.5rem,1.1rem + 1.4vw,2.1rem)/1 var(--script);color:var(--messing)}
+.gutschein__linie{width:3rem;height:1px;margin:1.4rem 0 1.1rem;background:var(--messing-hell)}
+.gutschein__karte .versal{color:var(--messing)}
+.gutschein__text{max-width:16ch;font:italic 400 1.35rem/1.3 var(--display);color:var(--tinte-2)}
+.gutschein__fuss{position:absolute;left:1.6rem;right:1.6rem;bottom:1.4rem;display:flex;justify-content:space-between;gap:1rem;font:500 .62rem/1.3 var(--text);letter-spacing:.2em;text-transform:uppercase;color:var(--leise)}
+.gutschein__aktion{display:grid;justify-items:center;gap:1rem;text-align:center}
+.gutschein__aktion .knopf svg{width:18px;height:18px}
+.gutschein__hinweis{max-width:32ch;font-size:.92rem;color:var(--leise)}
+@media (hover:hover) and (pointer:fine){
+  .gutschein__karte{transition:transform 600ms var(--ease-out)}
+  .gutschein:hover .gutschein__karte{transform:rotate(0deg) translateY(-6px)}
 }
-textarea.feld{resize:vertical;min-height:5.5rem}
-.feld::placeholder{color:var(--leise);opacity:1}
-.feld:focus{outline:none;box-shadow:0 1px 0 0 var(--tinte);border-bottom-color:var(--tinte)}
-.feld:focus-visible{outline:none}
-.feld[aria-invalid="true"]{border-bottom-color:var(--fehler);box-shadow:0 1px 0 0 var(--fehler)}
-.feld--nativ{border:1px solid var(--linie-stark);padding:.7rem .8rem}
-
-.haken{position:relative;display:flex;align-items:flex-start;gap:.9rem;margin-top:1.6rem;font-size:.93rem;line-height:1.55;color:var(--tinte-2);cursor:pointer}
-.haken input{position:absolute;left:0;top:0;width:22px;height:22px;margin:0;opacity:0;cursor:pointer}
-.haken__box{display:grid;place-items:center;width:22px;height:22px;flex:none;margin-top:.05rem;border:1px solid var(--linie-stark);background:var(--karte);transition:transform 160ms var(--ease-out)}
-.haken__box svg{width:16px;height:16px;color:var(--papier);opacity:0;transform:scale(.8);transition:opacity 160ms ease,transform 200ms var(--ease-out)}
-.haken input:checked+.haken__box{background:var(--tinte);border-color:var(--tinte)}
-.haken input:checked+.haken__box svg{opacity:1;transform:none}
-.haken input:focus-visible+.haken__box{outline:1.5px solid var(--messing);outline-offset:3px}
-.haken input[aria-invalid="true"]+.haken__box{border-color:var(--fehler)}
-.haken:active .haken__box{transform:scale(.94)}
-.haken a{color:var(--tinte);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
-.haken+.feld-fehler{margin-left:2.3rem}
-
-.buchung__fuss{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.25rem 2rem;margin-top:2.25rem;padding-top:1.75rem;border-top:1px solid var(--linie)}
-.buchung__summe{flex:1 1 16rem;font:italic 400 1.1rem/1.45 var(--display);color:var(--tinte-2)}
-.buchung__form.is-laedt [data-senden]{pointer-events:none}
-.buchung__form.is-laedt [data-senden-text]{animation:atmen 1.2s ease-in-out infinite}
-@keyframes atmen{50%{opacity:.45}}
-
-.danke{position:relative;display:grid;justify-items:start;gap:1rem;padding:clamp(1rem,3vw,2rem) 0}
-.danke:focus{outline:none}
-.danke__bogen{width:3.5rem;height:4.4rem;border:1px solid var(--messing-hell);border-bottom:0;border-radius:100vmax 100vmax 0 0;margin-bottom:.5rem}
-.danke .versal{color:var(--messing)}
-.danke__titel{font:400 clamp(2rem,1.5rem + 2vw,3rem)/1.1 var(--display)}
-.danke p{color:var(--tinte-2)}
-.danke__demo{padding:1rem 1.2rem;border:1px solid var(--messing-hell);background:var(--papier);font-size:.93rem}
-.danke p+p{margin-top:0}
 @media (max-width:1023px){
   .reservierung__raster{grid-template-columns:minmax(0,1fr)}
-  .reservierung__intro{grid-column:1;position:static;margin-bottom:3rem}
-  .buchung{grid-column:1}
+  .reservierung__intro{grid-column:1;position:static;margin-bottom:3.5rem}
+  .gutschein{grid-column:1}
 }
 @media (max-width:599px){
-  .felder,.buchung__menue{grid-template-columns:minmax(0,1fr)}
-  .buchung{margin-inline:calc(var(--gutter) * -.5);padding:1.5rem 1.1rem}
-  .buchung__fuss .knopf{width:100%}
   .storno li{grid-template-columns:minmax(0,1fr);gap:.15rem}
+  .gutschein__aktion .knopf{width:100%;white-space:normal;text-align:center;line-height:1.4}
+  .gutschein__fuss{flex-direction:column;align-items:center;gap:.3rem;bottom:1.1rem}
 }
 
 /* 12. Besuch */
@@ -588,7 +547,7 @@ textarea.feld{resize:vertical;min-height:5.5rem}
 .anfahrt dt{font:500 var(--fs-versal)/1.3 var(--text);letter-spacing:.22em;text-transform:uppercase;color:var(--messing);margin-bottom:.25rem}
 .anfahrt dd{font-size:.95rem;color:var(--tinte-2)}
 .besuch__kontakt{font-size:1rem;line-height:1.9}
-.besuch__kontakt a{border-bottom:1px solid var(--linie-stark)}
+.besuch__kontakt a{border-bottom:1px solid var(--linie-stark);overflow-wrap:anywhere}
 .lageplan{width:100%;height:auto;margin-top:clamp(4rem,8vw,6.5rem);aspect-ratio:4 / 1}
 .lp-strasse path{fill:none;stroke:var(--linie-stark);stroke-width:1}
 .lp-weg path{fill:none;stroke:var(--messing-hell);stroke-width:1;stroke-dasharray:2 6}
@@ -612,7 +571,7 @@ textarea.feld{resize:vertical;min-height:5.5rem}
 .fuss__raster{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2rem;padding-top:3rem;font-size:.95rem;line-height:1.75;color:var(--nacht-leise)}
 .fuss__raster .versal{color:var(--messing-hell);margin-bottom:.7rem}
 .fuss__raster a{color:var(--nacht-tinte)}
-.fuss__marke{margin:clamp(3.5rem,8vw,6rem) 0 clamp(1.5rem,3vw,2.5rem);font:400 clamp(4.5rem,18vw,17rem)/.8 var(--display);letter-spacing:.3em;margin-right:-.3em;text-align:center;text-transform:uppercase;color:var(--nacht-2);white-space:nowrap}
+.fuss__marke{margin:clamp(3.5rem,8vw,6rem) 0 clamp(1.5rem,3vw,2.5rem);font:400 clamp(3.6rem,14vw,13.5rem)/.8 var(--display);letter-spacing:.26em;margin-right:-.26em;text-align:center;text-transform:uppercase;color:var(--nacht-2);white-space:nowrap}
 .fuss__unten{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.75rem 2rem;padding-top:1.5rem;border-top:1px solid rgba(239,233,222,.14);font-size:.85rem;color:var(--nacht-leise)}
 .fuss__unten a{color:var(--nacht-tinte)}
 .fuss__recht{display:flex;gap:1.5rem}
@@ -644,17 +603,19 @@ textarea.feld{resize:vertical;min-height:5.5rem}
 .motion .hero__rahmen{animation:rahmen-zu 1.85s var(--ease-in-out) .4s both paused}
 .motion .hero__schleier{animation:blende-ein 1.7s var(--ease-in-out) .6s both paused}
 .motion .hero__b{animation:buchstabe 1.4s var(--ease-out) calc(.95s + var(--i) * 70ms) both paused}
+.motion .hero__script{animation:schreiben 1.3s var(--ease-in-out) 1.75s both paused}
 .motion .hero__boden{animation:linie-auf 1.3s var(--ease-in-out) 1.35s both paused}
 .motion .hero__kontur{animation:kontur-auf 1.3s var(--ease-in-out) 1.6s both paused}
 .motion [data-intro]{animation:intro-auf .9s var(--ease-out) calc(1.6s + var(--i) * 60ms) both paused}
 .motion .nav__bar{animation:nav-ein .9s var(--ease-out) 1.5s both paused}
-.motion.is-ready :is(.hero__bild img,.hero__rahmen,.hero__schleier,.hero__b,.hero__boden,.hero__kontur,[data-intro]),
+.motion.is-ready :is(.hero__bild img,.hero__rahmen,.hero__schleier,.hero__b,.hero__script,.hero__boden,.hero__kontur,[data-intro]),
 .motion.is-ready .nav__bar{animation-play-state:running}
 
 @keyframes bild-zurueck{from{transform:scale(1.14)}to{transform:scale(1)}}
 @keyframes rahmen-zu{from{clip-path:inset(0 0 0 0 round 0 0 0 0)}}
 @keyframes blende-ein{from{opacity:0}}
 @keyframes buchstabe{from{transform:translateY(108%)}}
+@keyframes schreiben{from{clip-path:inset(-20% 100% -40% 0);opacity:.2}to{clip-path:inset(-20% -5% -40% 0);opacity:1}}
 @keyframes linie-auf{from{clip-path:inset(0 50% 0 50%)}to{clip-path:inset(0 0 0 0)}}
 @keyframes kontur-auf{from{clip-path:inset(100% 0 0 0);opacity:0}to{clip-path:inset(0 0 0 0);opacity:1}}
 @keyframes intro-auf{from{opacity:0;transform:translateY(14px)}}
@@ -680,7 +641,6 @@ html.js-kaputt [data-reveal],html.js-kaputt [data-reveal] img,html.js-kaputt [da
 
 /* Bewegung reduziert / ?motion=off: keine Wege, keine Skalierung, alles sofort sichtbar */
 html:not(.motion) *,html:not(.motion) *::before,html:not(.motion) *::after{animation-duration:1ms!important;animation-delay:0ms!important;animation-iteration-count:1!important}
-html:not(.motion) .buchung__form.is-laedt [data-senden-text]{opacity:.6}
 html:not(.motion) .menue__bogen .bogen img{transform:none;transition:opacity 400ms ease}
 html:not(.motion) .gang::after,html:not(.motion) .linie-link::after,html:not(.motion) .nav{transition:none}
 /* Auch UI ohne Wege und Skalierung: Menü, Markierung, Leiste und Druck-Feedback nur blenden bzw. sofort */
@@ -689,6 +649,18 @@ html:not(.motion) .menu.is-offen{opacity:1}
 html:not(.motion) .wahl__invers{transition:none}
 html:not(.motion) .leiste{transform:none;opacity:0;pointer-events:none;transition:opacity 200ms ease}
 html:not(.motion) .leiste.is-sichtbar{opacity:1;pointer-events:auto}
-html:not(.motion) .haken__box svg{transform:none}
+html:not(.motion) .gutschein__karte{transition:none}
 html:not(.motion) :is(.knopf,.linie-link,.wahl__opt,.nav__burger,.menu__zu):active,
-html:not(.motion) .chip:active .chip__flaeche,html:not(.motion) .haken:active .haken__box{transform:none}
+html:not(.motion) .zutat:active>span{transform:none}
+
+/* 16. Rechtstexte (impressum.html, datenschutz.html) */
+.recht{padding:calc(var(--nav-h) + clamp(3rem,8vw,6rem)) 0 clamp(5rem,10vw,8rem)}
+.recht__innen{max-width:46rem}
+.recht h1{margin-bottom:clamp(2rem,4vw,3rem);font:400 clamp(2.6rem,1.8rem + 3.2vw,4.6rem)/1 var(--display);letter-spacing:-.015em}
+.recht h2{margin:2.6rem 0 .8rem;font:italic 400 1.55rem/1.25 var(--display)}
+.recht p,.recht li{color:var(--tinte-2)}
+.recht p+p{margin-top:.9rem}
+.recht ul{margin:.6rem 0 0 1.1rem;list-style:disc}
+.recht a{color:var(--tinte);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;overflow-wrap:anywhere}
+.recht__hinweis{margin-bottom:2.5rem;padding:1rem 1.2rem;border:1px solid var(--messing-hell);background:var(--karte);font-size:.93rem}
+.nav--recht::before{opacity:1}
