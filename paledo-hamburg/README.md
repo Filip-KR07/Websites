@@ -12,6 +12,21 @@ python3 -m http.server 8080 --directory paledo-hamburg
 # → http://127.0.0.1:8080/   (Animationen aus: ?motion=off)
 ```
 
+## Sprachen
+
+`index.html` (Deutsch) und `en.html` (Englisch) teilen sich CSS, JS, Bilder und Schriften. Umschalter „EN/DE“ in der Navigation
+und im Handy-Menü. Die Texte der Oberfläche, die `js/main.js` erzeugt (Bowl-Summe, Öffnungsstatus, Teilen), stehen dort oben in
+`TEXT` und richten sich nach `<html lang>`. Impressum und Datenschutz gibt es nur auf Deutsch. Inhaltliche Änderungen bitte in
+beiden HTML-Dateien machen.
+
+## Vorschau (GitHub Pages)
+
+https://filip-kr07.github.io/Websites/paledo-hamburg/ (englisch: `…/paledo-hamburg/en.html`)
+
+Der Workflow `.github/workflows/pages-paledo.yml` veröffentlicht Tank-Treff (Wurzel, von `claude/peaceful-goldberg-e9in4f`) und
+Paledo (`/paledo-hamburg/`) zusammen, weil ein Repo nur eine Pages-Seite hat. Läuft der Tank-Treff-Workflow erneut, ist Paledo
+weg, bis dieser Workflow wieder läuft (Actions → „Run workflow“).
+
 ## Aufbau
 
 | Abschnitt | Aus Aurel | Paledo |

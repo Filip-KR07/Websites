@@ -19,6 +19,33 @@
   const neuMessen = () => { if (hasGSAP) ScrollTrigger.refresh(); };
   const neuStarten = (el, klasse) => { el.classList.remove(klasse); void el.offsetWidth; el.classList.add(klasse); };
 
+  // Texte der Oberfläche: Deutsch (index.html) oder Englisch (en.html mit <html lang="en">)
+  const TEXT = doc.lang === 'en' ? {
+    locale: 'en-GB',
+    wort: { base: ['base', 'bases'], dressing: ['dressing', 'dressings'], topping: ['topping', 'toppings'], extra: ['extra', 'extras'] },
+    gewaehlt: (n) => `${n} selected`, optional: 'optional',
+    vonMax: (n, max) => `${n} of ${max}${n >= max ? ', that’s the limit' : ''}`,
+    ueber: (n, mehr, p) => `${n} selected, ${mehr} × ${p} extra`,
+    inkl: (n, frei, p) => `${n} of ${frei} included${p ? `, each extra ${p}` : ''}`,
+    warm: 'Warm', kalt: 'Cold', mit: 'with', extra: 'extra', leer: 'Still empty – start with a base.', schritt: 'Step',
+    teilenText: 'My bowl at Paledo:', teilenTitel: 'My Paledo bowl', kopiert: 'Copied', teilen: 'Share bowl',
+    tage: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], morgen: 'tomorrow',
+    offen: (z) => `Open now · until ${z}`, bald: (d, z) => `Opens in ${d} min · ${z}`, heute: (z) => `Opens today at ${z}`,
+    wieder: (tag, z) => `Closed · opens ${tag} at ${z}`, zu: 'Closed for now',
+  } : {
+    locale: 'de-DE',
+    wort: { base: ['Base', 'Bases'], dressing: ['Dressing', 'Dressings'], topping: ['Topping', 'Toppings'], extra: ['Extra', 'Extras'] },
+    gewaehlt: (n) => `${n} gewählt`, optional: 'optional',
+    vonMax: (n, max) => `${n} von ${max}${n >= max ? ', mehr geht nicht' : ''}`,
+    ueber: (n, mehr, p) => `${n} gewählt, ${mehr} × ${p} extra`,
+    inkl: (n, frei, p) => `${n} von ${frei} inklusive${p ? `, jede weitere ${p}` : ''}`,
+    warm: 'Warm', kalt: 'Kalt', mit: 'mit', extra: 'extra', leer: 'Noch leer – fang mit einer Base an.', schritt: 'Schritt',
+    teilenText: 'Meine Bowl bei Paledo:', teilenTitel: 'Meine Paledo-Bowl', kopiert: 'Kopiert', teilen: 'Bowl teilen',
+    tage: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'], morgen: 'morgen',
+    offen: (z) => `Jetzt geöffnet · bis ${z} Uhr`, bald: (d, z) => `Öffnet in ${d} Min. · ${z} Uhr`, heute: (z) => `Heute ab ${z} Uhr geöffnet`,
+    wieder: (tag, z) => `Geschlossen · wieder ${tag} ab ${z} Uhr`, zu: 'Derzeit geschlossen',
+  };
+
   if (hasGSAP) {
     gsap.registerPlugin(ScrollTrigger);
     ScrollTrigger.config({ ignoreMobileResize: true });
@@ -246,13 +273,12 @@
   const liste = $('[data-gaenge]');
   const wert = (ctx, name) => ($(`input[name="${name}"]:checked`, ctx) || {}).value;
   const cent = (s) => Math.round(parseFloat(s || '0') * 100);
-  const euro = (c) => `${(c / 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+  const euro = (c) => new Intl.NumberFormat(TEXT.locale, { style: 'currency', currency: 'EUR' }).format(c / 100);
   if (menue && konfig && liste) {
     const schritte = $$('.gang', liste);
     const summeText = $('[data-summe-text]', menue);
     const summeListe = $('[data-summe-liste]', menue);
-    const WORT = { base: ['Base', 'Bases'], dressing: ['Dressing', 'Dressings'], topping: ['Topping', 'Toppings'], extra: ['Extra', 'Extras'] };
-    const anzahl = (n, art) => `${n} ${WORT[art][n === 1 ? 0 : 1]}`;
+    const anzahl = (n, art) => `${n} ${TEXT.wort[art][n === 1 ? 0 : 1]}`;
     const gewaehlt = (s) => $$('input:checked', s);
 
     const zaehlerText = (s) => {
@@ -260,11 +286,11 @@
       const frei = parseInt(s.dataset.frei || '0', 10);
       const max = parseInt(s.dataset.max || '0', 10);
       const auf = cent(s.dataset.aufpreis);
-      if (s.dataset.schritt === 'extra') return n ? `· ${n} gewählt` : '· optional';
-      if (max) return `· ${n} von ${max}${n >= max ? ', mehr geht nicht' : ''}`;
+      if (s.dataset.schritt === 'extra') return `· ${n ? TEXT.gewaehlt(n) : TEXT.optional}`;
+      if (max) return `· ${TEXT.vonMax(n, max)}`;
       const mehr = Math.max(0, n - frei);
-      if (mehr) return `· ${n} gewählt, ${mehr} × ${euro(auf)} extra`;
-      return `· ${n} von ${frei} inklusive${auf ? `, jede weitere ${euro(auf)}` : ''}`;
+      if (mehr) return `· ${TEXT.ueber(n, mehr, euro(auf))}`;
+      return `· ${TEXT.inkl(n, frei, auf ? euro(auf) : '')}`;
     };
 
     const rechne = () => {
@@ -279,7 +305,7 @@
       });
       const getraenk = $('input[name="getraenk"]:checked', konfig);
       preis += cent(getraenk?.dataset.preis);
-      return { preis, teile, getraenk: getraenk && getraenk.value !== 'ohne' ? getraenk.value : '', temperatur: wert(konfig, 'temperatur') === 'warm' ? 'Warm' : 'Kalt' };
+      return { preis, teile, getraenk: getraenk && getraenk.value !== 'ohne' ? getraenk.value : '', temperatur: wert(konfig, 'temperatur') === 'warm' ? TEXT.warm : TEXT.kalt };
     };
 
     // Höchstzahl (z. B. zwei Dressings): übrige Zutaten sperren, solange das Maximum erreicht ist
@@ -296,10 +322,10 @@
       const { preis, teile, getraenk, temperatur } = stand;
       const mengen = ['base', 'dressing', 'topping'].map((a) => anzahl((teile[a] || []).length, a)).join(', ');
       const extras = (teile.extra || []).length ? ` + ${anzahl(teile.extra.length, 'extra')}` : '';
-      summeText.textContent = `${temperatur} · ${mengen}${extras}${getraenk ? ` · mit ${getraenk}` : ''} · ${euro(preis)}`;
+      summeText.textContent = `${temperatur} · ${mengen}${extras}${getraenk ? ` · ${TEXT.mit} ${getraenk}` : ''} · ${euro(preis)}`;
       const gruppen = ['base', 'dressing', 'topping'].map((a) => (teile[a] || []).join(', ')).filter(Boolean);
-      if ((teile.extra || []).length) gruppen.push(`extra ${teile.extra.join(', ')}`);
-      summeListe.textContent = gruppen.length ? gruppen.join(' · ') : 'Noch leer – fang mit einer Base an.';
+      if ((teile.extra || []).length) gruppen.push(`${TEXT.extra} ${teile.extra.join(', ')}`);
+      summeListe.textContent = gruppen.length ? gruppen.join(' · ') : TEXT.leer;
       schritte.forEach((s) => { const z = $('[data-zaehler]', s); if (z) z.textContent = zaehlerText(s); });
       if (anim && motion) neuStarten(summeText, 'is-neu');
     };
@@ -317,7 +343,7 @@
       aktiver = s;
       schritte.forEach((x) => x.classList.toggle('is-aktiv', x === s));
       if (!bogen || bogen.offsetParent === null) return; // auf dem Handy ausgeblendet: nichts laden
-      nrEl.textContent = `Schritt ${ROEMISCH[schritte.indexOf(s)] || ''}`;
+      nrEl.textContent = `${TEXT.schritt} ${ROEMISCH[schritte.indexOf(s)] || ''}`;
       nameEl.textContent = s.dataset.bildName || $('.gang__name', s).textContent.trim();
       const src = s.dataset.bild;
       if (!src || vorne.getAttribute('src') === src) return;
@@ -356,20 +382,19 @@
       const knopfText = $('[data-teilen-text]', teilen);
       let zurueck = 0;
       teilen.addEventListener('click', () => {
-        const text = `Meine Bowl bei Paledo: ${summeListe.textContent} (${euro(stand.preis)})`;
+        const text = `${TEXT.teilenText} ${summeListe.textContent} (${euro(stand.preis)})`;
         const url = `${location.href.split('#')[0]}#bowls`;
-        if (kannTeilen) { navigator.share({ title: 'Meine Paledo-Bowl', text, url }).catch(() => {}); return; }
+        if (kannTeilen) { navigator.share({ title: TEXT.teilenTitel, text, url }).catch(() => {}); return; }
         navigator.clipboard.writeText(`${text} ${url}`).then(() => {
-          knopfText.textContent = 'Kopiert';
+          knopfText.textContent = TEXT.kopiert;
           clearTimeout(zurueck);
-          zurueck = setTimeout(() => { knopfText.textContent = 'Bowl teilen'; }, 2000);
+          zurueck = setTimeout(() => { knopfText.textContent = TEXT.teilen; }, 2000);
         }, () => {});
       });
     }
   }
 
   /* ---------- 9. Öffnungszeiten: Live-Status ---------- */
-  const TAGE = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
   const tabelle = $('[data-oeffnungszeiten]');
   const zone = tabelle?.dataset.zeitzone || undefined;
   const minuten = (s) => { const [h, m] = s.split(':').map(Number); return h * 60 + (m || 0); };
@@ -398,17 +423,17 @@
     const heute = zeiten[tag] || [];
     const gestern = (zeiten[(tag + 6) % 7] || []).map(([a, b]) => [a - 1440, b - 1440]);
     const offen = [...gestern, ...heute].find(([a, b]) => min >= a && min < b);
-    if (offen) return { art: 'offen', text: `Jetzt geöffnet · bis ${uhr(offen[1])} Uhr` };
+    if (offen) return { art: 'offen', text: TEXT.offen(uhr(offen[1])) };
     const spaeter = heute.find(([a]) => a > min);
     if (spaeter) {
       const diff = spaeter[0] - min;
-      return diff <= 60 ? { art: 'bald', text: `Öffnet in ${diff} Min. · ${uhr(spaeter[0])} Uhr` } : { art: 'zu', text: `Heute ab ${uhr(spaeter[0])} Uhr geöffnet` };
+      return diff <= 60 ? { art: 'bald', text: TEXT.bald(diff, uhr(spaeter[0])) } : { art: 'zu', text: TEXT.heute(uhr(spaeter[0])) };
     }
     for (let i = 1; i <= 7; i += 1) {
       const t = (tag + i) % 7;
-      if (zeiten[t] && zeiten[t].length) return { art: 'zu', text: `Geschlossen · wieder ${i === 1 ? 'morgen' : TAGE[t]} ab ${uhr(zeiten[t][0][0])} Uhr` };
+      if (zeiten[t] && zeiten[t].length) return { art: 'zu', text: TEXT.wieder(i === 1 ? TEXT.morgen : TEXT.tage[t], uhr(zeiten[t][0][0])) };
     }
-    return { art: 'zu', text: 'Derzeit geschlossen' };
+    return { art: 'zu', text: TEXT.zu };
   };
   const zeigeStatus = () => {
     if (!tabelle) return;

@@ -1,0 +1,53 @@
+name: GitHub Pages (Tank-Treff + Paledo)
+
+# Ein Repo hat nur eine Pages-Seite. Damit Paledo die Tank-Treff-Vorschau nicht ersetzt,
+# baut dieser Workflow beide zusammen:
+#   /                  -> tank-treff-hamburg/ von der Branch claude/peaceful-goldberg-e9in4f (wie bisher)
+#   /paledo-hamburg/   -> paledo-hamburg/ von dieser Branch
+# Achtung: Läuft der Tank-Treff-Workflow erneut, veröffentlicht er nur Tank-Treff.
+# Dann diesen Workflow per "Run workflow" noch einmal starten.
+
+on:
+  push:
+    branches: [claude/paledo-hamburg]
+    paths: ['paledo-hamburg/**', '.github/workflows/pages-paledo.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: paledo-hamburg
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/peaceful-goldberg-e9in4f
+          path: _tank
+          sparse-checkout: tank-treff-hamburg
+      - name: Seite zusammenbauen
+        run: |
+          mkdir _site
+          cp -r _tank/tank-treff-hamburg/. _site/
+          cp -r paledo-hamburg _site/paledo-hamburg
+          rm -f _site/paledo-hamburg/README.md
+          touch _site/.nojekyll
+          ls _site _site/paledo-hamburg
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
