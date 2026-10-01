@@ -19,6 +19,16 @@ und im Handy-Menü. Die Texte der Oberfläche, die `js/main.js` erzeugt (Bowl-Su
 `TEXT` und richten sich nach `<html lang>`. Impressum und Datenschutz gibt es nur auf Deutsch. Inhaltliche Änderungen bitte in
 beiden HTML-Dateien machen.
 
+## Als einzelne Datei verschicken
+
+```bash
+python3 paledo-hamburg/tools/einzeldatei.py
+```
+
+Erzeugt `paledo-hamburg/dist/paledo-hamburg-de.html` und `-en.html` (je ca. 2,2 MB): Schriften, Bilder, CSS und JS sind
+eingebettet, die Datei läuft per Doppelklick im Browser, offline und mit allen Animationen. Sprachwechsel und „Bowl teilen“
+fehlen dort, Impressum und Datenschutz verlinken auf die Online-Vorschau. Nach Änderungen an der Seite neu erzeugen.
+
 ## Zwischenspeicher
 
 CSS und JS werden mit `?v=3` eingebunden (in allen vier HTML-Dateien). Nach Änderungen an `css/style.css` oder `js/main.js`
