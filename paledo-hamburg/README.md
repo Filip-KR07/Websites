@@ -19,6 +19,11 @@ und im Handy-Menü. Die Texte der Oberfläche, die `js/main.js` erzeugt (Bowl-Su
 `TEXT` und richten sich nach `<html lang>`. Impressum und Datenschutz gibt es nur auf Deutsch. Inhaltliche Änderungen bitte in
 beiden HTML-Dateien machen.
 
+## Zwischenspeicher
+
+CSS und JS werden mit `?v=3` eingebunden (in allen vier HTML-Dateien). Nach Änderungen an `css/style.css` oder `js/main.js`
+die Zahl erhöhen, sonst zeigen Browser die alte Fassung aus dem Zwischenspeicher.
+
 ## Vorschau (GitHub Pages)
 
 https://filip-kr07.github.io/Websites/paledo-hamburg/ (englisch: `…/paledo-hamburg/en.html`)
