@@ -14,6 +14,12 @@ python3 -m http.server 8080 --directory jeffs-cakes
 # → http://127.0.0.1:8080/   (Animationen aus: ?motion=off)
 ```
 
+## Arena
+
+Unter `arena/` liegen sechs Varianten, die unabhängig gebaut und von zwei Jurys im Browser bewertet wurden
+(drei andere Heros auf dieser Seite, drei komplett eigene Designs). Übersicht: `arena/index.html`, Ergebnis und
+bekannte Schwächen in `arena/README.md`. Nichts davon ist hier übernommen.
+
 ## Aufbau
 
 | Abschnitt | Inhalt |

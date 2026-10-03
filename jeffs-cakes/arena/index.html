@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Jeff's Cakes Arena</title>
+<meta name="description" content="Basis-Entwurf und sechs Varianten für Jeff's Cheesecake, von einer Jury getestet und bewertet.">
+<link rel="icon" type="image/png" sizes="64x64" href="../img/favicon-64.png">
+<style>
+  @font-face { font-family: "Bebas Neue"; src: url("../fonts/bebas-neue-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+  @font-face { font-family: "Instrument Serif"; src: url("../fonts/instrument-serif-latin-400-italic.woff2") format("woff2"); font-style: italic; font-display: swap; }
+  @font-face { font-family: "Source Sans 3"; src: url("../fonts/source-sans-3-latin-wght-normal.woff2") format("woff2"); font-weight: 200 900; font-display: swap; }
+
+  :root {
+    --bg: #F4ECE1; --flaeche: #FBF7F1; --fg: #21170F; --leise: #6A5444; --linie: rgba(93, 58, 35, .2);
+    --akzent: #5D3A23; --akzent-fg: #F4ECE1; --gold: #8A5F1F; --schatten: rgba(33, 23, 15, .12);
+    --display: "Bebas Neue", "Arial Narrow", Impact, sans-serif;
+    --serif: "Instrument Serif", Georgia, serif;
+    --sans: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15100C; --flaeche: #1E1712; --fg: #F4ECE1; --leise: #B8A794; --linie: rgba(244, 236, 225, .12);
+      --akzent: #D4A457; --akzent-fg: #15100C; --gold: #D4A457; --schatten: rgba(0, 0, 0, .45);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15100C; --flaeche: #1E1712; --fg: #F4ECE1; --leise: #B8A794; --linie: rgba(244, 236, 225, .12);
+    --akzent: #D4A457; --akzent-fg: #15100C; --gold: #D4A457; --schatten: rgba(0, 0, 0, .45);
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 400 1.0625rem/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+  img { display: block; max-width: 100%; height: auto; }
+  .seite { max-width: 1160px; margin-inline: auto; padding: clamp(2.5rem, 6vw, 4.5rem) max(16px, min(4vw, 40px)) calc(3rem + env(safe-area-inset-bottom, 0px)); display: grid; gap: clamp(3rem, 6vw, 4.5rem); }
+
+  .kopf { display: grid; gap: 1rem; max-width: 46rem; }
+  .zeile { font: 600 .8125rem/1.2 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--akzent); }
+  h1 { margin: 0; font: 400 clamp(3.2rem, 2rem + 6vw, 6rem)/.9 var(--display); letter-spacing: .005em; text-wrap: balance; }
+  h1 em { font: italic 400 .8em/1 var(--serif); color: var(--gold); letter-spacing: 0; }
+  .lead { margin: 0; font-family: var(--serif); font-style: italic; font-size: clamp(1.25rem, 2vw, 1.5rem); line-height: 1.35; color: var(--leise); max-width: 40rem; text-wrap: pretty; }
+  .hinweise { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+  .hinweise li { font-size: .875rem; padding: .3rem .75rem; border: 1px solid var(--linie); border-radius: 999px; color: var(--leise); background: var(--flaeche); }
+
+  .gang { display: grid; gap: 1.4rem; }
+  .gang__kopf { display: flex; align-items: baseline; gap: 1rem; border-bottom: 2px solid var(--fg); padding-bottom: .7rem; }
+  .gang__kopf h2 { margin: 0; font: 400 clamp(2rem, 1.4rem + 2vw, 2.8rem)/1 var(--display); letter-spacing: .01em; }
+  .gang__kopf p { margin: 0 0 0 auto; font-size: .9375rem; color: var(--leise); text-align: right; }
+
+  .raster { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1rem, 2.4vw, 1.6rem); }
+  @media (max-width: 900px) { .raster { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 600px) { .raster { grid-template-columns: minmax(0, 1fr); } .gang__kopf { flex-wrap: wrap; } .gang__kopf p { margin: 0; text-align: left; } }
+
+  .karte {
+    display: grid; grid-template-rows: auto 1fr; min-width: 0; color: inherit; text-decoration: none;
+    background: var(--flaeche); border: 1px solid var(--linie); border-radius: 10px; overflow: clip;
+    box-shadow: 0 1px 0 var(--schatten);
+    touch-action: manipulation;
+    transition: transform 160ms var(--ease-out), box-shadow 220ms var(--ease-out), border-color 220ms ease;
+  }
+  .karte:focus-visible { outline: 3px solid var(--akzent); outline-offset: 3px; }
+  .karte:active { transform: scale(.985); }
+  @media (hover: hover) and (pointer: fine) {
+    .karte:hover { transform: translateY(-3px); box-shadow: 0 14px 34px -14px var(--schatten); border-color: var(--akzent); }
+  }
+  .bild { position: relative; aspect-ratio: 16 / 10; overflow: clip; background: var(--linie); }
+  .bild img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  .platz { position: absolute; top: .7rem; left: .7rem; font: 700 .75rem/1 var(--sans); letter-spacing: .08em; text-transform: uppercase; padding: .45rem .65rem; border-radius: 999px; background: var(--flaeche); color: var(--fg); }
+  .platz--eins { background: var(--akzent); color: var(--akzent-fg); }
+
+  .text { display: grid; gap: .55rem; align-content: start; padding: 1rem 1.15rem 1.2rem; }
+  .posten { display: grid; grid-template-columns: auto minmax(1rem, 1fr) auto; align-items: baseline; gap: .5rem; }
+  .posten h3 { margin: 0; font: 400 1.75rem/1 var(--display); letter-spacing: .01em; }
+  .posten::after { content: ""; grid-column: 2; grid-row: 1; border-bottom: 2px dotted var(--linie); transform: translateY(-.3em); }
+  .punkte { grid-column: 3; font: 400 1.6rem/1 var(--display); color: var(--gold); white-space: nowrap; }
+  .punkte small { font: 500 .75rem/1 var(--sans); color: var(--leise); margin-left: .2rem; }
+  .text p { margin: 0; font-size: .9688rem; color: var(--leise); text-wrap: pretty; }
+  .text .achtung { font-size: .875rem; color: var(--fg); border-left: 2px solid var(--akzent); padding-left: .6rem; }
+  .ordner { font: 500 .8125rem/1.3 ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: var(--leise); }
+
+  .karte--breit { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-rows: auto; }
+  .karte--breit .bild { aspect-ratio: auto; min-height: 100%; }
+  .karte--breit .text { padding: clamp(1.1rem, 3vw, 2rem); align-content: center; gap: .8rem; }
+  .karte--breit .posten h3 { font-size: clamp(2rem, 1.5rem + 1.5vw, 2.6rem); }
+  .werte { display: flex; flex-wrap: wrap; gap: .5rem 1.6rem; margin: 0; }
+  .werte div { display: grid; }
+  .werte dt { font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--leise); }
+  .werte dd { margin: 0; font: 400 1.8rem/1.1 var(--display); color: var(--gold); }
+  @media (max-width: 760px) { .karte--breit { grid-template-columns: minmax(0, 1fr); } .karte--breit .bild { aspect-ratio: 16 / 10; } }
+
+  .offen { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(1.4rem, 4vw, 3rem); padding-top: 1.6rem; border-top: 1px solid var(--linie); }
+  @media (max-width: 760px) { .offen { grid-template-columns: minmax(0, 1fr); } }
+  .offen h2 { margin: 0 0 .7rem; font: 400 1.9rem/1 var(--display); letter-spacing: .01em; }
+  .offen ol, .offen ul { margin: 0; padding-left: 1.2rem; display: grid; gap: .45rem; color: var(--leise); font-size: .9688rem; }
+  .offen strong { color: var(--fg); font-weight: 600; }
+  .offen a { color: var(--fg); text-underline-offset: .2em; }
+  .fuss { grid-column: 1 / -1; font-size: .875rem; color: var(--leise); margin: 0; }
+
+  @media (prefers-reduced-motion: reduce) { .karte { transition: border-color 160ms ease; } .karte:hover, .karte:active { transform: none; } }
+</style>
+</head>
+<body>
+<main class="seite">
+  <header class="kopf">
+    <span class="zeile">Arena · Stand 3. Oktober 2026</span>
+    <h1>Jeff's Cakes <em>zum Durchklicken</em></h1>
+    <p class="lead">Der Basis-Entwurf „Cheesecake &amp; Jazz“ und sechs Varianten, die zwei Jurys im Browser getestet und bewertet haben. Tipp auf eine Karte, um die Seite zu öffnen, mit Zurück kommst du hierher.</p>
+    <ul class="hinweise">
+      <li>Bestellungen öffnen nur eine E-Mail</li>
+      <li>Für Handy und Desktop gebaut</li>
+      <li>Noch nichts übernommen</li>
+    </ul>
+  </header>
+
+  <section class="gang" aria-labelledby="g-basis">
+    <div class="gang__kopf"><h2 id="g-basis">Die Basis</h2><p>Ordner <span class="ordner">jeffs-cakes/</span></p></div>
+    <a class="karte karte--breit" href="../index.html">
+      <div class="bild"><img src="vorschau/basis.webp" alt="Startseite der Basis: dunkler Grund, links „Cheesecake &amp; Jazz“, rechts eine Plattenhülle mit dem Blues-berry-Foto, aus der eine Schallplatte schaut" width="720" height="450"></div>
+      <div class="text">
+        <div class="posten"><h3>Cheesecake &amp; Jazz</h3><span class="punkte">Basis</span></div>
+        <p>Jeffs Geschichte aus den New Yorker Jazzclubs als Plattencover: Eine Platte mit seinem Logo gleitet aus der Hülle, die Kuchenkarte ist eine Setlist mit Seite A/B/C. Mit Filter, Kuchen-Dialog, Bestellung, Live-Öffnungsstatus und Geschichte.</p>
+        <dl class="werte">
+          <div><dt>Hero-Jury</dt><dd>75</dd></div>
+          <div><dt>Design-Jury</dt><dd>76,5</dd></div>
+        </dl>
+      </div>
+    </a>
+  </section>
+
+  <section class="gang" aria-labelledby="g-hero">
+    <div class="gang__kopf"><h2 id="g-hero">Hero-Varianten</h2><p>Gleiche Seite, nur der Einstieg ist anders</p></div>
+    <div class="raster">
+      <a class="karte" href="hero-plattenkiste/index.html">
+        <div class="bild"><span class="platz platz--eins">Platz 1</span><img src="vorschau/hero-plattenkiste.webp" alt="Hero-Variante Plattenkiste: Kiste mit Plattenhüllen, vorn Blues-berry mit Preisaufkleber" width="720" height="450" loading="lazy"></div>
+        <div class="text">
+          <div class="posten"><h3>Plattenkiste</h3><span class="punkte">86<small>Pkt.</small></span></div>
+          <p>18 Plattenhüllen, eine pro Kuchen. Durchblättern per Ziehen mit Schwung und Feder, Pfeiltasten oder Knöpfen, „Bestellen“ öffnet den Kuchen.</p>
+          <p class="achtung">Bekannt: Auf kleinen Handys und quer ist die Kiste zu groß, ein Wisch fliegt weit.</p>
+          <span class="ordner">arena/hero-plattenkiste/</span>
+        </div>
+      </a>
+      <a class="karte" href="hero-buehne/index.html">
+        <div class="bild"><span class="platz">Platz 2</span><img src="vorschau/hero-buehne.webp" alt="Hero-Variante Bühne: Kuchen im Halbdunkel, Blues-berry im Scheinwerferlicht, darüber Leuchtschrift" width="720" height="450" loading="lazy"></div>
+        <div class="text">
+          <div class="posten"><h3>Bühne</h3><span class="punkte">84<small>Pkt.</small></span></div>
+          <p>Die Kuchen als Band im Jazzclub, ein Scheinwerfer folgt der Maus und holt einen ins Licht. Darüber „Cheesecake &amp; Jazz“ als ruhige Leuchtreklame.</p>
+          <p class="achtung">Bekannt: Im Intro blitzt kurz ein heller Streifen auf, die Lichtebene ist sehr groß.</p>
+          <span class="ordner">arena/hero-buehne/</span>
+        </div>
+      </a>
+      <a class="karte" href="hero-cover/index.html">
+        <div class="bild"><span class="platz">Platz 3</span><img src="vorschau/hero-cover.webp" alt="Hero-Variante Cover: „Cheesecake“ schwarz auf Messing, „&amp; Jazz“ auf Kobalt, Duoton-Foto" width="720" height="450" loading="lazy"></div>
+        <div class="text">
+          <div class="posten"><h3>Cover</h3><span class="punkte">79<small>Pkt.</small></span></div>
+          <p>Typografisches Blue-Note-Cover in Messing und Kobalt, die Schrift füllt jede Zeile, das Foto als Duoton.</p>
+          <p class="achtung">Bekannt: Ohne die Schrift wird der Titel abgeschnitten, der Kuchen wirkt blaugrau.</p>
+          <span class="ordner">arena/hero-cover/</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section class="gang" aria-labelledby="g-design">
+    <div class="gang__kopf"><h2 id="g-design">Komplette Designs</h2><p>Eigene Seiten, eigenes Konzept, gleiche Fakten</p></div>
+    <div class="raster">
+      <a class="karte" href="design-diner/index.html">
+        <div class="bild"><span class="platz platz--eins">Platz 1</span><img src="vorschau/design-diner.webp" alt="Design Diner: Neonschild „Jeff's Cheesecake“, daneben eine Tortenvitrine mit Kuchen unter Glasglocken" width="720" height="450" loading="lazy"></div>
+        <div class="text">
+          <div class="posten"><h3>Diner</h3><span class="punkte">86<small>Pkt.</small></span></div>
+          <p>New Yorker Diner der 70er: Neonschild, drehbare Tortenvitrine, Steckbuchstaben-Tafel als Karte, Guest Check als Warenkorb.</p>
+          <p class="achtung">Bekannt: Untere Vitrinen-Etage zeigt ganze Fotos statt Kuchen, Route erst ganz unten.</p>
+          <span class="ordner">arena/design-diner/</span>
+        </div>
+      </a>
+      <a class="karte" href="design-stadtpark/index.html">
+        <div class="bild"><span class="platz">Platz 2</span><img src="vorschau/design-stadtpark.webp" alt="Design Stadtpark: helle Seite, „Ein Stück New York am Stadtpark“, Status geöffnet, Route und Telefon, Foto von Jeff im Café" width="720" height="450" loading="lazy"></div>
+        <div class="text">
+          <div class="posten"><h3>Stadtpark</h3><span class="punkte">82,5<small>Pkt.</small></span></div>
+          <p>Helles Hamburger Café-Magazin: Status, Route und Telefon ganz oben, Saison-Aufmacher, ruhiges Kuchenraster.</p>
+          <p class="achtung">Bekannt: Auftritt wartet auf Foto und Schriften, Saisontexte nicht in jedem Monat passend.</p>
+          <span class="ordner">arena/design-stadtpark/</span>
+        </div>
+      </a>
+      <a class="karte" href="design-plakat/index.html">
+        <div class="bild"><span class="platz">Platz 3</span><img src="vorschau/design-plakat.webp" alt="Design Plakat: „Jeff's Classic“ als Headliner in Blau und Pink, daneben ein gerasterter Cheesecake von oben mit herausgezogenem Stück" width="720" height="450" loading="lazy"></div>
+        <div class="text">
+          <div class="posten"><h3>Plakat</h3><span class="punkte">78,5<small>Pkt.</small></span></div>
+          <p>Riso-Jazzfestival-Plakat: Jeff's Classic als Headliner, die anderen Kuchen auf drei Bühnen, Fotos als Rasterdruck.</p>
+          <p class="achtung">Bekannt: Raster nimmt den Kuchen den Appetit, kleine Tippziele auf dem Handy.</p>
+          <span class="ordner">arena/design-plakat/</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section class="offen" aria-label="Empfehlung und offene Punkte">
+    <div>
+      <h2>Empfehlung der Jurys</h2>
+      <ol>
+        <li><strong>Hero:</strong> Plattenkiste mit Änderungen (auf dem Handy kleiner, ruhigerer Schwung). Bühne hat den stärksten ersten Eindruck.</li>
+        <li><strong>Design:</strong> Diner mit Änderungen, dazu die Service-Idee vom Stadtpark: Status, Route und Telefon ganz oben.</li>
+        <li>Vom Plakat lohnen „Programm markieren“ und das Blättern im Kuchen-Dialog.</li>
+      </ol>
+    </div>
+    <div>
+      <h2>Für alle offen</h2>
+      <ul>
+        <li>Fotos vereinheitlichen: 8 Kuchen haben nur kleine, helle Produktfotos.</li>
+        <li>Nicht getestet: echte Handys, Safari und Firefox, Screenreader.</li>
+        <li>Details: <a href="README.md">README</a>, <a href="jury-heros.md">Jury Heros</a>, <a href="jury-designs.md">Jury Designs</a>.</li>
+      </ul>
+    </div>
+    <p class="fuss">Entwurf zur Ansicht für Jeff's Cheesecake, Linnering 5, 22299 Hamburg. Fotos und Logo von jeffscakes.com.</p>
+  </section>
+</main>
+</body>
+</html>
