@@ -1,0 +1,717 @@
+/* =========================================================================
+   Jeff's Cakes – Entwurf „Plakat“
+   Konzertplakat im Schweizer Stil, gedruckt wie ein Risograph: drei Druckfarben
+   (Blau, Pink, Gelb) auf Creme, Überdruck per mix-blend-mode: multiply,
+   Fotos als CSS-Raster (Graustufenbild + Punktraster + Kontrastfilter).
+
+   1  Schriften          7  Line-up & Bühnen        13 Act-Blatt (Kuchen-Dialog)
+   2  Tokens             8  Special Guest           14 Bestellung & Formular
+   3  Grundlagen         9  Vorverkauf (Ablauf)     15 Menü, Toast, Abzug
+   4  Knöpfe & Labels    10 Feiern                  16 Einblenden beim Scrollen
+   5  Druck (Raster)     11 Spielort (Café)         17 Bewegung reduzieren
+   6  Leiste & Plakat    12 Geschichte & Fuß
+   ========================================================================= */
+
+/* 1 Schriften (lokal, SIL Open Font License) ------------------------------
+   Archivo als variable Schrift mit Breite (62–125 %) und Stärke (100–900):
+   schmal und fett für Namen, breit für Bühnen, normal für Text. */
+@font-face { font-family: "Archivo"; src: url("../fonts/archivo-latin-wdth-normal.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; font-style: normal; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url("../fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url("../fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+
+/* 2 Tokens -----------------------------------------------------------------
+   Kontraste (WCAG) auf Papier #F3EDE0: tinte 13,5:1 · blau-tief 6,1:1 · mittelblau 6,1:1 ·
+   pink-tinte 5,5:1 · blau 4,1:1 (nur große Schrift ab 24 px fett).
+   Auf Flächen: tinte auf gelb 10,8:1 · tinte auf pink 5,1:1 · papier auf blau-tief 6,1:1 ·
+   papier auf mittelblau 6,1:1 · gelb auf mittelblau 5,7:1 · papier auf tinte 13,5:1.
+   Pink und Gelb sind nie Textfarbe auf Papier. */
+:root {
+  --papier: #F3EDE0;
+  --papier-2: #E8DFCB;
+  --weiss: #FFFFFF;
+  --tinte: #14204A;          /* Text, Linien */
+  --blau: #0078BF;           /* Riso „Blue“: große Schrift, Flächen */
+  --blau-tief: #005A9C;      /* kleine blaue Schrift, Knopf-Flächen */
+  --mittelblau: #3255A4;     /* Riso „Medium Blue“: Fläche Geschichte */
+  --pink: #FF48B0;           /* Riso „Fluorescent Pink“: nur Flächen */
+  --pink-tinte: #B4176F;
+  --gelb: #FFE800;           /* Riso „Yellow“: nur Flächen */
+
+  --grotesk: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --rand: clamp(16px, 4vw, 48px);
+  --rand-l: max(var(--rand), env(safe-area-inset-left, 0px));
+  --rand-r: max(var(--rand), env(safe-area-inset-right, 0px));
+  --leiste-h: 3.5rem;
+  --oben: calc(var(--leiste-h) + env(safe-area-inset-top, 0px));
+  --linie: 2px solid var(--tinte);
+  --korn: url("../img/korn.png");
+}
+
+/* 3 Grundlagen ------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--oben) + .75rem);
+  background: var(--papier);
+}
+html:has(dialog[open]) { overflow: hidden; }
+body {
+  margin: 0;
+  min-width: 320px;
+  font-family: var(--grotesk);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--tinte);
+  background: var(--papier) var(--korn);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; text-underline-offset: .18em; text-decoration-thickness: 2px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button, a, label, [role="button"] { touch-action: manipulation; }
+button, .knopf, .chip { user-select: none; -webkit-user-select: none; }
+h1, h2, h3, p, figure, blockquote, ol, ul, dl, dd { margin: 0; }
+ol, ul { padding: 0; list-style: none; }
+:focus-visible { outline: 3px solid var(--blau-tief); outline-offset: 3px; }
+[hidden] { display: none !important; }
+
+.rahmen { width: 100%; max-width: 1440px; margin-inline: auto; padding-inline: var(--rand-l) var(--rand-r); }
+.skip { position: absolute; left: 1rem; top: -5rem; z-index: 100; background: var(--gelb); color: var(--tinte); padding: .7rem 1rem; border: var(--linie); font-weight: 700; }
+.skip:focus { top: calc(env(safe-area-inset-top, 0px) + .5rem); }
+.unsichtbar { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.leise { font-weight: 400; opacity: .8; }
+
+/* Kleine Kennzeile über Abschnitten: „01 — Line-up“ */
+.nummer {
+  font-family: var(--mono); font-size: .8125rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  padding-top: .55rem; border-top: var(--linie);
+}
+/* Abschnittstitel: schmal, schwer, groß, in Blau */
+.titel {
+  font-weight: 900; font-stretch: 62%; text-transform: uppercase;
+  font-size: clamp(3.4rem, 11vw, 9.5rem); line-height: .84; letter-spacing: -.005em;
+  color: var(--blau); margin-top: .75rem; padding-top: .1em; text-wrap: balance;
+}
+.klein-titel { font-family: var(--mono); font-size: .8125rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; margin-bottom: .6rem; }
+
+/* 4 Knöpfe & Labels ----------------------------------------------------------
+   Rückmeldung beim Drücken: scale(0.97). Hover nur mit Maus. Der pinke Versatz ist ein
+   fester Schatten, also „gedruckt“ und nicht animiert. */
+.knopf {
+  display: inline-flex; align-items: center; justify-content: center; gap: .6em;
+  min-height: 3rem; padding: .75rem 1.35rem;
+  border: 2px solid var(--tinte); border-radius: 0;
+  font-family: var(--grotesk); font-weight: 750; font-stretch: 100%; font-size: .9375rem; line-height: 1.15;
+  letter-spacing: .04em; text-transform: uppercase; text-decoration: none; text-align: center;
+  background: transparent; color: var(--tinte);
+  transition: transform 140ms var(--ease-out), background-color 160ms ease, color 160ms ease;
+}
+.knopf:active { transform: scale(0.97); }
+.knopf--voll { background: var(--blau-tief); border-color: var(--blau-tief); color: var(--papier); box-shadow: 5px 5px 0 var(--pink); }
+.knopf--linie { background: transparent; }
+.knopf--dunkel { background: var(--tinte); color: var(--papier); box-shadow: 5px 5px 0 var(--gelb); }
+.knopf--breit { width: 100%; }
+.knopf__klein { font-family: var(--mono); font-weight: 600; font-size: .8125rem; letter-spacing: 0; text-transform: none; padding-left: .7em; border-left: 1px solid currentColor; }
+@media (hover: hover) and (pointer: fine) {
+  .knopf--voll:hover { background: var(--tinte); border-color: var(--tinte); }
+  .knopf--linie:hover { background: var(--gelb); }
+  .knopf--dunkel:hover { background: var(--blau-tief); }
+}
+
+.chip {
+  min-height: 2.75rem; padding: .45rem 1rem;
+  border: 2px solid var(--tinte); border-radius: 999px; background: transparent;
+  font-weight: 650; font-size: .9375rem;
+  transition: transform 140ms var(--ease-out), background-color 160ms ease;
+}
+.chip:active { transform: scale(0.97); }
+.chip[aria-pressed="true"] { background: var(--gelb); }
+.chip[aria-pressed="true"]::before { content: "✓ " / ""; }
+@media (hover: hover) and (pointer: fine) { .chip:hover { background: var(--papier-2); } .chip[aria-pressed="true"]:hover { background: var(--gelb); } }
+
+.pfeil-link { font-weight: 700; text-decoration: underline; text-decoration-color: var(--pink); text-decoration-thickness: 3px; }
+.pfeil-link::after { content: " →" / ""; }
+
+/* Stempel: schräg gedrucktes Etikett */
+.stempel {
+  display: inline-block; padding: .5rem .9rem; border: 3px solid var(--tinte);
+  font-family: var(--mono); font-weight: 600; font-size: .875rem; text-transform: uppercase; letter-spacing: .04em;
+  transform: rotate(-3deg); background: var(--pink); color: var(--tinte);
+}
+.stempel strong { display: block; font-family: var(--grotesk); font-stretch: 62%; font-weight: 900; font-size: 1.6rem; line-height: 1; letter-spacing: 0; }
+
+/* 5 Druck: Foto als Risograph-Raster ----------------------------------------
+   Jede Platte = eine Druckfarbe. Darin: Graustufenbild (halb so hell) + Punktraster
+   (plus-lighter) + contrast(22) = echter Amplituden-Raster. Weiß bleibt Papier,
+   Schwarz wird Druckfarbe (screen auf der Farbfläche). Platte 2 sitzt leicht versetzt
+   und ist heller abgestimmt. Ohne plus-lighter: weicher Duoton ohne Raster. */
+.druck {
+  --t1: var(--blau); --t2: var(--pink); --grund: var(--papier);
+  --raster: 6px; --dx: 3px; --dy: -2px;
+  position: relative; aspect-ratio: 1; overflow: hidden; isolation: isolate; background: var(--grund);
+}
+.druck--quer { aspect-ratio: 3 / 2; }
+.druck--jeff { aspect-ratio: 600 / 525; }
+.druck__platte { position: absolute; inset: 0; display: block; overflow: hidden; mix-blend-mode: multiply; background: var(--t1); }
+.druck__platte--2 { background: var(--t2); transform: translate(var(--dx), var(--dy)); }
+.druck__raster { position: absolute; inset: 0; display: block; overflow: hidden; background: #000; mix-blend-mode: screen; filter: contrast(22); }
+.druck__raster img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; filter: brightness(.5); }
+.druck__platte--2 .druck__raster img { filter: brightness(.66); }
+.druck__raster::after {
+  content: ""; position: absolute; inset: -50%; mix-blend-mode: plus-lighter; transform: rotate(45deg);
+  background: radial-gradient(circle farthest-corner, #000 0%, #0d0d0d 25%, #323232 50%, #484848 60%, #646464 70.7%, #737373 85%, #808080 100%) 0 0 / var(--raster) var(--raster);
+}
+.druck__platte--2 .druck__raster::after { transform: rotate(75deg); }
+@supports not (mix-blend-mode: plus-lighter) {
+  .druck__raster { filter: none; background: #fff; }
+  .druck__raster::after { display: none; }
+  .druck__raster img, .druck__platte--2 .druck__raster img { filter: contrast(1.1); }
+}
+
+/* 6 Leiste & Plakat --------------------------------------------------------- */
+.leiste {
+  position: fixed; inset: 0 0 auto; z-index: 40;
+  padding-top: env(safe-area-inset-top, 0px);
+  background: var(--papier) var(--korn); border-bottom: var(--linie);
+}
+.leiste__innen { max-width: 1440px; margin-inline: auto; height: var(--leiste-h); display: flex; align-items: center; gap: 1rem; padding-inline: var(--rand-l) var(--rand-r); }
+.leiste__marke { display: flex; align-items: center; gap: .6rem; text-decoration: none; min-height: 44px; }
+.leiste__marke img { width: 2.25rem; height: 2.25rem; }
+.leiste__marke span { font-stretch: 125%; font-weight: 800; font-size: .875rem; line-height: 1; text-transform: uppercase; letter-spacing: .01em; }
+.leiste__marke b { font-weight: 800; color: var(--blau-tief); }
+.leiste__links { display: none; }
+.leiste__aktionen { margin-left: auto; display: flex; align-items: center; gap: .5rem; }
+.ticket-knopf {
+  display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: .4rem .85rem;
+  border: 2px solid var(--tinte); background: var(--gelb); font-weight: 750; font-size: .875rem; text-transform: uppercase; letter-spacing: .04em;
+  transition: transform 140ms var(--ease-out);
+}
+.ticket-knopf:active { transform: scale(0.97); }
+.ticket-knopf__zahl { min-width: 1.5rem; height: 1.5rem; padding: 0 .35rem; display: inline-grid; place-items: center; border-radius: 999px; background: var(--tinte); color: var(--gelb); font-family: var(--mono); font-size: .8125rem; letter-spacing: 0; }
+.menue-knopf { width: 2.75rem; height: 2.75rem; display: grid; place-content: center; gap: 5px; border: 2px solid var(--tinte); background: transparent; transition: transform 140ms var(--ease-out); }
+.menue-knopf:active { transform: scale(0.97); }
+.menue-knopf span { display: block; width: 1.25rem; height: 2px; background: currentColor; }
+@media (max-width: 420px) { .ticket-knopf__text { display: none; } .leiste__marke span { font-size: .8125rem; } }
+@media (max-width: 359px) { .leiste__marke span { display: none; } }
+@media (min-width: 960px) {
+  .leiste__links { display: flex; gap: 1.75rem; margin-inline: auto; }
+  .leiste__links a { position: relative; font-weight: 650; font-size: .9375rem; text-decoration: none; padding-block: .6rem; }
+  .leiste__links a::after { content: ""; position: absolute; left: 0; right: 0; bottom: .3rem; height: 3px; background: var(--pink); transform: scaleX(0); transform-origin: left; transition: transform 220ms var(--ease-out); }
+  .leiste__links a[aria-current="true"]::after { transform: scaleX(1); }
+  .leiste__aktionen { margin-left: 0; }
+  .menue-knopf { display: none; }
+}
+@media (min-width: 960px) and (hover: hover) and (pointer: fine) { .leiste__links a:hover::after { transform: scaleX(1); } }
+
+/* Plakat (Hero) */
+.plakat {
+  position: relative; min-height: 100svh; display: flex;
+  padding-top: calc(var(--oben) + clamp(.75rem, 2.5vh, 1.75rem)); padding-bottom: clamp(1rem, 3vh, 2rem);
+  overflow: hidden;
+}
+.plakat__raster {
+  width: 100%; max-width: 1440px; margin-inline: auto; padding-inline: var(--rand-l) var(--rand-r);
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: auto 1fr auto; column-gap: clamp(12px, 2vw, 28px);
+}
+.plakat__zeile {
+  grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 1rem;
+  font-family: var(--mono); font-size: .8125rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+  padding-top: .55rem; border-top: var(--linie);
+}
+.plakat__zeile span:nth-child(2) { display: none; }
+.plakat__text { grid-column: 1 / -1; grid-row: 2; align-self: end; container-type: inline-size; padding-top: clamp(.9rem, 2.5vh, 2rem); }
+.plakat__titel { font-weight: 900; }
+/* Handy: Vorspann links neben der Torte, der Headliner beginnt erst unter ihr */
+.plakat__vorspann { display: flex; flex-direction: column; align-items: flex-start; gap: .7rem; max-width: 46%; min-height: calc(min(56vw, 22rem) + .6rem); }
+.plakat__praesentiert { display: block; font-stretch: 125%; font-weight: 800; font-size: clamp(.9375rem, 1.6vw, 1.25rem); text-transform: uppercase; letter-spacing: .01em; line-height: 1.15; }
+.plakat__label {
+  display: inline-block; padding: .2rem .55rem .15rem;
+  background: var(--pink); color: var(--tinte); font-family: var(--mono); font-weight: 600; font-size: .8125rem; letter-spacing: .08em; text-transform: uppercase;
+}
+/* Headliner: zwei Platten. Der Text selbst ist durchsichtig, gedruckt wird er über
+   ::before (pink, versetzt) und ::after (blau). Beide multiplizieren: Überdruck = dunkel. */
+.headliner { display: block; font-stretch: 62%; font-weight: 900; text-transform: uppercase; line-height: .84; letter-spacing: -.01em; font-size: min(calc(100cqi / 3.3), 25svh); margin-top: .12em; }
+.headliner__zeile { display: block; overflow: hidden; padding-top: .06em; margin-top: -.06em; }
+.headliner__zeile > span { position: relative; display: inline-block; color: transparent; mix-blend-mode: multiply; }
+.headliner__zeile > span::before, .headliner__zeile > span::after { content: attr(data-t); content: attr(data-t) / ""; position: absolute; left: 0; top: 0; mix-blend-mode: multiply; }
+.headliner__zeile > span::before { color: var(--pink); transform: translate(.035em, -.025em); }
+.headliner__zeile > span::after { color: var(--blau); }
+.no-js .headliner__zeile > span { color: var(--blau); }
+.no-js .headliner__zeile > span::before, .no-js .headliner__zeile > span::after { content: none; }
+
+.plakat__lead { max-width: 34rem; margin-top: clamp(.9rem, 2.2vh, 1.4rem); font-size: clamp(1rem, 1.3vw, 1.25rem); line-height: 1.45; font-weight: 450; }
+.plakat__knoepfe { display: flex; flex-wrap: wrap; gap: .9rem 1rem; margin-top: clamp(1rem, 2.6vh, 1.6rem); }
+.plakat__knoepfe .knopf--linie { background: var(--papier); }
+.plakat__fakten {
+  grid-column: 1 / -1; grid-row: 3; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: clamp(1.25rem, 3.5vh, 2.25rem); border-top: var(--linie);
+}
+.plakat__fakten div { padding: .6rem .75rem .55rem 0; }
+.plakat__fakten div:nth-child(n+3) { border-top: 1px solid rgba(20, 32, 74, .35); }
+.plakat__fakten dt { font-family: var(--mono); font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.plakat__fakten dd { font-weight: 700; font-size: .9375rem; line-height: 1.3; }
+
+/* Grafik: Cheesecake von oben. Gelbe Scheibe darunter, darauf das gerasterte Foto mit
+   fehlendem Stück, das pinke Stück liegt herausgezogen daneben (Überdruck: orange). */
+.plakat__grafik {
+  pointer-events: none; position: absolute;
+  width: min(56vw, 22rem); right: max(-9vw, -3rem); top: calc(var(--oben) + 4.4rem);
+}
+.torte { position: relative; aspect-ratio: 1; }
+.torte__scheibe { position: absolute; inset: 0; border-radius: 50%; background: var(--gelb); transform: translate(-6%, 5%); }
+.torte__druck {
+  position: absolute; inset: 0; border-radius: 50%; overflow: hidden;
+  -webkit-mask: conic-gradient(from 18deg, transparent 0deg 52deg, #000 52deg); mask: conic-gradient(from 18deg, transparent 0deg 52deg, #000 52deg);
+}
+.druck--rund { --raster: 6px; width: 100%; height: 100%; }
+.torte__stueck {
+  position: absolute; inset: 0; border-radius: 50%; background: var(--pink); mix-blend-mode: multiply;
+  -webkit-mask: conic-gradient(from 18deg, #000 0deg 52deg, transparent 52deg); mask: conic-gradient(from 18deg, #000 0deg 52deg, transparent 52deg);
+  transform: translate(8%, -8%);
+}
+
+@media (max-width: 899px) and (max-height: 640px) {
+  .plakat__grafik { width: min(46vw, 18rem); }
+  .plakat__vorspann { min-height: calc(min(46vw, 18rem) + .6rem); }
+}
+@media (max-width: 599px) {
+  .plakat__zeile { font-size: .75rem; letter-spacing: .03em; }
+}
+@media (min-width: 600px) {
+  .plakat__zeile span:nth-child(2) { display: inline; }
+  .plakat__fakten { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .plakat__fakten div:nth-child(n+3) { border-top: 0; }
+  .plakat__fakten div + div { padding-left: .9rem; border-left: 1px solid rgba(20, 32, 74, .35); }
+}
+@media (min-width: 900px) {
+  .plakat__text { grid-column: 1 / span 8; }
+  .plakat__vorspann { display: block; max-width: none; min-height: 0; }
+  .plakat__praesentiert { display: inline; }
+  .plakat__label { margin-left: .6rem; vertical-align: .15em; }
+  .plakat__grafik {
+    position: relative; right: auto; top: auto; width: auto; grid-column: 7 / -1; grid-row: 2;
+    align-self: center; justify-self: end; height: 100%; max-height: calc(100svh - var(--oben) - 11rem); aspect-ratio: 1; margin-top: clamp(2.5rem, 7vh, 4rem);
+  }
+  .plakat__grafik .torte { height: 100%; width: auto; }
+  .druck--rund { --raster: 7px; }
+}
+@media (min-width: 900px) and (max-height: 720px) {
+  .headliner { font-size: min(calc(100cqi / 3.3), 23svh); }
+  .plakat__lead { max-width: 44rem; font-size: 1rem; }
+}
+
+/* Startanimation: Zeilen fahren aus der Maske, die pinke Platte rastet ein, das Stück rutscht heraus.
+   Nur bei .motion; .gedruckt kommt von main.js (oder nach 1,4 s vom Sicherheitsnetz im <head>). */
+.motion .headliner__zeile > span { transform: translateY(104%); transition: transform 760ms var(--ease-out); }
+.motion .headliner__zeile:nth-child(2) > span { transition-delay: 70ms; }
+.motion .headliner__zeile > span::before { transform: translate(.11em, -.07em); transition: transform 900ms var(--ease-out) 260ms; }
+.motion .torte__stueck { transform: translate(0, 0); transition: transform 900ms var(--ease-out) 320ms; }
+.motion .torte__scheibe { transform: translate(0, 0); transition: transform 900ms var(--ease-out) 180ms; }
+.motion.gedruckt .headliner__zeile > span { transform: none; }
+.motion.gedruckt .headliner__zeile > span::before { transform: translate(.035em, -.025em); }
+.motion.gedruckt .torte__stueck { transform: translate(8%, -8%); }
+.motion.gedruckt .torte__scheibe { transform: translate(-6%, 5%); }
+
+/* 7 Line-up & Bühnen ------------------------------------------------------- */
+.lineup { padding-top: clamp(3.5rem, 8vw, 6.5rem); }
+.lineup__kopf { padding-bottom: clamp(1.5rem, 4vw, 2.5rem); }
+.lineup__lead { max-width: 38rem; margin-top: 1.1rem; font-size: clamp(1.0625rem, 1.4vw, 1.25rem); line-height: 1.45; }
+.markieren { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin-top: 1.5rem; }
+.markieren__titel { width: 100%; font-family: var(--mono); font-size: .8125rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.markieren__info { width: 100%; min-height: 1.5em; font-family: var(--mono); font-size: .875rem; }
+@media (min-width: 760px) { .markieren__titel { width: auto; margin-right: .3rem; } .markieren__info { width: auto; margin-left: .4rem; } }
+
+.buehne { --buehne: var(--gelb); --buehne-text: var(--tinte); display: grid; gap: 1.25rem; padding-block: 1.25rem clamp(2.5rem, 6vw, 4.5rem); position: relative; }
+.buehne::before { content: ""; position: absolute; left: var(--rand-l); right: var(--rand-r); top: 0; border-top: 3px solid var(--tinte); }
+.buehne--2 { --buehne: var(--pink); }
+.buehne--3 { --buehne: var(--blau-tief); --buehne-text: var(--papier); }
+.buehne__kopf { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto 1fr; grid-template-areas: "nr bild" "name bild" "info bild"; align-content: start; align-items: start; column-gap: 1rem; }
+.buehne__nr { grid-area: nr; justify-self: start; padding: .2rem .55rem .15rem; background: var(--buehne); color: var(--buehne-text); font-family: var(--mono); font-weight: 600; font-size: .8125rem; letter-spacing: .08em; text-transform: uppercase; }
+.buehne__name { grid-area: name; font-stretch: 125%; font-weight: 850; font-size: clamp(1.35rem, 7.2vw, 3rem); line-height: 1; text-transform: uppercase; margin-top: .45rem; letter-spacing: -.01em; }
+.buehne__info { grid-area: info; font-family: var(--mono); font-size: .875rem; margin-top: .35rem; }
+.buehne__bild { grid-area: bild; width: clamp(6.5rem, 30vw, 9rem); cursor: pointer; }
+.buehne__bild figcaption { font-family: var(--mono); font-size: .75rem; margin-top: .35rem; line-height: 1.3; }
+.buehne__bild .druck { --raster: 4.5px; --dx: 2px; --dy: -1.5px; }
+
+.acts { display: flex; flex-wrap: wrap; align-items: baseline; }
+.acts + .acts { margin-top: clamp(.35rem, 1vw, .7rem); }
+.act { display: inline-flex; align-items: center; max-width: 100%; }
+.act:not(:last-child)::after { content: ""; flex: none; width: .2em; height: .2em; margin-inline: .26em .3em; border-radius: 50%; background: var(--pink); }
+.act.zeilenende::after { visibility: hidden; }
+.acts--l { font-size: clamp(2.6rem, 10.5vw, 6.25rem); }
+.acts--m { font-size: clamp(1.9rem, 7.4vw, 4.1rem); }
+.acts--s { font-size: clamp(1.55rem, 5.6vw, 2.9rem); }
+.acts--gast { font-size: clamp(3.2rem, 15vw, 9rem); }
+.act__knopf {
+  display: inline; padding: .06em 0 .1em; margin: 0; border: 0; background: none; text-align: left;
+  font-family: var(--grotesk); font-weight: 850; font-stretch: 64%; font-size: 1em; line-height: .92; text-transform: uppercase; letter-spacing: -.005em;
+  color: var(--blau); transition: transform 140ms var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.act__knopf:active { transform: scale(0.97); }
+.acts--m .act__knopf { color: var(--tinte); }
+.act__name { position: relative; display: inline-block; max-width: 100%; }
+.act__preis {
+  display: inline-block; vertical-align: top; margin: .32em 0 0 .14em;
+  font-family: var(--mono); font-weight: 600; font-size: clamp(.75rem, .45em, 1rem); font-stretch: 100%; line-height: 1.1; letter-spacing: 0; text-transform: none; color: var(--tinte); white-space: nowrap;
+}
+.acts--l .act__preis { font-size: clamp(.8125rem, .2em, 1.0625rem); }
+.acts--gast .act__preis { font-size: clamp(.875rem, .16em, 1.125rem); }
+.act__tag { display: inline-block; vertical-align: top; margin: .4em 0 0 .3em; padding: .15rem .4rem .1rem; background: var(--pink); color: var(--tinte); font-family: var(--mono); font-weight: 600; font-size: clamp(.6875rem, .16em, .8125rem); line-height: 1.2; letter-spacing: .06em; text-transform: uppercase; font-stretch: 100%; }
+.act__info { display: none; }
+.no-js .acts { display: block; }
+.no-js .act { display: block; margin-bottom: 1rem; }
+.no-js .act::after { display: none; }
+.no-js .act__info { display: block; max-width: 40rem; font-size: 1rem; line-height: 1.5; margin-top: .3rem; }
+.no-js .act__daten { font-family: var(--mono); font-size: .875rem; margin-top: .25rem; }
+
+/* Markieren: wie mit dem Textmarker auf dem Plakat */
+.act.ist-markiert .act__name { background: linear-gradient(var(--gelb), var(--gelb)) 0 88% / 100% 46% no-repeat; }
+.acts--m .act.ist-markiert .act__name, .acts--s .act.ist-markiert .act__name { background-size: 100% 50%; }
+
+/* Hover: die pinke Platte verrutscht unter dem Namen */
+@media (hover: hover) and (pointer: fine) {
+  .act__name::after { content: attr(data-name); content: attr(data-name) / ""; position: absolute; left: 0; top: 0; width: 100%; z-index: -1; color: var(--pink); opacity: 0; transform: translate(0, 0); transition: opacity 120ms ease, transform 220ms var(--ease-out); pointer-events: none; }
+  .act__knopf { position: relative; z-index: 0; }
+  .act__knopf:hover .act__name::after { opacity: 1; transform: translate(.045em, .035em); }
+}
+
+@media (min-width: 900px) {
+  .buehne { grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); column-gap: clamp(1.5rem, 3vw, 3rem); padding-top: 1.5rem; }
+  .buehne__kopf { grid-template-columns: 1fr; grid-template-areas: "nr" "name" "info" "bild"; }
+  .buehne__bild { width: 100%; max-width: 16rem; margin-top: 1.4rem; }
+  .buehne__acts { padding-top: .2rem; }
+}
+
+/* 8 Special Guest ------------------------------------------------------------ */
+.gast { background: var(--pink) var(--korn); color: var(--tinte); margin-top: clamp(1rem, 3vw, 2rem); }
+.gast__innen { display: grid; gap: 1.5rem; padding-block: clamp(2.5rem, 6vw, 4.5rem); }
+.gast__bild .druck { --grund: var(--pink); --t1: var(--blau); --t2: var(--gelb); --dx: -4px; --dy: 3px; }
+.gast__bild { width: min(100%, 26rem); }
+.gast__label { display: inline-block; padding: .2rem .55rem .15rem; background: var(--gelb); font-family: var(--mono); font-weight: 600; font-size: .8125rem; letter-spacing: .08em; text-transform: uppercase; margin-bottom: .6rem; }
+.gast .act__knopf { color: var(--tinte); }
+.gast__lead { max-width: 32rem; margin-block: 1rem 1.5rem; font-size: 1.125rem; line-height: 1.45; font-weight: 500; }
+.gast .act__name::after { color: var(--gelb); }
+.gast :focus-visible { outline-color: var(--tinte); }
+@media (min-width: 900px) {
+  .gast__innen { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); column-gap: clamp(1.5rem, 3vw, 3rem); align-items: center; }
+}
+.noscript { padding-block: 1.5rem; font-weight: 600; }
+
+/* 9 Vorverkauf (So bestellst du) ---------------------------------------------- */
+.vorverkauf { background: var(--gelb) var(--korn); padding-block: clamp(3.5rem, 8vw, 6.5rem); }
+.vorverkauf .titel { color: var(--tinte); }
+.schritte { display: grid; gap: 2rem; margin-top: clamp(2rem, 5vw, 3.5rem); counter-reset: s; }
+.schritt { position: relative; padding-top: .9rem; border-top: var(--linie); }
+.schritt__nr { display: block; font-stretch: 62%; font-weight: 900; font-size: clamp(6rem, 18vw, 11rem); line-height: .8; color: var(--pink); mix-blend-mode: multiply; margin-bottom: .6rem; }
+.schritt h3 { font-stretch: 125%; font-weight: 800; font-size: 1.3rem; line-height: 1.15; text-transform: uppercase; margin-bottom: .45rem; }
+.schritt p { max-width: 26rem; }
+.vorverkauf__fuss { display: grid; gap: 1.25rem; justify-items: start; margin-top: clamp(2.5rem, 5vw, 3.5rem); }
+.vorverkauf__hinweis { max-width: 34rem; font-weight: 500; }
+@media (min-width: 900px) {
+  .schritte { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: clamp(1.5rem, 3vw, 3rem); }
+  .vorverkauf__fuss { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 2.5rem; }
+}
+
+/* 10 Feiern -------------------------------------------------------------------- */
+.feiern { padding-block: clamp(3.5rem, 8vw, 6.5rem); }
+.feiern__lead { max-width: 34rem; margin-top: 1rem; font-size: clamp(1.0625rem, 1.4vw, 1.25rem); }
+.feiern__raster { display: grid; gap: 1.5rem; margin-top: clamp(2rem, 5vw, 3rem); }
+.feier { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 1rem; align-items: start; padding-top: 1rem; border-top: var(--linie); }
+.feier__text { display: grid; gap: .6rem; justify-items: start; min-width: 0; }
+.feier h3 { font-stretch: 100%; font-weight: 850; font-size: clamp(1.1rem, 4.6vw, 1.35rem); line-height: 1.1; text-transform: uppercase; max-width: 100%; }
+@media (min-width: 600px) { .feier h3 { font-stretch: 125%; font-weight: 800; } }
+.feier--anfrage { grid-template-columns: 1fr; background: var(--papier-2); padding: 1.25rem; border: var(--linie); }
+/* Abrisszettel: wie unten am Aushang, jeder Streifen ist ein Link */
+.abriss { display: grid; grid-template-columns: 1fr 1fr; border-top: 2px dashed var(--tinte); margin: .5rem -1.25rem -1.25rem; }
+.abriss li + li { border-left: 2px dashed var(--tinte); }
+.abriss a { display: grid; gap: .15rem; padding: .9rem 1rem 1rem; min-height: 4.5rem; text-decoration: none; font-family: var(--mono); font-size: .875rem; line-height: 1.3; overflow-wrap: anywhere; transition: transform 140ms var(--ease-out), background-color 160ms ease; }
+.abriss a span { font-family: var(--grotesk); font-weight: 800; font-stretch: 125%; font-size: .8125rem; text-transform: uppercase; }
+.abriss a:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .abriss a:hover { background: var(--gelb); } }
+@media (max-width: 380px) { .feier { grid-template-columns: 1fr; } .feier__bild { width: 62%; } }
+@media (max-width: 420px) { .abriss { grid-template-columns: 1fr; } .abriss li + li { border-left: 0; border-top: 2px dashed var(--tinte); } .abriss a { min-height: 3.5rem; } }
+@media (min-width: 900px) {
+  .feiern__raster { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: clamp(1.5rem, 3vw, 3rem); }
+  .feier { grid-template-columns: 1fr; }
+  .feier--anfrage { align-self: start; }
+}
+
+/* 11 Spielort (Café) ------------------------------------------------------------ */
+.spielort { padding-block: clamp(3.5rem, 8vw, 6.5rem); }
+.spielort__raster { display: grid; gap: clamp(1.5rem, 4vw, 2.5rem); }
+.titel--adresse { white-space: nowrap; font-size: clamp(3.4rem, 15vw, 11rem); }
+.spielort__ort { margin-top: .9rem; font-family: var(--mono); font-size: .9375rem; }
+.spielort__bild { position: relative; }
+.spielort__bild .druck { --t1: var(--blau); --t2: var(--pink); --grund: var(--papier); --raster: 5.5px; }
+.status {
+  position: absolute; right: -.4rem; bottom: -1.1rem; display: inline-flex; align-items: center; gap: .5rem;
+  padding: .55rem .9rem; border: 3px solid var(--tinte); background: var(--pink); color: var(--tinte);
+  font-family: var(--mono); font-weight: 600; font-size: .875rem; transform: rotate(-2.5deg);
+}
+.status.ist-zu { background: var(--papier); }
+.status__punkt { width: .65rem; height: .65rem; border-radius: 50%; background: var(--tinte); }
+.status.ist-zu .status__punkt { background: transparent; border: 2px solid var(--tinte); }
+.zeiten { width: 100%; border-collapse: collapse; font-size: 1.0625rem; }
+.zeiten th, .zeiten td { text-align: left; padding: .6rem 0; border-bottom: 1px solid rgba(20, 32, 74, .35); font-weight: 500; }
+.zeiten td { text-align: right; font-family: var(--mono); font-weight: 600; white-space: nowrap; }
+.zeiten tr:first-child th, .zeiten tr:first-child td { border-top: var(--linie); }
+.zeiten tr.ist-heute th { font-weight: 800; }
+.zeiten tr.ist-heute th::after { content: "heute"; margin-left: .5rem; padding: .05rem .4rem; background: var(--gelb); font-family: var(--mono); font-size: .75rem; font-weight: 600; vertical-align: .1em; }
+.spielort__knoepfe { display: flex; flex-wrap: wrap; gap: .9rem 1rem; margin-top: 1.4rem; }
+.spielort__lead { font-size: 1.125rem; line-height: 1.5; max-width: 36rem; }
+.programm { margin-block: 1.25rem 1.25rem; border-top: var(--linie); }
+.programm div { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: .75rem; padding: .6rem 0; border-bottom: 1px solid rgba(20, 32, 74, .35); }
+.programm dt { font-family: var(--mono); font-weight: 600; font-size: .8125rem; text-transform: uppercase; letter-spacing: .06em; padding-top: .15rem; }
+@media (min-width: 900px) {
+  .spielort__raster { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(1.5rem, 3vw, 3rem); row-gap: 3rem; }
+  .spielort__kopf { grid-column: 1 / -1; }
+  .spielort__bild { grid-column: 1 / span 7; grid-row: 2 / span 2; }
+  .spielort__info { grid-column: 8 / -1; grid-row: 2; }
+  .spielort__kasse { grid-column: 8 / -1; grid-row: 3; }
+}
+
+/* 12 Geschichte & Fuß --------------------------------------------------------------- */
+.geschichte { background: var(--mittelblau) var(--korn); color: var(--papier); padding-block: clamp(3.5rem, 8vw, 6.5rem); }
+.geschichte .nummer { border-top-color: var(--papier); }
+.geschichte .titel { color: var(--gelb); }
+.geschichte :focus-visible { outline-color: var(--gelb); }
+.geschichte__raster { display: grid; gap: clamp(1.5rem, 4vw, 2.5rem); }
+.geschichte__zitat p { font-stretch: 62%; font-weight: 800; font-size: clamp(2rem, 5.2vw, 4rem); line-height: .98; text-transform: uppercase; text-wrap: balance; }
+.geschichte__jeff { justify-self: start; width: min(100%, 22rem); }
+.geschichte__jeff .druck { --t1: var(--tinte); --t2: var(--pink); --grund: var(--papier); --raster: 5px; }
+.geschichte__jeff figcaption { font-family: var(--mono); font-size: .8125rem; margin-top: .4rem; }
+.geschichte__text { display: grid; gap: 1rem; max-width: 38rem; font-size: 1.125rem; line-height: 1.6; }
+@media (min-width: 900px) {
+  .geschichte__raster { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(1.5rem, 3vw, 3rem); }
+  .geschichte__kopf { grid-column: 1 / -1; }
+  .geschichte__zitat { grid-column: 1 / span 8; }
+  .geschichte__jeff { grid-column: 9 / -1; grid-row: 2 / span 2; justify-self: end; }
+  .geschichte__text { grid-column: 1 / span 7; }
+}
+
+.fuss { background: var(--tinte); color: var(--papier); padding-block: clamp(3rem, 6vw, 4.5rem) calc(1.5rem + env(safe-area-inset-bottom, 0px)); }
+.fuss :focus-visible { outline-color: var(--gelb); }
+.fuss__raster { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem 1.5rem; }
+.fuss__logo { width: 6.5rem; height: 6.5rem; grid-column: 1 / -1; filter: brightness(0) invert(1); opacity: .95; }
+.fuss__kontakt { grid-column: 1 / -1; order: 3; }
+.fuss__titel { font-family: var(--mono); font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--gelb); margin-bottom: .5rem; }
+.fuss p { line-height: 1.7; }
+.fuss a { text-decoration-color: rgba(243, 237, 224, .45); }
+.fuss__unten { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .75rem 2rem; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid rgba(243, 237, 224, .3); font-family: var(--mono); font-size: .8125rem; }
+.fuss__recht { display: flex; gap: 1.5rem; }
+.fuss__recht a { display: inline-block; padding-block: .5rem; }
+@media (min-width: 760px) { .fuss__raster { grid-template-columns: auto repeat(3, minmax(0, 1fr)); } .fuss__logo { grid-column: auto; } .fuss__kontakt { grid-column: auto; order: 0; } }
+
+/* 13 Act-Blatt (Kuchen-Dialog) -----------------------------------------------------
+   Natives <dialog>: Fokus bleibt drin, Esc schließt, Fokus springt zurück.
+   Rein 300 ms, raus 180 ms. Handy: Blatt von unten (420 ms Schubladen-Kurve), per Wisch zu. */
+dialog { border: 0; padding: 0; max-width: none; max-height: none; color: var(--tinte); background: var(--papier); }
+dialog::backdrop { background: rgba(20, 32, 74, .6); }
+.blatt { opacity: 0; transition: opacity 180ms ease, transform 180ms var(--ease-out), overlay 180ms allow-discrete, display 180ms allow-discrete; }
+.blatt[open] { opacity: 1; transform: none; transition: opacity 220ms ease, transform 300ms var(--ease-out), overlay 300ms allow-discrete, display 300ms allow-discrete; }
+.blatt::backdrop { opacity: 0; transition: opacity 180ms ease, overlay 180ms allow-discrete, display 180ms allow-discrete; }
+.blatt[open]::backdrop { opacity: 1; }
+@starting-style { .blatt[open], .blatt[open]::backdrop { opacity: 0; } }
+.blatt.zieht { transition: none !important; }
+.griff { display: none; }
+.zu {
+  position: absolute; top: .75rem; right: .75rem; z-index: 3; width: 2.75rem; height: 2.75rem; display: grid; place-items: center;
+  border: 2px solid var(--tinte); background: var(--papier); color: var(--tinte); transition: transform 140ms var(--ease-out);
+}
+.zu:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .zu:hover { background: var(--gelb); } }
+
+.blatt--act { inset: 0; margin: auto; width: min(1120px, 100% - 3rem); height: min(780px, 100dvh - 3rem); border: var(--linie); transform: translateY(18px); }
+@starting-style { .blatt--act[open] { transform: translateY(18px); } }
+.actblatt { height: 100%; display: grid; grid-template-columns: minmax(0, 11fr) minmax(0, 12fr); }
+.actblatt__plakat { --flaeche: var(--gelb); position: relative; overflow: hidden; background: var(--flaeche) var(--korn); border-right: var(--linie); display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; padding: clamp(1.25rem, 3vw, 2.5rem); }
+.actblatt__plakat[data-buehne="2"] { --flaeche: var(--pink); }
+.actblatt__plakat[data-buehne="3"] { --flaeche: var(--blau-tief); }
+.actblatt__plakat[data-buehne="gast"] { --flaeche: var(--pink); }
+.druck--blatt { --raster: 6.5px; flex: 0 1 auto; min-height: 0; width: 100%; max-width: 100%; border: var(--linie); }
+.actblatt__riesig {
+  position: relative; flex: none;
+  font-weight: 900; font-stretch: 62%; text-transform: uppercase; line-height: .84; font-size: clamp(3rem, 6.4vw, 5.6rem);
+  color: var(--blau); pointer-events: none; overflow-wrap: anywhere; text-wrap: balance;
+}
+.actblatt__plakat[data-buehne="2"] .actblatt__riesig, .actblatt__plakat[data-buehne="gast"] .actblatt__riesig { mix-blend-mode: multiply; }
+.actblatt__plakat[data-buehne="3"] .actblatt__riesig { color: var(--gelb); }
+.actblatt__plakat[data-buehne="3"] .druck--blatt { border-color: var(--papier); }
+.actblatt__inhalt { overflow-y: auto; overscroll-behavior: contain; padding: clamp(1.5rem, 3vw, 2.5rem); padding-top: 1.4rem; display: flex; flex-direction: column; gap: 1.1rem; }
+.actblatt__buehne { font-family: var(--mono); font-size: .8125rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding-right: 3.5rem; }
+.actblatt__buehne span { display: inline-block; padding: .15rem .45rem .1rem; background: var(--gelb); }
+.actblatt__name { font-stretch: 62%; font-weight: 900; text-transform: uppercase; font-size: clamp(2.6rem, 5vw, 4.4rem); line-height: .86; color: var(--blau); margin-top: -.2rem; padding-right: 2.5rem; text-wrap: balance; }
+.actblatt__text { font-size: 1.0625rem; line-height: 1.55; }
+.gruppe { border: 0; margin: 0; padding: 0; min-width: 0; }
+.gruppe legend { padding: 0; margin-bottom: .55rem; font-family: var(--mono); font-size: .8125rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.karten { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: .6rem; }
+.karten label { position: relative; display: block; cursor: pointer; }
+.karten input, .umschalter input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.karten label > span {
+  display: grid; gap: .1rem; min-height: 3.75rem; padding: .6rem .8rem; border: 2px solid var(--tinte); background: var(--papier);
+  transition: transform 140ms var(--ease-out), background-color 160ms ease;
+}
+.karten strong { font-weight: 750; font-size: 1rem; line-height: 1.2; }
+.karten small { font-family: var(--mono); font-size: .9375rem; font-weight: 600; }
+.karten input:checked + span { background: var(--gelb); box-shadow: 4px 4px 0 var(--tinte); }
+.karten input:focus-visible + span, .umschalter input:focus-visible + span { outline: 3px solid var(--blau-tief); outline-offset: 2px; }
+.karten label:active > span { transform: scale(0.97); }
+.optionen { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
+.optionen label { display: inline-flex; align-items: center; gap: .55rem; min-height: 2.75rem; font-weight: 600; cursor: pointer; }
+.optionen input, .zahlung-check { width: 1.35rem; height: 1.35rem; accent-color: var(--blau-tief); margin: 0; }
+.actblatt__fuss { display: flex; gap: .75rem; align-items: stretch; margin-top: .3rem; }
+.actblatt__dazu { flex: 1; }
+.actblatt__dazu .kurz { display: none; }
+.actblatt__summe { font-family: var(--mono); font-weight: 600; letter-spacing: 0; padding-left: .7em; border-left: 1px solid currentColor; }
+.menge { display: inline-flex; align-items: center; border: 2px solid var(--tinte); background: var(--papier); }
+.menge button { width: 2.75rem; height: 2.75rem; border: 0; background: none; font-size: 1.35rem; font-weight: 700; transition: transform 140ms var(--ease-out); }
+.menge button:active { transform: scale(0.9); }
+.menge output { min-width: 1.75rem; text-align: center; font-family: var(--mono); font-weight: 600; }
+.blaettern { display: flex; justify-content: space-between; gap: 1rem; margin-top: auto; padding-top: .9rem; border-top: 1px solid rgba(20, 32, 74, .35); }
+.blaettern button { min-height: 2.75rem; padding: .3rem 0; border: 0; background: none; font-weight: 700; font-size: .9375rem; text-align: left; transition: transform 140ms var(--ease-out); }
+.blaettern button:last-child { text-align: right; }
+.blaettern button:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .blaettern button:hover span:not([aria-hidden]) { text-decoration: underline; text-decoration-color: var(--pink); text-decoration-thickness: 3px; } }
+
+/* 14 Bestellung & Formular --------------------------------------------------------- */
+.blatt--korb { inset: 0 0 0 auto; margin: 0; width: min(500px, 100%); height: 100dvh; border-left: var(--linie); transform: translateX(100%); }
+.blatt--korb[open] { transition: opacity 200ms ease, transform 420ms var(--ease-drawer), overlay 420ms allow-discrete, display 420ms allow-discrete; }
+@starting-style { .blatt--korb[open] { transform: translateX(100%); } }
+.korb { height: 100%; display: flex; flex-direction: column; }
+.korb__kopf { position: relative; padding: calc(1rem + env(safe-area-inset-top, 0px)) 4.5rem 1rem 1.5rem; background: var(--blau-tief) var(--korn); color: var(--papier); border-bottom: 2px dashed var(--papier); }
+.korb__kopf .zu { top: calc(.85rem + env(safe-area-inset-top, 0px)); }
+.korb__nr { font-family: var(--mono); font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; }
+.korb__kopf h2 { font-stretch: 62%; font-weight: 900; font-size: 2.6rem; line-height: .9; text-transform: uppercase; margin-top: .3rem; outline-offset: 4px; }
+.korb__kopf :focus-visible { outline-color: var(--gelb); }
+.korb__scroll { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 1.25rem 1.5rem calc(2rem + env(safe-area-inset-bottom, 0px)); }
+.korb__leer { font-size: 1.125rem; padding-block: 1rem; }
+.korb__leer a { font-weight: 700; text-decoration-color: var(--pink); }
+.posten li { display: grid; grid-template-columns: 4rem minmax(0, 1fr) auto; gap: .9rem; padding: .9rem 0; border-bottom: 1px solid rgba(20, 32, 74, .35); }
+.posten .druck { --raster: 4px; --dx: 1.5px; --dy: -1px; width: 4rem; border: 2px solid var(--tinte); }
+.posten__name { font-stretch: 70%; font-weight: 850; font-size: 1.3rem; line-height: 1; text-transform: uppercase; color: var(--blau-tief); }
+.posten__info { font-family: var(--mono); font-size: .8125rem; margin-top: .3rem; }
+.posten__steuer { display: flex; align-items: center; gap: .75rem; margin-top: .5rem; flex-wrap: wrap; }
+.posten__weg { min-height: 2.75rem; padding: 0 .1rem; border: 0; background: none; font-size: .875rem; font-weight: 600; text-decoration: underline; text-underline-offset: .2em; }
+.posten__preis { font-family: var(--mono); font-weight: 600; white-space: nowrap; }
+.korb__summe { display: flex; justify-content: space-between; align-items: baseline; padding: 1rem 0 1.25rem; font-weight: 700; border-bottom: var(--linie); }
+.korb__summe strong { font-family: var(--mono); font-size: 1.35rem; }
+.bestellung { display: grid; gap: 1.1rem; margin-top: 1.4rem; }
+.umschalter { display: grid; grid-template-columns: 1fr 1fr; border: 2px solid var(--tinte); }
+.umschalter label { position: relative; cursor: pointer; }
+.umschalter label + label { border-left: 2px solid var(--tinte); }
+.umschalter span { display: grid; place-items: center; min-height: 3rem; padding: .5rem; text-align: center; font-weight: 700; font-size: .9375rem; line-height: 1.2; transition: background-color 160ms ease; }
+.umschalter input:checked + span { background: var(--gelb); }
+.hinweis { font-size: .9375rem; line-height: 1.45; margin-top: .45rem; }
+.hinweis.ist-fehler { color: #A3122A; font-weight: 700; }
+.hinweis.klein { font-size: .8125rem; margin-top: 0; }
+.felder { display: grid; gap: .9rem; }
+.felder--2, .felder--adresse { grid-template-columns: 1fr 1fr; }
+.feld { display: grid; gap: .3rem; min-width: 0; }
+.feld > span { font-family: var(--mono); font-size: .75rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.feld--breit { grid-column: 1 / -1; }
+.feld input, .feld select, .feld textarea {
+  width: 100%; min-height: 3rem; padding: .6rem .75rem; border: 2px solid var(--tinte); border-radius: 0; background: var(--weiss);
+  font-size: 16px; color: var(--tinte); -webkit-appearance: none; appearance: none;
+}
+.feld select { background: var(--weiss) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2314204A' stroke-width='2'/%3E%3C/svg%3E") no-repeat right .8rem center; padding-right: 2.2rem; }
+.feld textarea { resize: vertical; }
+.feld input:focus-visible, .feld select:focus-visible, .feld textarea:focus-visible { outline: 3px solid var(--blau-tief); outline-offset: 1px; }
+.feld [aria-invalid="true"] { border-color: #A3122A; box-shadow: inset 0 0 0 1px #A3122A; }
+.fehler { padding: .75rem .9rem; border: 2px solid #A3122A; background: #FBE3E6; color: #7A0E20; font-weight: 600; }
+.danke { padding-block: 1.5rem; display: grid; gap: 1rem; justify-items: start; }
+.danke h3 { font-stretch: 62%; font-weight: 900; font-size: 3.5rem; line-height: .9; text-transform: uppercase; color: var(--blau); }
+.stempel--danke { font-size: 1.25rem; padding: .4rem 1rem; background: var(--gelb); }
+
+/* Handy-Layout der Blätter: von unten, mit Griff */
+@media (max-width: 759px) {
+  .blatt--act, .blatt--korb {
+    inset: auto 0 0 0; margin: 0; width: 100%; max-width: 100%;
+    height: calc(100dvh - 2.25rem - env(safe-area-inset-top, 0px)); border: 0; border-top: var(--linie);
+    transform: translateY(100%);
+  }
+  .blatt--act[open], .blatt--korb[open] { transform: none; transition: opacity 160ms ease, transform 420ms var(--ease-drawer), overlay 420ms allow-discrete, display 420ms allow-discrete; }
+  @starting-style { .blatt--act[open], .blatt--korb[open] { transform: translateY(100%); } }
+  .blatt--act:not([open]), .blatt--korb:not([open]) { transition: opacity 240ms ease 60ms, transform 240ms var(--ease-out), overlay 300ms allow-discrete, display 300ms allow-discrete; }
+  .griff { display: block; position: absolute; left: 0; right: 0; top: 0; height: 2rem; z-index: 4; touch-action: none; cursor: grab; }
+  .griff::after { content: ""; position: absolute; left: 50%; top: .55rem; width: 2.75rem; height: 5px; margin-left: -1.375rem; background: var(--tinte); }
+  .actblatt { display: block; overflow-y: auto; overscroll-behavior: contain; }
+  .actblatt__plakat { border-right: 0; border-bottom: var(--linie); padding: 2.25rem 3.75rem 1.25rem; }
+  .druck--blatt { --raster: 6px; width: min(100%, 22rem); align-self: center; }
+  .actblatt__riesig { display: none; }
+  .actblatt__inhalt { overflow: visible; padding: 1.25rem 1rem 0; }
+  .actblatt__fuss { position: sticky; bottom: 0; z-index: 2; margin-inline: -1rem; padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom, 0px)); background: var(--papier); border-top: var(--linie); }
+  .blaettern { padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); margin-top: 0; }
+  .korb__kopf { padding-top: 1.6rem; }
+  .korb__kopf .zu { top: 1rem; }
+}
+@media (max-width: 400px) {
+  .actblatt__dazu .lang { display: none; }
+  .actblatt__dazu .kurz { display: inline; }
+  .felder--2, .felder--adresse { grid-template-columns: 1fr; }
+}
+
+/* 15 Menü, Toast, Abzug ------------------------------------------------------------- */
+.menue { inset: 0; width: 100%; height: 100dvh; background: var(--papier) var(--korn); opacity: 0; transform: translateY(-10px); transition: opacity 160ms ease, transform 160ms var(--ease-out), overlay 160ms allow-discrete, display 160ms allow-discrete; }
+.menue[open] { opacity: 1; transform: none; transition: opacity 220ms ease, transform 260ms var(--ease-out), overlay 260ms allow-discrete, display 260ms allow-discrete; }
+@starting-style { .menue[open] { opacity: 0; transform: translateY(-10px); } }
+.menue::backdrop { background: transparent; }
+.menue__innen { min-height: 100%; display: flex; flex-direction: column; padding: calc(4.5rem + env(safe-area-inset-top, 0px)) var(--rand-r) calc(2rem + env(safe-area-inset-bottom, 0px)) var(--rand-l); }
+.menue .zu { top: calc(.6rem + env(safe-area-inset-top, 0px)); right: var(--rand-r); }
+.menue nav { display: grid; border-top: var(--linie); }
+.menue nav a { display: flex; align-items: baseline; gap: .8rem; padding: .55rem 0 .45rem; border-bottom: var(--linie); text-decoration: none; font-stretch: 62%; font-weight: 900; font-size: clamp(2.6rem, 13vw, 4.5rem); line-height: .95; text-transform: uppercase; color: var(--blau); transition: transform 140ms var(--ease-out); }
+.menue nav a:active { transform: scale(0.98); }
+.menue nav small { font-family: var(--mono); font-size: .875rem; font-weight: 600; color: var(--tinte); }
+.menue__fuss { margin-top: auto; padding-top: 2rem; font-family: var(--mono); font-size: .9375rem; line-height: 1.7; }
+
+.toast-ort { position: fixed; left: 0; right: 0; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); z-index: 60; display: grid; justify-items: center; padding-inline: 1rem; pointer-events: none; }
+.toast {
+  pointer-events: auto; display: flex; align-items: center; gap: 1rem; max-width: 34rem; padding: .7rem .7rem .7rem 1rem;
+  background: var(--pink); color: var(--tinte); border: 2px solid var(--tinte); box-shadow: 5px 5px 0 var(--tinte);
+  font-weight: 600; line-height: 1.35; opacity: 0; transform: translateY(calc(100% + 1.5rem));
+  transition: opacity 200ms ease, transform 320ms var(--ease-out);
+}
+.toast.ist-da { opacity: 1; transform: none; }
+.toast.geht { transition: opacity 160ms ease, transform 200ms var(--ease-out); }
+.toast button { flex: none; min-height: 2.75rem; padding: .4rem .9rem; border: 2px solid var(--tinte); background: var(--papier); font-weight: 750; text-transform: uppercase; font-size: .8125rem; letter-spacing: .04em; transition: transform 140ms var(--ease-out); }
+.toast button:active { transform: scale(0.97); }
+
+/* Abzug: kleiner Probedruck am Mauszeiger, nur mit feiner Maus und genug Platz */
+.abzug { display: none; }
+@media (hover: hover) and (pointer: fine) and (min-width: 900px) {
+  .abzug {
+    display: block; position: fixed; left: 0; top: 0; z-index: 30; width: 13.5rem; padding: .5rem .5rem .55rem;
+    background: var(--papier); border: 2px solid var(--tinte); box-shadow: 6px 6px 0 rgba(20, 32, 74, .2);
+    pointer-events: none; opacity: 0; transition: opacity 140ms ease; will-change: transform;
+  }
+  .abzug.ist-da { opacity: 1; transition-duration: 180ms; }
+  .abzug .druck { --raster: 5px; --dx: 2px; --dy: -1.5px; }
+  .abzug__unter { display: flex; justify-content: space-between; gap: .5rem; margin-top: .4rem; font-family: var(--mono); font-size: .75rem; font-weight: 600; line-height: 1.25; }
+}
+
+/* 16 Einblenden beim Scrollen ---------------------------------------------------------
+   Nur wenn main.js den Beobachter gestartet hat (.einblenden) und Bewegung erlaubt ist. */
+.einblenden [data-ein] { opacity: 0; transform: translateY(22px); transition: opacity 500ms ease, transform 700ms var(--ease-out); }
+.einblenden [data-ein].ist-da { opacity: 1; transform: none; }
+
+/* 17 Bewegung reduzieren ------------------------------------------------------------------
+   html ohne .motion (Systemeinstellung oder ?motion=off): keine Wege, nur Überblenden. */
+html:not(.motion) { scroll-behavior: auto; }
+html:not(.motion) .blatt, html:not(.motion) .blatt[open], html:not(.motion) .menue, html:not(.motion) .menue[open] { transform: none !important; transition: opacity 160ms ease, overlay 160ms allow-discrete, display 160ms allow-discrete; }
+html:not(.motion) .toast { transform: none; transition: opacity 160ms ease; }
+html:not(.motion) .act__name::after { transition: opacity 120ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; }
+  .knopf, .chip, .act__knopf, .ticket-knopf, .menue-knopf, .zu, .abriss a, .karten label > span, .menge button, .blaettern button, .toast button { transition-property: background-color, color !important; }
+}
