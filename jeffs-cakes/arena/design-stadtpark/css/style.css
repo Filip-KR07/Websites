@@ -1,0 +1,752 @@
+/* =========================================================================
+   Jeff's Cheesecake – „Stadtpark“: ein Hamburger Café-Magazin
+   1  Schriften        7  Café                 13 Dialoge (Kuchen, Bestellung)
+   2  Tokens           8  Saison-Aufmacher     14 Formular
+   3  Grundlagen       9  Die Kuchen (Raster)  15 Toast
+   4  Bausteine        10 Porträt Jeff         16 Auftritt & Einblenden
+   5  Kopf & Menü      11 Für Feste, Ablauf    17 Bewegung reduzieren
+   6  Titel (Café)     12 Fuß
+   ========================================================================= */
+
+/* 1 Schriften (lokal, SIL Open Font License 1.1) ---------------------------
+   Newsreader: Text- und Titel-Serif mit optischer Größe (opsz 6–72), Schibsted Grotesk für Bedienung */
+@font-face { font-family: "Newsreader"; src: url("../fonts/newsreader-latin-opsz-normal.woff2") format("woff2"); font-weight: 200 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "Newsreader"; src: url("../fonts/newsreader-latin-opsz-italic.woff2") format("woff2"); font-weight: 200 800; font-style: italic; font-display: swap; }
+@font-face { font-family: "Schibsted Grotesk"; src: url("../fonts/schibsted-grotesk-latin-wght-normal.woff2") format("woff2"); font-weight: 400 900; font-style: normal; font-display: swap; }
+
+/* 2 Tokens -----------------------------------------------------------------
+   Kontraste (WCAG) auf papier: tinte 16,1:1 · tinte-2 6,6:1 · park 9,2:1 · akzent Herbst 6,2:1
+   (Winter 8,7:1, Sommer 6,3:1) · auf papier-2/park-hell alle Werte über 5,4:1 · papier auf park 9,2:1 */
+:root {
+  --papier: #FAF8F3;       /* Seite */
+  --papier-2: #F2EEE5;     /* Passepartout um Fotos, Kästen */
+  --park-hell: #EBEEE6;    /* Grund des Café-Abschnitts */
+  --weiss: #FFFFFF;
+  --tinte: #1B1C18;        /* Text */
+  --tinte-2: #5A5A52;      /* leiser Text */
+  --linie: rgba(27, 28, 24, .13);
+  --linie-stark: rgba(27, 28, 24, .3);
+  --park: #2D4A3A;         /* Stadtpark-Grün: Knöpfe, Fuß */
+  --park-2: #22392C;
+  --offen: #2F7A4B;        /* Punkt „geöffnet“ */
+  --rot: #A3261B;
+
+  /* Saison-Akzent: setzt main.js über <html data-saison> */
+  --akzent: #9A4320;       /* Herbstlaub */
+  --akzent-hell: #F5EBE1;
+
+  --serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --sans: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --rand: clamp(16px, 4.5vw, 56px);
+  --kopf-h: 3.75rem;
+  --abstand: clamp(4.5rem, 10vw, 9rem);   /* Luft zwischen Abschnitten */
+}
+:root[data-saison="winter"] { --akzent: #7A2E3B; --akzent-hell: #F4EAEA; }
+:root[data-saison="sommer"] { --akzent: #6E5A12; --akzent-hell: #F3F0DF; }
+@media (min-width: 960px) { :root { --kopf-h: 4.25rem; } }
+
+/* 3 Grundlagen ------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--kopf-h) + env(safe-area-inset-top, 0px) + 1rem);
+  background: var(--papier);
+}
+html:has(dialog[open]) { overflow: hidden; }
+body {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.125rem;
+  line-height: 1.55;
+  font-optical-sizing: auto;
+  color: var(--tinte);
+  background: var(--papier);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button, a, label, summary { touch-action: manipulation; }
+button, .knopf, .filter__wahl, .tag { user-select: none; -webkit-user-select: none; }
+h1, h2, h3, p, figure, blockquote, dl, dd, ol, ul { margin: 0; }
+ol, ul { padding: 0; list-style: none; }
+:focus-visible { outline: 2px solid var(--park); outline-offset: 3px; border-radius: 2px; }
+[hidden] { display: none !important; }
+.no-js .nur-js, .js-kaputt .nur-js { display: none !important; }
+
+.rahmen { width: min(1240px, 100% - 2 * var(--rand) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)); margin-inline: auto; }
+.skip { position: absolute; left: 1rem; top: -4rem; z-index: 100; background: var(--tinte); color: var(--papier); padding: .6rem 1rem; font-family: var(--sans); font-weight: 600; border-radius: 3px; }
+.skip:focus { top: calc(1rem + env(safe-area-inset-top, 0px)); }
+.unsichtbar { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.leise { color: var(--tinte-2); font-weight: 400; }
+.nowrap { white-space: nowrap; }
+
+/* 4 Bausteine -------------------------------------------------------------- */
+.dachzeile {
+  font-family: var(--sans);
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--akzent);
+}
+.h2 {
+  font-weight: 400;
+  font-size: clamp(2.3rem, 1.55rem + 3.1vw, 4.4rem);
+  line-height: 1.04;
+  letter-spacing: -.022em;
+  text-wrap: balance;
+}
+.h2 em, .titel__h em, .feature__h em { font-style: italic; }
+.lede {
+  font-size: clamp(1.2rem, 1.06rem + .55vw, 1.45rem);
+  line-height: 1.45;
+  color: var(--tinte-2);
+  text-wrap: pretty;
+}
+.kasten-titel {
+  font-family: var(--sans);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinte);
+}
+.abschnitt-kopf { display: grid; gap: 1rem; margin-bottom: clamp(2.25rem, 5vw, 3.5rem); max-width: 44rem; }
+
+/* Knöpfe: Druck-Rückmeldung sofort, Hover nur mit Maus */
+.knopf {
+  display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
+  min-height: 3rem; padding: .7rem 1.25rem;
+  border: 1px solid transparent; border-radius: 3px;
+  font-family: var(--sans); font-size: .9375rem; font-weight: 600; line-height: 1.2; letter-spacing: .005em;
+  text-decoration: none; white-space: nowrap;
+  transition: transform 140ms var(--ease-out), background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+.knopf svg { flex: none; }
+.knopf:active { transform: scale(0.97); }
+.knopf--park { background: var(--park); color: var(--papier); }
+.knopf--tinte { background: var(--tinte); color: var(--papier); }
+.knopf--linie { background: transparent; color: var(--tinte); border-color: var(--linie-stark); }
+.knopf--breit { width: 100%; }
+@media (hover: hover) and (pointer: fine) {
+  .knopf--park:hover { background: var(--park-2); }
+  .knopf--tinte:hover { background: var(--park); }
+  .knopf--linie:hover { border-color: var(--tinte); }
+}
+.knopfreihe { display: flex; flex-wrap: wrap; gap: .6rem; }
+
+/* Textlink mit Pfeil */
+.pfeil {
+  display: inline-flex; align-items: center; gap: .45rem;
+  min-height: 2.75rem; padding: 0; border: 0; background: none;
+  font-family: var(--sans); font-size: .9375rem; font-weight: 600;
+  color: var(--tinte); text-decoration: underline; text-decoration-color: var(--linie-stark);
+  text-decoration-thickness: 1px; text-underline-offset: .35em;
+}
+.pfeil::after { content: "→"; text-decoration: none; display: inline-block; transition: transform 200ms var(--ease-out); }
+.pfeil--leise { color: var(--tinte-2); font-weight: 500; }
+.pfeil:active { opacity: .7; }
+@media (hover: hover) and (pointer: fine) {
+  .pfeil { transition: text-decoration-color 180ms ease; }
+  .pfeil:hover { text-decoration-color: currentColor; }
+  .pfeil:hover::after { transform: translateX(3px); }
+}
+
+/* Öffnungsstatus: Punkt grün = offen, Ring = geschlossen. Ohne JS nur die Zeiten, kein Punkt. */
+.status { display: flex; align-items: center; gap: .6rem; font-family: var(--sans); font-size: .9375rem; font-weight: 600; line-height: 1.3; }
+.punkt { flex: none; width: .625rem; height: .625rem; border-radius: 50%; }
+.status:not(.ist-offen):not(.ist-zu) .punkt, .offen:not(.ist-offen):not(.ist-zu) .punkt { display: none; }
+.ist-offen .punkt { background: var(--offen); box-shadow: 0 0 0 4px rgba(47, 122, 75, .16); }
+.ist-zu .punkt { background: transparent; box-shadow: inset 0 0 0 1.5px var(--akzent); }
+
+/* 5 Kopf & Menü ------------------------------------------------------------- */
+.kopf {
+  position: fixed; inset: 0 0 auto; z-index: 50;
+  padding-top: env(safe-area-inset-top, 0px);
+  background: rgba(250, 248, 243, .88);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid transparent;
+  transition: border-color 220ms ease;
+}
+.kopf.ist-gescrollt { border-bottom-color: var(--linie); }
+.kopf__leiste { height: var(--kopf-h); display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.marke { display: inline-flex; align-items: center; gap: .55rem; text-decoration: none; min-height: 2.75rem; flex: none; }
+.marke img { width: 2.125rem; height: 2.125rem; }
+.marke__name { font-size: 1.3rem; font-style: italic; font-weight: 450; letter-spacing: -.01em; line-height: 1; white-space: nowrap; }
+.kopf__nav { display: none; }
+.kopf__rechts { display: flex; align-items: center; gap: .4rem; }
+.offen {
+  display: inline-flex; align-items: center; gap: .45rem;
+  min-height: 2.25rem; padding: .3rem .75rem;
+  border-radius: 999px; background: var(--park-hell);
+  font-family: var(--sans); font-size: .8125rem; font-weight: 600; text-decoration: none; white-space: nowrap;
+  transition: transform 140ms var(--ease-out);
+}
+.offen:active { transform: scale(0.97); }
+.offen .punkt { width: .5rem; height: .5rem; }
+.ist-offen.offen .punkt { box-shadow: none; }
+.tasche {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+  min-width: 2.75rem; min-height: 2.75rem; padding: .4rem .6rem;
+  border: 1px solid var(--linie-stark); border-radius: 999px; background: transparent;
+  font-family: var(--sans); font-size: .875rem; font-weight: 600;
+  transition: transform 140ms var(--ease-out), border-color 180ms ease;
+}
+.tasche:active { transform: scale(0.97); }
+.tasche__text { display: none; }
+.tasche__zahl {
+  display: inline-grid; place-items: center; min-width: 1.35rem; height: 1.35rem; padding: 0 .3rem;
+  border-radius: 999px; background: var(--park); color: var(--papier); font-size: .75rem; font-variant-numeric: tabular-nums;
+}
+.menue-knopf { width: 2.75rem; height: 2.75rem; border: 0; background: transparent; display: grid; place-items: center; border-radius: 50%; transition: transform 140ms var(--ease-out); }
+.menue-knopf:active { transform: scale(0.94); }
+.menue-knopf__striche { display: grid; gap: 6px; width: 20px; }
+.menue-knopf__striche i { display: block; height: 1.5px; background: currentColor; border-radius: 2px; }
+@media (hover: hover) and (pointer: fine) { .tasche:hover { border-color: var(--tinte); } }
+@media (max-width: 519px) { .marke__rest { display: none; } }
+@media (max-width: 359px) { .offen { display: none !important; } }
+@media (min-width: 640px) { .tasche { padding: .4rem 1rem; } .tasche__text { display: inline; } }
+@media (min-width: 960px) {
+  .kopf__nav { display: flex; gap: clamp(1.25rem, 2.2vw, 2.25rem); }
+  .kopf__nav a {
+    position: relative; padding: .6rem 0; text-decoration: none;
+    font-family: var(--sans); font-size: .875rem; font-weight: 500; color: var(--tinte-2);
+  }
+  .kopf__nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: .3rem; height: 1px; background: currentColor; clip-path: inset(0 100% 0 0); transition: clip-path 220ms var(--ease-out); }
+  .kopf__nav a[aria-current="true"] { color: var(--tinte); }
+  .kopf__nav a[aria-current="true"]::after { clip-path: inset(0 0 0 0); }
+  .menue-knopf { display: none; }
+}
+@media (min-width: 960px) and (hover: hover) and (pointer: fine) {
+  .kopf__nav a:hover { color: var(--tinte); }
+  .kopf__nav a:hover::after { clip-path: inset(0 0 0 0); }
+}
+
+/* Menü (Handy): helles Blatt von oben */
+.menue {
+  position: fixed; inset: 0; width: 100%; height: 100dvh; max-width: none; max-height: none; margin: 0;
+  border: 0; padding: 0; background: var(--papier); color: var(--tinte); overscroll-behavior: contain;
+  opacity: 0; transform: translateY(-10px);
+  transition: opacity 200ms ease, transform 240ms var(--ease-out), overlay 240ms allow-discrete, display 240ms allow-discrete;
+}
+.menue[open] { opacity: 1; transform: none; }
+@starting-style { .menue[open] { opacity: 0; transform: translateY(-10px); } }
+.menue::backdrop { background: transparent; }
+.menue__innen { min-height: 100%; display: grid; grid-template-rows: auto 1fr auto; gap: 1.5rem; padding: env(safe-area-inset-top, 0px) var(--rand) calc(1.5rem + env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
+.menue__kopf { height: var(--kopf-h); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--tinte); }
+.menue__marke { font-style: italic; font-size: 1.3rem; }
+.menue nav { display: grid; align-content: start; }
+.menue nav a {
+  display: flex; align-items: baseline; gap: .9rem; padding: .55rem 0; border-bottom: 1px solid var(--linie);
+  font-size: clamp(1.9rem, 8vw, 2.6rem); line-height: 1.15; letter-spacing: -.02em; text-decoration: none;
+}
+.menue nav a > span:first-child { font-family: var(--sans); font-size: .75rem; font-weight: 600; letter-spacing: .1em; color: var(--akzent); min-width: 1.4rem; }
+.menue__dienst { display: grid; gap: .5rem; padding: 1.1rem 0 0; border-top: 1px solid var(--tinte); font-family: var(--sans); font-size: .9375rem; color: var(--tinte-2); }
+.menue__dienst .status { color: var(--tinte); }
+.menue__dienst .knopfreihe { margin-top: .4rem; }
+.menue__dienst .knopf { flex: 1 1 auto; }
+
+.zu {
+  flex: none; width: 2.75rem; height: 2.75rem; border-radius: 50%; display: grid; place-items: center;
+  border: 0; background: transparent; color: var(--tinte);
+  transition: transform 140ms var(--ease-out), background-color 160ms ease;
+}
+.zu:active { transform: scale(0.94); }
+@media (hover: hover) and (pointer: fine) { .zu:hover { background: var(--papier-2); } }
+
+/* 6 Titel: das Café am Stadtpark ------------------------------------------- */
+.titel {
+  min-height: 100svh;
+  padding-top: calc(var(--kopf-h) + env(safe-area-inset-top, 0px) + .375rem);
+  padding-bottom: clamp(3rem, 7vw, 5rem);
+  display: flex; flex-direction: column;
+}
+.titel > .rahmen { flex: 1; display: flex; flex-direction: column; }
+.folio {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem 1rem;
+  padding: .9rem 0 .8rem; margin-bottom: clamp(1.75rem, 5vw, 3.25rem);
+  border-bottom: 1px solid var(--tinte);
+  font-family: var(--sans); font-size: .6875rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--tinte-2);
+}
+.folio > span:first-child { display: none; color: var(--akzent); }
+.titel__raster { display: flex; flex-direction: column; gap: 1.75rem; }
+.titel__h {
+  font-weight: 400;
+  font-size: clamp(2.65rem, min(1.3rem + 6.2vw, 10.5svh), 6.6rem);  /* niedrige Fenster: kleiner, damit Status und Route sichtbar bleiben */
+  line-height: .98;
+  letter-spacing: -.028em;
+  text-wrap: balance;
+}
+.titel__h .zeile { display: block; }
+.titel__h .zeile > span { display: inline-block; }
+.dienst { display: grid; gap: .55rem; padding: 1.1rem 0 1.25rem; border-top: 1px solid var(--linie); border-bottom: 1px solid var(--linie); }
+.status--gross { font-size: 1.0625rem; }
+.dienst__ort { font-family: var(--sans); font-size: .9375rem; line-height: 1.45; color: var(--tinte-2); }
+.dienst__zusatz { display: none; }
+.dienst .knopfreihe { margin-top: .45rem; }
+.dienst .knopf { flex: 1 1 auto; }
+.titel__bild { margin-inline: calc(-1 * var(--rand)); }
+.titel__bild img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; background: var(--papier-2); }
+.titel__bild figcaption, .bildzeile { padding: .6rem var(--rand) 0; font-family: var(--sans); font-size: .8125rem; color: var(--tinte-2); }
+.titel__unten { display: grid; gap: 1rem; }
+.titel__lede { font-size: clamp(1.2rem, 1.05rem + .6vw, 1.45rem); line-height: 1.45; color: var(--tinte-2); text-wrap: pretty; max-width: 34rem; }
+.titel__weiter { display: flex; flex-wrap: wrap; gap: .25rem 1.75rem; }
+
+@media (min-width: 560px) {
+  .folio > span:first-child { display: inline; }
+  .dienst .knopf { flex: 0 0 auto; }
+}
+@media (min-width: 900px) {
+  .folio { font-size: .75rem; letter-spacing: .12em; }
+  .titel__raster {
+    flex: 1;
+    display: grid; gap: 0 clamp(2.5rem, 5.5vw, 6rem);
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas: "h bild" "dienst bild" "unten bild";
+  }
+  .titel__h { grid-area: h; margin-bottom: clamp(1.75rem, 3.5vw, 2.75rem); }
+  .dienst { grid-area: dienst; max-width: 36rem; }
+  .dienst__zusatz { display: inline; }
+  .titel__unten { grid-area: unten; align-self: end; padding-top: 2rem; }
+  .titel__bild { grid-area: bild; margin: 0; display: flex; flex-direction: column; min-height: 26rem; }
+  .titel__bild picture { flex: 1; display: block; position: relative; min-height: 0; }
+  .titel__bild img { position: absolute; inset: 0; height: 100%; aspect-ratio: auto; object-position: 50% 30%; }
+  .titel__bild figcaption { padding-inline: 0; }
+}
+
+/* 7 Café --------------------------------------------------------------------- */
+.cafe { background: var(--park-hell); padding-block: var(--abstand); }
+.cafe__raster { display: grid; gap: 2.5rem; }
+.cafe__kopf { display: grid; gap: 1rem; align-content: start; }
+.cafe__kopf .lede { max-width: 34rem; }
+.cafe__zeiten { background: var(--papier); padding: clamp(1.25rem, 3vw, 2.25rem); display: grid; gap: .9rem; align-content: start; border: 1px solid var(--linie); }
+.cafe__zeiten .kasten-titel:not(:first-child) { margin-top: .6rem; }
+.zeiten { width: 100%; border-collapse: collapse; font-family: var(--sans); font-size: .9375rem; }
+.zeiten th, .zeiten td { padding: .65rem 0; border-bottom: 1px solid var(--linie); text-align: left; font-weight: 400; }
+.zeiten td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.zeiten tr.ist-heute th, .zeiten tr.ist-heute td { font-weight: 700; }
+.zeiten tr.ist-heute th::after { content: "heute"; margin-left: .6rem; padding: .1rem .45rem; border-radius: 999px; background: var(--park-hell); font-size: .6875rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; vertical-align: .1em; }
+.cafe address { font-style: normal; line-height: 1.5; }
+.koordinaten { font-family: var(--sans); font-size: .8125rem; letter-spacing: .04em; color: var(--tinte-2); font-variant-numeric: tabular-nums; }
+.cafe__zeiten .knopfreihe { margin-top: .3rem; }
+.cafe__zeiten .knopf { flex: 1 1 auto; }
+.angebot { display: grid; margin-top: 1rem; border-top: 1px solid var(--tinte); }
+.angebot > div { display: grid; grid-template-columns: 5.5rem 1fr; gap: 1rem; padding: .9rem 0; border-bottom: 1px solid var(--linie-stark); }
+.angebot dt { font-family: var(--sans); font-size: .8125rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding-top: .2rem; }
+.angebot dd { line-height: 1.45; }
+@media (min-width: 760px) {
+  .cafe__raster { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-areas: "kopf zeiten" "karte zeiten"; column-gap: clamp(2.5rem, 6vw, 6rem); row-gap: 3rem; }
+  .cafe__kopf { grid-area: kopf; }
+  .cafe__zeiten { grid-area: zeiten; }
+  .cafe__karte { grid-area: karte; }
+}
+
+/* 8 Saison-Aufmacher --------------------------------------------------------- */
+.saison { background: var(--akzent-hell); padding-block: var(--abstand); }
+.saison__raster { display: grid; gap: 2rem; align-items: center; }
+.saison__bild { margin-inline: calc(-1 * var(--rand)); }
+.saison__bild img { width: 100%; aspect-ratio: 5 / 4; object-fit: cover; }
+.saison__text { display: grid; gap: 1rem; justify-items: start; max-width: 34rem; }
+.saison__h { font-weight: 400; font-style: italic; font-size: clamp(3rem, 1.8rem + 5.6vw, 6.8rem); line-height: .95; letter-spacing: -.03em; }
+.saison__vorspann { font-size: clamp(1.3rem, 1.1rem + .8vw, 1.7rem); line-height: 1.3; }
+.saison__text > p:not([class]) { color: var(--tinte-2); }
+.saison__fakten { display: flex; flex-wrap: wrap; gap: 0; width: 100%; margin: .5rem 0 .75rem; border-top: 1px solid var(--linie-stark); border-bottom: 1px solid var(--linie-stark); }
+.saison__fakten > div { flex: 1 1 auto; padding: .75rem 1.25rem .75rem 0; }
+.saison__fakten > div + div { padding-left: 1.25rem; border-left: 1px solid var(--linie-stark); }
+.saison__fakten dt { font-family: var(--sans); font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--tinte-2); }
+.saison__fakten dd { font-family: var(--sans); font-weight: 600; font-size: 1rem; }
+@media (max-width: 479px) {
+  .saison__fakten > div:last-child { flex-basis: 100%; padding-left: 0; border-left: 0; border-top: 1px solid var(--linie-stark); }
+}
+@media (min-width: 900px) {
+  .saison__raster { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(3rem, 6vw, 6rem); }
+  .saison__bild { margin: 0; }
+}
+
+/* 9 Die Kuchen ---------------------------------------------------------------- */
+.karte { padding-block: var(--abstand); }
+.karte__kopf { display: grid; gap: 1rem; max-width: 46rem; margin-bottom: 2rem; }
+.filter { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: clamp(.25rem, 4vw, 3rem); padding-bottom: 1.25rem; border-bottom: 1px solid var(--tinte); }
+.filter__wahl {
+  display: inline-flex; align-items: center; gap: .4rem;
+  min-height: 2.75rem; padding: .45rem 1rem;
+  border: 1px solid var(--linie-stark); border-radius: 999px; background: transparent;
+  font-family: var(--sans); font-size: .875rem; font-weight: 600;
+  transition: transform 140ms var(--ease-out), background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+.filter__wahl span { font-weight: 400; color: var(--tinte-2); font-variant-numeric: tabular-nums; transition: color 180ms ease; }
+.filter__wahl:active { transform: scale(0.97); }
+.filter__wahl[aria-pressed="true"] { background: var(--tinte); border-color: var(--tinte); color: var(--papier); }
+.filter__wahl[aria-pressed="true"] span { color: rgba(250, 248, 243, .75); }
+@media (hover: hover) and (pointer: fine) { .filter__wahl[aria-pressed="false"]:hover { border-color: var(--tinte); } }
+
+/* Raster: Handy als ruhige Liste (Bild links), ab 640 px zwei, ab 1100 px drei Spalten */
+.raster { display: grid; gap: 0; }
+.kuchen { border-bottom: 1px solid var(--linie); }
+.kuchen__karte {
+  position: relative; display: grid; grid-template-columns: minmax(0, 38%) minmax(0, 1fr); gap: 1rem; align-items: start;
+  padding: 1.1rem 0;
+  transition: transform 160ms var(--ease-out);
+}
+.kuchen__karte:has(.kuchen__waehlen:active) { transform: scale(0.985); }
+/* Passepartout: dunkle Jazz-Fotos und helle Produktfotos stehen im gleichen hellen Rahmen */
+.kuchen__bild { background: var(--papier-2); padding: .4rem; overflow: hidden; }
+.kuchen__bild img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #E7E1D5; }
+.kuchen__text { display: grid; gap: .3rem; align-content: start; min-width: 0; }
+.kuchen__rubrik { font-family: var(--sans); font-size: .6875rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--tinte-2); }
+.kuchen--saison .kuchen__rubrik { color: var(--akzent); }
+.kuchen__name { font-weight: 400; font-size: 1.375rem; line-height: 1.12; letter-spacing: -.012em; }
+.kuchen__desc { font-size: .9375rem; line-height: 1.45; color: var(--tinte-2); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.kuchen__fuss { display: flex; flex-wrap: wrap; align-items: baseline; gap: .15rem .6rem; margin-top: .2rem; font-family: var(--sans); font-size: .8125rem; color: var(--tinte-2); }
+.kuchen__preis { font-size: .9375rem; font-weight: 700; color: var(--tinte); }
+.kuchen__waehlen {
+  margin-left: auto; border: 0; background: none; padding: 0; min-height: 0;
+  font-family: var(--sans); font-size: .8125rem; font-weight: 600; color: var(--park);
+  text-decoration: underline; text-decoration-color: rgba(45, 74, 58, .35); text-underline-offset: .3em;
+}
+.kuchen__waehlen::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+.kuchen__waehlen:focus-visible { outline: none; }
+.kuchen__waehlen:focus-visible::after { outline: 2px solid var(--park); outline-offset: 4px; }
+.kuchen__waehlen-text { display: none; }
+.kuchen__plus { display: block; width: 2rem; height: 2rem; padding: .45rem; border: 1px solid rgba(45, 74, 58, .45); border-radius: 50%; }
+.kuchen__preis { order: 1; align-self: center; }
+.kuchen__waehlen { order: 2; align-self: center; }
+.kuchen__diaet { order: 3; flex-basis: 100%; }
+.raster.ist-gefiltert .kuchen { transition: opacity 220ms ease; }
+@starting-style { .raster.ist-gefiltert .kuchen { opacity: 0; } }
+.karte__leer { padding: 2rem 0; color: var(--tinte-2); }
+.hinweis-kasten { margin-top: 2rem; padding: 1.25rem; background: var(--papier-2); }
+@media (hover: hover) and (pointer: fine) {
+  .kuchen__bild img { transition: transform 300ms var(--ease-out); }
+  .kuchen__karte:hover .kuchen__bild img { transform: scale(1.03); }
+  .kuchen__karte:hover .kuchen__name { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .18em; text-decoration-color: var(--linie-stark); }
+}
+@media (min-width: 640px) {
+  .raster { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(2.5rem, 5vw, 3.5rem) clamp(1.25rem, 3vw, 2.5rem); }
+  .kuchen { border: 0; }
+  .kuchen__karte { grid-template-columns: 1fr; gap: 1.1rem; padding: 0; }
+  .kuchen__bild { padding: clamp(.6rem, 1.2vw, 1rem); }
+  .kuchen__name { font-size: clamp(1.5rem, 1.2rem + .6vw, 1.85rem); }
+  .kuchen__desc { font-size: 1rem; -webkit-line-clamp: 3; }
+  .kuchen__fuss { padding-top: .6rem; margin-top: .35rem; border-top: 1px solid var(--linie); }
+  .kuchen__waehlen-text { display: inline; }
+  .kuchen__plus { display: none; }
+  .kuchen__preis, .kuchen__waehlen, .kuchen__diaet { order: 0; align-self: auto; }
+  .kuchen__diaet { flex-basis: auto; }
+}
+@media (min-width: 1100px) { .raster { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* 10 Porträt Jeff ------------------------------------------------------------ */
+.feature { padding-block: var(--abstand); border-top: 1px solid var(--linie); }
+.feature__kopf { display: grid; gap: 1.1rem; max-width: 50rem; margin: 0 auto clamp(2.5rem, 6vw, 4.5rem); text-align: center; justify-items: center; }
+.feature__h { font-weight: 400; font-size: clamp(2.5rem, 1.5rem + 4.6vw, 5.8rem); line-height: 1; letter-spacing: -.028em; text-wrap: balance; }
+.feature__vorspann { font-style: italic; font-size: clamp(1.25rem, 1.08rem + .7vw, 1.6rem); line-height: 1.4; color: var(--tinte-2); max-width: 38rem; text-wrap: balance; }
+.feature__raster { display: grid; gap: 3rem; }
+.feature__text { display: grid; gap: 1.1rem; font-size: clamp(1.125rem, 1.05rem + .25vw, 1.25rem); line-height: 1.62; max-width: 36rem; }
+.initial::first-letter { float: left; font-size: 4.4em; line-height: .8; padding: .08em .1em 0 0; font-weight: 400; color: var(--akzent); }
+@supports (initial-letter: 3) {
+  .initial::first-letter { float: none; initial-letter: 3; padding: 0 .12em 0 0; font-size: inherit; line-height: inherit; }
+}
+.zitat { display: grid; gap: 1.75rem; align-content: start; padding-top: 1.5rem; border-top: 1px solid var(--tinte); }
+.zitat blockquote { margin: 0; quotes: "„" "“"; }
+.zitat blockquote p { font-style: italic; font-size: clamp(1.65rem, 1.2rem + 1.7vw, 2.55rem); line-height: 1.22; letter-spacing: -.015em; text-wrap: balance; }
+.zitat blockquote p::before { content: open-quote; color: var(--akzent); }
+.zitat blockquote p::after { content: close-quote; color: var(--akzent); }
+.zitat__von { display: flex; align-items: center; gap: 1rem; font-family: var(--sans); font-size: .875rem; color: var(--tinte-2); }
+.zitat__von img { width: 6.5rem; height: auto; flex: none; }
+.zitat__von strong { display: block; font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 1.6rem; line-height: 1.1; color: var(--tinte); }
+@media (min-width: 900px) {
+  .feature__raster { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: clamp(3rem, 7vw, 7rem); align-items: start; }
+  .zitat { margin-top: .4rem; }
+  .zitat__von img { width: 8rem; }
+}
+
+/* Bildstrecke: dunkle Fotos klein, im Passepartout, mit viel Luft */
+.strecke { margin-top: clamp(3.5rem, 8vw, 6rem); padding-top: 1.25rem; border-top: 1px solid var(--linie); }
+.strecke__titel { font-family: var(--sans); font-size: .75rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 1.5rem; }
+.strecke__liste { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(.75rem, 3vw, 3rem); max-width: 60rem; }
+.strecke__knopf { display: block; width: 100%; padding: 0; border: 0; background: none; transition: transform 160ms var(--ease-out); }
+.strecke__knopf:active { transform: scale(0.98); }
+.strecke__bild { display: block; background: var(--papier-2); padding: clamp(.4rem, 1.6vw, 1.1rem); }
+.strecke__bild img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+.strecke__name { margin-top: .7rem; font-size: clamp(1rem, .9rem + .5vw, 1.3rem); line-height: 1.2; }
+.strecke__notiz { font-family: var(--sans); font-size: .8125rem; color: var(--tinte-2); }
+@media (max-width: 479px) { .strecke__notiz { display: none; } }
+@media (hover: hover) and (pointer: fine) {
+  .strecke__bild img { transition: opacity 200ms ease; }
+  .strecke__knopf:hover .strecke__bild img { opacity: .88; }
+}
+
+/* 11 Für Feste, Ablauf ---------------------------------------------------------- */
+.anlaesse { background: var(--papier-2); padding-block: var(--abstand); }
+.anlaesse__raster { display: grid; gap: 2.5rem; }
+.anlass { display: grid; gap: .6rem; align-content: start; justify-items: start; }
+.anlass__bild { width: 100%; background: var(--papier); padding: .7rem; margin-bottom: .6rem; }
+.anlass__bild img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.anlass h3 { font-weight: 400; font-size: 1.75rem; line-height: 1.1; letter-spacing: -.015em; }
+.anlass p { color: var(--tinte-2); }
+.anlass--text { padding: clamp(1.5rem, 3vw, 2.25rem); border: 1px solid var(--linie-stark); align-self: start; }
+@media (min-width: 760px) { .anlaesse__raster { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1.5rem, 3vw, 2.5rem); } .anlass--text { margin-top: 0; } }
+
+.ablauf { padding-block: var(--abstand); }
+.ablauf__raster { display: grid; gap: 1rem 3rem; }
+.schritte { display: grid; border-top: 1px solid var(--tinte); }
+.schritte li { display: grid; grid-template-columns: 3.25rem 1fr; column-gap: 1rem; padding: 1.4rem 0; border-bottom: 1px solid var(--linie); }
+.schritte__nr { grid-row: span 2; font-style: italic; font-size: 2.6rem; line-height: .9; color: var(--akzent); }
+.schritte h3 { font-weight: 400; font-size: 1.5rem; line-height: 1.2; }
+.schritte p { color: var(--tinte-2); margin-top: .3rem; }
+.gut-zu-wissen { margin-top: 2rem; padding: clamp(1.25rem, 3vw, 2rem); background: var(--park-hell); display: grid; gap: 1rem; align-content: start; }
+.gut-zu-wissen ul { display: grid; gap: .7rem; font-size: 1.0625rem; line-height: 1.5; }
+.gut-zu-wissen li { padding-left: 1.1rem; position: relative; }
+.gut-zu-wissen li::before { content: ""; position: absolute; left: 0; top: .65em; width: .4rem; height: .4rem; border-radius: 50%; background: var(--park); }
+.gut-zu-wissen strong { font-family: var(--sans); font-size: .9375rem; }
+@media (min-width: 960px) {
+  .ablauf__raster { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-areas: "kopf schritte" "box schritte"; align-items: start; column-gap: clamp(3rem, 7vw, 7rem); }
+  .ablauf__raster > .abschnitt-kopf { grid-area: kopf; }
+  .schritte { grid-area: schritte; }
+  .gut-zu-wissen { grid-area: box; margin-top: 0; }
+  .schritte li { grid-template-columns: 5rem 1fr; padding: 2rem 0; }
+  .schritte__nr { font-size: 3.6rem; }
+  .schritte h3 { font-size: 1.85rem; }
+}
+
+/* 12 Fuß: Stadtpark-Grün ------------------------------------------------------- */
+.fuss { background: var(--park); color: var(--papier); padding: clamp(3.5rem, 8vw, 6rem) 0 calc(1.5rem + env(safe-area-inset-bottom, 0px)); font-family: var(--sans); font-size: .9375rem; line-height: 1.7; }
+.fuss a { color: var(--papier); text-decoration-color: rgba(250, 248, 243, .4); }
+.fuss__raster { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem 1.5rem; }
+.fuss__marke { grid-column: 1 / -1; display: flex; align-items: center; gap: 1.25rem; }
+.fuss__marke img { width: 5.5rem; height: 5.5rem; border-radius: 50%; background: var(--papier); padding: .25rem; }
+.fuss__satz { font-family: var(--serif); font-size: 1.5rem; line-height: 1.2; }
+.fuss__titel { font-size: .75rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; margin-bottom: .5rem; color: rgba(250, 248, 243, .78); }
+.fuss__unten { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 1.5rem; margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid rgba(250, 248, 243, .22); font-size: .8125rem; color: rgba(250, 248, 243, .82); }
+.fuss__recht { display: flex; gap: 1.5rem; }
+.fuss :focus-visible { outline-color: var(--papier); }
+@media (min-width: 860px) { .fuss__raster { grid-template-columns: 2fr 1fr 1fr 1fr; } .fuss__marke { grid-column: auto; align-self: start; } }
+
+/* 13 Dialoge ----------------------------------------------------------------------
+   Natives <dialog>: Fokus bleibt drin, Esc schließt. Desktop: Kuchen mittig (240 ms rein, 160 ms raus),
+   Bestellung als Schublade von rechts. Handy: beides als Blatt von unten (280 ms rein, 200 ms raus). */
+dialog { border: 0; padding: 0; max-width: none; max-height: none; color: var(--tinte); background: var(--papier); }
+dialog::backdrop { background: rgba(27, 28, 24, .42); }
+.blatt {
+  position: fixed; margin: 0; overflow: hidden; overscroll-behavior: contain;
+  opacity: 0;
+  transition: transform 180ms var(--ease-out), opacity 160ms ease, overlay 200ms allow-discrete, display 200ms allow-discrete;
+}
+.blatt[open] { opacity: 1; transform: none; transition: transform 280ms var(--ease-drawer), opacity 200ms ease, overlay 280ms allow-discrete, display 280ms allow-discrete; }
+.blatt::backdrop { opacity: 0; transition: opacity 200ms ease, overlay 200ms allow-discrete, display 200ms allow-discrete; }
+.blatt[open]::backdrop { opacity: 1; }
+@starting-style {
+  .blatt[open] { opacity: 0; }
+  .blatt[open]::backdrop { opacity: 0; }
+}
+.blatt.zieht { transition: none !important; }
+.blatt__griff { display: none; }
+.blatt .zu { position: absolute; top: .75rem; right: .75rem; z-index: 3; background: rgba(250, 248, 243, .92); }
+
+/* Kuchen */
+.blatt--kuchen { inset: 0; margin: auto; width: min(940px, 100% - 3rem); height: fit-content; max-height: min(700px, 100dvh - 3rem); transform: scale(.97); box-shadow: 0 30px 80px -30px rgba(27, 28, 24, .45); }
+.blatt--kuchen[open] { transition-duration: 240ms; }
+@starting-style { .blatt--kuchen[open] { transform: scale(.97); } }
+.kd { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); max-height: inherit; }
+.kd__bild { background: var(--papier-2); padding: 1.25rem; display: grid; align-items: center; }
+.kd__bild img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.kd__inhalt { padding: 2.25rem 2.25rem 0; overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 1.1rem; align-content: start; max-height: min(700px, 100dvh - 3rem); }
+.kd__name { font-weight: 400; font-size: clamp(2.1rem, 1.6rem + 1.6vw, 2.9rem); line-height: 1.02; letter-spacing: -.02em; padding-right: 2.5rem; }
+.kd__desc { color: var(--tinte-2); font-size: 1.0625rem; }
+.gruppe { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: .6rem; }
+.gruppe legend { padding: 0; margin-bottom: .6rem; font-family: var(--sans); font-size: .75rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.wahl { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: .5rem; }
+.wahl label, .optionen label, .umschalter label { position: relative; cursor: pointer; }
+.wahl input, .umschalter input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.wahl span {
+  display: grid; gap: .1rem; min-height: 3.5rem; padding: .65rem .9rem;
+  border: 1px solid var(--linie-stark); border-radius: 3px; background: var(--weiss);
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 140ms var(--ease-out);
+}
+.wahl strong { font-family: var(--sans); font-size: .9375rem; font-weight: 600; line-height: 1.3; }
+.wahl small { font-family: var(--sans); font-size: .875rem; color: var(--tinte-2); }
+.wahl input:checked + span { border-color: var(--park); box-shadow: inset 0 0 0 1px var(--park); background: #F4F7F2; }
+.wahl input:focus-visible + span, .umschalter input:focus-visible + span { outline: 2px solid var(--park); outline-offset: 2px; }
+.wahl label:active span { transform: scale(0.98); }
+.optionen { display: flex; flex-wrap: wrap; gap: .25rem 1.4rem; }
+.optionen label { display: inline-flex; align-items: center; gap: .55rem; min-height: 2.75rem; font-family: var(--sans); font-size: .9375rem; }
+.optionen input { width: 1.25rem; height: 1.25rem; margin: 0; accent-color: var(--park); }
+.kd__fuss {
+  position: sticky; bottom: 0; z-index: 2; display: flex; gap: .75rem; align-items: center;
+  margin: .25rem -2.25rem 0; padding: 1rem 2.25rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to bottom, rgba(250, 248, 243, 0), var(--papier) 1.1rem);
+}
+.kd__dazu { flex: 1; min-width: 0; justify-content: space-between; min-height: 3.25rem; }
+.kd__kurz { display: none; }
+.kd__summe { font-variant-numeric: tabular-nums; }
+.menge { display: inline-flex; align-items: center; border: 1px solid var(--linie-stark); border-radius: 999px; background: var(--weiss); font-family: var(--sans); }
+.menge button { width: 2.75rem; height: 3.1rem; border: 0; background: transparent; font-size: 1.25rem; border-radius: 999px; transition: transform 120ms var(--ease-out); }
+.menge button:active { transform: scale(0.9); }
+.menge output { min-width: 1.4rem; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Bestellung */
+.blatt--korb { inset: 0 0 0 auto; width: min(540px, 100%); height: 100dvh; transform: translateX(100%); }
+@starting-style { .blatt--korb[open] { transform: translateX(100%); } }
+.korb { display: grid; grid-template-rows: auto 1fr; height: 100%; }
+.korb__kopf { position: relative; display: flex; align-items: center; justify-content: space-between; padding: calc(1.1rem + env(safe-area-inset-top, 0px)) 1.5rem 1rem; border-bottom: 1px solid var(--tinte); }
+.korb__kopf h2 { font-weight: 400; font-style: italic; font-size: 2rem; line-height: 1.1; letter-spacing: -.015em; }
+.korb__kopf h2:focus { outline: none; }
+.korb__kopf .zu { position: static; }
+.korb__scroll { overflow-y: auto; overscroll-behavior: contain; padding: .5rem 1.5rem calc(2rem + env(safe-area-inset-bottom, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; align-content: start; --korb-rand: 1.5rem; }
+.korb__leer { display: grid; gap: 1rem; justify-items: start; padding: 1.5rem 0; color: var(--tinte-2); font-size: 1.125rem; }
+.korb__teil { border: 0; margin: 0; padding: 1.4rem 0; min-width: 0; display: grid; gap: .9rem; border-bottom: 1px solid var(--linie); }
+.korb__teil-h { display: flex; align-items: center; gap: .65rem; padding: 0; float: left; width: 100%; margin-bottom: .1rem; font-weight: 400; font-size: 1.35rem; line-height: 1.2; }
+.korb__teil-h + * { clear: both; }
+.korb__teil-h > span { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; border: 1px solid var(--tinte); font-family: var(--sans); font-size: .75rem; font-weight: 700; flex: none; }
+.posten { display: grid; }
+.posten li { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) auto; gap: .9rem; align-items: start; padding: .85rem 0; border-bottom: 1px solid var(--linie); }
+.posten li:first-child { padding-top: .2rem; }
+.posten img { width: 4.5rem; aspect-ratio: 4 / 3; object-fit: cover; background: var(--papier-2); }
+.posten__name { font-size: 1.2rem; line-height: 1.2; }
+.posten__info { font-family: var(--sans); font-size: .8125rem; color: var(--tinte-2); }
+.posten__steuer { display: flex; flex-wrap: wrap; align-items: center; gap: 0 .75rem; margin-top: .45rem; }
+.posten__steuer .menge button { width: 2.5rem; height: 2.5rem; font-size: 1.05rem; }
+.posten__weg { border: 0; background: none; padding: 0; min-height: 2.75rem; font-family: var(--sans); font-size: .8125rem; color: var(--tinte-2); text-decoration: underline; text-underline-offset: .25em; }
+.posten__preis { font-family: var(--sans); font-weight: 600; font-size: .9375rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.korb__summe { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--sans); }
+.korb__summe strong { font-family: var(--serif); font-weight: 400; font-size: 1.75rem; font-variant-numeric: tabular-nums; }
+.danke { display: grid; gap: .9rem; padding: 2rem 0; justify-items: start; }
+.danke:focus { outline: none; }
+.danke h3 { font-weight: 400; font-style: italic; font-size: 3rem; line-height: 1; }
+
+@media (max-width: 759px) {
+  .blatt--kuchen, .blatt--korb {
+    inset: auto 0 0 0; width: 100%; height: auto; max-height: calc(100dvh - 2.5rem - env(safe-area-inset-top, 0px));
+    border-radius: 14px 14px 0 0; transform: translateY(100%); box-shadow: none;
+  }
+  .blatt--kuchen[open] { transition-duration: 280ms; }
+  .blatt--korb { height: calc(100dvh - 2.5rem - env(safe-area-inset-top, 0px)); }
+  @starting-style { .blatt--kuchen[open], .blatt--korb[open] { transform: translateY(100%); } }
+  .blatt__griff { display: block; position: absolute; z-index: 4; top: 0; left: 0; right: 0; height: 1.6rem; touch-action: none; cursor: grab; }
+  .blatt__griff::after { content: ""; position: absolute; left: 50%; top: .55rem; width: 2.5rem; height: 4px; margin-left: -1.25rem; border-radius: 4px; background: rgba(27, 28, 24, .22); }
+  .kd { grid-template-columns: minmax(0, 1fr); max-height: calc(100dvh - 2.5rem - env(safe-area-inset-top, 0px)); overflow-y: auto; overscroll-behavior: contain; }
+  .kd__bild { padding: 1.6rem var(--rand) 0; background: var(--papier); }
+  .kd__bild img { aspect-ratio: 16 / 10; }
+  .kd__inhalt { padding: 1.25rem var(--rand) 0; max-height: none; overflow: visible; }
+  .kd__fuss { margin-inline: calc(-1 * var(--rand)); padding-inline: var(--rand); }
+  .blatt .zu { top: 1rem; right: calc(var(--rand) - .25rem); }
+  .korb__kopf { padding: 1.5rem var(--rand) .75rem; }
+  .korb__kopf h2 { font-size: 1.75rem; }
+  .korb__scroll { padding-inline: var(--rand); --korb-rand: var(--rand); }
+}
+
+/* 14 Formular ------------------------------------------------------------------- */
+.bestellung { display: grid; gap: 0; }
+.bestellung > .fehler { margin-top: 1.25rem; }
+.bestellung > .knopf { margin-top: 1.25rem; min-height: 3.4rem; }
+.bestellung > .hinweis { margin-top: .75rem; }
+.felder { display: grid; gap: .9rem; }
+.felder--2 { grid-template-columns: 1fr 1fr; }
+.felder--adresse { grid-template-columns: 7rem 1fr; margin-top: .25rem; }
+.feld { display: grid; gap: .3rem; font-family: var(--sans); font-size: .8125rem; font-weight: 600; min-width: 0; }
+.feld--breit { grid-column: 1 / -1; }
+.feld input, .feld select, .feld textarea {
+  width: 100%; min-width: 0; min-height: 3rem; padding: .6rem .8rem;
+  font-family: var(--sans); font-size: 16px; font-weight: 400;  /* 16 px: iOS zoomt sonst ins Feld */
+  border: 1px solid var(--linie-stark); border-radius: 3px; background: var(--weiss); color: var(--tinte);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.feld input[type="date"] { -webkit-appearance: none; appearance: none; display: block; }
+.feld input:focus, .feld select:focus, .feld textarea:focus { outline: none; border-color: var(--park); box-shadow: 0 0 0 3px rgba(45, 74, 58, .2); }
+.feld [aria-invalid="true"] { border-color: var(--rot); }
+.umschalter { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.umschalter span {
+  display: grid; place-items: center; min-height: 3rem; padding: .6rem; text-align: center;
+  border: 1px solid var(--linie-stark); border-radius: 3px; background: var(--weiss);
+  font-family: var(--sans); font-size: .9375rem; font-weight: 600;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 140ms var(--ease-out);
+}
+.umschalter label:active span { transform: scale(0.98); }
+.umschalter input:checked + span { background: var(--park); border-color: var(--park); color: var(--papier); }
+/* Schnellwahl der nächsten möglichen Tage */
+.tage { display: flex; gap: .5rem; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; margin-inline: calc(-1 * var(--korb-rand)); padding: 0 var(--korb-rand) .1rem; scroll-padding-inline: var(--korb-rand); }
+.tage::-webkit-scrollbar { display: none; }
+.tag {
+  flex: none; scroll-snap-align: start; display: grid; gap: 0; justify-items: center; min-width: 4.5rem; min-height: 3.5rem; padding: .45rem .7rem;
+  border: 1px solid var(--linie-stark); border-radius: 3px; background: var(--weiss);
+  font-family: var(--sans); line-height: 1.2;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 140ms var(--ease-out);
+}
+.tag small { font-size: .75rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--tinte-2); }
+.tag strong { font-size: .9375rem; font-weight: 600; }
+.tag:active { transform: scale(0.97); }
+.tag[aria-pressed="true"] { background: var(--park); border-color: var(--park); color: var(--papier); }
+.tag[aria-pressed="true"] small { color: rgba(250, 248, 243, .8); }
+@media (hover: hover) and (pointer: fine) { .tag[aria-pressed="false"]:hover, .umschalter label:hover input:not(:checked) + span, .wahl label:hover input:not(:checked) + span { border-color: var(--tinte); } }
+.hinweis { font-family: var(--sans); font-size: .875rem; line-height: 1.5; color: var(--tinte-2); }
+.hinweis.ist-fehler { color: var(--rot); font-weight: 600; }
+.klein { font-size: .8125rem; }
+.fehler { font-family: var(--sans); font-size: .9375rem; color: var(--rot); font-weight: 600; }
+@media (max-width: 400px) { .felder--2 { grid-template-columns: 1fr; } .felder--adresse { grid-template-columns: 6rem minmax(0, 1fr); } }
+@media (max-width: 359px) {
+  .kd__lang { display: none; }
+  .kd__kurz { display: inline; }
+  .kd__fuss .menge button { width: 2.4rem; }
+  .posten li { grid-template-columns: 3.5rem minmax(0, 1fr) auto; gap: .7rem; }
+  .posten img { width: 3.5rem; }
+}
+
+/* 15 Toast: kommt von unten, geht nach unten -------------------------------------- */
+.toast-ort { position: fixed; z-index: 60; left: 50%; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: min(28rem, 100% - 2rem); pointer-events: none; }
+.toast {
+  pointer-events: auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .75rem .75rem .75rem 1.1rem; border-radius: 4px;
+  background: var(--tinte); color: var(--papier); font-family: var(--sans); font-size: .9375rem; line-height: 1.4;
+  box-shadow: 0 18px 40px -16px rgba(27, 28, 24, .55);
+  transform: translateY(calc(100% + 1.5rem)); opacity: 0;
+  transition: transform 280ms var(--ease-out), opacity 220ms ease;
+}
+.toast.ist-da { transform: none; opacity: 1; }
+.toast.geht { transition-duration: 200ms; }
+.toast button { flex: none; min-height: 2.5rem; padding: .5rem .95rem; border: 0; border-radius: 3px; background: var(--papier); color: var(--tinte); font-weight: 700; font-size: .875rem; transition: transform 140ms var(--ease-out); }
+.toast button:active { transform: scale(0.97); }
+
+/* 16 Auftritt & Einblenden (nur mit JS und erlaubter Bewegung) ----------------------
+   Ruhig: kurze Wege (12–16 px), weiche Kurve, Bilder öffnen sich von unten per clip-path. */
+html.motion.js .titel__h .zeile > span,
+html.motion.js [data-auftritt] { opacity: 0; transform: translateY(16px); transition: opacity 800ms var(--ease-out), transform 900ms var(--ease-out); }
+html.motion.js .titel__h .zeile:nth-child(2) > span { transition-delay: 90ms; }
+html.motion.js .dienst[data-auftritt] { transition-delay: 200ms; }
+html.motion.js .titel__unten[data-auftritt] { transition-delay: 300ms; }
+html.motion.js [data-auftritt="bild"] { transform: none; opacity: 1; }
+html.motion.js [data-auftritt="bild"] img { clip-path: inset(100% 0 0 0); transition: clip-path 1100ms var(--ease-in-out) 120ms; }
+html.motion.js.is-ready .titel__h .zeile > span,
+html.motion.js.is-ready [data-auftritt] { opacity: 1; transform: none; }
+html.motion.js.is-ready [data-auftritt="bild"] img { clip-path: inset(0 0 0 0); }
+
+html.motion.js [data-reveal] { opacity: 0; transform: translateY(16px); transition: opacity 800ms var(--ease-out), transform 900ms var(--ease-out); }
+html.motion.js [data-reveal="bild"] { transform: none; }
+html.motion.js [data-reveal="bild"] img { clip-path: inset(0 0 14% 0); transition: clip-path 1100ms var(--ease-out); }
+html.motion.js [data-reveal].ist-sichtbar { opacity: 1; transform: none; }
+html.motion.js [data-reveal].ist-sichtbar img { clip-path: inset(0 0 0 0); }
+html.js-kaputt [data-reveal], html.js-kaputt [data-auftritt], html.js-kaputt .titel__h .zeile > span { opacity: 1 !important; transform: none !important; }
+html.js-kaputt [data-reveal] img, html.js-kaputt [data-auftritt] img { clip-path: none !important; }
+
+/* 17 Bewegung reduzieren ------------------------------------------------------------
+   html.motion fehlt bei „Bewegung reduzieren“ und bei ?motion=off: keine Wege, nur Überblenden. */
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+html:not(.motion) .blatt, html:not(.motion) .blatt[open], html:not(.motion) .menue, html:not(.motion) .menue[open] { transform: none !important; transition: opacity 160ms ease, overlay 160ms allow-discrete, display 160ms allow-discrete; }
+html:not(.motion) .toast { transform: none; transition: opacity 160ms ease; }
+html:not(.motion) .raster.ist-gefiltert .kuchen { transition: none; }
+html:not(.motion) .kuchen__bild img { transition: none; }
+@media (prefers-reduced-transparency: reduce) {
+  .kopf { background: var(--papier); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
