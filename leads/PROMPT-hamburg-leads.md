@@ -49,6 +49,9 @@ Restaurants und Cafés mit mehreren Standorten, Hotels und Pensionen, Fitnessstu
 - **Niemals Nummern, Namen oder Zahlen erfinden oder raten.** Was du nicht findest, bleibt leer oder bekommt "?".
   Lieber eine Lücke als eine falsche Nummer.
 - In der Spalte "Telefon-Typ" angeben, was es ist: `GF direkt`, `GF mobil (Impressum)` oder `Zentrale`.
+- GF-E-Mail: die persönliche Adresse des Geschäftsführers, aber nur wenn sie irgendwo öffentlich steht
+  (Impressum, Team-/Anwaltsseite, Kontaktseite, Stellenanzeige, Kammerverzeichnis). Keine Adressen nach Muster
+  zusammenbauen (vorname.nachname@...). Steht nur info@ da, bleibt die Spalte leer.
 
 ## Aufhänger
 Für jeden Lead ein konkreter Grund, warum ich anrufe, bezogen auf genau diese Firma
@@ -72,7 +75,7 @@ Gib die Liste als **CSV in einem einzigen Codeblock** aus:
 Spalten genau in dieser Reihenfolge:
 
 ```
-"Score","Firma","Rechtsform","Branche","Bezirk","Adresse","Webseite","Webseiten-Note (1-5)","Webseiten-Probleme","Mitarbeiter (ca.)","Umsatz / Geld-Signal","Google-Bewertungen","Geschäftsführer","Telefon","Telefon-Typ","E-Mail","Aufhänger","Quellen","Geprüft am"
+"Score","Firma","Rechtsform","Branche","Bezirk","Adresse","Webseite","Webseiten-Note (1-5)","Webseiten-Probleme","Mitarbeiter (ca.)","Umsatz / Geld-Signal","Google-Bewertungen","Geschäftsführer","Telefon","Telefon-Typ","E-Mail","GF-E-Mail","Aufhänger","Quellen","Geprüft am"
 ```
 
 - "Webseiten-Note": 1 = top, 5 = katastrophal bzw. keine Seite.
