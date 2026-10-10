@@ -66,7 +66,7 @@ Sortiere die Liste nach Score (A zuerst).
 ## Ausgabeformat
 Gib die Liste als **CSV in einem einzigen Codeblock** aus:
 - Trennzeichen Komma, jedes Feld in doppelten Anführungszeichen, erste Zeile = Spaltenköpfe.
-- Telefonnummern im Format `'+49 40 1234567` (mit Apostroph vorne, damit Sheets keine Zahl daraus macht).
+- Telefonnummern im Format `040 1234567` bzw. `0172 1234567` (mit Leerzeichen, ohne +49, damit Sheets keine Zahl oder Formel daraus macht).
 - Keine Erklärungen innerhalb des Codeblocks.
 
 Spalten genau in dieser Reihenfolge:
