@@ -60,7 +60,7 @@ Das ist wichtig: Kaltakquise bei Firmen ist nach § 7 UWG nur zulässig, wenn ei
 nachvollziehbar ist. Der Aufhänger muss das belegen.
 
 ## Lead-Score
-- **A**: viel Geld + sehr schlechte oder keine Webseite + GF-Direktnummer gefunden
+- **A**: viel Geld + sehr schlechte oder keine Webseite + GF-Direktnummer oder GF-E-Mail gefunden
 - **B**: zwei von drei
 - **C**: Rest (nur aufnehmen, wenn die Liste sonst zu kurz ist)
 
