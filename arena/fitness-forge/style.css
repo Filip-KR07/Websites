@@ -495,7 +495,7 @@ html:not(.js) .hero__canvas { display: none; }
     grid-column: 3 / -1; grid-row: 2; margin-top: calc(1.1rem + var(--kfs) * .16);
     height: calc(var(--kfs) * 1.8); max-width: none;
   }
-  .timer { right: -6px; top: -16px; padding: .4rem .65rem .4rem .4rem; }
+  .timer { right: -6px; top: auto; bottom: -24px; padding: .4rem .65rem .4rem .4rem; }
   .timer__ring { width: 36px; height: 36px; }
   .timer__time { font-size: 1.35rem; }
   .hero__copy { grid-column: 1 / -1; grid-row: 3; justify-self: stretch; max-width: 36rem; margin-top: 2.2rem; padding: 0; }
@@ -1257,7 +1257,7 @@ html.has-strip .frame:nth-child(even) { margin-top: clamp(2rem, 5vw, 5rem); }
 .lap:last-child { border-bottom: 2px solid var(--asphalt); }
 .lap__no { font-size: .72rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
 .lap__t { grid-column: 2; grid-row: 1 / 3; font-family: var(--ff-display); font-weight: 900; font-size: clamp(2.4rem, 5vw, 4rem); line-height: .85; font-variant-numeric: tabular-nums; }
-.lap h3 { font-family: var(--ff-display); font-weight: 900; font-size: clamp(2.2rem, 4.4vw, 3.6rem); text-transform: uppercase; line-height: .9; letter-spacing: .01em; }
+.lap h3 { overflow-wrap: anywhere; font-family: var(--ff-display); font-weight: 900; font-size: clamp(1.9rem, 4.4vw + .4rem, 3.6rem); text-transform: uppercase; line-height: .9; letter-spacing: .01em; }
 .lap p { grid-column: 1 / -1; max-width: 36rem; font-size: 1.02rem; line-height: 1.55; margin-top: .4rem; }
 html.has-laps .lap { opacity: .42; }
 html.has-laps .lap.is-on { opacity: 1; }
@@ -1569,7 +1569,7 @@ html.js .kin__in::after { opacity: calc(var(--mb, 0) * .32); transform: translat
 html.js .kin__in::before { opacity: calc(var(--mb, 0) * .16); transform: translateX(calc(var(--mb, 0) * -.2em)); }
 
 /* Einspaltige Raster: Spalte darf nie breiter als der Container werden */
-.sec__head, .sec__aside, .halle__text, .map-info, .contact__side, .disc__intro, .laps__side, .score, .panel__body, .cfg__controls, .bon__in, .gen, .planout, .done, .form, .menu__foot { grid-template-columns: minmax(0, 1fr); }
+.sec__aside, .halle__text, .map-info, .contact__side, .disc__intro, .laps__side, .score, .panel__body, .cfg__controls, .bon__in, .gen, .planout, .done, .form, .menu__foot { grid-template-columns: minmax(0, 1fr); }
 .chips.field { display: flex; flex-wrap: wrap; align-content: start; }
 @media (min-width: 900px) {
   .hero__in { padding-bottom: clamp(4.25rem, 8svh, 5rem); }
@@ -1606,3 +1606,8 @@ html.js .kin__in::before { opacity: calc(var(--mb, 0) * .16); transform: transla
 .coach__back .coach__label, .coach__back .coach__spec { padding-right: 2.9rem; }
 .coach__name { padding-right: 3rem; }
 @media (max-width: 699px) { .coach__name { padding-right: 2.5rem; overflow-wrap: anywhere; } }
+@media (max-width: 899px) { .sec__head { grid-template-columns: minmax(0, 1fr); } }
+.halle .h2, .laps .h2 { font-size: clamp(2.6rem, 4.8vw, 5rem); }
+html.has-hscroll .disc__intro .h2 { font-size: clamp(3rem, 5.2vw, 6rem); }
+@media (min-width: 1000px) { .laps__photo { aspect-ratio: 16 / 9; } }
+.coach__spec { overflow-wrap: anywhere; }

@@ -831,7 +831,9 @@
           activate(hits);
           var names = hits.map(function (k) { return bySlug[k].name; });
           var list = names.length > 1 ? names.slice(0, -1).join(', ') + ' und ' + names[names.length - 1] : names[0];
-          say('Ja, zur Postleitzahl ' + plz + ' fahren wir nach ' + list + ' – Zone' + NB + '2, Anfahrt ca. ' + bySlug[hits[0]].min + NB + 'Minuten.', true);
+          var mins = hits.map(function (k) { return bySlug[k].min; });
+          var m0 = Math.min.apply(null, mins), m1 = Math.max.apply(null, mins);
+          say('Ja, zur Postleitzahl ' + plz + ' fahren wir nach ' + list + ' – Zone' + NB + '2, Anfahrt ca. ' + (m0 === m1 ? m0 : m0 + '–' + m1) + NB + 'Minuten.', true);
           return;
         }
         activate([]);
