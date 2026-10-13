@@ -32,9 +32,13 @@ Animationen zum Testen abschalten: `?motion=off` an die Adresse einer Demo häng
 - Formulare senden nichts (kein Backend). Für den Livegang an einen Formular-Dienst oder eine
   Serverless-Funktion anbinden und dann in der Datenschutzerklärung beschreiben.
 - Impressum und Datenschutz sind Muster und ersetzen keine Rechtsberatung.
+- Alle Pfade sind **absolut** (`/handwerk/<ordner>/…`), weil `vercel.json` `trailingSlash: false` setzt
+  und Vercel `/handwerk/x/` auf `/handwerk/x` umleitet – relative Pfade würden dann einen Ordner zu hoch
+  zeigen. Zieht eine Demo auf eine eigene Domain um (Kundenseite im Wurzelverzeichnis), das Präfix
+  `/handwerk/<ordner>` in den HTML-Dateien entfernen.
 
 ## Vorschaubilder der Übersicht neu erzeugen
 
-`assets/preview/*-desktop.webp` (1200×750) und `*-mobile.webp` (390×844) sind Screenshots der
+`assets/preview/*-desktop.webp` (1200×750, aus 1440×900) und `*-mobile.webp` (600×1298, aus 390×844 bei 2-facher Pixeldichte) sind Screenshots der
 jeweiligen Startseite. Nach größeren Änderungen an einer Demo neu aufnehmen (z. B. mit Playwright bei
 1440×900 bzw. 390×844, oberster Bildschirm) und als WebP speichern.
