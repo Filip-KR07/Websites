@@ -42,6 +42,8 @@ Außerdem: Leistungen mit fixiertem Bildrahmen, der beim Scrollen wechselt; Karu
 - **Jahresringe:** Gründungsjahr in `main.js` (`since = 1987`) und im Zähler (`data-since`); markierte Jahre in `marks`.
 - **Karte:** Die SVG-Karte steht direkt in `index.html` (`.map-svg`); Orte sind `<g class="town" data-town="…">`, die Liste daneben nutzt dieselben `data-town`-Werte.
 
+- **Pfade:** Alle Verweise in den HTML-Dateien sind absolut (`/handwerk/tischlerei-lindner/…`), weil Vercel mit `trailingSlash: false` die Ordner-URL ohne Schrägstrich ausliefert. Wird der Ordner umbenannt oder die Seite an die Domain-Wurzel gelegt, den Pfad per Suchen & Ersetzen in `index.html`, `impressum.html` und `datenschutz.html` anpassen. `url()`-Pfade in `style.css` sind relativ und bleiben unverändert.
+
 ## Lokal starten
 
 ```sh
