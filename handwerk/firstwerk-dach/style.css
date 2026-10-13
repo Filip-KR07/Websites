@@ -822,10 +822,12 @@ html.js .quiz__q[hidden] { display: none; }
 
 /* ---------------------------------------------------------------- Zahlen */
 .stats { padding-block: clamp(64px, 8vw, 120px); }
-.stats__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--c-ink); border-bottom: 2px solid var(--c-ink); }
+.stats__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--c-ink); border-bottom: 2px solid var(--c-ink); container-type: inline-size; }
 .stat { display: grid; align-content: start; gap: 8px; padding: clamp(18px, 2vw, 28px) clamp(14px, 1.6vw, 24px) clamp(22px, 2.4vw, 32px); border-left: 1px solid var(--c-line); }
 .stat:first-child { border-left: 0; padding-left: 0; }
 .stat__n { display: flex; align-items: flex-start; font: 900 clamp(4.2rem, 10.4vw, 11rem)/.8 var(--f-sans); font-stretch: 62%; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+/* Größe an der Spaltenbreite messen, damit „3.100+“ nie in die Nachbarspalte läuft */
+.stat__n { font-size: clamp(3.6rem, 9.4cqi, 11rem); }
 .stat__plus { color: var(--c-orange); font-size: .55em; line-height: 1; margin-left: .04em; }
 .stat__u { font: 900 clamp(1.3rem, 1.8vw, 1.9rem)/1 var(--f-sans); font-stretch: 70%; text-transform: uppercase; margin-top: 6px; }
 .stat__d { font: 500 .75rem/1.4 var(--f-mono); color: var(--c-mute); max-width: 24ch; }
@@ -833,6 +835,7 @@ html.js .quiz__q[hidden] { display: none; }
   .stats__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stat:nth-child(3) { border-left: 0; padding-left: 0; }
   .stat:nth-child(n+3) { border-top: 1px solid var(--c-line); }
+  .stat__n { font-size: clamp(3.2rem, 18cqi, 8rem); }
 }
 
 /* ---------------------------------------------------------------- Ablauf */

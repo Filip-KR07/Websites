@@ -345,8 +345,23 @@
 
   /* ------------------------------------------------------------ Leistungen: Karten-Stapel */
   function initStack() {
-    if (REDUCE || !hasGSAP) return;
+    const stack = $('[data-stack]');
     const cards = $$('.stack .card');
+    // Tastatur: fokussierte Karte nicht hinter der nächsten verstecken
+    const mqSticky = matchMedia('(min-width: 900px) and (min-height: 640px)');
+    if (stack) stack.addEventListener('focusin', e => {
+      if (!mqSticky.matches) return;
+      const card = e.target.closest('.card');
+      const i = cards.indexOf(card);
+      if (i < 0) return;
+      requestAnimationFrame(() => {
+        const g = parseFloat(getComputedStyle(stack).rowGap) || 0;
+        const H = $('.card__in', cards[0]).offsetHeight;
+        const top = stack.getBoundingClientRect().top + window.scrollY + i * (H + g) - (hdrH() + 20 + i * 12);
+        if (lenis) lenis.scrollTo(top, { immediate: true }); else window.scrollTo(0, top);
+      });
+    });
+    if (REDUCE || !hasGSAP) return;
     const mm = gsap.matchMedia();
     mm.add('(min-width: 900px)', () => {
       const tweens = [];
