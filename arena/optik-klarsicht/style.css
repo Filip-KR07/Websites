@@ -362,6 +362,10 @@ html.anim .is-open .dot-live::after { animation: livePulse 2.4s var(--ease-out) 
   display: flex; align-items: baseline; gap: .18em;
   font-size: calc(var(--s) * 27.5cqi);
 }
+@media (min-width: 900px) {
+  /* Bei niedrigen Fenstern kleiner, damit Text und Buttons im ersten Bildschirm bleiben */
+  .chart-line { font-size: min(calc(var(--s) * 27.5cqi), calc(var(--s) * 16.5svh)); }
+}
 .chart-line.l1 { --s: 1; }
 .chart-line.l2 { --s: .76; margin-top: .02em; }
 .chart-line.l3 { --s: .5; margin-top: .12em; }
@@ -433,7 +437,7 @@ html.js.focus-pending .focus-veil {
   display: block;
   position: absolute; inset: 0; z-index: 2;
   pointer-events: none;
-  --fb: 16px;
+  --fb: 14px;
   --lx: -999px; --ly: -999px; --lr: 0px;
   -webkit-backdrop-filter: blur(var(--fb));
   backdrop-filter: blur(var(--fb));
@@ -441,6 +445,21 @@ html.js.focus-pending .focus-veil {
   mask-image: radial-gradient(circle at var(--lx) var(--ly), transparent 0, transparent calc(var(--lr) * .84), #000 var(--lr));
 }
 html.reduced.focus-pending .focus-veil { --fb: 8px; }
+@media (hover: none), (pointer: coarse), (max-width: 899px) {
+  html.js.focus-pending .focus-veil { --fb: 10px; }
+}
+.focus-lens { opacity: 0; }
+.fl-glass {
+  position: absolute; inset: 0; border-radius: 50%;
+  overflow: hidden; background: var(--white);
+}
+.fl-mag {
+  position: absolute !important; left: 0; top: 0; margin: 0 !important;
+  pointer-events: none;
+  will-change: transform;
+}
+.fl-mag .hero-eyebrow, .fl-mag .hero-copy { visibility: hidden; }
+.fl-mag .cl-t, .fl-mag .hero-visual, .fl-mag .hv-scale { opacity: 1 !important; transform: none !important; }
 html.js.focus-pending .focus-lens.is-on {
   display: block;
   position: absolute; left: 0; top: 0; z-index: 2;
@@ -491,7 +510,8 @@ html.anim .hero-visual { opacity: 0; }
   .hero-grid { grid-template-rows: none; min-height: 0; }
   .hero-eyebrow { grid-column: 1 / -1; grid-row: auto; }
   .hero-title { grid-column: 1 / -1; grid-row: auto; }
-  .chart-line { font-size: calc(var(--s) * 29cqi); }
+  .chart-line { font-size: calc(var(--s) * 25cqi); }
+  .cl-v::before { width: clamp(12px, 4cqi, 24px); }
   .hero-visual {
     grid-column: 1 / -1; grid-row: auto;
     width: min(84vw, 440px); justify-self: center;
@@ -641,7 +661,7 @@ html.js .quiz-nav { display: flex; }
 .quiz-result[hidden] { display: none; }
 @media (min-width: 700px) { .quiz-result { grid-template-columns: 200px minmax(0, 1fr); align-items: start; } }
 .qr-face { background: var(--mist); border-radius: 50%; aspect-ratio: 1; display: grid; place-items: center; overflow: hidden; max-width: 200px; }
-.qr-face-svg { width: 74%; height: auto; overflow: visible; }
+.qr-face-svg { width: 92%; height: auto; overflow: visible; }
 .qr-face-svg .f-head { fill: var(--white); stroke: var(--ink); stroke-width: 2.4; }
 .qr-face-svg .f-feat { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; }
 .qr-kicker { font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 540; }
@@ -1140,6 +1160,7 @@ html.anim .pin-pulse { animation: pinPulse 2.6s var(--ease-out) infinite; transf
 .book { background: var(--mist); }
 .book-grid { display: grid; gap: 40px clamp(32px, 5vw, 80px); }
 @media (min-width: 1000px) { .book-grid { grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); align-items: start; } .book-head { position: sticky; top: calc(var(--head-h) + 40px); } }
+.book-head .h2 { font-size: clamp(2.1rem, 1.3rem + 2.4vw, 3.7rem); }
 .book-points { margin-top: 28px; display: grid; gap: 10px; font-size: .94rem; color: var(--ink-2); }
 .book-points li { padding-left: 22px; position: relative; }
 .book-points li::before { content: ""; position: absolute; left: 0; top: .62em; width: 10px; height: 10px; border-radius: 50%; border: 1.6px solid var(--cobalt); }
@@ -1262,6 +1283,7 @@ html.anim .book-done:not([hidden]) .done-mark circle { animation: doneDraw 700ms
 .demo-pill:active { transform: scale(.97); }
 .dp-ring { width: 16px; height: 16px; border-radius: 50%; border: 3.4px solid var(--cobalt); border-right-color: transparent; transform: rotate(45deg); flex: none; }
 @media (min-width: 900px) {
+  .foot { padding-bottom: calc(76px + var(--safe-b)); }
   .demo-pill {
     position: fixed; left: 16px; bottom: calc(16px + var(--safe-b)); z-index: 70;
     background: rgba(255, 255, 255, .9); color: var(--ink);
@@ -1298,6 +1320,16 @@ html.anim .book-done:not([hidden]) .done-mark circle { animation: doneDraw 700ms
   body { padding-bottom: calc(72px + var(--safe-b)); }
   .foot { padding-bottom: calc(28px + var(--safe-b)); }
 }
+
+/* Werkstatt-Station: Formrand ohne JS sichtbar, mit Animation gezeichnet */
+.edge-cut { stroke-dashoffset: 0; }
+html.anim .edge-cut { stroke-dashoffset: 1; }
+
+/* Glas-Explorer: weiche Verschiebung der Unschärfe-Zonen */
+.gm-ein-near, .gm-ein-far, .gm-gleit-l, .gm-gleit-r { transition: transform 700ms var(--ease-in-out); }
+
+/* Sprungziele (Skip-Link, Anker) ohne Rahmen um ganze Abschnitte */
+main:focus, section:focus, main[tabindex="-1"]:focus-visible, section[tabindex="-1"]:focus-visible { outline: none; }
 
 /* ---------- Reveal (nur mit Animation) ---------- */
 html.anim .reveal-focus { opacity: 0; }

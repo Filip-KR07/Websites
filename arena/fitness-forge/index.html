@@ -167,12 +167,12 @@
     <section class="hero" id="start" aria-labelledby="hero-title">
       <canvas class="hero__canvas" aria-hidden="true"></canvas>
       <div class="hero__in">
-        <p class="hero__eyebrow"><span class="tag">Athletic Club</span><span>Berlin-Friedrichshain · seit 2017</span></p>
+        <p class="hero__eyebrow" data-hero-fade><span class="tag">Athletic Club</span><span>Berlin-Friedrichshain · seit 2017</span></p>
         <h1 class="hero__title" id="hero-title">
-          <span class="sr-only">FORGE Athletic Club Berlin: </span>
-          <span class="kin kin--1"><span class="kin__in">Stark.</span></span>
-          <span class="kin kin--2"><span class="kin__in">Schnell.</span></span>
-          <span class="kin kin--3"><span class="kin__in">Forge.</span></span>
+          <span class="sr-only">FORGE Athletic Club Berlin – Stark. Schnell. Forge.</span>
+          <span class="kin kin--1" aria-hidden="true"><span class="kin__in" data-text="Stark." style="--i:0">Stark.</span></span>
+          <span class="kin kin--2" aria-hidden="true"><span class="kin__in" data-text="Schnell." style="--i:1">Schnell.</span></span>
+          <span class="kin kin--3" aria-hidden="true"><span class="kin__in" data-text="Forge." style="--i:2">Forge.</span></span>
         </h1>
         <figure class="hero__photo">
           <div class="hero__frame">
@@ -185,20 +185,20 @@
             <span class="timer__set">Satz <b data-set>3</b>/5</span>
           </figcaption>
         </figure>
-        <div class="hero__copy">
+        <div class="hero__copy" data-hero-fade style="--d:420ms">
           <p class="hero__lead">Krafttraining, Conditioning, Boxen und Mobility unter einem Dach – mit 14&nbsp;Coaches, die Ihre Technik korrigieren, bevor das Gewicht steigt. Werktags von 6 bis 23&nbsp;Uhr.</p>
           <div class="hero__ctas">
             <a class="btn btn--glut" href="#probetraining">Probetraining buchen <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
             <a class="btn btn--line" href="#kursplan">Kursplan ansehen</a>
           </div>
         </div>
-        <ul class="hero__trust" aria-label="Auf einen Blick">
+        <ul class="hero__trust" aria-label="Auf einen Blick" data-hero-fade style="--d:560ms">
           <li><b>4,8 <svg aria-hidden="true"><use href="#i-star"/></svg></b><span>530 Bewertungen</span></li>
           <li><b>14</b><span>Coaches</span></li>
           <li><b>46</b><span>Kurse pro Woche</span></li>
           <li><b>0&nbsp;€</b><span>Probetraining</span></li>
         </ul>
-        <a class="live" href="#kursplan" data-live>
+        <a class="live" href="#kursplan" data-live data-hero-fade style="--d:680ms">
           <span class="live__head"><span class="live__dot" aria-hidden="true"></span><span data-live-label>Kursplan</span><span class="live__clock" data-clock>Berlin</span></span>
           <span class="live__name" data-live-name>46 Kurse pro Woche</span>
           <span class="live__meta" data-live-meta>Mo–Fr 6–23 Uhr · Sa/So 8–20 Uhr</span>
@@ -220,7 +220,7 @@
         <div class="disc__track">
           <div class="disc__intro">
             <p class="kicker"><span>01</span>Disziplinen</p>
-            <h2 class="h2" id="disc-title">Vier Disziplinen. Ein&nbsp;System.</h2>
+            <h2 class="h2" id="disc-title">Vier Disziplinen. Ein System.</h2>
             <p class="disc__lead">Jede Disziplin hat ihre eigene Fläche, eigene Coaches und eine klare Progression. Sie können sich auf eine konzentrieren – oder alle vier kombinieren, so wie es Ihr Plan verlangt.</p>
             <p class="disc__hint" aria-hidden="true"><span>Weiter scrollen</span><svg><use href="#i-arrow"/></svg></p>
           </div>
@@ -306,7 +306,7 @@
         <div class="sec__head sec__head--split">
           <div>
             <p class="kicker"><span>02</span>Kursplan</p>
-            <h2 class="h2" id="plan-title">Diese Woche in der&nbsp;Halle.</h2>
+            <h2 class="h2" id="plan-title">Diese Woche in der Halle.</h2>
           </div>
           <div class="sec__aside">
             <p>46 Kurse von Montag bis Sonntag. Filtern Sie nach Disziplin, Level oder Coach – was gerade läuft, ist <strong class="glut">rot markiert</strong>.</p>
@@ -360,7 +360,462 @@
         </div>
 
         <div class="woche" data-woche>
-<!--KURSPLAN-->
+          <div class="woche__tag" id="tag-mo" data-tag="0" aria-labelledby="tagname-mo">
+            <h3 class="woche__kopf" id="tagname-mo"><span class="woche__kurz" aria-hidden="true">Mo</span><span class="woche__lang">Montag</span><span class="woche__heute" hidden>Heute</span></h3>
+            <ol class="woche__liste">
+              <li class="kurs" data-typ="mobility" data-level="alle" data-coach="lh" data-start="06:30" data-ende="07:00" data-raum="Studio">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>06:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>07:00</time></span>
+                  <span class="kurs__code" aria-hidden="true">MOB</span>
+                  <span class="kurs__name">Morning Mobility</span>
+                  <span class="kurs__meta">Lea Hoffmann · Studio</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="conditioning" data-level="alle" data-coach="da" data-start="07:15" data-ende="08:00" data-raum="Turfbahn">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>07:15</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>08:00</time></span>
+                  <span class="kurs__code" aria-hidden="true">CON</span>
+                  <span class="kurs__name">Engine</span>
+                  <span class="kurs__meta">Deniz Aydın · Turfbahn</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="conditioning" data-level="einsteiger" data-coach="ar" data-start="12:15" data-ende="12:45" data-raum="Halle">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>12:15</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>12:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">CON</span>
+                  <span class="kurs__name">Zirkel 30</span>
+                  <span class="kurs__meta">Ana Ruiz · Halle</span>
+                  <span class="kurs__level" data-level="einsteiger">Einsteiger</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="strength" data-level="einsteiger" data-coach="jw" data-start="17:30" data-ende="18:30" data-raum="Halle">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>17:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>18:30</time></span>
+                  <span class="kurs__code" aria-hidden="true">STR</span>
+                  <span class="kurs__name">Strength Basics</span>
+                  <span class="kurs__meta">Jonas Weber · Halle</span>
+                  <span class="kurs__level" data-level="einsteiger">Einsteiger</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="boxing" data-level="einsteiger" data-coach="mp" data-start="18:30" data-ende="19:30" data-raum="Ring">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>18:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>19:30</time></span>
+                  <span class="kurs__code" aria-hidden="true">BOX</span>
+                  <span class="kurs__name">Boxing Basics</span>
+                  <span class="kurs__meta">Mara Petrović · Ring</span>
+                  <span class="kurs__level" data-level="einsteiger">Einsteiger</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="strength" data-level="fortgeschritten" data-coach="jw" data-start="19:30" data-ende="20:45" data-raum="Plattformen">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>19:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>20:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">STR</span>
+                  <span class="kurs__name">Barbell Club</span>
+                  <span class="kurs__meta">Jonas Weber · Plattformen</span>
+                  <span class="kurs__level" data-level="fortgeschritten">Fortgeschritten</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="mobility" data-level="alle" data-coach="lh" data-start="20:30" data-ende="21:15" data-raum="Studio">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>20:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>21:15</time></span>
+                  <span class="kurs__code" aria-hidden="true">MOB</span>
+                  <span class="kurs__name">Mobility Flow</span>
+                  <span class="kurs__meta">Lea Hoffmann · Studio</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+            </ol>
+            <p class="woche__leer" hidden>Kein passender Kurs an diesem Tag.</p>
+          </div>
+          <div class="woche__tag" id="tag-di" data-tag="1" aria-labelledby="tagname-di">
+            <h3 class="woche__kopf" id="tagname-di"><span class="woche__kurz" aria-hidden="true">Di</span><span class="woche__lang">Dienstag</span><span class="woche__heute" hidden>Heute</span></h3>
+            <ol class="woche__liste">
+              <li class="kurs" data-typ="strength" data-level="alle" data-coach="km" data-start="06:30" data-ende="07:15" data-raum="Halle">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>06:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>07:15</time></span>
+                  <span class="kurs__code" aria-hidden="true">STR</span>
+                  <span class="kurs__name">Kettlebell Lab</span>
+                  <span class="kurs__meta">Kofi Mensah · Halle</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="mobility" data-level="alle" data-coach="lh" data-start="07:30" data-ende="08:00" data-raum="Studio">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>07:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>08:00</time></span>
+                  <span class="kurs__code" aria-hidden="true">MOB</span>
+                  <span class="kurs__name">Morning Mobility</span>
+                  <span class="kurs__meta">Lea Hoffmann · Studio</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="boxing" data-level="alle" data-coach="ar" data-start="12:15" data-ende="13:00" data-raum="Ring">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>12:15</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>13:00</time></span>
+                  <span class="kurs__code" aria-hidden="true">BOX</span>
+                  <span class="kurs__name">Bag Work</span>
+                  <span class="kurs__meta">Ana Ruiz · Ring</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="conditioning" data-level="fortgeschritten" data-coach="da" data-start="17:30" data-ende="18:15" data-raum="Turfbahn">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>17:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>18:15</time></span>
+                  <span class="kurs__code" aria-hidden="true">CON</span>
+                  <span class="kurs__name">Sled &amp; Sprint</span>
+                  <span class="kurs__meta">Deniz Aydın · Turfbahn</span>
+                  <span class="kurs__level" data-level="fortgeschritten">Fortgeschritten</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="boxing" data-level="alle" data-coach="mp" data-start="18:30" data-ende="19:30" data-raum="Ring">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>18:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>19:30</time></span>
+                  <span class="kurs__code" aria-hidden="true">BOX</span>
+                  <span class="kurs__name">Boxing Technik</span>
+                  <span class="kurs__meta">Mara Petrović · Ring</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="strength" data-level="fortgeschritten" data-coach="ts" data-start="19:00" data-ende="20:15" data-raum="Plattformen">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>19:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>20:15</time></span>
+                  <span class="kurs__code" aria-hidden="true">STR</span>
+                  <span class="kurs__name">Olympic Lifting</span>
+                  <span class="kurs__meta">Tim Schulz · Plattformen</span>
+                  <span class="kurs__level" data-level="fortgeschritten">Fortgeschritten</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="mobility" data-level="einsteiger" data-coach="lh" data-start="20:15" data-ende="21:00" data-raum="Studio">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>20:15</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>21:00</time></span>
+                  <span class="kurs__code" aria-hidden="true">MOB</span>
+                  <span class="kurs__name">Stretch &amp; Restore</span>
+                  <span class="kurs__meta">Lea Hoffmann · Studio</span>
+                  <span class="kurs__level" data-level="einsteiger">Einsteiger</span>
+                </button>
+              </li>
+            </ol>
+            <p class="woche__leer" hidden>Kein passender Kurs an diesem Tag.</p>
+          </div>
+          <div class="woche__tag" id="tag-mi" data-tag="2" aria-labelledby="tagname-mi">
+            <h3 class="woche__kopf" id="tagname-mi"><span class="woche__kurz" aria-hidden="true">Mi</span><span class="woche__lang">Mittwoch</span><span class="woche__heute" hidden>Heute</span></h3>
+            <ol class="woche__liste">
+              <li class="kurs" data-typ="conditioning" data-level="alle" data-coach="da" data-start="06:30" data-ende="07:15" data-raum="Turfbahn">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>06:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>07:15</time></span>
+                  <span class="kurs__code" aria-hidden="true">CON</span>
+                  <span class="kurs__name">Engine</span>
+                  <span class="kurs__meta">Deniz Aydın · Turfbahn</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="strength" data-level="einsteiger" data-coach="sb" data-start="07:15" data-ende="08:15" data-raum="Halle">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>07:15</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>08:15</time></span>
+                  <span class="kurs__code" aria-hidden="true">STR</span>
+                  <span class="kurs__name">Strength Basics</span>
+                  <span class="kurs__meta">Svenja Brandt · Halle</span>
+                  <span class="kurs__level" data-level="einsteiger">Einsteiger</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="mobility" data-level="alle" data-coach="lh" data-start="12:15" data-ende="13:00" data-raum="Studio">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>12:15</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>13:00</time></span>
+                  <span class="kurs__code" aria-hidden="true">MOB</span>
+                  <span class="kurs__name">Mobility Flow</span>
+                  <span class="kurs__meta">Lea Hoffmann · Studio</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="strength" data-level="alle" data-coach="km" data-start="17:30" data-ende="18:30" data-raum="Halle">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>17:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>18:30</time></span>
+                  <span class="kurs__code" aria-hidden="true">STR</span>
+                  <span class="kurs__name">Power Hour</span>
+                  <span class="kurs__meta">Kofi Mensah · Halle</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="boxing" data-level="alle" data-coach="ar" data-start="18:30" data-ende="19:15" data-raum="Ring">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>18:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>19:15</time></span>
+                  <span class="kurs__code" aria-hidden="true">BOX</span>
+                  <span class="kurs__name">Bag Work</span>
+                  <span class="kurs__meta">Ana Ruiz · Ring</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="boxing" data-level="fortgeschritten" data-coach="mp" data-start="19:30" data-ende="20:45" data-raum="Ring">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>19:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>20:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">BOX</span>
+                  <span class="kurs__name">Sparring Lab</span>
+                  <span class="kurs__meta">Mara Petrović · Ring</span>
+                  <span class="kurs__level" data-level="fortgeschritten">Fortgeschritten</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="conditioning" data-level="alle" data-coach="da" data-start="20:00" data-ende="20:45" data-raum="Turfbahn">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>20:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>20:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">CON</span>
+                  <span class="kurs__name">Row &amp; Ride</span>
+                  <span class="kurs__meta">Deniz Aydın · Turfbahn</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+            </ol>
+            <p class="woche__leer" hidden>Kein passender Kurs an diesem Tag.</p>
+          </div>
+          <div class="woche__tag" id="tag-do" data-tag="3" aria-labelledby="tagname-do">
+            <h3 class="woche__kopf" id="tagname-do"><span class="woche__kurz" aria-hidden="true">Do</span><span class="woche__lang">Donnerstag</span><span class="woche__heute" hidden>Heute</span></h3>
+            <ol class="woche__liste">
+              <li class="kurs" data-typ="mobility" data-level="alle" data-coach="lh" data-start="06:30" data-ende="07:00" data-raum="Studio">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>06:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>07:00</time></span>
+                  <span class="kurs__code" aria-hidden="true">MOB</span>
+                  <span class="kurs__name">Morning Mobility</span>
+                  <span class="kurs__meta">Lea Hoffmann · Studio</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="strength" data-level="alle" data-coach="km" data-start="07:15" data-ende="08:00" data-raum="Halle">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>07:15</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>08:00</time></span>
+                  <span class="kurs__code" aria-hidden="true">STR</span>
+                  <span class="kurs__name">Kettlebell Lab</span>
+                  <span class="kurs__meta">Kofi Mensah · Halle</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="conditioning" data-level="einsteiger" data-coach="sb" data-start="12:15" data-ende="12:45" data-raum="Halle">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>12:15</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>12:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">CON</span>
+                  <span class="kurs__name">Zirkel 30</span>
+                  <span class="kurs__meta">Svenja Brandt · Halle</span>
+                  <span class="kurs__level" data-level="einsteiger">Einsteiger</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="boxing" data-level="einsteiger" data-coach="ar" data-start="17:30" data-ende="18:30" data-raum="Ring">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>17:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>18:30</time></span>
+                  <span class="kurs__code" aria-hidden="true">BOX</span>
+                  <span class="kurs__name">Boxing Basics</span>
+                  <span class="kurs__meta">Ana Ruiz · Ring</span>
+                  <span class="kurs__level" data-level="einsteiger">Einsteiger</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="strength" data-level="fortgeschritten" data-coach="jw" data-start="18:30" data-ende="19:45" data-raum="Plattformen">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>18:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>19:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">STR</span>
+                  <span class="kurs__name">Barbell Club</span>
+                  <span class="kurs__meta">Jonas Weber · Plattformen</span>
+                  <span class="kurs__level" data-level="fortgeschritten">Fortgeschritten</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="conditioning" data-level="alle" data-coach="da" data-start="19:00" data-ende="19:45" data-raum="Turfbahn">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>19:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>19:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">CON</span>
+                  <span class="kurs__name">Engine</span>
+                  <span class="kurs__meta">Deniz Aydın · Turfbahn</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="mobility" data-level="alle" data-coach="lh" data-start="20:30" data-ende="21:15" data-raum="Studio">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>20:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>21:15</time></span>
+                  <span class="kurs__code" aria-hidden="true">MOB</span>
+                  <span class="kurs__name">Mobility Flow</span>
+                  <span class="kurs__meta">Lea Hoffmann · Studio</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+            </ol>
+            <p class="woche__leer" hidden>Kein passender Kurs an diesem Tag.</p>
+          </div>
+          <div class="woche__tag" id="tag-fr" data-tag="4" aria-labelledby="tagname-fr">
+            <h3 class="woche__kopf" id="tagname-fr"><span class="woche__kurz" aria-hidden="true">Fr</span><span class="woche__lang">Freitag</span><span class="woche__heute" hidden>Heute</span></h3>
+            <ol class="woche__liste">
+              <li class="kurs" data-typ="conditioning" data-level="alle" data-coach="da" data-start="06:30" data-ende="07:15" data-raum="Turfbahn">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>06:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>07:15</time></span>
+                  <span class="kurs__code" aria-hidden="true">CON</span>
+                  <span class="kurs__name">Row &amp; Ride</span>
+                  <span class="kurs__meta">Deniz Aydın · Turfbahn</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="strength" data-level="einsteiger" data-coach="jw" data-start="07:15" data-ende="08:15" data-raum="Halle">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>07:15</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>08:15</time></span>
+                  <span class="kurs__code" aria-hidden="true">STR</span>
+                  <span class="kurs__name">Strength Basics</span>
+                  <span class="kurs__meta">Jonas Weber · Halle</span>
+                  <span class="kurs__level" data-level="einsteiger">Einsteiger</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="boxing" data-level="alle" data-coach="mp" data-start="12:15" data-ende="13:00" data-raum="Ring">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>12:15</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>13:00</time></span>
+                  <span class="kurs__code" aria-hidden="true">BOX</span>
+                  <span class="kurs__name">Bag Work</span>
+                  <span class="kurs__meta">Mara Petrović · Ring</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="strength" data-level="fortgeschritten" data-coach="ts" data-start="17:00" data-ende="18:15" data-raum="Plattformen">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>17:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>18:15</time></span>
+                  <span class="kurs__code" aria-hidden="true">STR</span>
+                  <span class="kurs__name">Olympic Lifting</span>
+                  <span class="kurs__meta">Tim Schulz · Plattformen</span>
+                  <span class="kurs__level" data-level="fortgeschritten">Fortgeschritten</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="conditioning" data-level="einsteiger" data-coach="ar" data-start="18:00" data-ende="18:30" data-raum="Halle">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>18:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>18:30</time></span>
+                  <span class="kurs__code" aria-hidden="true">CON</span>
+                  <span class="kurs__name">Zirkel 30</span>
+                  <span class="kurs__meta">Ana Ruiz · Halle</span>
+                  <span class="kurs__level" data-level="einsteiger">Einsteiger</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="boxing" data-level="alle" data-coach="mp" data-start="18:45" data-ende="19:45" data-raum="Ring">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>18:45</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>19:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">BOX</span>
+                  <span class="kurs__name">Boxing Technik</span>
+                  <span class="kurs__meta">Mara Petrović · Ring</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="mobility" data-level="einsteiger" data-coach="lh" data-start="20:00" data-ende="20:45" data-raum="Studio">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>20:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>20:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">MOB</span>
+                  <span class="kurs__name">Stretch &amp; Restore</span>
+                  <span class="kurs__meta">Lea Hoffmann · Studio</span>
+                  <span class="kurs__level" data-level="einsteiger">Einsteiger</span>
+                </button>
+              </li>
+            </ol>
+            <p class="woche__leer" hidden>Kein passender Kurs an diesem Tag.</p>
+          </div>
+          <div class="woche__tag" id="tag-sa" data-tag="5" aria-labelledby="tagname-sa">
+            <h3 class="woche__kopf" id="tagname-sa"><span class="woche__kurz" aria-hidden="true">Sa</span><span class="woche__lang">Samstag</span><span class="woche__heute" hidden>Heute</span></h3>
+            <ol class="woche__liste">
+              <li class="kurs" data-typ="conditioning" data-level="alle" data-coach="da" data-start="09:00" data-ende="09:45" data-raum="Turfbahn">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>09:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>09:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">CON</span>
+                  <span class="kurs__name">Engine</span>
+                  <span class="kurs__meta">Deniz Aydın · Turfbahn</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="strength" data-level="einsteiger" data-coach="sb" data-start="10:00" data-ende="11:00" data-raum="Halle">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>10:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>11:00</time></span>
+                  <span class="kurs__code" aria-hidden="true">STR</span>
+                  <span class="kurs__name">Strength Basics</span>
+                  <span class="kurs__meta">Svenja Brandt · Halle</span>
+                  <span class="kurs__level" data-level="einsteiger">Einsteiger</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="boxing" data-level="einsteiger" data-coach="mp" data-start="10:30" data-ende="11:30" data-raum="Ring">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>10:30</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>11:30</time></span>
+                  <span class="kurs__code" aria-hidden="true">BOX</span>
+                  <span class="kurs__name">Boxing Basics</span>
+                  <span class="kurs__meta">Mara Petrović · Ring</span>
+                  <span class="kurs__level" data-level="einsteiger">Einsteiger</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="mobility" data-level="alle" data-coach="lh" data-start="12:00" data-ende="12:45" data-raum="Studio">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>12:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>12:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">MOB</span>
+                  <span class="kurs__name">Mobility Flow</span>
+                  <span class="kurs__meta">Lea Hoffmann · Studio</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="strength" data-level="alle" data-coach="km" data-start="14:00" data-ende="15:00" data-raum="Halle">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>14:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>15:00</time></span>
+                  <span class="kurs__code" aria-hidden="true">STR</span>
+                  <span class="kurs__name">Power Hour</span>
+                  <span class="kurs__meta">Kofi Mensah · Halle</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="boxing" data-level="fortgeschritten" data-coach="mp" data-start="16:00" data-ende="17:15" data-raum="Ring">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>16:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>17:15</time></span>
+                  <span class="kurs__code" aria-hidden="true">BOX</span>
+                  <span class="kurs__name">Sparring Lab</span>
+                  <span class="kurs__meta">Mara Petrović · Ring</span>
+                  <span class="kurs__level" data-level="fortgeschritten">Fortgeschritten</span>
+                </button>
+              </li>
+            </ol>
+            <p class="woche__leer" hidden>Kein passender Kurs an diesem Tag.</p>
+          </div>
+          <div class="woche__tag" id="tag-so" data-tag="6" aria-labelledby="tagname-so">
+            <h3 class="woche__kopf" id="tagname-so"><span class="woche__kurz" aria-hidden="true">So</span><span class="woche__lang">Sonntag</span><span class="woche__heute" hidden>Heute</span></h3>
+            <ol class="woche__liste">
+              <li class="kurs" data-typ="mobility" data-level="alle" data-coach="lh" data-start="10:00" data-ende="10:45" data-raum="Studio">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>10:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>10:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">MOB</span>
+                  <span class="kurs__name">Mobility Flow</span>
+                  <span class="kurs__meta">Lea Hoffmann · Studio</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="strength" data-level="alle" data-coach="km" data-start="11:00" data-ende="11:45" data-raum="Halle">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>11:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>11:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">STR</span>
+                  <span class="kurs__name">Kettlebell Lab</span>
+                  <span class="kurs__meta">Kofi Mensah · Halle</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="boxing" data-level="alle" data-coach="ar" data-start="12:00" data-ende="13:00" data-raum="Ring">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>12:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>13:00</time></span>
+                  <span class="kurs__code" aria-hidden="true">BOX</span>
+                  <span class="kurs__name">Boxing Technik</span>
+                  <span class="kurs__meta">Ana Ruiz · Ring</span>
+                  <span class="kurs__level" data-level="alle">Alle Level</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="mobility" data-level="einsteiger" data-coach="sb" data-start="16:00" data-ende="16:45" data-raum="Studio">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>16:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>16:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">MOB</span>
+                  <span class="kurs__name">Stretch &amp; Restore</span>
+                  <span class="kurs__meta">Svenja Brandt · Studio</span>
+                  <span class="kurs__level" data-level="einsteiger">Einsteiger</span>
+                </button>
+              </li>
+              <li class="kurs" data-typ="conditioning" data-level="fortgeschritten" data-coach="da" data-start="17:00" data-ende="17:45" data-raum="Turfbahn">
+                <button type="button" class="kurs__btn" aria-haspopup="dialog">
+                  <span class="kurs__zeit"><time>17:00</time><span aria-hidden="true">–</span><span class="sr-only"> bis </span><time>17:45</time></span>
+                  <span class="kurs__code" aria-hidden="true">CON</span>
+                  <span class="kurs__name">Sled &amp; Sprint</span>
+                  <span class="kurs__meta">Deniz Aydın · Turfbahn</span>
+                  <span class="kurs__level" data-level="fortgeschritten">Fortgeschritten</span>
+                </button>
+              </li>
+            </ol>
+            <p class="woche__leer" hidden>Kein passender Kurs an diesem Tag.</p>
+          </div>
         </div>
         <p class="legend"><span><b>STR</b> Strength</span><span><b>CON</b> Conditioning</span><span><b>BOX</b> Boxing</span><span><b>MOB</b> Mobility</span><span class="legend__live"><i aria-hidden="true"></i> läuft jetzt</span></p>
       </div>
@@ -393,7 +848,7 @@
         <div class="sec__head sec__head--split">
           <div>
             <p class="kicker"><span>03</span>Mitgliedschaft</p>
-            <h2 class="h2" id="cfg-title">Ihr Tarif, Baustein für&nbsp;Baustein.</h2>
+            <h2 class="h2" id="cfg-title">Ihr Tarif, Baustein für Baustein.</h2>
           </div>
           <div class="sec__aside">
             <p>Kein Kleingedrucktes-Puzzle: Wählen Sie Laufzeit, Zugang und Extras – der Monatspreis rechnet live mit. Alle Preise inklusive Mehrwertsteuer.</p>
@@ -493,7 +948,7 @@
         <div class="sec__head sec__head--split">
           <div>
             <p class="kicker"><span>04</span>Trainingsplan</p>
-            <h2 class="h2" id="gen-title">Ihr Wochenplan in zehn&nbsp;Sekunden.</h2>
+            <h2 class="h2" id="gen-title">Ihr Wochenplan in zehn Sekunden.</h2>
           </div>
           <div class="sec__aside">
             <p>Ziel wählen, Trainingstage festlegen, Erfahrung angeben – der Generator baut daraus eine Trainingswoche und schlägt passende Kurse aus unserem Plan vor. Zum Drucken, Speichern oder Mitbringen ins Probetraining.</p>
@@ -541,7 +996,13 @@
           </div>
           <p class="sr-only" aria-live="polite" data-plan-live></p>
           <ol class="cards" data-plan-cards>
-<!--PLAN-->
+            <li class="pcard"><p class="pcard__day"><b>Mo</b><span>Training 1</span></p><h3 class="pcard__title">Ganzkörper A</h3><p class="pcard__meta"><span>50&nbsp;Min.</span><span>STR</span><span>Technik vor Gewicht</span></p><div class="meter" role="img" aria-label="Intensität 2 von 5"><span>Intensität</span><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div><ul class="pcard__blocks"><li><b>Warm-up</b><span>8 Min. Mobility, leere Stange</span></li><li><b>Kraft</b><span>Kniebeuge 2–3 Sätze × 8–10 Wdh., leichtes Gewicht</span></li><li><b>Kraft</b><span>Bankdrücken, Rudern im Wechsel</span></li><li><b>Finish</b><span>Plank-Varianten, 3 Runden</span></li></ul><p class="pcard__kurs"><b>Passender Kurs</b>Strength Basics · 17:30 Uhr · Jonas</p></li>
+            <li class="pcard pcard--rest"><p class="pcard__day"><b>Di</b><span>Ruhetag</span></p><h3 class="pcard__title">Erholung</h3><div class="meter" role="img" aria-label="Intensität 1 von 5"><span>Intensität</span><i class="on"></i><i></i><i></i><i></i><i></i></div><ul class="pcard__blocks"><li><b>Bewegen</b><span>30 Min. Spaziergang oder Rad</span></li><li><b>Mobility</b><span>10 Min. nach Lust und Gefühl</span></li></ul></li>
+            <li class="pcard"><p class="pcard__day"><b>Mi</b><span>Training 2</span></p><h3 class="pcard__title">Ganzkörper B</h3><p class="pcard__meta"><span>50&nbsp;Min.</span><span>STR</span><span>Technik vor Gewicht</span></p><div class="meter" role="img" aria-label="Intensität 2 von 5"><span>Intensität</span><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div><ul class="pcard__blocks"><li><b>Warm-up</b><span>Hüfte &amp; Schultern, 8 Min.</span></li><li><b>Kraft</b><span>Kreuzheben 2–3 Sätze × 8–10 Wdh., leichtes Gewicht</span></li><li><b>Kraft</b><span>Schulterdrücken, Klimmzug-Variante</span></li><li><b>Finish</b><span>Farmer Carries, 4 Bahnen</span></li></ul><p class="pcard__kurs"><b>Passender Kurs</b>Strength Basics · 07:15 Uhr · Svenja</p></li>
+            <li class="pcard pcard--rest"><p class="pcard__day"><b>Do</b><span>Ruhetag</span></p><h3 class="pcard__title">Pause</h3><div class="meter" role="img" aria-label="Intensität 1 von 5"><span>Intensität</span><i class="on"></i><i></i><i></i><i></i><i></i></div><ul class="pcard__blocks"><li><b>Erholen</b><span>Schlaf, Essen und Trinken zählen mit</span></li><li><b>Optional</b><span>Stretch &amp; Restore im Studio</span></li></ul></li>
+            <li class="pcard"><p class="pcard__day"><b>Fr</b><span>Training 3</span></p><h3 class="pcard__title">Kraft + Motor</h3><p class="pcard__meta"><span>50&nbsp;Min.</span><span>STR</span><span>Technik vor Gewicht</span></p><div class="meter" role="img" aria-label="Intensität 3 von 5"><span>Intensität</span><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div><ul class="pcard__blocks"><li><b>Warm-up</b><span>Ruderergometer 5 Min. locker</span></li><li><b>Kraft</b><span>Kettlebell-Swings, Goblet Squats 2–3 Sätze</span></li><li><b>Motor</b><span>12 Min. Zirkel: Bike, Liegestütz, Ausfallschritte</span></li><li><b>Finish</b><span>Dehnen, 5 Min.</span></li></ul><p class="pcard__kurs"><b>Passender Kurs</b>Strength Basics · 07:15 Uhr · Jonas</p></li>
+            <li class="pcard pcard--rest"><p class="pcard__day"><b>Sa</b><span>Ruhetag</span></p><h3 class="pcard__title">Erholung</h3><div class="meter" role="img" aria-label="Intensität 1 von 5"><span>Intensität</span><i class="on"></i><i></i><i></i><i></i><i></i></div><ul class="pcard__blocks"><li><b>Bewegen</b><span>30 Min. Spaziergang oder Rad</span></li><li><b>Mobility</b><span>10 Min. nach Lust und Gefühl</span></li></ul></li>
+            <li class="pcard pcard--rest"><p class="pcard__day"><b>So</b><span>Ruhetag</span></p><h3 class="pcard__title">Pause</h3><div class="meter" role="img" aria-label="Intensität 1 von 5"><span>Intensität</span><i class="on"></i><i></i><i></i><i></i><i></i></div><ul class="pcard__blocks"><li><b>Erholen</b><span>Schlaf, Essen und Trinken zählen mit</span></li><li><b>Optional</b><span>Stretch &amp; Restore im Studio</span></li></ul></li>
           </ol>
           <p class="disclaimer"><strong>Orientierung, kein medizinischer Rat.</strong> Der Plan ist ein allgemeines Beispiel. Ergebnisse hängen von vielen Faktoren ab und sind nicht garantiert. Bei Vorerkrankungen, Schmerzen oder in der Schwangerschaft klären Sie Training bitte vorab ärztlich ab – im Probetraining passt ein Coach den Plan an Sie an.</p>
         </div>
@@ -554,7 +1015,7 @@
         <div class="sec__head sec__head--split">
           <div>
             <p class="kicker"><span>05</span>Coaches</p>
-            <h2 class="h2" id="coach-title">14 Coaches. Acht stellen sich&nbsp;vor.</h2>
+            <h2 class="h2" id="coach-title">14 Coaches. Acht stellen sich vor.</h2>
           </div>
           <div class="sec__aside">
             <p>Fahren Sie mit der Maus über eine Karte oder tippen Sie sie an: Auf der Rückseite steht, worauf sich jede und jeder spezialisiert hat – und in welchen Kursen Sie sie treffen.</p>
@@ -711,7 +1172,7 @@
       <div class="wrap halle__grid">
         <div class="halle__text">
           <p class="kicker"><span>06</span>Die Halle</p>
-          <h2 class="h2" id="halle-title">1.200 Quadratmeter ehemalige&nbsp;Werkhalle.</h2>
+          <h2 class="h2" id="halle-title">1.200 Quadratmeter ehemalige Werkhalle.</h2>
           <p>2017 hat Coach Jonas Weber die alte Lagerhalle an der Revaler Straße übernommen: Estrich raus, Gummiboden rein, Tageslicht durch das Sheddach. Heute trainieren hier rund 900 Mitglieder – von der Studentin, die zum ersten Mal Kreuzheben lernt, bis zum Amateurboxer vor seinem nächsten Kampf.</p>
           <blockquote class="founder">
             <span class="founder__mono" aria-hidden="true">JW</span>
@@ -730,6 +1191,53 @@
           <li><b><span data-count="17">17</span><small>h</small></b><span>werktags geöffnet</span></li>
         </ul>
       </div>
+
+      <div class="day" data-day-strip>
+        <div class="wrap day__head">
+          <p class="day__title">Ein Tag in der Halle <span aria-hidden="true">06:00 → 23:00</span></p>
+          <p class="day__hint" aria-hidden="true"><span>Zeitraffer</span><i></i></p>
+        </div>
+        <div class="day__clip">
+          <ol class="day__track" data-day-track>
+            <li class="frame">
+              <figure>
+                <div class="frame__img"><img src="/arena/fitness-forge/assets/img/trx-960.webp" srcset="/arena/fitness-forge/assets/img/trx-480.webp 480w, /arena/fitness-forge/assets/img/trx-960.webp 960w" sizes="(min-width: 900px) 30vw, 46vw" width="960" height="640" loading="lazy" decoding="async" alt="Sportler zieht am Kabelzug, hinter ihm fällt helles Morgenlicht in die Halle"></div>
+                <figcaption><time>06:30</time><b>Die Frühschicht</b><span>Engine mit Deniz, bevor die Stadt aufwacht.</span></figcaption>
+              </figure>
+            </li>
+            <li class="frame">
+              <figure>
+                <div class="frame__img"><img src="/arena/fitness-forge/assets/img/halle-960.webp" srcset="/arena/fitness-forge/assets/img/halle-480.webp 480w, /arena/fitness-forge/assets/img/halle-960.webp 960w" sizes="(min-width: 900px) 30vw, 46vw" width="960" height="640" loading="lazy" decoding="async" alt="Helle Trainingsfläche mit Kraftstation, Hantelscheiben und einer Reihe Ergometer"></div>
+                <figcaption><time>09:00</time><b>Open Gym</b><span>Ruhige Stunden für das eigene Programm.</span></figcaption>
+              </figure>
+            </li>
+            <li class="frame">
+              <figure>
+                <div class="frame__img"><img src="/arena/fitness-forge/assets/img/bank-960.webp" srcset="/arena/fitness-forge/assets/img/bank-480.webp 480w, /arena/fitness-forge/assets/img/bank-960.webp 960w" sizes="(min-width: 900px) 30vw, 46vw" width="960" height="638" loading="lazy" decoding="async" alt="Sportlerin trainiert liegend an der Beinpresse in einer dunklen Halle"></div>
+                <figcaption><time>12:15</time><b>Mittagspause</b><span>Zirkel 30 – danach zurück ins Büro.</span></figcaption>
+              </figure>
+            </li>
+            <li class="frame">
+              <figure>
+                <div class="frame__img"><img src="/arena/fitness-forge/assets/img/handschuh-960.webp" srcset="/arena/fitness-forge/assets/img/handschuh-480.webp 480w, /arena/fitness-forge/assets/img/handschuh-960.webp 960w" sizes="(min-width: 900px) 30vw, 46vw" width="960" height="640" loading="lazy" decoding="async" alt="Boxerin mit Tattoos hält die Boxhandschuhe vor das Gesicht"></div>
+                <figcaption><time>18:30</time><b>Boxing Basics</b><span>Feierabend am Sandsack.</span></figcaption>
+              </figure>
+            </li>
+            <li class="frame">
+              <figure>
+                <div class="frame__img"><img src="/arena/fitness-forge/assets/img/sieg-960.webp" srcset="/arena/fitness-forge/assets/img/sieg-480.webp 480w, /arena/fitness-forge/assets/img/sieg-960.webp 960w" sizes="(min-width: 900px) 30vw, 46vw" width="960" height="698" loading="lazy" decoding="async" alt="Zwei Boxer im Ring, einer reißt nach der Runde die Arme hoch"></div>
+                <figcaption><time>20:00</time><b>Sparring Lab</b><span>Kontrolliert, freiwillig, Coach am Ring.</span></figcaption>
+              </figure>
+            </li>
+            <li class="frame">
+              <figure>
+                <div class="frame__img"><img src="/arena/fitness-forge/assets/img/profil-960.webp" srcset="/arena/fitness-forge/assets/img/profil-480.webp 480w, /arena/fitness-forge/assets/img/profil-960.webp 960w" sizes="(min-width: 900px) 30vw, 46vw" width="960" height="638" loading="lazy" decoding="async" alt="Athletin im Profil vor dunklem Hintergrund, konzentrierter Blick"></div>
+                <figcaption><time>22:30</time><b>Letzte Runde</b><span>Die Halle wird leiser, die Musik nicht.</span></figcaption>
+              </figure>
+            </li>
+          </ol>
+        </div>
+      </div>
     </section>
 
     <!-- ============ ABLAUF PROBETRAINING ============ -->
@@ -737,12 +1245,13 @@
       <div class="wrap laps">
         <div class="laps__side">
           <p class="kicker kicker--ink"><span>07</span>Probetraining</p>
-          <h2 class="h2" id="lap-title">Ihr erstes Training in vier&nbsp;Runden.</h2>
+          <h2 class="h2" id="lap-title">Ihr erstes Training in vier Runden.</h2>
           <div class="watch" aria-hidden="true">
             <span class="watch__label">Gesamtzeit</span>
             <span class="watch__time" data-watch>01:15:00</span>
             <span class="watch__rail"><i data-watch-bar></i></span>
           </div>
+          <figure class="laps__photo"><img src="/arena/fitness-forge/assets/img/coaching-960.webp" srcset="/arena/fitness-forge/assets/img/coaching-480.webp 480w, /arena/fitness-forge/assets/img/coaching-960.webp 960w" sizes="(min-width: 900px) 34vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Coach korrigiert beim Bewegungscheck die Armhaltung eines älteren Mitglieds"></figure>
         </div>
         <ol class="laps__list" data-laps>
           <li class="lap"><span class="lap__no">Runde 1</span><span class="lap__t">00:00</span><h3>Ankommen</h3><p>Check-in am Tresen, Spind und Handtuch bekommen Sie gestellt. Ein kurzer Fragebogen: Ziele, Vorerfahrung, Einschränkungen.</p></li>
@@ -759,7 +1268,7 @@
         <div class="score">
           <p class="kicker"><span>08</span>Stimmen</p>
           <h2 class="h2" id="voice-title"><span class="score__big">4,8</span> von 5 – aus 530&nbsp;Bewertungen.</h2>
-          <p class="score__stars" role="img" aria-label="4,8 von 5 Sternen"><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg class="part" aria-hidden="true"><use href="#i-star"/></svg></p>
+          <p class="score__stars" role="img" aria-label="4,8 von 5 Sternen"><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><span class="star-part" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span></p>
         </div>
         <ul class="quotes">
           <li class="quote"><blockquote><p>„Ich hatte vorher nie eine Langhantel in der Hand. Nach sechs Wochen Strength Basics traue ich mich allein an die Plattform – und weiß, was ich da tue.“</p></blockquote><p class="quote__who"><b>Lena K.</b><span>Mitglied seit 2022 · Strength</span></p></li>
@@ -775,7 +1284,7 @@
       <div class="wrap map-grid">
         <div class="map-info">
           <p class="kicker"><span>09</span>Standort</p>
-          <h2 class="h2" id="map-title">Revaler Straße&nbsp;99. Zwischen Warschauer und&nbsp;Ostkreuz.</h2>
+          <h2 class="h2" id="map-title">Revaler Straße&nbsp;99. Zwischen Warschauer und Ostkreuz.</h2>
           <ul class="ways">
             <li><svg aria-hidden="true"><use href="#i-train"/></svg><span><b>S+U Warschauer Straße</b> – 6&nbsp;Min. zu Fuß, Tram M10 und M13 vor der Tür</span></li>
             <li><svg aria-hidden="true"><use href="#i-bike"/></svg><span><b>40 Fahrradstellplätze</b> überdacht im Hof</span></li>
@@ -863,7 +1372,7 @@
       <div class="wrap faq-grid">
         <div>
           <p class="kicker"><span>10</span>FAQ</p>
-          <h2 class="h2" id="faq-title">Fragen vor dem ersten&nbsp;Training.</h2>
+          <h2 class="h2" id="faq-title">Fragen vor dem ersten Training.</h2>
           <p class="faq-more">Ihre Frage ist nicht dabei? Rufen Sie an: <a href="tel:+49305558120">030&nbsp;555&nbsp;81&nbsp;20</a> oder schreiben Sie an <a href="mailto:hello@forge-athletic.de">hello@forge-athletic.de</a>.</p>
         </div>
         <div class="faq">
@@ -939,7 +1448,7 @@
               </div>
               <div class="field field--full check">
                 <input id="k-dsgvo" name="dsgvo" type="checkbox" required aria-describedby="k-dsgvo-err">
-                <label for="k-dsgvo">Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Anfrage verwendet werden. Details in der <a href="/arena/fitness-forge/datenschutz">Datenschutzerklärung</a>. <span class="req" aria-hidden="true">*</span></label>
+                <label for="k-dsgvo">Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Anfrage verwendet werden. Details in der <a href="/arena/fitness-forge/datenschutz.html">Datenschutzerklärung</a>. <span class="req" aria-hidden="true">*</span></label>
                 <p class="field__err" id="k-dsgvo-err" data-err></p>
               </div>
             </div>
@@ -963,7 +1472,7 @@
 
   <footer class="ftr">
     <div class="wrap">
-      <p class="ftr__word" aria-hidden="true">FORGE</p>
+      <p class="ftr__word" aria-hidden="true">FORGE<span>.</span></p>
       <div class="ftr__grid">
         <div>
           <p class="ftr__h">FORGE Athletic Club</p>
@@ -979,7 +1488,7 @@
         </div>
         <div>
           <p class="ftr__h">Rechtliches</p>
-          <p><a href="/arena/fitness-forge/impressum">Impressum</a><br><a href="/arena/fitness-forge/datenschutz">Datenschutz</a></p>
+          <p><a href="/arena/fitness-forge/impressum.html">Impressum</a><br><a href="/arena/fitness-forge/datenschutz.html">Datenschutz</a></p>
         </div>
       </div>
       <div class="ftr__base">

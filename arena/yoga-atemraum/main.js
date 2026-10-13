@@ -40,6 +40,9 @@
   // Hero: Atemzyklus der Formen (Sekunden ein / aus).
   var HERO_BREATH = { inhale: 4, exhale: 6 };
 
+  // Karte: Ausschnitt auf schmalen Bildschirmen (x y Breite Höhe im SVG-Koordinatensystem)
+  var MAP_MOBILE_VIEWBOX = '222 0 576 560';
+
   var DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
   var DAYS_SHORT = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
   var LEVELS = { einsteiger: 'Einsteiger', mittel: 'Mittel', erfahren: 'Erfahren' };
@@ -193,6 +196,10 @@
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (en) {
           var l = map[en.target.id];
+          if (en.target.id === 'start' && en.isIntersecting) {
+            links.forEach(function (x) { x.classList.remove('is-current'); x.removeAttribute('aria-current'); });
+            return;
+          }
           if (!l) return;
           if (en.isIntersecting) {
             links.forEach(function (x) { x.classList.remove('is-current'); x.removeAttribute('aria-current'); });
@@ -201,7 +208,7 @@
           }
         });
       }, { rootMargin: '-45% 0px -50% 0px' });
-      Object.keys(map).forEach(function (id) { var s = document.getElementById(id); if (s) io.observe(s); });
+      Object.keys(map).concat('start').forEach(function (id) { var s = document.getElementById(id); if (s) io.observe(s); });
     }
   }
 
@@ -1395,6 +1402,17 @@
   function initMap() {
     var map = $('.map');
     if (!map) return;
+    // Handy: Ausschnitt um Altstadt und Hafen, größere Beschriftung
+    var svg = map.querySelector('svg');
+    var full = svg ? svg.getAttribute('viewBox') : '';
+    var mqMap = window.matchMedia('(max-width: 600px)');
+    var zoom = function () {
+      if (!svg) return;
+      svg.setAttribute('viewBox', mqMap.matches ? MAP_MOBILE_VIEWBOX : full);
+      map.classList.toggle('is-zoomed', mqMap.matches);
+    };
+    zoom();
+    mqMap.addEventListener('change', zoom);
     if (motionOff || !('IntersectionObserver' in window)) { map.classList.add('is-drawn'); return; }
     var io = new IntersectionObserver(function (en) {
       if (en[0].isIntersecting) { map.classList.add('is-drawn'); io.disconnect(); }
@@ -1407,6 +1425,7 @@
      ------------------------------------------------------------------------ */
   function init() {
     window.__atemReady = true;
+    d.classList.add('js'); // falls das Sicherheitsnetz im <head> schon gegriffen hat
     safe(initScroll, 'scroll');
     safe(initAnchors, 'anchors');
     safe(initHeader, 'header');

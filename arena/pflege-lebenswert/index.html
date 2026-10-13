@@ -1,0 +1,1289 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Lebenswert – Ambulanter Pflegedienst in Erfurt · Pflege zu Hause mit festen Bezugspersonen</title>
+  <meta name="description" content="Lebenswert Ambulanter Pflegedienst in Erfurt und Umgebung: Grundpflege, Behandlungspflege, Verhinderungspflege, Entlastung und Beratungsbesuche. Feste Touren, 24/7-Rufbereitschaft, zugelassen bei allen Pflegekassen.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#FFF8F1">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="/arena/pflege-lebenswert/favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:site_name" content="Lebenswert Ambulanter Pflegedienst">
+  <meta property="og:title" content="Lebenswert – Pflege zu Hause in Erfurt, mit Menschen, die Sie kennen">
+  <meta property="og:description" content="Grundpflege, Behandlungspflege, Entlastung und Beratung in Erfurt und Umgebung – in festen Touren, mit 24/7-Rufbereitschaft. (Demo, fiktiver Betrieb)">
+  <link rel="preload" href="/arena/pflege-lebenswert/assets/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/arena/pflege-lebenswert/style.css">
+  <script>
+    (function () {
+      var d = document.documentElement, p = {};
+      d.classList.add('js');
+      try { p = JSON.parse(localStorage.getItem('lebenswert-ansicht') || '{}') || {}; } catch (e) {}
+      var rm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (p.fs === 1 || p.fs === 2) d.setAttribute('data-fs', String(p.fs));
+      if (p.contrast === true) d.setAttribute('data-contrast', 'high');
+      // motion-off: gar keine Animation (?motion=off oder Schalter „Bewegung aus“)
+      // reduced: Systemeinstellung „Bewegung reduzieren“ – nur sanfte Überblendungen
+      if (/[?&]motion=off\b/.test(location.search) || p.motion === false) d.classList.add('motion-off');
+      else if (rm && p.motion !== true) d.classList.add('reduced');
+      // Sicherheitsnetz: Startet main.js nicht, wird alles ohne Animation sichtbar.
+      setTimeout(function () { if (!window.__lebenswertReady) d.classList.add('motion-off'); }, 4000);
+    })();
+  </script>
+  <script src="/arena/pflege-lebenswert/assets/vendor/gsap.min.js" defer></script>
+  <script src="/arena/pflege-lebenswert/assets/vendor/ScrollTrigger.min.js" defer></script>
+  <script src="/arena/pflege-lebenswert/assets/vendor/lenis.min.js" defer></script>
+  <script src="/arena/pflege-lebenswert/main.js" defer></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "MedicalBusiness",
+    "@id": "https://www.lebenswert-pflege.de/#betrieb",
+    "name": "Lebenswert Ambulanter Pflegedienst GmbH",
+    "alternateName": "Lebenswert Pflege Erfurt",
+    "description": "Ambulanter Pflegedienst in Erfurt und Umgebung: Grundpflege, Behandlungspflege, Verhinderungspflege, Entlastungsleistungen und Beratungsbesuche nach § 37 Abs. 3 SGB XI. Zugelassen bei allen Pflegekassen. Fiktiver Beispielbetrieb (Demo).",
+    "url": "https://www.lebenswert-pflege.de/",
+    "logo": "https://www.lebenswert-pflege.de/favicon.svg",
+    "telephone": "+49 361 5552700",
+    "email": "kontakt@lebenswert-pflege.de",
+    "foundingDate": "2009",
+    "numberOfEmployees": { "@type": "QuantitativeValue", "value": 48 },
+    "medicalSpecialty": ["https://schema.org/Nursing", "https://schema.org/Geriatric"],
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Juri-Gagarin-Ring 64",
+      "postalCode": "99084",
+      "addressLocality": "Erfurt",
+      "addressRegion": "Thüringen",
+      "addressCountry": "DE"
+    },
+    "geo": { "@type": "GeoCoordinates", "latitude": 50.9786, "longitude": 11.0352 },
+    "openingHoursSpecification": [
+      { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "opens": "08:00", "closes": "16:00" }
+    ],
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "contactType": "Rufbereitschaft für Patientinnen und Patienten",
+        "telephone": "+49 361 5552700",
+        "availableLanguage": "de",
+        "hoursAvailable": { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], "opens": "00:00", "closes": "23:59" }
+      }
+    ],
+    "employee": { "@type": "Person", "name": "Sabine Krüger", "jobTitle": "Pflegedienstleitung, examinierte Altenpflegerin" },
+    "areaServed": [
+      { "@type": "City", "name": "Erfurt" },
+      { "@type": "City", "name": "Arnstadt" },
+      { "@type": "Place", "name": "Ichtershausen" },
+      { "@type": "Place", "name": "Neudietendorf" },
+      { "@type": "Place", "name": "Gebesee" },
+      { "@type": "Place", "name": "Elxleben" },
+      { "@type": "Place", "name": "Walschleben" },
+      { "@type": "Place", "name": "Witterda" },
+      { "@type": "Place", "name": "Riethnordhausen" },
+      { "@type": "Place", "name": "Großrudestedt" },
+      { "@type": "Place", "name": "Mönchenholzhausen" },
+      { "@type": "Place", "name": "Klettbach" },
+      { "@type": "City", "name": "Kranichfeld" }
+    ],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Leistungen der ambulanten Pflege",
+      "itemListElement": [
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Grundpflege" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Behandlungspflege (häusliche Krankenpflege)" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Verhinderungspflege" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Entlastungsleistungen" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Beratungsbesuche nach § 37 Abs. 3 SGB XI" } }
+      ]
+    }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Zum Inhalt springen</a>
+
+  <svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="i-phone" viewBox="0 0 24 24"><path d="M7.1 3.6h2.4l1.5 4.2-2 1.5a12.4 12.4 0 0 0 5.7 5.7l1.5-2 4.2 1.5v2.4a2.2 2.2 0 0 1-2.4 2.2A16.6 16.6 0 0 1 4.9 6a2.2 2.2 0 0 1 2.2-2.4z"/></symbol>
+      <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4.5 12h15M13.5 6l6 6-6 6"/></symbol>
+      <symbol id="i-arrow-l" viewBox="0 0 24 24"><path d="M19.5 12h-15M10.5 6l-6 6 6 6"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+      <symbol id="i-dash" viewBox="0 0 24 24"><path d="M7 12h10"/></symbol>
+      <symbol id="i-half" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><path d="M12 4.5a7.5 7.5 0 0 1 0 15z" fill="currentColor"/></symbol>
+      <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.2l2.6 5.5 6 .7-4.5 4.1 1.2 5.9L12 16.4l-5.3 3 1.2-5.9L3.4 9.4l6-.7z" fill="currentColor" stroke="none"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.6c0 4.4-3.1 8.2-7.5 9.4-4.4-1.2-7.5-5-7.5-9.4V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1z"/></symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2M12 19.2v2M2.8 12h2M19.2 12h2M5.5 5.5l1.4 1.4M17.1 17.1l1.4 1.4M5.5 18.5l1.4-1.4M17.1 6.9l1.4-1.4"/></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.8-6.5-11a6.5 6.5 0 0 1 13 0c0 5.2-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M4 7.5l8 5.5 8-5.5"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.7v.1"/></symbol>
+      <symbol id="i-euro" viewBox="0 0 24 24"><path d="M17.5 6.5a6.5 6.5 0 1 0 0 11M4.5 10.5h8.5M4.5 13.5h8.5"/></symbol>
+      <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/></symbol>
+      <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-6.5 8 6.5"/><path d="M6 9.5v10h12v-10"/><path d="M10 19.5v-5h4v5"/></symbol>
+      <symbol id="i-pill" viewBox="0 0 24 24"><path d="M10.6 5.4a4.5 4.5 0 0 1 6.4 6.4l-5.2 5.2a4.5 4.5 0 0 1-6.4-6.4z"/><path d="M8 8l8 8"/></symbol>
+      <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3.5s6 6.4 6 10.5a6 6 0 0 1-12 0c0-4.1 6-10.5 6-10.5z"/><path d="M9.2 14.3a2.9 2.9 0 0 0 2.6 2.7"/></symbol>
+      <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9.5 17.5h5M10.5 20.5h3M12 3.5a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.1v1.1h5v-1.1c0-.8.4-1.6 1.1-2.1A6 6 0 0 0 12 3.5z"/></symbol>
+      <symbol id="i-walk" viewBox="0 0 24 24"><circle cx="12.5" cy="4.6" r="1.9"/><path d="M9 21l2.2-6.2M11.2 14.8l2.8 2.6V21M8 12.2l1.2-3.7 3.3-.9 2.1 3.2 2.9 1M11.2 14.8l1.3-7.2"/></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19.5c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.5" cy="9.5" r="2.4"/><path d="M15.6 14.6c2.6-.3 4.4 1.4 4.9 4.4"/></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8.5A1.5 1.5 0 0 1 19 17h-8l-4.5 3.5V17H5a1.5 1.5 0 0 1-1.5-1.5V7A1.5 1.5 0 0 1 5 5.5z"/></symbol>
+      <symbol id="i-coffee" viewBox="0 0 24 24"><path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M8.5 3.5v2.5M11.5 3.5v2.5"/></symbol>
+      <symbol id="i-car" viewBox="0 0 24 24"><path d="M5.5 12.5l1.6-4.3A2 2 0 0 1 9 7h6a2 2 0 0 1 1.9 1.2l1.6 4.3"/><rect x="3.5" y="12.5" width="17" height="5" rx="1.5"/><path d="M6 17.5v2M18 17.5v2"/><circle cx="7.5" cy="15" r=".6"/><circle cx="16.5" cy="15" r=".6"/></symbol>
+      <symbol id="i-a11y" viewBox="0 0 24 24"><circle cx="12" cy="4.8" r="1.8"/><path d="M4.5 8.5l7.5 1.6 7.5-1.6M12 10.1v4.4M12 14.5l-3.2 6M12 14.5l3.2 6"/></symbol>
+      <symbol id="i-hand" viewBox="0 0 24 24"><path d="M3.5 14.5l3.2 4.5h7.6c.9 0 1.8-.4 2.5-1l3.4-3.2c.8-.8.2-2.1-.9-2-.4 0-.8.2-1.1.5L16 15.4"/><path d="M3.5 14.5l2.7-2.2c.6-.5 1.4-.8 2.2-.8h4.3a1.5 1.5 0 0 1 0 3H10"/><path d="M14.4 9.4c-.8-1.4-3.1-1.3-3.4.6-.2 1.6 1.7 2.9 3.4 4 1.6-1.1 3.6-2.4 3.4-4-.3-1.9-2.6-2-3.4-.6z"/></symbol>
+      <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="6" r="2.2"/><path d="M8.2 18h7.3a3 3 0 0 0 0-6h-7a3 3 0 0 1 0-6h7.3"/></symbol>
+      <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 19l5-14 5 14M5.8 14h6.4M15 19l3-8.5 3 8.5M16 16.5h4"/></symbol>
+      <symbol id="i-contrast" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M10 9v6M14 9v6"/></symbol>
+      <symbol id="i-gift" viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M3.5 9h17M12 9v11M12 9S10.5 4.5 8 5.2c-1.6.5-1.2 3.3 1.3 3.8M12 9s1.5-4.5 4-3.8c1.6.5 1.2 3.3-1.3 3.8"/></symbol>
+      <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5c2.7-1 5.3-1 8 .8 2.7-1.8 5.3-1.8 8-.8v13c-2.7-1-5.3-1-8 .8-2.7-1.8-5.3-1.8-8-.8z"/><path d="M12 6.3v13"/></symbol>
+    </defs>
+  </svg>
+
+  <!-- Barrierefreiheits-Leiste -->
+  <div class="util" data-util>
+    <div class="wrap util__inner">
+      <p class="util__note"><svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg><span class="util__long">Rufbereitschaft für unsere Patientinnen und Patienten: <strong>rund um die Uhr</strong></span><span class="util__short">Rufbereitschaft <strong>24/7</strong></span></p>
+      <button type="button" class="util__toggle" aria-expanded="false" aria-controls="ansicht" data-util-toggle>
+        <svg class="ic" aria-hidden="true"><use href="#i-a11y"/></svg><span>Ansicht anpassen</span><svg class="ic util__chev" aria-hidden="true"><use href="#i-plus"/></svg>
+      </button>
+      <div class="a11y" id="ansicht" role="group" aria-label="Ansicht anpassen">
+        <div class="a11y__item">
+          <span class="a11y__label" id="fs-label"><svg class="ic" aria-hidden="true"><use href="#i-text"/></svg>Schriftgröße</span>
+          <div class="seg" role="group" aria-labelledby="fs-label">
+            <button type="button" class="seg__btn" data-fs="0" aria-pressed="true"><span class="seg__a seg__a--0" aria-hidden="true">A</span><span class="sr-only">Normal</span></button>
+            <button type="button" class="seg__btn" data-fs="1" aria-pressed="false"><span class="seg__a seg__a--1" aria-hidden="true">A+</span><span class="sr-only">Groß</span></button>
+            <button type="button" class="seg__btn" data-fs="2" aria-pressed="false"><span class="seg__a seg__a--2" aria-hidden="true">A++</span><span class="sr-only">Sehr groß</span></button>
+          </div>
+        </div>
+        <button type="button" class="switch" role="switch" aria-checked="false" data-pref="contrast">
+          <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
+          <span class="switch__label"><svg class="ic" aria-hidden="true"><use href="#i-contrast"/></svg>Hoher Kontrast</span>
+        </button>
+        <button type="button" class="switch" role="switch" aria-checked="false" data-pref="motion">
+          <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
+          <span class="switch__label"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg>Bewegung aus</span>
+        </button>
+        <p class="sr-only" aria-live="polite" data-a11y-status></p>
+      </div>
+    </div>
+  </div>
+
+  <header class="hdr" data-hdr>
+    <div class="hdr__bar">
+      <div class="wrap hdr__inner">
+        <a class="brand" href="/arena/pflege-lebenswert/" aria-label="Lebenswert Ambulanter Pflegedienst – zur Startseite">
+          <svg class="brand__mark" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="15" style="fill:var(--logo-bg)"/><path d="M12.5 22.5 24 13.2l11.5 9.3V34a2.5 2.5 0 0 1-2.5 2.5H15a2.5 2.5 0 0 1-2.5-2.5z" fill="none" style="stroke:var(--logo-fg)" stroke-width="3" stroke-linejoin="round"/><path d="M24 32.6s-5.4-3.2-5.4-6.9a2.9 2.9 0 0 1 5.4-1.6 2.9 2.9 0 0 1 5.4 1.6c0 3.7-5.4 6.9-5.4 6.9z" style="fill:var(--logo-fg)"/></svg>
+          <span class="brand__text"><span class="brand__name">Lebenswert</span><span class="brand__sub">Ambulanter Pflegedienst · Erfurt</span></span>
+        </a>
+        <nav class="nav" aria-label="Hauptnavigation">
+          <ul>
+            <li><a href="#leistungen">Leistungen</a></li>
+            <li><a href="#pflegegrad">Pflegegrad</a></li>
+            <li><a href="#ueber-uns">Über uns</a></li>
+            <li><a href="#einsatzgebiet">Einsatzgebiet</a></li>
+            <li><a href="#karriere">Karriere</a></li>
+          </ul>
+        </nav>
+        <div class="hdr__actions">
+          <a class="hdr__tel" href="tel:+493615552700"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span>0361&nbsp;555&nbsp;27&nbsp;00</span></a>
+          <a class="btn btn--primary btn--sm hdr__cta" href="#kontakt"><span>Beratung vereinbaren</span></a>
+          <button type="button" class="burger" aria-expanded="false" aria-controls="menu" data-burger>
+            <span class="burger__icon" aria-hidden="true"><span></span><span></span></span><span class="burger__label">Menü</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="progress" aria-hidden="true"><span data-progress></span></div>
+  </header>
+
+  <div class="menu" id="menu" role="dialog" aria-modal="true" aria-label="Menü" hidden data-menu>
+    <div class="menu__scrim" data-menu-close></div>
+    <div class="menu__panel">
+      <div class="menu__top">
+        <span class="menu__title">Menü</span>
+        <button type="button" class="menu__close" data-menu-close><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg><span>Schließen</span></button>
+      </div>
+      <nav aria-label="Menü">
+        <ul class="menu__list">
+          <li><a href="#leistungen">Leistungen <small>und wer sie bezahlt</small></a></li>
+          <li><a href="#pflegegrad">Pflegegrad <small>Orientierung in 6 Fragen</small></a></li>
+          <li><a href="#tour">Ein Tag auf Tour</a></li>
+          <li><a href="#ueber-uns">Über uns &amp; Team</a></li>
+          <li><a href="#einsatzgebiet">Einsatzgebiet</a></li>
+          <li><a href="#karriere">Karriere <small>Gehälter offen</small></a></li>
+          <li><a href="#fragen">Häufige Fragen</a></li>
+          <li><a href="#kontakt">Kontakt</a></li>
+        </ul>
+      </nav>
+      <div class="menu__a11y" role="group" aria-label="Ansicht anpassen">
+        <p class="menu__a11y-title"><svg class="ic" aria-hidden="true"><use href="#i-a11y"/></svg>Ansicht anpassen</p>
+        <div class="a11y__item">
+          <span class="a11y__label" id="fs-label-m">Schriftgröße</span>
+          <div class="seg" role="group" aria-labelledby="fs-label-m">
+            <button type="button" class="seg__btn" data-fs="0" aria-pressed="true"><span class="seg__a seg__a--0" aria-hidden="true">A</span><span class="sr-only">Normal</span></button>
+            <button type="button" class="seg__btn" data-fs="1" aria-pressed="false"><span class="seg__a seg__a--1" aria-hidden="true">A+</span><span class="sr-only">Groß</span></button>
+            <button type="button" class="seg__btn" data-fs="2" aria-pressed="false"><span class="seg__a seg__a--2" aria-hidden="true">A++</span><span class="sr-only">Sehr groß</span></button>
+          </div>
+        </div>
+        <button type="button" class="switch" role="switch" aria-checked="false" data-pref="contrast">
+          <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
+          <span class="switch__label">Hoher Kontrast</span>
+        </button>
+        <button type="button" class="switch" role="switch" aria-checked="false" data-pref="motion">
+          <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
+          <span class="switch__label">Bewegung aus</span>
+        </button>
+      </div>
+      <div class="menu__foot">
+        <a class="btn btn--primary btn--block" href="#kontakt"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg><span>Beratung vereinbaren</span></a>
+        <a class="btn btn--ghost btn--block" href="tel:+493615552700"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span>0361&nbsp;555&nbsp;27&nbsp;00</span></a>
+      </div>
+    </div>
+  </div>
+
+  <main id="main" tabindex="-1">
+
+    <!-- HERO -->
+    <section class="hero" aria-labelledby="hero-title">
+      <canvas class="hero__glow" aria-hidden="true" data-glow></canvas>
+      <div class="wrap hero__inner">
+        <div class="hero__copy">
+          <p class="eyebrow" data-hero><span class="eyebrow__dot" aria-hidden="true"></span>Ambulanter Pflegedienst in Erfurt und Umgebung</p>
+          <h1 class="hero__title" id="hero-title">
+            <span class="hero__line" data-hero>Zu Hause bleiben&nbsp;–</span>
+            <span class="hero__line" data-hero>mit Menschen,</span>
+            <span class="hero__line" data-hero><em>die Sie kennen.</em></span>
+          </h1>
+          <p class="hero__lead" data-hero>Körperpflege, Medikamente, Wundversorgung und Entlastung für Angehörige – in Erfurt und zwölf Orten im Umland. Wir fahren feste Touren, damit morgens dieselbe vertraute Person bei Ihnen klingelt.</p>
+          <div class="hero__ctas" data-hero>
+            <a class="btn btn--primary btn--lg" href="#kontakt"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg><span>Kostenlose Beratung vereinbaren</span></a>
+            <a class="btn btn--ghost btn--lg" href="tel:+493615552700"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span>0361&nbsp;555&nbsp;27&nbsp;00</span></a>
+          </div>
+          <ul class="trust" data-hero>
+            <li><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg><span>Zugelassen bei allen Pflegekassen</span></li>
+            <li><span class="trust__stars" aria-hidden="true"><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><span><strong>4,8</strong> aus 96&nbsp;Bewertungen</span></li>
+            <li><svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg><span>24/7-Rufbereitschaft</span></li>
+          </ul>
+        </div>
+
+        <div class="hero__visual" data-hero-visual>
+          <div class="hero__disc" aria-hidden="true"></div>
+          <figure class="hero__arch" data-hero-media>
+            <img src="/arena/pflege-lebenswert/assets/img/hero-960.webp" srcset="/arena/pflege-lebenswert/assets/img/hero-480.webp 480w, /arena/pflege-lebenswert/assets/img/hero-960.webp 960w" sizes="(min-width: 900px) 34vw, 86vw" width="960" height="640" fetchpriority="high" decoding="async" alt="Eine Pflegekraft hält lächelnd die Hand einer älteren Dame im roten Pullover">
+          </figure>
+          <figure class="hero__orb" data-hero-media>
+            <img src="/arena/pflege-lebenswert/assets/img/lachen-960.webp" srcset="/arena/pflege-lebenswert/assets/img/lachen-480.webp 480w, /arena/pflege-lebenswert/assets/img/lachen-960.webp 960w" sizes="(min-width: 900px) 220px, 40vw" width="960" height="640" decoding="async" alt="Ältere Dame mit Brille lacht im Gespräch mit einem Pfleger">
+          </figure>
+          <svg class="hero__loop" viewBox="0 0 300 300" aria-hidden="true"><path d="M30 250 C 10 170, 70 120, 130 140 S 230 200, 250 120 S 200 20, 140 40" pathLength="1"/></svg>
+          <div class="hero__card hero__card--status" data-float="1">
+            <p class="status" data-office-status><span class="status__dot" aria-hidden="true"></span><span class="status__text" data-office-text>Büro Mo–Fr 8–16&nbsp;Uhr</span></p>
+            <p class="hero__card-sub">Rufbereitschaft für Patientinnen und Patienten: jederzeit</p>
+          </div>
+          <div class="hero__card hero__card--tour" data-float="2">
+            <svg class="ic" aria-hidden="true"><use href="#i-route"/></svg>
+            <p><strong>14 feste Touren</strong><span>Erfurt und Umland, jeden Tag</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ZAHLEN -->
+    <section class="facts" aria-label="Lebenswert in Zahlen">
+      <ul class="wrap facts__list">
+        <li class="fact" data-reveal>
+          <p class="fact__num"><span data-count="48">48</span></p>
+          <p class="fact__label">Mitarbeitende in Pflege, Betreuung und Büro</p>
+        </li>
+        <li class="fact" data-reveal>
+          <p class="fact__num"><span data-count="14">14</span></p>
+          <p class="fact__label">feste Touren – höchstens vier vertraute Gesichter pro Monat</p>
+        </li>
+        <li class="fact" data-reveal>
+          <p class="fact__num">24/7</p>
+          <p class="fact__label">Rufbereitschaft für unsere Patientinnen und Patienten</p>
+        </li>
+        <li class="fact" data-reveal>
+          <p class="fact__num"><span data-count="4.8" data-decimals="1">4,8</span><span class="fact__unit">/5</span></p>
+          <p class="fact__label">aus 96 Bewertungen von Angehörigen und Gepflegten</p>
+        </li>
+      </ul>
+    </section>
+
+    <!-- LEISTUNGEN / EXPLORER -->
+    <section class="section leistungen" id="leistungen" aria-labelledby="leistungen-title">
+      <div class="wrap">
+        <header class="sec-head" data-reveal>
+          <p class="eyebrow"><span class="eyebrow__dot" aria-hidden="true"></span>Leistungen</p>
+          <h2 id="leistungen-title">Was wir bei Ihnen zu Hause tun – und wer es bezahlt.</h2>
+          <p class="sec-lead">Fünf Bausteine, die sich kombinieren lassen. Zu jedem sehen Sie auf einen Blick, welche Kasse zahlt und was bei Ihnen bleibt.</p>
+        </header>
+
+        <div class="explorer" data-tabs>
+          <div class="tabs" data-reveal>
+            <div class="tabs__list" role="tablist" aria-label="Leistungen im Überblick">
+              <button type="button" class="tab" role="tab" id="tab-grund" aria-controls="panel-grund" aria-selected="true"><svg class="ic" aria-hidden="true"><use href="#i-drop"/></svg><span>Grundpflege</span></button>
+              <button type="button" class="tab" role="tab" id="tab-behandlung" aria-controls="panel-behandlung" aria-selected="false" tabindex="-1"><svg class="ic" aria-hidden="true"><use href="#i-pill"/></svg><span>Behandlungs&shy;pflege</span></button>
+              <button type="button" class="tab" role="tab" id="tab-verhinderung" aria-controls="panel-verhinderung" aria-selected="false" tabindex="-1"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg><span>Verhinderungs&shy;pflege</span></button>
+              <button type="button" class="tab" role="tab" id="tab-entlastung" aria-controls="panel-entlastung" aria-selected="false" tabindex="-1"><svg class="ic" aria-hidden="true"><use href="#i-coffee"/></svg><span>Entlastung</span></button>
+              <button type="button" class="tab" role="tab" id="tab-beratung" aria-controls="panel-beratung" aria-selected="false" tabindex="-1"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg><span>Beratungs&shy;besuche</span></button>
+            </div>
+          </div>
+
+          <div class="panel" role="tabpanel" id="panel-grund" aria-labelledby="tab-grund" tabindex="0">
+            <div class="panel__text">
+              <p class="panel__kicker">Leistung der Pflegeversicherung</p>
+              <h3 class="panel__title">Grundpflege</h3>
+              <p class="panel__lead">Hilfe bei allem, was der Körper jeden Tag braucht – so viel wie nötig, so wenig wie möglich.</p>
+              <h4 class="panel__h">Das gehört dazu</h4>
+              <ul class="checks">
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Waschen, Duschen, Baden, Zahn- und Haarpflege</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>An- und Ausziehen, Rasieren, Eincremen</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Hilfe beim Essen und Trinken</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Toilettengang und Versorgung bei Inkontinenz</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Aufstehen, Gehen, Umsetzen, Lagern im Bett</li>
+              </ul>
+              <p class="panel__example"><span class="panel__example-k">Aus dem Alltag</span>Frau L. (84) duscht dienstags und freitags mit uns, an den anderen Tagen reicht Hilfe beim Anziehen. Den Rest schafft sie allein – und will das auch.</p>
+            </div>
+            <div class="panel__side">
+              <figure class="panel__img"><img src="/arena/pflege-lebenswert/assets/img/rollator-960.webp" srcset="/arena/pflege-lebenswert/assets/img/rollator-480.webp 480w, /arena/pflege-lebenswert/assets/img/rollator-960.webp 960w" sizes="(min-width: 900px) 30vw, 92vw" width="960" height="1440" loading="lazy" decoding="async" alt="Ein älterer Herr geht mit dem Rollator, eine Pflegerin begleitet ihn"></figure>
+              <div class="payer">
+                <p class="payer__title"><svg class="ic" aria-hidden="true"><use href="#i-euro"/></svg>Wer zahlt?</p>
+                <dl class="payer__rows">
+                  <div class="payer__row is-yes"><dt><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Pflegekasse</dt><dd>Pflegesachleistung ab Pflegegrad&nbsp;2: monatlich 796&nbsp;€ (PG&nbsp;2), 1.497&nbsp;€ (PG&nbsp;3), 1.859&nbsp;€ (PG&nbsp;4), 2.299&nbsp;€ (PG&nbsp;5).</dd></div>
+                  <div class="payer__row is-no"><dt><svg class="ic" aria-hidden="true"><use href="#i-dash"/></svg>Krankenkasse</dt><dd>nicht zuständig</dd></div>
+                  <div class="payer__row is-part"><dt><svg class="ic" aria-hidden="true"><use href="#i-half"/></svg>Sie selbst</dt><dd>Nur was über das Budget hinausgeht – vorher schwarz auf weiß im Kostenvoranschlag.</dd></div>
+                </dl>
+                <p class="payer__note">Kombinierbar mit Pflegegeld. Bei Pflegegrad&nbsp;1 ist Hilfe bei der Körperpflege über den Entlastungsbetrag möglich.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" role="tabpanel" id="panel-behandlung" aria-labelledby="tab-behandlung" tabindex="0">
+            <div class="panel__text">
+              <p class="panel__kicker">Häusliche Krankenpflege</p>
+              <h3 class="panel__title">Behandlungs&shy;pflege</h3>
+              <p class="panel__lead">Medizinische Versorgung nach ärztlicher Verordnung – damit Sie nicht für jede Spritze in die Praxis müssen.</p>
+              <h4 class="panel__h">Das gehört dazu</h4>
+              <ul class="checks">
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Medikamente richten und geben, Augentropfen</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Insulin spritzen, Blutzucker messen</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Wundversorgung und Verbandswechsel, auch bei chronischen Wunden</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Kompressionsstrümpfe und -verbände</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Katheter-, Stoma- und Portversorgung</li>
+              </ul>
+              <p class="panel__example"><span class="panel__example-k">Aus dem Alltag</span>Herr B. aus dem Rieth bekommt morgens und abends Insulin. Die Verordnung schickt seine Hausärztin direkt zu uns – um die Genehmigung bei der Krankenkasse kümmern wir uns.</p>
+            </div>
+            <div class="panel__side">
+              <figure class="panel__img"><img src="/arena/pflege-lebenswert/assets/img/beratung-960.webp" srcset="/arena/pflege-lebenswert/assets/img/beratung-480.webp 480w, /arena/pflege-lebenswert/assets/img/beratung-960.webp 960w" sizes="(min-width: 900px) 30vw, 92vw" width="960" height="1440" loading="lazy" decoding="async" alt="Ein Pfleger bespricht mit einer Dame im Rollstuhl die Unterlagen auf seinem Klemmbrett"></figure>
+              <div class="payer">
+                <p class="payer__title"><svg class="ic" aria-hidden="true"><use href="#i-euro"/></svg>Wer zahlt?</p>
+                <dl class="payer__rows">
+                  <div class="payer__row is-no"><dt><svg class="ic" aria-hidden="true"><use href="#i-dash"/></svg>Pflegekasse</dt><dd>nicht zuständig</dd></div>
+                  <div class="payer__row is-yes"><dt><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Krankenkasse</dt><dd>auf ärztliche Verordnung häuslicher Krankenpflege – auch ohne Pflegegrad.</dd></div>
+                  <div class="payer__row is-part"><dt><svg class="ic" aria-hidden="true"><use href="#i-half"/></svg>Sie selbst</dt><dd>Zuzahlung: 10&nbsp;% der Kosten für höchstens 28&nbsp;Tage im Jahr plus 10&nbsp;€ je Verordnung – bis zur Belastungsgrenze.</dd></div>
+                </dl>
+                <p class="payer__note">Wer von Zuzahlungen befreit ist, zahlt nichts dazu.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" role="tabpanel" id="panel-verhinderung" aria-labelledby="tab-verhinderung" tabindex="0">
+            <div class="panel__text">
+              <p class="panel__kicker">Wenn Angehörige eine Pause brauchen</p>
+              <h3 class="panel__title">Verhinderungs&shy;pflege</h3>
+              <p class="panel__lead">Urlaub, Krankheit oder einfach ein Nachmittag für sich: Wenn pflegende Angehörige ausfallen, übernehmen wir – bei Ihnen zu Hause.</p>
+              <h4 class="panel__h">Das gehört dazu</h4>
+              <ul class="checks">
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Stundenweise, zum Beispiel für Arzttermine oder ein freies Wochenende</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Tageweise oder bis zu acht Wochen im Jahr</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>In vertrauter Umgebung, mit Ihrer festen Tour</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Kombinierbar mit allen anderen Leistungen</li>
+              </ul>
+              <p class="panel__example"><span class="panel__example-k">Aus dem Alltag</span>Herr S. pflegt seine Frau seit drei Jahren. Jeden zweiten Donnerstag kommt Schwester Anja für vier Stunden – er geht dann zum Skat.</p>
+            </div>
+            <div class="panel__side">
+              <figure class="panel__img"><img src="/arena/pflege-lebenswert/assets/img/paar-960.webp" srcset="/arena/pflege-lebenswert/assets/img/paar-480.webp 480w, /arena/pflege-lebenswert/assets/img/paar-960.webp 960w" sizes="(min-width: 900px) 30vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Ein älteres Ehepaar sitzt lächelnd Wange an Wange in der eigenen Wohnung"></figure>
+              <div class="payer">
+                <p class="payer__title"><svg class="ic" aria-hidden="true"><use href="#i-euro"/></svg>Wer zahlt?</p>
+                <dl class="payer__rows">
+                  <div class="payer__row is-yes"><dt><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Pflegekasse</dt><dd>Gemeinsamer Jahresbetrag für Verhinderungs- und Kurzzeitpflege: bis 3.539&nbsp;€ im Jahr, ab Pflegegrad&nbsp;2.</dd></div>
+                  <div class="payer__row is-no"><dt><svg class="ic" aria-hidden="true"><use href="#i-dash"/></svg>Krankenkasse</dt><dd>nicht zuständig</dd></div>
+                  <div class="payer__row is-yes"><dt><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Sie selbst</dt><dd>nichts, solange der Jahresbetrag reicht.</dd></div>
+                </dl>
+                <p class="payer__note">Bei weniger als acht Stunden am Tag wird das Pflegegeld nicht gekürzt.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" role="tabpanel" id="panel-entlastung" aria-labelledby="tab-entlastung" tabindex="0">
+            <div class="panel__text">
+              <p class="panel__kicker">Alltagshilfe nach § 45b SGB XI</p>
+              <h3 class="panel__title">Entlastungs&shy;leistungen</h3>
+              <p class="panel__lead">Hilfe, die nicht direkt Pflege ist – aber oft den größten Unterschied macht.</p>
+              <h4 class="panel__h">Das gehört dazu</h4>
+              <ul class="checks">
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Begleitung zu Arzt, Friseur oder Friedhof</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Einkaufen und kleine Arbeiten im Haushalt</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Spaziergänge, Vorlesen, Gesellschaft</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Betreuung von Menschen mit Demenz</li>
+              </ul>
+              <p class="panel__example"><span class="panel__example-k">Aus dem Alltag</span>Frau K. vom Johannesplatz geht donnerstags mit unserer Alltagsbegleiterin Marion einkaufen – und danach auf ein Stück Kuchen beim Bäcker um die Ecke.</p>
+            </div>
+            <div class="panel__side">
+              <figure class="panel__img"><img src="/arena/pflege-lebenswert/assets/img/spaziergang-960.webp" srcset="/arena/pflege-lebenswert/assets/img/spaziergang-480.webp 480w, /arena/pflege-lebenswert/assets/img/spaziergang-960.webp 960w" sizes="(min-width: 900px) 30vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Ein älteres Paar spaziert am Ufer eines Sees"></figure>
+              <div class="payer">
+                <p class="payer__title"><svg class="ic" aria-hidden="true"><use href="#i-euro"/></svg>Wer zahlt?</p>
+                <dl class="payer__rows">
+                  <div class="payer__row is-yes"><dt><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Pflegekasse</dt><dd>Entlastungsbetrag: 131&nbsp;€ im Monat, schon ab Pflegegrad&nbsp;1. Nicht genutzte Beträge lassen sich bis 30.&nbsp;Juni des Folgejahres ansparen.</dd></div>
+                  <div class="payer__row is-no"><dt><svg class="ic" aria-hidden="true"><use href="#i-dash"/></svg>Krankenkasse</dt><dd>nicht zuständig</dd></div>
+                  <div class="payer__row is-yes"><dt><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Sie selbst</dt><dd>nichts, solange der Betrag reicht – wir rechnen direkt mit der Kasse ab.</dd></div>
+                </dl>
+                <p class="payer__note">Ab Pflegegrad&nbsp;2 können bis zu 40&nbsp;% nicht genutzter Sachleistungen zusätzlich dafür eingesetzt werden.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" role="tabpanel" id="panel-beratung" aria-labelledby="tab-beratung" tabindex="0">
+            <div class="panel__text">
+              <p class="panel__kicker">Pflichtberatung nach § 37 Abs. 3 SGB XI</p>
+              <h3 class="panel__title">Beratungs&shy;besuche</h3>
+              <p class="panel__lead">Wer Pflegegeld bekommt und von Angehörigen gepflegt wird, braucht regelmäßig einen Beratungsbesuch. Wir kommen – ohne erhobenen Zeigefinger.</p>
+              <h4 class="panel__h">Das gehört dazu</h4>
+              <ul class="checks">
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Pflegegrad 2 und 3: einmal im Halbjahr</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Pflegegrad 4 und 5: einmal im Vierteljahr</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Tipps zu Hilfsmitteln, Wohnung und Entlastung</li>
+                <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Wir bestätigen den Besuch gegenüber Ihrer Pflegekasse</li>
+              </ul>
+              <p class="panel__example"><span class="panel__example-k">Aus dem Alltag</span>Bei Familie R. in Gispersleben haben wir gemerkt, dass ein Toilettenstuhl und zwei Haltegriffe der Tochter nachts viel Kraft sparen. Den Antrag bei der Kasse haben wir gleich mit vorbereitet.</p>
+            </div>
+            <div class="panel__side">
+              <figure class="panel__img"><img src="/arena/pflege-lebenswert/assets/img/gruss-960.webp" srcset="/arena/pflege-lebenswert/assets/img/gruss-480.webp 480w, /arena/pflege-lebenswert/assets/img/gruss-960.webp 960w" sizes="(min-width: 900px) 30vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Ein Pfleger begrüßt eine Dame im Rollstuhl mit Handschlag"></figure>
+              <div class="payer">
+                <p class="payer__title"><svg class="ic" aria-hidden="true"><use href="#i-euro"/></svg>Wer zahlt?</p>
+                <dl class="payer__rows">
+                  <div class="payer__row is-yes"><dt><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Pflegekasse</dt><dd>übernimmt die Kosten des Beratungsbesuchs vollständig.</dd></div>
+                  <div class="payer__row is-no"><dt><svg class="ic" aria-hidden="true"><use href="#i-dash"/></svg>Krankenkasse</dt><dd>nicht zuständig</dd></div>
+                  <div class="payer__row is-yes"><dt><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Sie selbst</dt><dd>nichts.</dd></div>
+                </dl>
+                <p class="payer__note">Ohne Nachweis des Beratungsbesuchs kann die Pflegekasse das Pflegegeld kürzen.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="fine" data-reveal>Beträge: Stand 2026, zur Orientierung. Verbindlich ist die Auskunft Ihrer Pflege- bzw. Krankenkasse – wir klären das im kostenlosen Erstgespräch mit Ihnen.</p>
+      </div>
+    </section>
+
+    <!-- PFLEGEGRAD -->
+    <section class="section pg" id="pflegegrad" aria-labelledby="pg-title">
+      <div class="wrap pg__grid">
+        <div class="pg__intro">
+          <div class="pg__sticky">
+            <p class="eyebrow" data-reveal><span class="eyebrow__dot" aria-hidden="true"></span>Pflegegrad-Orientierung</p>
+            <h2 id="pg-title" data-reveal>Welcher Pflegegrad könnte passen?</h2>
+            <p class="sec-lead" data-reveal>Sechs kurze Fragen – so, wie auch die Begutachtung auf den Alltag schaut. Sie bekommen eine grobe Einordnung und wissen, was als Nächstes zu tun ist.</p>
+            <div class="callout" role="note" data-reveal>
+              <svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>
+              <p><strong>Keine Begutachtung.</strong> Den Pflegegrad stellt allein der Medizinische Dienst fest (bei Privatversicherten: Medicproof) – im Auftrag Ihrer Pflegekasse.</p>
+            </div>
+            <ol class="pg__areas" aria-label="Die sechs Lebensbereiche und ihr Gewicht" data-reveal>
+              <li data-area="0"><span class="pg__n" aria-hidden="true">1</span><span class="pg__a">Mobilität</span><span class="pg__w">10&nbsp;%</span></li>
+              <li data-area="1"><span class="pg__n" aria-hidden="true">2</span><span class="pg__a">Geist &amp; Verständigung</span><span class="pg__w pg__w--pair">15&nbsp;%<small>der höhere von 2 und 3 zählt</small></span></li>
+              <li data-area="2"><span class="pg__n" aria-hidden="true">3</span><span class="pg__a">Verhalten &amp; Gemüt</span></li>
+              <li data-area="3"><span class="pg__n" aria-hidden="true">4</span><span class="pg__a">Selbstversorgung</span><span class="pg__w">40&nbsp;%</span></li>
+              <li data-area="4"><span class="pg__n" aria-hidden="true">5</span><span class="pg__a">Krankheit &amp; Therapie</span><span class="pg__w">20&nbsp;%</span></li>
+              <li data-area="5"><span class="pg__n" aria-hidden="true">6</span><span class="pg__a">Alltag &amp; Kontakte</span><span class="pg__w">15&nbsp;%</span></li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="pg__card" data-reveal>
+          <form class="wiz" data-wizard novalidate aria-label="Selbsteinschätzung in sechs Lebensbereichen">
+            <div class="wiz__top">
+              <p class="wiz__count" data-wiz-count>6 Lebensbereiche</p>
+              <div class="wiz__bar" aria-hidden="true"><span data-wiz-bar></span></div>
+            </div>
+
+            <fieldset class="wiz__step" data-step="0">
+              <legend class="wiz__legend"><span class="wiz__icon" aria-hidden="true"><svg class="ic"><use href="#i-walk"/></svg></span><span class="wiz__area">1 · Mobilität</span><span class="wiz__q">Wie gut kommt die Person in der Wohnung zurecht – vom Bett ins Bad, die Treppe hinauf?</span></legend>
+              <div class="opts">
+                <label class="opt"><input type="radio" name="q0" value="0"><span class="opt__box"><span class="opt__title">Alleine, ohne Hilfe</span><span class="opt__desc">Kleine Unsicherheiten, aber es geht.</span></span></label>
+                <label class="opt"><input type="radio" name="q0" value="1"><span class="opt__box"><span class="opt__title">Meist alleine, mit Hilfsmittel</span><span class="opt__desc">Rollator, Gehstock oder Haltegriffe – ab und zu eine helfende Hand.</span></span></label>
+                <label class="opt"><input type="radio" name="q0" value="2"><span class="opt__box"><span class="opt__title">Nur mit Unterstützung</span><span class="opt__desc">Beim Aufstehen oder auf der Treppe ist fast immer jemand dabei.</span></span></label>
+                <label class="opt"><input type="radio" name="q0" value="3"><span class="opt__box"><span class="opt__title">Kaum noch oder gar nicht</span><span class="opt__desc">Überwiegend im Bett oder Rollstuhl, Umsetzen nur mit Hilfe.</span></span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="wiz__step" data-step="1">
+              <legend class="wiz__legend"><span class="wiz__icon" aria-hidden="true"><svg class="ic"><use href="#i-bulb"/></svg></span><span class="wiz__area">2 · Geist &amp; Verständigung</span><span class="wiz__q">Wie gut gelingt es, sich zu orientieren, zu erinnern und Gesprächen zu folgen?</span></legend>
+              <div class="opts">
+                <label class="opt"><input type="radio" name="q1" value="0"><span class="opt__box"><span class="opt__title">Klar und orientiert</span><span class="opt__desc">Termine, Namen und Wege sind sicher.</span></span></label>
+                <label class="opt"><input type="radio" name="q1" value="1"><span class="opt__box"><span class="opt__title">Manchmal vergesslich</span><span class="opt__desc">Termine oder Tabletten gehen gelegentlich unter.</span></span></label>
+                <label class="opt"><input type="radio" name="q1" value="2"><span class="opt__box"><span class="opt__title">Oft unsicher</span><span class="opt__desc">Findet sich in fremder Umgebung kaum zurecht, braucht Erinnerungen.</span></span></label>
+                <label class="opt"><input type="radio" name="q1" value="3"><span class="opt__box"><span class="opt__title">Stark eingeschränkt</span><span class="opt__desc">Erkennt vertraute Menschen nicht immer, Entscheidungen fallen schwer.</span></span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="wiz__step" data-step="2">
+              <legend class="wiz__legend"><span class="wiz__icon" aria-hidden="true"><svg class="ic"><use href="#i-heart"/></svg></span><span class="wiz__area">3 · Verhalten &amp; Gemüt</span><span class="wiz__q">Wie oft brauchen Unruhe, Ängste oder nächtliches Umherlaufen Zuwendung?</span></legend>
+              <div class="opts">
+                <label class="opt"><input type="radio" name="q2" value="0"><span class="opt__box"><span class="opt__title">Kaum</span><span class="opt__desc">Im Großen und Ganzen ausgeglichen.</span></span></label>
+                <label class="opt"><input type="radio" name="q2" value="1"><span class="opt__box"><span class="opt__title">Selten</span><span class="opt__desc">Ab und zu unruhig oder niedergeschlagen, lässt sich gut beruhigen.</span></span></label>
+                <label class="opt"><input type="radio" name="q2" value="2"><span class="opt__box"><span class="opt__title">Mehrmals pro Woche</span><span class="opt__desc">Ängste, nächtliche Unruhe oder Abwehr bei der Pflege kommen regelmäßig vor.</span></span></label>
+                <label class="opt"><input type="radio" name="q2" value="3"><span class="opt__box"><span class="opt__title">Täglich</span><span class="opt__desc">Braucht fast ständig Begleitung, auch nachts.</span></span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="wiz__step" data-step="3">
+              <legend class="wiz__legend"><span class="wiz__icon" aria-hidden="true"><svg class="ic"><use href="#i-drop"/></svg></span><span class="wiz__area">4 · Selbstversorgung</span><span class="wiz__q">Wie viel Hilfe ist beim Waschen, Anziehen, Essen und auf der Toilette nötig?</span></legend>
+              <div class="opts">
+                <label class="opt"><input type="radio" name="q3" value="0"><span class="opt__box"><span class="opt__title">Keine</span><span class="opt__desc">Alles klappt selbstständig.</span></span></label>
+                <label class="opt"><input type="radio" name="q3" value="1"><span class="opt__box"><span class="opt__title">Etwas Hilfe</span><span class="opt__desc">Zum Beispiel Rücken waschen, Schuhe anziehen, Essen vorbereiten.</span></span></label>
+                <label class="opt"><input type="radio" name="q3" value="2"><span class="opt__box"><span class="opt__title">Viel Hilfe</span><span class="opt__desc">Duschen, Anziehen und Toilettengänge nur mit Unterstützung.</span></span></label>
+                <label class="opt"><input type="radio" name="q3" value="3"><span class="opt__box"><span class="opt__title">Vollständig auf Hilfe angewiesen</span><span class="opt__desc">Auch beim Essen und Trinken.</span></span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="wiz__step" data-step="4">
+              <legend class="wiz__legend"><span class="wiz__icon" aria-hidden="true"><svg class="ic"><use href="#i-pill"/></svg></span><span class="wiz__area">5 · Krankheit &amp; Therapie</span><span class="wiz__q">Wie viel Unterstützung brauchen Medikamente, Blutzucker, Wunden oder Arzttermine?</span></legend>
+              <div class="opts">
+                <label class="opt"><input type="radio" name="q4" value="0"><span class="opt__box"><span class="opt__title">Wird selbst erledigt</span><span class="opt__desc">Tabletten, Termine und Messungen laufen allein.</span></span></label>
+                <label class="opt"><input type="radio" name="q4" value="1"><span class="opt__box"><span class="opt__title">Gelegentlich Hilfe</span><span class="opt__desc">Tabletten richten oder Arzttermine klappen mit Erinnerung.</span></span></label>
+                <label class="opt"><input type="radio" name="q4" value="2"><span class="opt__box"><span class="opt__title">Täglich Hilfe</span><span class="opt__desc">Medikamentengabe, Kompressionsstrümpfe, Blutzuckermessung.</span></span></label>
+                <label class="opt"><input type="radio" name="q4" value="3"><span class="opt__box"><span class="opt__title">Mehrmals täglich</span><span class="opt__desc">Insulin, Wundversorgung, Katheter oder Inhalationen durch andere.</span></span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="wiz__step" data-step="5">
+              <legend class="wiz__legend"><span class="wiz__icon" aria-hidden="true"><svg class="ic"><use href="#i-sun"/></svg></span><span class="wiz__area">6 · Alltag &amp; Kontakte</span><span class="wiz__q">Wie gut gelingt es, den Tag zu gestalten und Kontakt zu anderen zu halten?</span></legend>
+              <div class="opts">
+                <label class="opt"><input type="radio" name="q5" value="0"><span class="opt__box"><span class="opt__title">Selbstständig</span><span class="opt__desc">Plant den Tag, trifft Menschen, ruft selbst an.</span></span></label>
+                <label class="opt"><input type="radio" name="q5" value="1"><span class="opt__box"><span class="opt__title">Braucht Anstöße</span><span class="opt__desc">Mit kleinen Erinnerungen läuft der Tag.</span></span></label>
+                <label class="opt"><input type="radio" name="q5" value="2"><span class="opt__box"><span class="opt__title">Braucht Begleitung</span><span class="opt__desc">Ohne Hilfe zieht sich die Person zurück, Verabredungen platzen.</span></span></label>
+                <label class="opt"><input type="radio" name="q5" value="3"><span class="opt__box"><span class="opt__title">Kaum noch möglich</span><span class="opt__desc">Tagesablauf und Kontakte hängen ganz an anderen.</span></span></label>
+              </div>
+            </fieldset>
+
+            <p class="wiz__nojs">Die Auswertung braucht JavaScript. Rufen Sie uns gern an: <a href="tel:+493615552700">0361&nbsp;555&nbsp;27&nbsp;00</a>.</p>
+            <p class="wiz__hint" data-wiz-hint role="alert"></p>
+            <div class="wiz__nav">
+              <button type="button" class="btn btn--ghost" data-wiz-prev><svg class="ic" aria-hidden="true"><use href="#i-arrow-l"/></svg><span>Zurück</span></button>
+              <button type="button" class="btn btn--primary" data-wiz-next><span data-wiz-next-label>Weiter</span><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+            </div>
+          </form>
+
+          <div class="res" data-wiz-result hidden>
+            <p class="eyebrow"><span class="eyebrow__dot" aria-hidden="true"></span>Ihre grobe Einordnung</p>
+            <h3 class="res__title" tabindex="-1" data-res-title>Eher Pflegegrad 3</h3>
+            <p class="res__range" data-res-range></p>
+            <div class="scale" aria-hidden="true">
+              <div class="scale__track">
+                <span class="scale__band scale__band--0" style="--w:12.5"></span>
+                <span class="scale__band scale__band--1" style="--w:14.5"></span>
+                <span class="scale__band scale__band--2" style="--w:20.5"></span>
+                <span class="scale__band scale__band--3" style="--w:22.5"></span>
+                <span class="scale__band scale__band--4" style="--w:20"></span>
+                <span class="scale__band scale__band--5" style="--w:10"></span>
+                <span class="scale__fuzz" data-scale-fuzz></span>
+                <span class="scale__marker" data-scale-marker><span class="scale__pin"></span></span>
+              </div>
+              <div class="scale__labels"><span style="--w:12.5">–</span><span style="--w:14.5">1</span><span style="--w:20.5">2</span><span style="--w:22.5">3</span><span style="--w:20">4</span><span style="--w:10">5</span></div>
+            </div>
+            <dl class="res__money" data-res-money>
+              <div><dt>Pflegegeld</dt><dd data-money="geld">–</dd></div>
+              <div><dt>Pflegesachleistung</dt><dd data-money="sach">–</dd></div>
+              <div><dt>Entlastungsbetrag</dt><dd data-money="entl">131&nbsp;€</dd></div>
+            </dl>
+            <p class="res__moneynote">Monatliche Höchstbeträge der Pflegeversicherung, Stand 2026 – zur Orientierung.</p>
+            <div class="callout callout--strong" role="note">
+              <svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>
+              <p><strong>Nur der Medizinische Dienst begutachtet.</strong> Diese Einordnung ist eine unverbindliche Orientierung aus sechs Fragen – die echte Begutachtung prüft 64 Einzelkriterien und kann deutlich abweichen.</p>
+            </div>
+            <h4 class="res__h">So geht es weiter</h4>
+            <ol class="res__steps">
+              <li><strong>Antrag stellen:</strong> formlos bei der Pflegekasse, auch per Telefon. Leistungen gelten ab dem Monat des Antrags.</li>
+              <li><strong>Pflegetagebuch führen:</strong> eine Woche lang notieren, wobei Hilfe nötig ist.</li>
+              <li><strong>Begutachtung vorbereiten:</strong> Auf Wunsch sitzt jemand von uns beim Termin mit am Tisch.</li>
+            </ol>
+            <div class="res__ctas">
+              <a class="btn btn--primary btn--lg" href="#kontakt" data-res-cta><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg><span>Beratungstermin vereinbaren</span></a>
+              <button type="button" class="btn btn--ghost" data-wiz-restart><span>Neu beginnen</span></button>
+            </div>
+          </div>
+          <p class="sr-only" aria-live="polite" data-wiz-live></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- EIN TAG AUF TOUR -->
+    <section class="tour on-dark" id="tour" aria-labelledby="tour-title" data-tour>
+      <div class="tour__pin" data-tour-pin>
+        <div class="wrap tour__head">
+          <div class="tour__intro">
+            <p class="eyebrow" data-reveal><span class="eyebrow__dot" aria-hidden="true"></span>Ein Tag auf Tour Nord</p>
+            <h2 id="tour-title" data-reveal>Nähe heißt: dieselben Menschen, jeden&nbsp;Tag.</h2>
+            <p class="tour__lead" data-reveal>So sieht ein Dienstag von Schwester Anja aus – mit Menschen, die sie seit Monaten kennt. Namen sind abgekürzt.</p>
+          </div>
+          <p class="tour__clock" aria-hidden="true"><span class="tour__clock-time" data-clock>06:30</span><span class="tour__clock-unit">Uhr</span></p>
+        </div>
+        <div class="tour__viewport">
+          <div class="tour__route" aria-hidden="true"><span data-route-fill></span></div>
+          <ol class="tour__track" data-track>
+            <li class="stop stop--plain" data-time="06:30">
+              <p class="stop__time"><time>06:30</time></p>
+              <div class="stop__icon" aria-hidden="true"><svg class="ic"><use href="#i-home"/></svg></div>
+              <h3 class="stop__place">Station am Juri-Gagarin-Ring</h3>
+              <p class="stop__text">Übergabe von der Rufbereitschaft, Tourenhandy, Medikamentenboxen. Kaffee im Stehen.</p>
+            </li>
+            <li class="stop" data-time="07:10">
+              <figure class="stop__img"><img src="/arena/pflege-lebenswert/assets/img/haende-960.webp" srcset="/arena/pflege-lebenswert/assets/img/haende-480.webp 480w, /arena/pflege-lebenswert/assets/img/haende-960.webp 960w" sizes="(min-width: 900px) 360px, 88vw" width="960" height="640" loading="lazy" decoding="async" alt="Ein Pfleger kniet vor einer Dame im Rollstuhl und hält ihre Hände"></figure>
+              <p class="stop__time"><time>07:10</time></p>
+              <h3 class="stop__place">Herr B., Rieth</h3>
+              <p class="stop__text">Blutzucker messen, Insulin spritzen, Frühstück richten. Er erzählt von seinem Kleingarten.</p>
+              <a class="chip" href="#leistungen" data-open-tab="tab-behandlung">Behandlungspflege</a>
+            </li>
+            <li class="stop" data-time="08:05">
+              <figure class="stop__img"><img src="/arena/pflege-lebenswert/assets/img/stock-960.webp" srcset="/arena/pflege-lebenswert/assets/img/stock-480.webp 480w, /arena/pflege-lebenswert/assets/img/stock-960.webp 960w" sizes="(min-width: 900px) 360px, 88vw" width="960" height="640" loading="lazy" decoding="async" alt="Hand einer älteren Person auf einem Gehstock, im Hintergrund eine Pflegekraft"></figure>
+              <p class="stop__time"><time>08:05</time></p>
+              <h3 class="stop__place">Frau L., Krämpfervorstadt</h3>
+              <p class="stop__text">Duschen, Anziehen, ein Kaffee zusammen. Der Enkel in Leipzig hat angerufen.</p>
+              <a class="chip" href="#leistungen" data-open-tab="tab-grund">Grundpflege</a>
+            </li>
+            <li class="stop" data-time="10:30">
+              <figure class="stop__img"><img src="/arena/pflege-lebenswert/assets/img/ball-960.webp" srcset="/arena/pflege-lebenswert/assets/img/ball-480.webp 480w, /arena/pflege-lebenswert/assets/img/ball-960.webp 960w" sizes="(min-width: 900px) 360px, 88vw" width="960" height="540" loading="lazy" decoding="async" alt="Hände eines älteren Menschen halten einen kleinen gelben Therapieball"></figure>
+              <p class="stop__time"><time>10:30</time></p>
+              <h3 class="stop__place">Familie R., Gispersleben</h3>
+              <p class="stop__text">Beratungsbesuch: Die Tochter pflegt selbst. Wir schauen gemeinsam, was sie entlastet.</p>
+              <a class="chip" href="#leistungen" data-open-tab="tab-beratung">Beratungsbesuch</a>
+            </li>
+            <li class="stop" data-time="12:15">
+              <figure class="stop__img"><img src="/arena/pflege-lebenswert/assets/img/zuhause-960.webp" srcset="/arena/pflege-lebenswert/assets/img/zuhause-480.webp 480w, /arena/pflege-lebenswert/assets/img/zuhause-960.webp 960w" sizes="(min-width: 900px) 360px, 88vw" width="960" height="640" loading="lazy" decoding="async" alt="Ein älteres Paar umarmt sich lächelnd am Fenster"></figure>
+              <p class="stop__time"><time>12:15</time></p>
+              <h3 class="stop__place">Frau W., Stotternheim</h3>
+              <p class="stop__text">Mittagsmedikamente, Verband am Unterschenkel, Fotodoku für die Hausärztin.</p>
+              <a class="chip" href="#leistungen" data-open-tab="tab-behandlung">Behandlungspflege</a>
+            </li>
+            <li class="stop" data-time="14:30">
+              <figure class="stop__img"><img src="/arena/pflege-lebenswert/assets/img/herbst-960.webp" srcset="/arena/pflege-lebenswert/assets/img/herbst-480.webp 480w, /arena/pflege-lebenswert/assets/img/herbst-960.webp 960w" sizes="(min-width: 900px) 360px, 88vw" width="960" height="640" loading="lazy" decoding="async" alt="Ein älteres Paar im Park, er umarmt sie von hinten"></figure>
+              <p class="stop__time"><time>14:30</time></p>
+              <h3 class="stop__place">Herr und Frau S., Hochheim</h3>
+              <p class="stop__text">Drei Stunden Gesellschaft und ein Spaziergang zum Nordstrand, damit der Sohn zum Zahnarzt kann.</p>
+              <a class="chip" href="#leistungen" data-open-tab="tab-verhinderung">Verhinderungspflege</a>
+            </li>
+            <li class="stop" data-time="16:00">
+              <figure class="stop__img"><img src="/arena/pflege-lebenswert/assets/img/cafe-960.webp" srcset="/arena/pflege-lebenswert/assets/img/cafe-480.webp 480w, /arena/pflege-lebenswert/assets/img/cafe-960.webp 960w" sizes="(min-width: 900px) 360px, 88vw" width="960" height="720" loading="lazy" decoding="async" alt="Ein älterer Herr sitzt in einem hellen Café am Tisch"></figure>
+              <p class="stop__time"><time>16:00</time></p>
+              <h3 class="stop__place">Frau K., Johannesplatz</h3>
+              <p class="stop__text">Einkaufen, dann Kuchen beim Bäcker um die Ecke – bezahlt aus dem Entlastungsbetrag.</p>
+              <a class="chip" href="#leistungen" data-open-tab="tab-entlastung">Entlastung</a>
+            </li>
+            <li class="stop stop--plain" data-time="19:30">
+              <p class="stop__time"><time>19:30</time></p>
+              <div class="stop__icon" aria-hidden="true"><svg class="ic"><use href="#i-sun"/></svg></div>
+              <h3 class="stop__place">Abendrunde</h3>
+              <p class="stop__text">Ausziehen, Abendmedikamente, Lagerung. Bei Herrn B. noch einmal Insulin. Licht aus, Tür zu.</p>
+            </li>
+            <li class="stop stop--plain stop--night" data-time="21:30">
+              <p class="stop__time"><time>21:30</time></p>
+              <div class="stop__icon" aria-hidden="true"><svg class="ic"><use href="#i-moon"/></svg></div>
+              <h3 class="stop__place">Rufbereitschaft übernimmt</h3>
+              <p class="stop__text">Bis morgen früh ist eine examinierte Pflegekraft für alle unsere Patientinnen und Patienten erreichbar.</p>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ÜBER UNS -->
+    <section class="section about" id="ueber-uns" aria-labelledby="about-title">
+      <div class="wrap about__grid">
+        <div class="about__media" data-reveal>
+          <figure class="about__arch"><div class="about__parallax" data-parallax><img src="/arena/pflege-lebenswert/assets/img/fenster-960.webp" srcset="/arena/pflege-lebenswert/assets/img/fenster-480.webp 480w, /arena/pflege-lebenswert/assets/img/fenster-960.webp 960w" sizes="(min-width: 900px) 34vw, 92vw" width="960" height="1440" loading="lazy" decoding="async" alt="Ein Pfleger beugt sich zu einer Dame im Rollstuhl, gemeinsam schauen sie aus dem Fenster ins Grüne"></div></figure>
+          <p class="about__badge"><span class="about__badge-num">seit 2009</span><span>in Erfurt unterwegs</span></p>
+        </div>
+        <div class="about__text">
+          <p class="eyebrow" data-reveal><span class="eyebrow__dot" aria-hidden="true"></span>Über uns</p>
+          <h2 id="about-title" data-reveal>Bezugspflege heißt: Sie kennen uns beim Vornamen.</h2>
+          <blockquote class="about__quote" data-reveal>
+            <p>„Pflege zu Hause funktioniert nur, wenn man sich vertraut. Deshalb planen wir Touren wie Nachbarschaften: Wer morgens bei Ihnen klingelt, kennt Ihre Gewohnheiten – und weiß, wo der Schlüssel liegt.“</p>
+            <footer><span class="mono mono--coral" aria-hidden="true">SK</span><span><strong>Sabine Krüger</strong><br>Pflegedienstleitung, examinierte Altenpflegerin</span></footer>
+          </blockquote>
+          <ul class="values">
+            <li data-reveal><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg><div><h3>Feste Touren</h3><p>Pro Person höchstens vier vertraute Gesichter im Monat – auch im Urlaub vertritt jemand aus derselben Tour.</p></div></li>
+            <li data-reveal><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg><div><h3>Zeitfenster statt Warten</h3><p>Wir kommen in einem Fenster von etwa 30&nbsp;Minuten. Wird es später, rufen wir an.</p></div></li>
+            <li data-reveal><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg><div><h3>Angehörige im Bild</h3><p>Auf Wunsch eine kurze Nachricht nach dem Besuch – und eine feste Ansprechperson im Büro.</p></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="wrap team">
+        <h3 class="team__title" data-reveal>Ihre Ansprechpersonen im Büro</h3>
+        <ul class="team__list">
+          <li class="person" data-reveal><span class="mono mono--coral" aria-hidden="true">SK</span><p><strong>Sabine Krüger</strong><span>Pflegedienstleitung · examinierte Altenpflegerin</span></p></li>
+          <li class="person" data-reveal><span class="mono mono--blue" aria-hidden="true">MA</span><p><strong>Mehmet Aydın</strong><span>Stellv. Leitung · Pflegefachmann, Wundexperte</span></p></li>
+          <li class="person" data-reveal><span class="mono mono--sage" aria-hidden="true">AH</span><p><strong>Anja Hoffmann</strong><span>Praxisanleiterin · Tour Nord</span></p></li>
+          <li class="person" data-reveal><span class="mono mono--peach" aria-hidden="true">DS</span><p><strong>Doreen Schulz</strong><span>Pflegeberaterin · Beratungsbesuche</span></p></li>
+          <li class="person" data-reveal><span class="mono mono--ink" aria-hidden="true">TB</span><p><strong>Tobias Brandt</strong><span>Tourenplanung &amp; Abrechnung</span></p></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- STIMMEN -->
+    <section class="section voices" id="stimmen" aria-labelledby="voices-title">
+      <div class="wrap">
+        <header class="voices__head">
+          <div data-reveal>
+            <p class="eyebrow"><span class="eyebrow__dot" aria-hidden="true"></span>Stimmen</p>
+            <h2 id="voices-title">Was Familien über uns sagen.</h2>
+          </div>
+          <div class="rating" data-reveal>
+            <p class="rating__num">4,8</p>
+            <div>
+              <p class="rating__stars" aria-hidden="true"><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic rating__last"><use href="#i-star"/></svg></p>
+              <p class="rating__text">von 5 Sternen aus 96&nbsp;Bewertungen</p>
+            </div>
+          </div>
+        </header>
+        <div class="voices__grid">
+          <figure class="voice voice--feature" data-reveal>
+            <div class="voice__img"><img src="/arena/pflege-lebenswert/assets/img/umarmung-960.webp" srcset="/arena/pflege-lebenswert/assets/img/umarmung-480.webp 480w, /arena/pflege-lebenswert/assets/img/umarmung-960.webp 960w" sizes="(min-width: 900px) 44vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Eine ältere Frau im grünen Pullover umarmt lächelnd ihren Mann"></div>
+            <blockquote class="voice__q"><p>„Seit Mama den Rollator braucht, kommt jeden Morgen Schwester Anja. Nicht irgendwer – Anja. Das hat für uns alles verändert.“</p></blockquote>
+            <figcaption class="voice__who"><span class="mono mono--sage" aria-hidden="true">KM</span><span><strong>Kathrin M.</strong> Tochter, Erfurt-Rieth</span></figcaption>
+          </figure>
+          <figure class="voice" data-reveal>
+            <blockquote class="voice__q"><p>„Bei der Begutachtung saß Frau Krüger neben mir. Allein hätte ich vieles kleiner geredet, als es ist.“</p></blockquote>
+            <figcaption class="voice__who"><span class="mono mono--blue" aria-hidden="true">HS</span><span><strong>Helmut S., 81</strong> Arnstadt</span></figcaption>
+          </figure>
+          <figure class="voice" data-reveal>
+            <blockquote class="voice__q"><p>„Die erste Pflegerechnung, die ich verstanden habe: was die Kasse zahlt, was wir zahlen. Fertig.“</p></blockquote>
+            <figcaption class="voice__who"><span class="mono mono--coral" aria-hidden="true">JP</span><span><strong>Jens P.</strong> Sohn, Ichtershausen</span></figcaption>
+          </figure>
+          <figure class="voice" data-reveal>
+            <blockquote class="voice__q"><p>„Wenn es mal später wird, rufen die an. Klingt nach einer Kleinigkeit. Ist es nicht.“</p></blockquote>
+            <figcaption class="voice__who"><span class="mono mono--peach" aria-hidden="true">IW</span><span><strong>Ingrid W., 77</strong> Stotternheim</span></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- EINSATZGEBIET -->
+    <section class="section area" id="einsatzgebiet" aria-labelledby="area-title">
+      <div class="wrap">
+        <header class="sec-head" data-reveal>
+          <p class="eyebrow"><span class="eyebrow__dot" aria-hidden="true"></span>Einsatzgebiet</p>
+          <h2 id="area-title">Ganz Erfurt – und bis Gebesee, Arnstadt und Kranichfeld.</h2>
+          <p class="sec-lead">Unsere Touren starten am Juri-Gagarin-Ring. Prüfen Sie Ihren Wohnort oder tippen Sie auf einen Ort in der Liste.</p>
+        </header>
+        <div class="area__grid">
+          <div class="map" data-map data-reveal>
+            <div class="map__stage">
+            <svg class="map__svg" viewBox="-200 -210 400 420" role="img" aria-labelledby="map-title map-desc">
+              <title id="map-title">Schematische Karte des Einsatzgebiets</title>
+              <desc id="map-desc">Erfurt in der Mitte mit allen Stadtteilen als Zone 1, rundherum das Umland bis etwa 20 Kilometer als Zone 2. Die genaue Ortsliste steht neben der Karte.</desc>
+              <defs>
+                <pattern id="map-dots" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" class="map__dotfill"/></pattern>
+                <clipPath id="map-clip"><rect x="-200" y="-210" width="400" height="420" rx="26"/></clipPath>
+              </defs>
+              <g clip-path="url(#map-clip)">
+                <rect class="map__land" x="-200" y="-210" width="400" height="420"/>
+                <rect x="-200" y="-210" width="400" height="420" fill="url(#map-dots)"/>
+                <circle class="map__zone2" cx="0" cy="0" r="192"/>
+                <path class="map__forest" d="M-42.4 38.4 C-36.4 36.9 -15.2 48.8 -6.2 53.4 C2.7 58.0 12.9 62.6 11.2 66.0 C9.6 69.5 -7.0 74.7 -15.9 74.1 C-24.9 73.5 -38.1 68.3 -42.5 62.4 C-46.9 56.5 -48.4 39.9 -42.4 38.4 Z"/>
+                <path class="map__city" d="M17.2 -117.3 C41.4 -117.3 71.0 -89.0 87.5 -73.6 C104.0 -58.1 116.9 -43.7 116.1 -24.5 C115.2 -5.4 95.9 23.8 82.3 41.5 C68.7 59.1 54.5 68.1 34.5 81.4 C14.6 94.7 -18.0 118.3 -37.4 121.5 C-56.9 124.6 -73.6 115.3 -82.3 100.6 C-91.1 85.9 -85.5 51.8 -90.2 33.1 C-94.9 14.5 -116.1 6.5 -110.7 -11.2 C-105.3 -29.0 -79.1 -55.6 -57.7 -73.3 C-36.4 -91.0 -7.0 -117.3 17.2 -117.3 Z"/>
+                <path class="map__road" d="M67.2 -211.3 C59.3 -200.3 40.1 -167.5 19.4 -145.5 C-1.2 -123.5 -37.5 -104.1 -56.6 -79.3 C-75.7 -54.5 -88.9 -22.0 -95.3 3.0 C-101.6 28.1 -96.8 52.0 -94.7 71.0 C-92.6 90.0 -84.2 102.6 -82.6 117.2 C-80.9 131.9 -84.5 142.0 -84.7 159.0 C-85.0 176.1 -84.2 209.4 -84.1 219.4"/>
+                <path class="map__road" d="M-232.3 51.1 C-213.4 58.2 -143.8 82.6 -118.8 93.6 C-93.9 104.7 -100.1 115.8 -82.6 117.2 C-65.0 118.6 -40.0 114.4 -13.8 102.0 C12.5 89.6 48.5 58.3 74.9 42.8 C101.3 27.2 121.8 17.2 144.7 8.7 C167.6 0.2 201.1 -5.5 212.3 -8.3"/>
+                <path class="map__river" d="M-74.0 206.3 C-71.6 199.8 -63.5 179.3 -59.1 167.1 C-54.6 154.9 -47.8 143.5 -47.5 133.1 C-47.2 122.7 -58.8 117.5 -57.4 104.7 C-56.0 91.9 -44.9 70.8 -38.9 56.5 C-33.0 42.1 -24.8 34.0 -21.8 18.6 C-18.8 3.3 -18.5 -21.9 -21.1 -35.8 C-23.7 -49.6 -29.2 -55.8 -37.4 -64.5 C-45.7 -73.2 -63.2 -80.6 -70.4 -88.0 C-77.7 -95.4 -80.9 -97.9 -80.7 -108.9 C-80.5 -119.8 -73.1 -140.1 -69.2 -153.7 C-65.3 -167.3 -59.3 -184.3 -57.3 -190.4"/>
+                <path class="map__tourline" pathLength="1" d="M0 0 C-10 -20 -14 -40 -35 -62 S -70 -95 -84 -108 S -76 -140 -73 -153"/>
+                <path class="map__tourline map__tourline--2" pathLength="1" d="M0 0 C-20 30 -40 60 -59 109 S -55 140 -63 167"/>
+                <path class="map__tourline map__tourline--3" pathLength="1" d="M0 0 C30 10 70 20 105 30 S 100 80 90 100 S 110 130 116 142"/>
+                <text class="map__road-label" x="-112" y="-30">A71</text>
+                <text class="map__road-label" x="140" y="-2">A4</text>
+                <text class="map__river-label" x="-14" y="-82">Gera</text>
+                <text class="map__forest-label" x="-38" y="86">Steiger</text>
+                <g class="map__compass" transform="translate(166 -176)"><circle r="15"/><path d="M0 -9 L4 3 L0 1 L-4 3 Z"/><text y="-19">N</text></g>
+              </g>
+            </svg>
+            <div class="map__pins">
+            <button type="button" class="map__pin map__pin--z1" data-place="altstadt" style="left:46.9%;top:53.1%;--i:0" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Altstadt</span></button>
+            <button type="button" class="map__pin map__pin--z1" data-place="ilversgehofen" style="left:46.3%;top:41.7%;--i:1" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Ilversgehofen</span></button>
+            <button type="button" class="map__pin map__pin--z1" data-place="johannesplatz" style="left:55.2%;top:44.5%;--i:2" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Johannesplatz</span></button>
+            <button type="button" class="map__pin map__pin--z1" data-place="kraempfervorstadt" style="left:57.1%;top:50.0%;--i:3" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Krämpfervorstadt</span></button>
+            <button type="button" class="map__pin map__pin--z1" data-place="bindersleben" style="left:30.4%;top:52.0%;--i:4" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Bindersleben</span></button>
+            <button type="button" class="map__pin map__pin--z1" data-place="gispersleben" style="left:41.3%;top:35.2%;--i:5" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Gispersleben</span></button>
+            <button type="button" class="map__pin map__pin--z1" data-place="herrenberg" style="left:55.3%;top:65.2%;--i:6" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Herrenberg</span></button>
+            <button type="button" class="map__pin map__pin--z1" data-place="hochheim" style="left:38.5%;top:60.4%;--i:7" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Hochheim</span></button>
+            <button type="button" class="map__pin map__pin--z1" data-place="marbach" style="left:36.3%;top:46.3%;--i:8" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Marbach</span></button>
+            <button type="button" class="map__pin map__pin--z1" data-place="melchendorf" style="left:60.0%;top:62.1%;--i:9" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Melchendorf</span></button>
+            <button type="button" class="map__pin map__pin--z1" data-place="rieth" style="left:51.6%;top:38.3%;--i:10" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Rieth</span></button>
+            <button type="button" class="map__pin map__pin--z1" data-place="wiesenhuegel" style="left:49.2%;top:66.1%;--i:11" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Wiesenhügel</span></button>
+            <button type="button" class="map__pin map__pin--z1 map__pin--label" data-place="alach" style="left:25.5%;top:46.1%;--i:12" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Alach</span></button>
+            <button type="button" class="map__pin map__pin--z1 map__pin--flip" data-place="kerspleben" style="left:70.1%;top:39.0%;--i:13" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Kerspleben</span></button>
+            <button type="button" class="map__pin map__pin--z1 map__pin--label" data-place="stotternheim" style="left:53.7%;top:26.2%;--i:14" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Stotternheim</span></button>
+            <button type="button" class="map__pin map__pin--z1 map__pin--label map__pin--flip" data-place="vieselbach" style="left:75.0%;top:46.2%;--i:15" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Vieselbach</span></button>
+            <button type="button" class="map__pin map__pin--z1 map__pin--label" data-place="molsdorf" style="left:35.3%;top:76.0%;--i:16" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Molsdorf</span></button>
+            <button type="button" class="map__pin map__pin--z2 map__pin--label map__pin--flip" data-place="moenchenholzhausen" style="left:76.2%;top:57.1%;--i:17" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Mönchenholzhausen</span></button>
+            <button type="button" class="map__pin map__pin--z2 map__pin--label" data-place="elxleben" style="left:31.4%;top:29.2%;--i:18" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Elxleben</span></button>
+            <button type="button" class="map__pin map__pin--z2 map__pin--label map__pin--flip" data-place="grossrudestedt" style="left:62.3%;top:17.1%;--i:19" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Großrudestedt</span></button>
+            <button type="button" class="map__pin map__pin--z2 map__pin--label" data-place="ichtershausen" style="left:37.4%;top:81.6%;--i:20" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Ichtershausen</span></button>
+            <button type="button" class="map__pin map__pin--z2 map__pin--label map__pin--flip" data-place="klettbach" style="left:72.5%;top:73.9%;--i:21" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Klettbach</span></button>
+            <button type="button" class="map__pin map__pin--z2 map__pin--label" data-place="neudietendorf" style="left:25.1%;top:71.4%;--i:22" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Neudietendorf</span></button>
+            <button type="button" class="map__pin map__pin--z2 map__pin--label" data-place="riethnordhausen" style="left:42.9%;top:19.0%;--i:23" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Riethnordhausen</span></button>
+            <button type="button" class="map__pin map__pin--z2 map__pin--label" data-place="walschleben" style="left:28.9%;top:24.2%;--i:24" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Walschleben</span></button>
+            <button type="button" class="map__pin map__pin--z2 map__pin--label" data-place="witterda" style="left:20.0%;top:34.0%;--i:25" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Witterda</span></button>
+            <button type="button" class="map__pin map__pin--z2 map__pin--label" data-place="gebesee" style="left:31.8%;top:13.5%;--i:26" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Gebesee</span></button>
+            <button type="button" class="map__pin map__pin--z2 map__pin--label" data-place="arnstadt" style="left:34.2%;top:89.7%;--i:27" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Arnstadt</span></button>
+            <button type="button" class="map__pin map__pin--z2 map__pin--label map__pin--flip" data-place="kranichfeld" style="left:78.9%;top:83.9%;--i:28" tabindex="-1" aria-hidden="true"><span class="map__dot"></span><span class="map__name">Kranichfeld</span></button>
+              <span class="map__office" style="left:50%;top:50%" aria-hidden="true"><span class="map__office-ring"></span><svg class="ic"><use href="#i-home"/></svg><span class="map__office-label">Lebenswert</span></span>
+            </div>
+            </div>
+            <ul class="map__legend" aria-hidden="true">
+              <li><span class="map__key map__key--z1"></span>Zone 1 · Stadtgebiet Erfurt</li>
+              <li><span class="map__key map__key--z2"></span>Zone 2 · Umland bis ca. 20&nbsp;km</li>
+              <li><span class="map__key map__key--tour"></span>Beispiel-Touren</li>
+            </ul>
+            <p class="map__note">Schematisch, nicht maßstabsgetreu.</p>
+          </div>
+
+          <div class="area__side">
+            <form class="check" data-area-form role="search" aria-label="Einsatzgebiet prüfen">
+              <label class="check__label" for="area-q">Wohnort, Stadtteil oder Postleitzahl</label>
+              <div class="check__row">
+                <input class="input" id="area-q" name="ort" type="text" autocomplete="off" placeholder="z. B. Gispersleben oder 99310" data-area-input>
+                <button type="submit" class="btn btn--primary"><span>Prüfen</span></button>
+              </div>
+              <p class="check__result" aria-live="polite" data-area-result></p>
+            </form>
+
+            <div class="places">
+              <div class="places__group">
+                <h3 class="places__h"><span>Erfurt – alle Stadtteile</span><span class="places__zone">Zone 1</span></h3>
+                <p class="places__sub">Unter anderem diese 17 Stadtteile, ca. 10–25&nbsp;Minuten Anfahrt</p>
+                <ul class="places__list">
+                <li><button type="button" class="place" data-place="altstadt" data-name="Altstadt" data-zone="1" data-min="10" aria-pressed="false"><span class="place__name">Altstadt</span><span class="place__meta">ca.&nbsp;10&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="ilversgehofen" data-name="Ilversgehofen" data-zone="1" data-min="10" aria-pressed="false"><span class="place__name">Ilversgehofen</span><span class="place__meta">ca.&nbsp;10&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="johannesplatz" data-name="Johannesplatz" data-zone="1" data-min="10" aria-pressed="false"><span class="place__name">Johannesplatz</span><span class="place__meta">ca.&nbsp;10&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="kraempfervorstadt" data-name="Krämpfervorstadt" data-zone="1" data-min="10" aria-pressed="false"><span class="place__name">Krämpfervorstadt</span><span class="place__meta">ca.&nbsp;10&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="bindersleben" data-name="Bindersleben" data-zone="1" data-min="15" aria-pressed="false"><span class="place__name">Bindersleben</span><span class="place__meta">ca.&nbsp;15&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="gispersleben" data-name="Gispersleben" data-zone="1" data-min="15" aria-pressed="false"><span class="place__name">Gispersleben</span><span class="place__meta">ca.&nbsp;15&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="herrenberg" data-name="Herrenberg" data-zone="1" data-min="15" aria-pressed="false"><span class="place__name">Herrenberg</span><span class="place__meta">ca.&nbsp;15&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="hochheim" data-name="Hochheim" data-zone="1" data-min="15" aria-pressed="false"><span class="place__name">Hochheim</span><span class="place__meta">ca.&nbsp;15&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="marbach" data-name="Marbach" data-zone="1" data-min="15" aria-pressed="false"><span class="place__name">Marbach</span><span class="place__meta">ca.&nbsp;15&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="melchendorf" data-name="Melchendorf" data-zone="1" data-min="15" aria-pressed="false"><span class="place__name">Melchendorf</span><span class="place__meta">ca.&nbsp;15&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="rieth" data-name="Rieth" data-zone="1" data-min="15" aria-pressed="false"><span class="place__name">Rieth</span><span class="place__meta">ca.&nbsp;15&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="wiesenhuegel" data-name="Wiesenhügel" data-zone="1" data-min="15" aria-pressed="false"><span class="place__name">Wiesenhügel</span><span class="place__meta">ca.&nbsp;15&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="alach" data-name="Alach" data-zone="1" data-min="20" aria-pressed="false"><span class="place__name">Alach</span><span class="place__meta">ca.&nbsp;20&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="kerspleben" data-name="Kerspleben" data-zone="1" data-min="20" aria-pressed="false"><span class="place__name">Kerspleben</span><span class="place__meta">ca.&nbsp;20&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="stotternheim" data-name="Stotternheim" data-zone="1" data-min="20" aria-pressed="false"><span class="place__name">Stotternheim</span><span class="place__meta">ca.&nbsp;20&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="vieselbach" data-name="Vieselbach" data-zone="1" data-min="20" aria-pressed="false"><span class="place__name">Vieselbach</span><span class="place__meta">ca.&nbsp;20&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="molsdorf" data-name="Molsdorf" data-zone="1" data-min="25" aria-pressed="false"><span class="place__name">Molsdorf</span><span class="place__meta">ca.&nbsp;25&nbsp;Min.</span></button></li>
+                </ul>
+              </div>
+              <div class="places__group">
+                <h3 class="places__h"><span>Umland</span><span class="places__zone places__zone--2">Zone 2</span></h3>
+                <p class="places__sub">12 Orte, ca. 20–40&nbsp;Minuten Anfahrt</p>
+                <ul class="places__list">
+                <li><button type="button" class="place" data-place="moenchenholzhausen" data-name="Mönchenholzhausen" data-zone="2" data-min="20" data-plz="99198" aria-pressed="false"><span class="place__name">Mönchenholzhausen</span><span class="place__meta">99198 · ca.&nbsp;20&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="elxleben" data-name="Elxleben" data-zone="2" data-min="25" data-plz="99189" aria-pressed="false"><span class="place__name">Elxleben</span><span class="place__meta">99189 · ca.&nbsp;25&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="grossrudestedt" data-name="Großrudestedt" data-zone="2" data-min="30" data-plz="99195" aria-pressed="false"><span class="place__name">Großrudestedt</span><span class="place__meta">99195 · ca.&nbsp;30&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="ichtershausen" data-name="Ichtershausen" data-zone="2" data-min="30" data-plz="99334" aria-pressed="false"><span class="place__name">Ichtershausen</span><span class="place__meta">99334 · ca.&nbsp;30&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="klettbach" data-name="Klettbach" data-zone="2" data-min="30" data-plz="99102" aria-pressed="false"><span class="place__name">Klettbach</span><span class="place__meta">99102 · ca.&nbsp;30&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="neudietendorf" data-name="Neudietendorf" data-zone="2" data-min="30" data-plz="99192" aria-pressed="false"><span class="place__name">Neudietendorf</span><span class="place__meta">99192 · ca.&nbsp;30&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="riethnordhausen" data-name="Riethnordhausen" data-zone="2" data-min="30" data-plz="99195" aria-pressed="false"><span class="place__name">Riethnordhausen</span><span class="place__meta">99195 · ca.&nbsp;30&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="walschleben" data-name="Walschleben" data-zone="2" data-min="30" data-plz="99189" aria-pressed="false"><span class="place__name">Walschleben</span><span class="place__meta">99189 · ca.&nbsp;30&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="witterda" data-name="Witterda" data-zone="2" data-min="30" data-plz="99189" aria-pressed="false"><span class="place__name">Witterda</span><span class="place__meta">99189 · ca.&nbsp;30&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="gebesee" data-name="Gebesee" data-zone="2" data-min="35" data-plz="99189" aria-pressed="false"><span class="place__name">Gebesee</span><span class="place__meta">99189 · ca.&nbsp;35&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="arnstadt" data-name="Arnstadt" data-zone="2" data-min="40" data-plz="99310" aria-pressed="false"><span class="place__name">Arnstadt</span><span class="place__meta">99310 · ca.&nbsp;40&nbsp;Min.</span></button></li>
+                <li><button type="button" class="place" data-place="kranichfeld" data-name="Kranichfeld" data-zone="2" data-min="40" data-plz="99448" aria-pressed="false"><span class="place__name">Kranichfeld</span><span class="place__meta">99448 · ca.&nbsp;40&nbsp;Min.</span></button></li>
+                </ul>
+              </div>
+              <p class="places__more">Ihr Ort fehlt? Rufen Sie trotzdem an – oft passt er in eine bestehende Tour, sonst nennen wir Ihnen einen Dienst in Ihrer Nähe.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- KARRIERE -->
+    <section class="section career on-dark" id="karriere" aria-labelledby="career-title">
+      <div class="wrap">
+        <div class="career__intro">
+          <div class="career__text">
+            <p class="eyebrow" data-reveal><span class="eyebrow__dot" aria-hidden="true"></span>Karriere bei Lebenswert</p>
+            <h2 id="career-title" data-reveal>Pflege mit Plan. Und ein Gehalt, das vorher feststeht.</h2>
+            <p class="sec-lead" data-reveal>Wir veröffentlichen unsere Gehaltsrahmen, bevor Sie sich bewerben. Dazu Tourenpläne zwei Wochen im Voraus und ein Schichtmodell, das zu Ihrem Leben passt.</p>
+            <ul class="perks" data-reveal>
+              <li><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg>Tourenplan 2&nbsp;Wochen im Voraus</li>
+              <li><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg>30 Tage Urlaub</li>
+              <li><svg class="ic" aria-hidden="true"><use href="#i-car"/></svg>Dienstwagen, gern elektrisch</li>
+              <li><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg>Fortbildung in der Arbeitszeit</li>
+              <li><svg class="ic" aria-hidden="true"><use href="#i-gift"/></svg>Kita-Zuschuss und Jobticket</li>
+            </ul>
+          </div>
+          <figure class="career__img" data-reveal><img src="/arena/pflege-lebenswert/assets/img/pflegerin-960.webp" srcset="/arena/pflege-lebenswert/assets/img/pflegerin-480.webp 480w, /arena/pflege-lebenswert/assets/img/pflegerin-960.webp 960w" sizes="(min-width: 900px) 36vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Eine Pflegerin in hellblauer Dienstkleidung dokumentiert lächelnd auf einem Tablet"></figure>
+        </div>
+
+        <!-- Gehaltsrahmen -->
+        <div class="calc" data-calc data-reveal>
+          <div class="calc__controls">
+            <h3 class="calc__title">Ihr Gehaltsrahmen</h3>
+            <fieldset class="field">
+              <legend class="field__label">Rolle</legend>
+              <div class="roles">
+                <label class="role"><input type="radio" name="role" value="fachkraft" checked><span class="role__box"><span class="role__t">Pflegefachkraft</span><span class="role__d">3-jährig examiniert</span></span></label>
+                <label class="role"><input type="radio" name="role" value="helfer"><span class="role__box"><span class="role__t">Pflegehilfskraft</span><span class="role__d">mit 1-jähriger Ausbildung</span></span></label>
+                <label class="role"><input type="radio" name="role" value="hilfe"><span class="role__box"><span class="role__t">Quereinstieg</span><span class="role__d">mit Basiskurs, wir bilden weiter</span></span></label>
+                <label class="role"><input type="radio" name="role" value="betreuung"><span class="role__box"><span class="role__t">Alltagsbegleitung</span><span class="role__d">Betreuung &amp; Entlastung</span></span></label>
+              </div>
+            </fieldset>
+            <div class="field">
+              <div class="field__row"><label class="field__label" for="hours">Wochenstunden</label><output class="field__out" for="hours" data-hours-out>39&nbsp;h</output></div>
+              <input class="range" type="range" id="hours" min="20" max="39" step="1" value="39" data-hours>
+              <div class="range__ticks" aria-hidden="true"><span>20&nbsp;h</span><span>30&nbsp;h</span><span>39&nbsp;h</span></div>
+            </div>
+            <fieldset class="field">
+              <legend class="field__label">Berufserfahrung</legend>
+              <div class="pills">
+                <label class="pill"><input type="radio" name="exp" value="0"><span>0–2 Jahre</span></label>
+                <label class="pill"><input type="radio" name="exp" value="1" checked><span>3–5 Jahre</span></label>
+                <label class="pill"><input type="radio" name="exp" value="2"><span>6+ Jahre</span></label>
+              </div>
+            </fieldset>
+          </div>
+          <div class="calc__out">
+            <p class="calc__k">Beispielrechnung · brutto im Monat</p>
+            <p class="calc__big"><span data-sal-lo>3.990</span><span class="calc__dash">–</span><span data-sal-hi>4.270</span><span class="calc__eur">&nbsp;€</span></p>
+            <p class="sr-only" aria-live="polite" data-salary-live></p>
+            <div class="band" aria-hidden="true">
+              <div class="band__track"><span class="band__fill" data-band></span></div>
+              <div class="band__ends"><span data-band-min>3.660&nbsp;€</span><span data-band-label>Grundgehalt im Rahmen der Rolle</span><span data-band-max>4.390&nbsp;€</span></div>
+            </div>
+            <dl class="calc__parts">
+              <div><dt>Grundgehalt</dt><dd data-sal-base>3.870–4.150&nbsp;€</dd></div>
+              <div><dt>Ø Zuschläge im Schichtmodell</dt><dd data-sal-extra>+&nbsp;120&nbsp;€</dd></div>
+              <div><dt>Grundgehalt pro Stunde</dt><dd data-sal-hour>22,92–24,58&nbsp;€</dd></div>
+            </dl>
+            <p class="calc__note">Unverbindliche Beispielrechnung mit Beispielwerten. Zuschläge: Nacht +20&nbsp;%, Sonntag +25&nbsp;%, Feiertag +35&nbsp;%. Rufbereitschaft freiwillig und extra vergütet.</p>
+          </div>
+        </div>
+
+        <!-- Schichtmodelle -->
+        <div class="shifts" data-shifts data-reveal>
+          <div class="shifts__head">
+            <h3 class="shifts__title">Schichtmodell wählen</h3>
+            <fieldset class="shiftsel">
+              <legend class="sr-only">Schichtmodell</legend>
+              <label class="shiftsel__opt"><input type="radio" name="shift" value="frueh" checked><span>Frühtour</span></label>
+              <label class="shiftsel__opt"><input type="radio" name="shift" value="wechsel"><span>Früh &amp; Spät</span></label>
+              <label class="shiftsel__opt"><input type="radio" name="shift" value="eltern"><span>Eltern-Tour</span></label>
+              <label class="shiftsel__opt"><input type="radio" name="shift" value="vier"><span>4-Tage-Woche</span></label>
+            </fieldset>
+          </div>
+          <div class="shifts__body">
+            <div class="week" aria-hidden="true">
+              <div class="week__axis"><span></span><span style="--h:6">6</span><span style="--h:10">10</span><span style="--h:14">14</span><span style="--h:18">18</span><span style="--h:22">22&nbsp;Uhr</span></div>
+              <div class="week__rows" data-week></div>
+              <div class="week__legend"><span><i class="week__key week__key--1"></i>Woche 1</span><span><i class="week__key week__key--2"></i>Woche 2</span></div>
+            </div>
+            <ul class="shifts__nojs">
+              <li><strong>Frühtour:</strong> 06:30–13:30 Uhr, jedes 2. Wochenende, dafür ein freier Tag unter der Woche.</li>
+              <li><strong>Früh &amp; Spät im Wechsel:</strong> Früh 06:30–13:30, Spät 15:00–21:30 Uhr, jedes 2. Wochenende.</li>
+              <li><strong>Eltern-Tour:</strong> 08:15–13:15 Uhr, höchstens ein Wochenende im Monat.</li>
+              <li><strong>4-Tage-Woche:</strong> 06:30–16:00 Uhr mit Pause, drei freie Tage am Stück.</li>
+            </ul>
+            <div class="shifts__info" aria-live="polite" data-shift-info>
+              <h4 class="shifts__name" data-shift-name>Frühtour</h4>
+              <dl class="shifts__dl">
+                <div><dt>Zeiten</dt><dd data-shift-times>06:30–13:30 Uhr</dd></div>
+                <div><dt>Wochenende</dt><dd data-shift-weekend>jedes 2. Wochenende, dafür ein freier Tag unter der Woche</dd></div>
+                <div><dt>Typisch</dt><dd data-shift-hours>Ø 38,5 Stunden pro Woche</dd></div>
+                <div><dt>Passt für</dt><dd data-shift-fit>Frühaufsteher, die nachmittags frei haben wollen</dd></div>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bewerbung -->
+        <div class="apply" id="bewerbung">
+          <div class="apply__text" data-reveal>
+            <h3 class="apply__title">Bewerbung in 2&nbsp;Minuten</h3>
+            <p>Kein Anschreiben, kein Lebenslauf nötig. Sabine Krüger ruft Sie an – und Sie lernen die Tour bei einem Probetag kennen.</p>
+            <div class="ring" aria-hidden="true">
+              <svg viewBox="0 0 120 120"><circle class="ring__bg" cx="60" cy="60" r="52"/><circle class="ring__fg" cx="60" cy="60" r="52" pathLength="1" data-ring/></svg>
+              <p class="ring__label"><span data-ring-num>0</span><small>von 4 Angaben</small></p>
+            </div>
+          </div>
+          <div class="apply__card" data-reveal>
+            <form class="form" data-apply novalidate>
+              <div class="form__grid">
+                <div class="field">
+                  <label class="field__label" for="a-name">Vor- und Nachname <span class="req">Pflicht</span></label>
+                  <input class="input" id="a-name" name="name" type="text" autocomplete="name" required data-track-field>
+                  <p class="field__err" id="a-name-err" hidden>Bitte geben Sie Ihren Namen an.</p>
+                </div>
+                <div class="field">
+                  <label class="field__label" for="a-tel">Telefon <span class="req">Pflicht</span></label>
+                  <input class="input" id="a-tel" name="telefon" type="tel" autocomplete="tel" inputmode="tel" required data-track-field>
+                  <p class="field__err" id="a-tel-err" hidden>Bitte geben Sie eine Telefonnummer an, unter der wir Sie erreichen.</p>
+                </div>
+                <div class="field">
+                  <label class="field__label" for="a-role">Rolle</label>
+                  <select class="input" id="a-role" name="rolle" data-apply-role>
+                    <option value="fachkraft">Pflegefachkraft</option>
+                    <option value="helfer">Pflegehilfskraft (1-jährig)</option>
+                    <option value="hilfe">Quereinstieg</option>
+                    <option value="betreuung">Alltagsbegleitung</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field__label" for="a-shift">Wunsch-Schichtmodell</label>
+                  <select class="input" id="a-shift" name="schicht" data-apply-shift>
+                    <option value="frueh">Frühtour</option>
+                    <option value="wechsel">Früh &amp; Spät im Wechsel</option>
+                    <option value="eltern">Eltern-Tour</option>
+                    <option value="vier">4-Tage-Woche</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field__label" for="a-start">Ab wann? <span class="req">Pflicht</span></label>
+                  <select class="input" id="a-start" name="start" required data-track-field>
+                    <option value="">Bitte wählen</option>
+                    <option>so bald wie möglich</option>
+                    <option>in 1–3 Monaten</option>
+                    <option>später, erst mal kennenlernen</option>
+                  </select>
+                  <p class="field__err" id="a-start-err" hidden>Bitte wählen Sie einen ungefähren Starttermin.</p>
+                </div>
+                <div class="field">
+                  <label class="field__label" for="a-time">Wann erreichen wir Sie?</label>
+                  <select class="input" id="a-time" name="erreichbar">
+                    <option>egal</option>
+                    <option>vormittags</option>
+                    <option>nachmittags</option>
+                    <option>abends bis 19 Uhr</option>
+                  </select>
+                </div>
+              </div>
+              <label class="check-line">
+                <input type="checkbox" name="datenschutz" required data-track-field id="a-dsgvo">
+                <span>Ich bin einverstanden, dass Lebenswert meine Angaben zur Bearbeitung der Bewerbung nutzt. Mehr in der <a href="/arena/pflege-lebenswert/datenschutz">Datenschutzerklärung</a>. <span class="req">Pflicht</span></span>
+              </label>
+              <p class="field__err" id="a-dsgvo-err" hidden>Bitte bestätigen Sie die Einwilligung.</p>
+              <button type="submit" class="btn btn--primary btn--lg btn--block"><span>Bewerbung abschicken</span><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+              <p class="form__demo">Demo – es wird nichts gesendet.</p>
+            </form>
+            <div class="done" data-apply-done hidden>
+              <p class="done__icon" aria-hidden="true"><svg class="ic"><use href="#i-check"/></svg></p>
+              <h4 class="done__title" tabindex="-1" data-apply-done-title>Danke! Geschafft.</h4>
+              <p class="done__time" data-apply-time></p>
+              <dl class="done__list" data-apply-summary></dl>
+              <p class="done__demo"><strong>Demo – es wurde nichts gesendet.</strong> Im echten Betrieb würde sich Sabine Krüger innerhalb von zwei Werktagen melden.</p>
+              <button type="button" class="btn btn--ghost" data-apply-reset><span>Neue Bewerbung</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section faq" id="fragen" aria-labelledby="faq-title">
+      <div class="wrap faq__grid">
+        <div class="faq__intro">
+          <p class="eyebrow" data-reveal><span class="eyebrow__dot" aria-hidden="true"></span>Häufige Fragen</p>
+          <h2 id="faq-title" data-reveal>Was Angehörige uns am Telefon fragen.</h2>
+          <p class="sec-lead" data-reveal>Ihre Frage ist nicht dabei? Das Büro ist Montag bis Freitag von 8 bis 16&nbsp;Uhr erreichbar.</p>
+          <a class="btn btn--ghost" href="tel:+493615552700" data-reveal><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span>0361&nbsp;555&nbsp;27&nbsp;00</span></a>
+        </div>
+        <div class="faq__list">
+          <details class="qa" data-reveal>
+            <summary><span>Was kostet ambulante Pflege – und was zahlt die Kasse?</span><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+            <div class="qa__a"><p>Mit Pflegegrad&nbsp;2 bis&nbsp;5 übernimmt die Pflegekasse die Pflege bis zu einem monatlichen Höchstbetrag. Medizinische Leistungen wie Insulin oder Verbände zahlt die Krankenkasse auf ärztliche Verordnung, mit kleiner Zuzahlung. Vor dem Start bekommen Sie einen schriftlichen Kostenvoranschlag, aus dem hervorgeht, was bei Ihnen bleibt – oft ist das nichts oder wenig.</p></div>
+          </details>
+          <details class="qa" data-reveal>
+            <summary><span>Wie schnell können Sie anfangen?</span><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+            <div class="qa__a"><p>Nach dem kostenlosen Erstbesuch meist innerhalb weniger Tage – abhängig davon, wann in Ihrer Gegend eine Tour Platz hat. Steht eine Entlassung aus dem Krankenhaus an, sprechen wir uns wenn möglich vorher mit dem Sozialdienst der Klinik ab.</p></div>
+          </details>
+          <details class="qa" data-reveal>
+            <summary><span>Kommen immer dieselben Pflegekräfte?</span><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+            <div class="qa__a"><p>Das ist unser Ziel: Jede Tour hat eine feste Stammbesetzung. Im Monat sehen Sie in der Regel höchstens vier vertraute Gesichter. Bei Urlaub oder Krankheit vertritt jemand aus derselben Tour.</p></div>
+          </details>
+          <details class="qa" data-reveal>
+            <summary><span>Wer ist nachts und am Wochenende erreichbar?</span><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+            <div class="qa__a"><p>Für unsere Patientinnen und Patienten ist rund um die Uhr eine examinierte Pflegekraft in Rufbereitschaft. Im medizinischen Notfall wählen Sie bitte immer die <strong>112</strong>, den ärztlichen Bereitschaftsdienst erreichen Sie unter <strong>116&nbsp;117</strong>.</p></div>
+          </details>
+          <details class="qa" data-reveal>
+            <summary><span>Brauche ich für Medikamente und Verbände eine Verordnung?</span><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+            <div class="qa__a"><p>Ja. Behandlungspflege verordnet Ihre Hausarztpraxis als „häusliche Krankenpflege“. Wir stimmen uns direkt mit der Praxis ab und reichen die Verordnung bei der Krankenkasse ein.</p></div>
+          </details>
+          <details class="qa" data-reveal>
+            <summary><span>Helfen Sie beim Antrag auf einen Pflegegrad?</span><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+            <div class="qa__a"><p>Gern. Den Antrag stellen Sie formlos bei Ihrer Pflegekasse. Wir helfen beim Pflegetagebuch, erklären den Ablauf der Begutachtung und sind auf Wunsch beim Termin dabei. Eine erste Orientierung gibt Ihnen <a href="#pflegegrad">unsere Selbsteinschätzung</a>.</p></div>
+          </details>
+          <details class="qa" data-reveal>
+            <summary><span>Können wir von einem anderen Pflegedienst wechseln?</span><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+            <div class="qa__a"><p>Ja. Pflegebedürftige können ihren Pflegevertrag mit einem ambulanten Dienst jederzeit kündigen. Wir planen den Übergang so, dass kein Tag ohne Versorgung bleibt.</p></div>
+          </details>
+          <details class="qa" data-reveal>
+            <summary><span>Kommen Sie auch zu Privatversicherten?</span><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+            <div class="qa__a"><p>Ja. Wir rechnen dann direkt mit Ihnen ab, Sie reichen die Rechnung bei Ihrer privaten Pflegeversicherung und gegebenenfalls der Beihilfe ein. Die Rechnung ist so aufgebaut, dass das ohne Rückfragen klappt.</p></div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- KONTAKT -->
+    <section class="section contact" id="kontakt" aria-labelledby="contact-title">
+      <div class="wrap">
+        <header class="sec-head" data-reveal>
+          <p class="eyebrow"><span class="eyebrow__dot" aria-hidden="true"></span>Beratung &amp; Kontakt</p>
+          <h2 id="contact-title">Ein Anruf, ein Besuch – dann wissen Sie Bescheid.</h2>
+        </header>
+        <ol class="steps">
+          <li class="step" data-reveal><span class="step__n" aria-hidden="true">1</span><h3>Anrufen oder schreiben</h3><p>Wir fragen nur das Nötigste und vereinbaren einen Termin.</p></li>
+          <li class="step" data-reveal><span class="step__n" aria-hidden="true">2</span><h3>Kostenloser Erstbesuch</h3><p>Etwa eine Stunde bei Ihnen zu Hause. Angehörige sind herzlich willkommen.</p></li>
+          <li class="step" data-reveal><span class="step__n" aria-hidden="true">3</span><h3>Plan und Kosten</h3><p>Sie bekommen schwarz auf weiß, was die Kasse übernimmt und was bei Ihnen bleibt.</p></li>
+          <li class="step" data-reveal><span class="step__n" aria-hidden="true">4</span><h3>Erste Tour</h3><p>Ihre feste Bezugspflegekraft stellt sich beim ersten Besuch vor.</p></li>
+        </ol>
+
+        <div class="contact__grid">
+          <aside class="contact__info" aria-label="Kontaktdaten" data-reveal>
+            <p class="status status--lg" data-office-status><span class="status__dot" aria-hidden="true"></span><span class="status__text" data-office-text>Büro Mo–Fr 8–16&nbsp;Uhr</span></p>
+            <a class="contact__phone" href="tel:+493615552700"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span>0361&nbsp;555&nbsp;27&nbsp;00</span></a>
+            <a class="contact__mail" href="mailto:kontakt@lebenswert-pflege.de"><svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg><span>kontakt@lebenswert-pflege.de</span></a>
+            <dl class="contact__dl">
+              <div><dt>Adresse</dt><dd>Lebenswert Ambulanter Pflegedienst GmbH<br>Juri-Gagarin-Ring&nbsp;64<br>99084 Erfurt</dd></div>
+              <div><dt>Büro</dt><dd>Montag bis Freitag, 8–16&nbsp;Uhr</dd></div>
+              <div><dt>Rufbereitschaft</dt><dd>rund um die Uhr für unsere Patientinnen und Patienten</dd></div>
+            </dl>
+            <p class="contact__sos"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg><span>Im medizinischen Notfall: <strong>112</strong>. Ärztlicher Bereitschaftsdienst: <strong>116&nbsp;117</strong>.</span></p>
+          </aside>
+
+          <div class="contact__card" data-reveal>
+            <form class="form" data-contact novalidate>
+              <fieldset class="field">
+                <legend class="field__label">Worum geht es? <span class="req">Pflicht</span></legend>
+                <div class="chips" data-topic-group>
+                  <label class="chipopt"><input type="radio" name="anliegen" value="Pflege zu Hause beginnen" required><span>Pflege zu Hause beginnen</span></label>
+                  <label class="chipopt"><input type="radio" name="anliegen" value="Pflegegrad &amp; Antrag"><span>Pflegegrad &amp; Antrag</span></label>
+                  <label class="chipopt"><input type="radio" name="anliegen" value="Beratungsbesuch"><span>Beratungsbesuch</span></label>
+                  <label class="chipopt"><input type="radio" name="anliegen" value="Verhinderungspflege"><span>Verhinderungspflege</span></label>
+                  <label class="chipopt"><input type="radio" name="anliegen" value="Etwas anderes"><span>Etwas anderes</span></label>
+                </div>
+                <p class="field__err" id="c-topic-err" hidden>Bitte wählen Sie ein Anliegen.</p>
+              </fieldset>
+              <fieldset class="field">
+                <legend class="field__label">Für wen?</legend>
+                <div class="pills pills--light">
+                  <label class="pill"><input type="radio" name="fuer" value="für mich selbst" checked><span>Für mich</span></label>
+                  <label class="pill"><input type="radio" name="fuer" value="für einen Angehörigen"><span>Für einen Angehörigen</span></label>
+                </div>
+              </fieldset>
+              <div class="form__grid">
+                <div class="field">
+                  <label class="field__label" for="c-name">Ihr Name <span class="req">Pflicht</span></label>
+                  <input class="input" id="c-name" name="name" type="text" autocomplete="name" required>
+                  <p class="field__err" id="c-name-err" hidden>Bitte geben Sie Ihren Namen an.</p>
+                </div>
+                <div class="field">
+                  <label class="field__label" for="c-tel">Telefon für den Rückruf <span class="req">Pflicht</span></label>
+                  <input class="input" id="c-tel" name="telefon" type="tel" autocomplete="tel" inputmode="tel" required>
+                  <p class="field__err" id="c-tel-err" hidden>Bitte geben Sie eine Telefonnummer an (mindestens 6 Ziffern).</p>
+                </div>
+                <div class="field">
+                  <label class="field__label" for="c-mail">E-Mail <span class="opt-l">freiwillig</span></label>
+                  <input class="input" id="c-mail" name="email" type="email" autocomplete="email">
+                  <p class="field__err" id="c-mail-err" hidden>Diese E-Mail-Adresse sieht unvollständig aus.</p>
+                </div>
+                <div class="field">
+                  <label class="field__label" for="c-ort">Wohnort oder Stadtteil <span class="opt-l">freiwillig</span></label>
+                  <input class="input" id="c-ort" name="ort" type="text" autocomplete="address-level2" list="orte">
+                  <datalist id="orte"><option value="Erfurt"><option value="Arnstadt"><option value="Ichtershausen"><option value="Neudietendorf"><option value="Gebesee"><option value="Stotternheim"><option value="Kranichfeld"></datalist>
+                </div>
+                <div class="field">
+                  <label class="field__label" for="c-when">Rückruf am besten</label>
+                  <select class="input" id="c-when" name="rueckruf">
+                    <option>egal, so bald wie möglich</option>
+                    <option>vormittags (8–12 Uhr)</option>
+                    <option>nachmittags (12–16 Uhr)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label class="field__label" for="c-msg">Nachricht <span class="opt-l">freiwillig</span></label>
+                <textarea class="input" id="c-msg" name="nachricht" rows="4" data-contact-msg></textarea>
+              </div>
+              <label class="check-line">
+                <input type="checkbox" name="datenschutz" required id="c-dsgvo">
+                <span>Ich bin einverstanden, dass meine Angaben zur Beantwortung der Anfrage genutzt werden. Mehr in der <a href="/arena/pflege-lebenswert/datenschutz">Datenschutzerklärung</a>. <span class="req">Pflicht</span></span>
+              </label>
+              <p class="field__err" id="c-dsgvo-err" hidden>Bitte bestätigen Sie die Einwilligung.</p>
+              <button type="submit" class="btn btn--primary btn--lg btn--block"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span>Rückruf anfordern</span></button>
+              <p class="form__demo">Demo – es wird nichts gesendet.</p>
+            </form>
+            <div class="done" data-contact-done hidden>
+              <p class="done__icon" aria-hidden="true"><svg class="ic"><use href="#i-check"/></svg></p>
+              <h3 class="done__title" tabindex="-1" data-contact-done-title>Danke – wir melden uns.</h3>
+              <dl class="done__list" data-contact-summary></dl>
+              <p class="done__demo"><strong>Demo – es wurde nichts gesendet.</strong> Im echten Betrieb ruft Sie das Büro am nächsten Werktag zurück.</p>
+              <button type="button" class="btn btn--ghost" data-contact-reset><span>Neue Anfrage</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot on-dark">
+    <div class="wrap foot__grid">
+      <div class="foot__brand">
+        <a class="brand brand--foot" href="/arena/pflege-lebenswert/" aria-label="Lebenswert – zur Startseite">
+          <svg class="brand__mark" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="15" style="fill:var(--logo-bg)"/><path d="M12.5 22.5 24 13.2l11.5 9.3V34a2.5 2.5 0 0 1-2.5 2.5H15a2.5 2.5 0 0 1-2.5-2.5z" fill="none" style="stroke:var(--logo-fg)" stroke-width="3" stroke-linejoin="round"/><path d="M24 32.6s-5.4-3.2-5.4-6.9a2.9 2.9 0 0 1 5.4-1.6 2.9 2.9 0 0 1 5.4 1.6c0 3.7-5.4 6.9-5.4 6.9z" style="fill:var(--logo-fg)"/></svg>
+          <span class="brand__text"><span class="brand__name">Lebenswert</span><span class="brand__sub">Ambulanter Pflegedienst · Erfurt</span></span>
+        </a>
+        <p class="foot__claim">Pflege zu Hause, mit Menschen, die Sie kennen. Zugelassen bei allen Pflegekassen.</p>
+      </div>
+      <div class="foot__col">
+        <h2 class="foot__h">Kontakt</h2>
+        <p>Juri-Gagarin-Ring&nbsp;64<br>99084 Erfurt</p>
+        <p><a href="tel:+493615552700">0361&nbsp;555&nbsp;27&nbsp;00</a><br><a href="mailto:kontakt@lebenswert-pflege.de">kontakt@lebenswert-pflege.de</a></p>
+      </div>
+      <div class="foot__col">
+        <h2 class="foot__h">Erreichbarkeit</h2>
+        <p>Büro: Mo–Fr 8–16&nbsp;Uhr</p>
+        <p>Rufbereitschaft: rund um die Uhr für unsere Patientinnen und Patienten</p>
+        <p>Notfall: 112</p>
+      </div>
+      <nav class="foot__col" aria-label="Fußbereich">
+        <h2 class="foot__h">Seiten</h2>
+        <ul class="foot__links">
+          <li><a href="#leistungen">Leistungen</a></li>
+          <li><a href="#pflegegrad">Pflegegrad-Orientierung</a></li>
+          <li><a href="#karriere">Karriere</a></li>
+          <li><a href="/arena/pflege-lebenswert/impressum">Impressum</a></li>
+          <li><a href="/arena/pflege-lebenswert/datenschutz">Datenschutz</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="wrap foot__bottom">
+      <p>© <span data-year>2026</span> Lebenswert Ambulanter Pflegedienst GmbH</p>
+      <p class="foot__demo">Fiktiver Beispielbetrieb – Demo-Website von Filip Kramar. Alle Namen, Daten und Bewertungen sind erfunden.</p>
+      <a class="demo-pill demo-pill--footer" href="/arena/">Demo · Modell „Nähe“ · fiktiver Betrieb</a>
+    </div>
+  </footer>
+
+  <nav class="actionbar" aria-label="Schnellzugriff">
+    <a class="actionbar__btn" href="tel:+493615552700"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span>Anrufen</span></a>
+    <a class="actionbar__btn actionbar__btn--primary" href="#kontakt"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg><span>Beratung</span></a>
+  </nav>
+
+  <a class="demo-pill demo-pill--fixed" href="/arena/">Demo · Modell „Nähe“ · fiktiver Betrieb</a>
+</body>
+</html>

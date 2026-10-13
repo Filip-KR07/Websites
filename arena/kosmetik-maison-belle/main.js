@@ -221,7 +221,7 @@
       menuToggle.setAttribute('aria-expanded', 'false');
       if (lenis) lenis.start();
     });
-    window.addEventListener('resize', function () { if (window.innerWidth > 1120 && menu.open) menu.close(); });
+    window.addEventListener('resize', function () { if (window.innerWidth > 1199 && menu.open) menu.close(); });
   }
   function closeMenu(after) {
     if (!menu || !menu.open) { if (after) after(); return; }
@@ -253,43 +253,43 @@
     var vs = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
     var fs = [
       'precision mediump float;',
-      'uniform vec2 uRes;uniform float uTime;uniform vec2 uMouse;uniform float uAspect;',
+      'uniform vec2 uRes;uniform float uTime;uniform vec2 uMouse;',
+      // Höhenfeld: lange, diagonal fallende Falten mit weicher Verwirbelung
       'float hgt(vec2 p,float t){',
-      '  vec2 q=p;',
-      '  q.x+=0.32*sin(p.y*1.35+t*0.9);',
-      '  q.y+=0.24*sin(p.x*1.05-t*0.7);',
-      '  float h=0.55*sin(q.x*1.7+q.y*1.15+t*1.05);',
-      '  h+=0.30*sin(q.x*-1.15+q.y*2.3-t*0.8+1.7);',
-      '  h+=0.09*sin(q.x*3.4+q.y*-2.6+t*1.5+0.4);',
+      '  float a=dot(p,vec2(0.80,-0.60));',
+      '  float b=dot(p,vec2(0.60,0.80));',
+      '  float w=1.15*sin(b*0.85+t*0.55)+0.55*sin(b*1.9-t*0.4+1.7);',
+      '  float h=sin(a*2.9+w+t*0.35)*(0.75+0.25*sin(a*0.9-t*0.3));',
+      '  h+=0.38*sin(a*5.2+0.8*w-b*0.35-t*0.5+1.1);',
+      '  h+=0.10*sin(a*9.0+w*1.4+t*0.7);',
       '  vec2 d=p-uMouse;',
-      '  h+=0.26*exp(-dot(d,d)*2.6);',
-      '  return h;',
+      '  h+=0.45*exp(-dot(d,d)*2.4);',
+      '  return h*0.5;',
       '}',
       'void main(){',
-      '  vec2 p=(gl_FragCoord.xy-0.5*uRes)/uRes.y*2.3;',
+      '  vec2 uv=gl_FragCoord.xy/uRes;',
+      '  vec2 p=(gl_FragCoord.xy-0.5*uRes)/uRes.y*2.0;',
       '  float t=uTime*0.16;',
-      '  float e=0.01;',
+      '  float e=0.006;',
       '  float h=hgt(p,t);',
-      '  float hx=hgt(p+vec2(e,0.),t)-h;',
-      '  float hy=hgt(p+vec2(0.,e),t)-h;',
-      '  vec3 n=normalize(vec3(-hx/e,-hy/e,2.4));',
-      '  vec3 L=normalize(vec3(-0.55,0.65,0.85));',
-      '  float diff=dot(n,L)*0.5+0.5;',
+      '  vec2 g=vec2(hgt(p+vec2(e,0.),t)-h,hgt(p+vec2(0.,e),t)-h)/e;',
+      '  vec3 n=normalize(vec3(-g*0.42,1.0));',
+      '  vec3 L=normalize(vec3(-0.55,0.55,0.62));',
+      '  float diff=clamp(dot(n,L),0.,1.);',
       '  vec3 H=normalize(L+vec3(0.,0.,1.));',
-      '  float spec=pow(max(dot(n,H),0.),48.);',
-      '  float rim=pow(1.-n.z,1.6);',
-      '  vec3 cShadow=vec3(0.76,0.58,0.55);',
-      '  vec3 cMid=vec3(0.87,0.745,0.69);',
-      '  vec3 cLight=vec3(0.965,0.925,0.905);',
-      '  vec3 cChamp=vec3(0.925,0.86,0.75);',
-      '  vec3 col=mix(cShadow,cMid,smoothstep(0.18,0.6,diff));',
-      '  col=mix(col,cLight,smoothstep(0.55,0.97,diff));',
-      '  col=mix(col,cChamp,clamp(rim*0.9,0.,0.55));',
-      '  col+=vec3(1.,0.97,0.93)*spec*0.38;',
-      '  vec2 dm=p-uMouse;',
-      '  col+=vec3(1.,0.95,0.9)*0.07*exp(-dot(dm,dm)*0.7);',
-      '  float g=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453);',
-      '  col+=(g-0.5)*0.012;',
+      '  float spec=pow(clamp(dot(n,H),0.,1.),16.);',
+      '  float sheen=pow(1.-clamp(n.z,0.,1.),1.2);',
+      '  vec3 cDeep=vec3(0.80,0.635,0.585);',
+      '  vec3 cMid=vec3(0.895,0.79,0.745);',
+      '  vec3 cLight=vec3(0.962,0.922,0.9);',
+      '  vec3 cChamp=vec3(0.93,0.86,0.75);',
+      '  float k=smoothstep(0.42,1.0,diff);',
+      '  vec3 col=mix(cDeep,cMid,smoothstep(0.0,0.55,k));',
+      '  col=mix(col,cLight,smoothstep(0.55,1.0,k));',
+      '  col=mix(col,cChamp,clamp(sheen*1.2,0.,0.35));',
+      '  col+=vec3(1.,0.975,0.95)*spec*0.1;',
+      '  float gr=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453);',
+      '  col+=(gr-0.5)*0.014;',
       '  gl_FragColor=vec4(col,1.);',
       '}'
     ].join('\n');
@@ -350,8 +350,8 @@
         if (!inView || !cssH) return;
         var r = canvas.getBoundingClientRect();
         var x = e.clientX - r.left, y = e.clientY - r.top;
-        mouse.tx = (x - cssW / 2) / cssH * 2.3;
-        mouse.ty = -(y - cssH / 2) / cssH * 2.3;
+        mouse.tx = (x - cssW / 2) / cssH * 2.0;
+        mouse.ty = -(y - cssH / 2) / cssH * 2.0;
       }, { passive: true });
     }
     if ('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas);
@@ -930,14 +930,16 @@
         ['Code', codeOut.textContent]
       ];
       fillSummary(summary, rows);
-      grid.hidden = true;
+      if (card.classList.contains('is-flipped')) flipBtn.click();
+      form.hidden = true;
       success.hidden = false;
       $('[data-gift-success-title]', success).focus({ preventScroll: true });
-      scrollToEl(success, { offset: -(headerH() + 30) });
+      var top = success.getBoundingClientRect().top;
+      if (top < headerH() || top > window.innerHeight * 0.6) scrollToEl(success, { offset: -(headerH() + 30) });
       scheduleRefresh(300);
     });
     $('[data-gift-again]').addEventListener('click', function () {
-      success.hidden = true; grid.hidden = false; newCode();
+      success.hidden = true; form.hidden = false; newCode();
       scheduleRefresh(300);
       $('input[name="gtype"]:checked', form).focus();
     });
@@ -1070,9 +1072,17 @@
       txt.textContent = 'Gerade geschlossen · ' + label;
     }
   }
+  /** Lageplan: Auf schmalen Bildschirmen auf die Kö zoomen (größere Beschriftung). */
+  var MAP_VIEWBOX = { full: '0 0 640 480', narrow: '128 48 492 404' };
   function initMap() {
     var svg = $('.map-svg');
     if (!svg) return;
+    if (window.matchMedia) {
+      var mqMap = matchMedia('(max-width: 599px)');
+      var setVB = function () { svg.setAttribute('viewBox', mqMap.matches ? MAP_VIEWBOX.narrow : MAP_VIEWBOX.full); };
+      setVB();
+      if (mqMap.addEventListener) mqMap.addEventListener('change', setVB);
+    }
     $$('[data-map-target]').forEach(function (li) {
       var key = li.dataset.mapTarget;
       li.tabIndex = 0;

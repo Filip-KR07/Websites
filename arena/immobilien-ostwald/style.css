@@ -1066,6 +1066,31 @@ html.js:not(.motion-off) .qa[open] .qa-a { animation: qaIn 280ms var(--ease-out)
 .expose-demo { margin-top: 1rem; font-size: .76rem; color: var(--ink-2); }
 html.dialog-open { overflow: hidden; }
 
+/* Ergänzungen für main.js */
+.svc-preview { will-change: transform; }
+.fc-dot {
+  position: absolute; left: 0; top: 0; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%;
+  background: var(--sand); box-shadow: 0 0 0 3px rgba(180, 138, 78, .55); pointer-events: none; opacity: 0; transition: opacity 140ms ease;
+}
+.fc-dot.is-on { opacity: 1; }
+.fc-tip { transition: opacity 140ms ease; }
+.map-pop--compact { position: relative; width: 100%; margin-top: .75rem; display: grid; grid-template-columns: 38% minmax(0, 1fr); box-shadow: none; border: 1px solid var(--line-strong); }
+.map-pop--compact img { aspect-ratio: auto; height: 100%; min-height: 100%; }
+.map-pop--compact .map-pop-body { padding: .7rem 2.4rem .75rem .85rem; gap: .2rem; }
+.map-pop--compact .map-pop-title { font-size: .95rem; }
+.map-pop--compact .map-pop-meta { margin-bottom: .25rem; }
+.map-pop--compact .btn { min-height: 2.3rem; padding: .35rem .8rem; font-size: .8rem; justify-self: start; }
+.map-pop--compact .map-pop-close { width: 2rem; height: 2rem; }
+.plan-floors { display: inline-flex; gap: 2px; padding: 3px; margin-bottom: .75rem; border: 1px solid var(--line-strong); background: var(--white); }
+.plan-floors button {
+  min-height: 2.25rem; padding: .3rem .85rem; border: 0; background: transparent; font-weight: 650; font-size: .82rem; color: var(--ink-2);
+  transition: background-color 180ms ease, color 180ms ease;
+}
+.plan-floors button[aria-pressed="true"] { background: var(--night); color: var(--sand); }
+.plan-floors button:active { transform: scale(.97); }
+.pp-hand { transform-box: fill-box; transform-origin: center; }
+.en-head span { min-width: 0; }
+
 /* ==========================================================================
    Animationen – Ausgangszustände nur mit JS und ohne reduzierte Bewegung
    ========================================================================== */
@@ -1083,6 +1108,22 @@ html.js:not(.reduced):not(.motion-off) [data-reveal-img] { clip-path: inset(0 0 
 html.js.is-loading:not(.reduced):not(.motion-off) [data-split] { opacity: 0; }
 .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .12em; margin-bottom: -.12em; }
 .wi { display: inline-block; will-change: transform; }
+
+/* Scroll-Reveals (Klassen setzt main.js per IntersectionObserver) */
+html.js:not(.reduced):not(.motion-off) [data-reveal] { transition: opacity 900ms ease, transform 1100ms var(--ease-out); }
+html.js:not(.reduced):not(.motion-off) [data-reveal].is-in { opacity: 1; transform: none; }
+html.js:not(.reduced):not(.motion-off) [data-reveal-img] { transition: clip-path 1300ms var(--ease-in-out); }
+html.js:not(.reduced):not(.motion-off) [data-reveal-img].is-in { clip-path: inset(0 0 0 0); }
+html.js:not(.reduced):not(.motion-off) [data-split] .wi { transform: translateY(108%); transition: transform 1000ms var(--ease-out); transition-delay: calc(var(--d, 0) * 42ms); }
+html.js:not(.reduced):not(.motion-off) [data-split].is-in .wi { transform: none; }
+html.js:not(.reduced):not(.motion-off) [data-stagger]:not(.st-done) > * { opacity: 0; transform: translateY(22px); }
+html.js:not(.reduced):not(.motion-off) [data-stagger].is-in:not(.st-done) > * {
+  opacity: 1; transform: none; transition: opacity 700ms ease, transform 900ms var(--ease-out); transition-delay: calc(var(--si, 0) * 70ms);
+}
+html.js.reduced [data-stagger]:not(.st-done) > * { opacity: 0; transition: opacity 600ms ease; }
+html.js.reduced [data-stagger].is-in > * { opacity: 1; }
+html.menu-lock { overflow: hidden; }
+section[tabindex="-1"]:focus { outline: none; }
 
 /* Reduzierte Bewegung: sanfte Fades statt Bewegung */
 html.js.reduced [data-reveal], html.js.reduced [data-reveal-img], html.js.reduced [data-split] { opacity: 0; transition: opacity 700ms ease; }
@@ -1218,3 +1259,28 @@ html.motion-off *, html.motion-off *::before, html.motion-off *::after { animati
 .legal-back { display: inline-flex; align-items: center; gap: .45rem; font-weight: 700; font-size: .88rem; text-decoration: none; color: var(--night); }
 .legal-header { position: fixed; background: rgba(231, 223, 210, .94) !important; border-bottom-color: var(--line) !important; }
 .legal-body { padding-bottom: 0 !important; }
+html:not(.js) .fin-chart { display: none; }
+.legal-header .header-inner { justify-content: space-between; }
+.legal-page h2 + p { margin-top: 0; }
+.footer-legal-links a { color: var(--sand); }
+.legal-stand { margin-top: 2.5rem; font-size: .85rem; }
+@media (max-width: 899px) { .legal-body .footer-bottom { padding-bottom: calc(2rem + env(safe-area-inset-bottom)); } }
+.job-t { overflow-wrap: break-word; hyphens: manual; }
+@media (min-width: 900px) { .site-footer .footer-bottom { padding-bottom: 4.75rem; } }
+.rating-block .rating-num { font-size: 4.4rem; margin-top: 0; }
+@media (max-width: 1023px) { .about-figure { margin-right: 1.1rem; } }
+.sp-callout-t, .sp-callout-s { paint-order: stroke; stroke: var(--white); stroke-width: 5px; stroke-linejoin: round; }
+@media (max-width: 599px) {
+  .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 1rem; }
+  .member--job { grid-column: 1 / -1; }
+  .job-card { min-height: 0; }
+  .mono span { font-size: 2.4rem; }
+}
+.fin-inputs { display: flex; flex-direction: column; }
+.fin-hint { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .8rem; line-height: 1.55; color: var(--ink-2); }
+.fin-inputs .check-line { margin-bottom: 1.75rem; }
+.expose-panel:not([hidden]) { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: .85rem; }
+@media (max-width: 599px) {
+  .map-labels text { font-size: 16px; letter-spacing: .05em; }
+  .map-river-label { font-size: 18px; }
+}
