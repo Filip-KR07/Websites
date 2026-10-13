@@ -16,7 +16,7 @@
     weekday: [7.5, 8.5, 9.5, 10.5, 11.5, 13, 14, 15, 16],
     saturday: [8, 9, 10, 11]
   };
-  const SLOT_BOOKED_RATE = 0.62; // simulierte Auslastung (0–1)
+  const SLOT_BOOKED_RATE = 0.5;  // simulierte Auslastung (0–1)
   const LOAN_CARS = 4;           // Ersatzwagen gesamt
   const LIFT_JOBS = [
     'Inspektion · Kompakt', 'Bremsen vorn · SUV', 'HU-Vorbereitung · Kombi', 'Klimaservice · Kleinwagen',
@@ -476,6 +476,7 @@
   const ind = $('[data-car-ind]');
   const panels = $$('[data-panel]');
   const hots = $$('.hot');
+  const selOut = $('[data-car-sel]');
   function placeInd(tab) {
     if (!ind || !tab) return;
     ind.style.transform = 'translateX(' + tab.offsetLeft + 'px) scaleX(' + (tab.offsetWidth / 100) + ')';
@@ -494,6 +495,8 @@
     });
     hots.forEach(h => h.classList.toggle('is-active', h.dataset.part === part));
     car.dataset.active = part;
+    const selT = tabs.find(t => t.dataset.part === part);
+    if (selOut && selT) selOut.textContent = selT.textContent;
   }
   panels.forEach(p => { p.hidden = p.dataset.panel !== 'motor'; });
   tabs.forEach((t, i) => {
@@ -674,8 +677,8 @@
     const monthsLeft = (r.dueY - now.getFullYear()) * 12 + (r.dueM - 1 - now.getMonth());
     let state, label, tip;
     if (now > r.end) {
-      const over = Math.max(1, monthsLeft * -1);
-      state = 'few'; label = 'überfällig seit ' + over + ' ' + (over === 1 ? 'Monat' : 'Monaten');
+      const over = -monthsLeft - 1; // volle Monate seit Ablauf des Fälligkeitsmonats
+      state = 'few'; label = over < 1 ? 'überfällig seit diesem Monat' : 'überfällig seit ' + over + ' ' + (over === 1 ? 'Monat' : 'Monaten');
       tip = 'Bitte zeitnah einen Termin vereinbaren. Bei mehr als zwei Monaten Überziehung wird in der Regel eine erweiterte Prüfung fällig, die etwas mehr kostet – Orientierung, keine Rechtsberatung.';
     } else if (monthsLeft <= 2) {
       state = 'few'; label = monthsLeft <= 0 ? 'diesen Monat fällig' : 'bald fällig · in ' + monthsLeft + ' ' + (monthsLeft === 1 ? 'Monat' : 'Monaten');
@@ -694,9 +697,9 @@
     const elapsed = (now.getFullYear() - r.start.getFullYear()) * 12 + (now.getMonth() - r.start.getMonth());
     for (let i = 0; i < r.interval; i++) {
       const s = document.createElement('i');
-      if (elapsed >= r.interval) s.className = 'over';
-      else if (i < elapsed) s.className = 'done';
-      else if (i === elapsed) s.className = 'now';
+      if (elapsed >= r.interval) s.className = 'c-over';
+      else if (i < elapsed) s.className = 'c-done';
+      else if (i === elapsed) s.className = 'c-now';
       H.cycle.appendChild(s);
     }
     tickHU();

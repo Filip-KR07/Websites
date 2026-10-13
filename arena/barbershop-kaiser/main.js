@@ -106,7 +106,8 @@
       f.focus({ preventScroll: true });
     };
     if (lenis) {
-      lenis.scrollTo(isTop ? 0 : target, { offset: isTop ? 0 : -headerOffset() + 1, duration: 1.3, easing: easeInOut, onComplete: focus });
+      var ty = isTop ? 0 : target.getBoundingClientRect().top + window.scrollY - headerOffset() + 1;
+      lenis.scrollTo(ty, { duration: 1.3, easing: easeInOut, onComplete: focus });
     } else {
       var y = isTop ? 0 : target.getBoundingClientRect().top + window.scrollY - headerOffset() + 1;
       window.scrollTo({ top: y, behavior: reduced() ? 'auto' : 'smooth' });
@@ -777,7 +778,7 @@
       setSum('slot', state.slot ? slotLabel(state.slot) : '–');
       setSum('dur', s ? s.dur + ' Min.' : '–');
       var p = price();
-      setSum('price', p === null ? '–' : p + ' €' + (state.barber === 'egal' && !state.slot ? '' : ''));
+      setSum('price', p === null ? '–' : p + ' €');
     }
 
     /* --- Zeitslots rendern --- */
@@ -803,9 +804,11 @@
       var grid = document.createElement('div'); grid.className = 'week-grid';
       grid.setAttribute('role', 'group'); grid.setAttribute('aria-label', 'Freie Zeiten der nächsten sieben Tage. Pfeiltasten wechseln zwischen den Zeiten.');
       var minT = Infinity, maxT = 0;
-      days.forEach(function (d) { if (d.hours) { minT = Math.min(minT, d.hours[0] * 60); maxT = Math.max(maxT, d.hours[1] * 60); } });
+      days.forEach(function (d) { if (dayWorks(d)) { minT = Math.min(minT, d.hours[0] * 60); maxT = Math.max(maxT, d.hours[1] * 60); } });
+      if (minT === Infinity) { minT = 10 * 60; maxT = 20 * 60; }
+      var s0 = svc(); maxT -= (s0 ? s0.dur : SLOT_MIN) - SLOT_MIN; // letzte mögliche Startzeit
       var rows = []; for (var t = minT; t < maxT; t += SLOT_MIN) rows.push(t);
-      grid.style.gridTemplateRows = 'auto repeat(' + rows.length + ', 2.5rem)';
+      grid.style.gridTemplateRows = 'auto repeat(' + rows.length + ', 2.4rem)';
       var corner = document.createElement('div'); corner.className = 'wk-corner'; corner.setAttribute('aria-hidden', 'true'); grid.appendChild(corner);
       days.forEach(function (d) {
         var h = document.createElement('div'); h.className = 'wk-head' + (dayWorks(d) ? '' : ' is-closed') + (d.idx === 0 ? ' is-today' : '');
@@ -879,6 +882,7 @@
     function renderSlots(keepFocus) {
       var focused = document.activeElement, fDay = null, fT = null, fTab = null;
       if (keepFocus && focused && slotsWrap.contains(focused)) { fDay = focused.getAttribute('data-day'); fT = focused.getAttribute('data-t'); fTab = focused.getAttribute('data-day-tab'); }
+      var oldWeek = qs('.week', slotsWrap), oldTop = oldWeek ? oldWeek.scrollTop : null;
       qsa(':scope > :not(.slots-fallback)', slotsWrap).forEach(function (n) { n.remove(); });
       var weekMode = mqWeek.matches;
       var view = weekMode ? renderWeek() : renderDays();
@@ -889,11 +893,25 @@
       if (weekMode) {
         var btns = qsa('.slot:not([disabled])', slotsWrap);
         btns.forEach(function (b) { b.tabIndex = -1; });
-        var first = qs('.slot[aria-pressed="true"]', slotsWrap) || btns[0];
+        var earliest = btns.slice().sort(function (a, b) { return (+a.getAttribute('data-c') - +b.getAttribute('data-c')) || (+a.getAttribute('data-r') - +b.getAttribute('data-r')); })[0];
+        var first = qs('.slot[aria-pressed="true"]', slotsWrap) || earliest;
         if (first) first.tabIndex = 0;
+        var wk = qs('.week', slotsWrap), head = qs('.wk-head', slotsWrap);
+        if (wk) {
+          if (keepFocus && oldTop !== null) wk.scrollTop = oldTop;
+          else if (first) { // ersten freien (oder gewählten) Slot ins Bild holen
+            var row = qs('.wk-time', slotsWrap), rh = row ? row.offsetHeight : 38;
+            wk.scrollTop = Math.max(0, (+first.getAttribute('data-r') - 1) * rh);
+          }
+        }
       }
       if (fTab !== null) { var tb = qs('[data-day-tab="' + fTab + '"]', slotsWrap); if (tb) tb.focus(); }
       else if (fT !== null) { var fb = qs('.slot[data-day="' + fDay + '"][data-t="' + fT + '"]', slotsWrap); if (fb && !fb.disabled) { fb.tabIndex = 0; fb.focus(); } }
+    }
+    function pickDay() { // ohne Auswahl: ersten Tag mit freien Zeiten vorwählen
+      if (state.slot) { state.dayIdx = state.slot.dayIdx; return; }
+      if (dayWorks(days[state.dayIdx]) && freeCount(days[state.dayIdx]) > 0) return;
+      for (var i = 0; i < days.length; i++) { if (dayWorks(days[i]) && freeCount(days[i]) > 0) { state.dayIdx = i; return; } }
     }
     function validateSlot() {
       if (!state.slot) return;
@@ -966,7 +984,7 @@
         if (k === n) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
       });
       if (line) line.style.transform = 'scaleX(' + (n / 3).toFixed(4) + ')';
-      if (n === 3) renderSlots(false);
+      if (n === 3) { pickDay(); renderSlots(false); }
       if (opts.focus) {
         var leg = qs('[data-panel="' + n + '"] .bk-legend', root);
         if (leg) { leg.setAttribute('tabindex', '-1'); leg.focus({ preventScroll: true }); }
@@ -981,7 +999,7 @@
     form.addEventListener('change', function (e) {
       var t = e.target;
       if (t.name === 'service') { state.service = t.value; setError(1, ''); validateSlot(); updateSummary(); if (state.step === 3) renderSlots(true); stepBtns[0].classList.toggle('is-done', state.step !== 1); }
-      if (t.name === 'barber') { state.barber = t.value; validateSlot(); updateSummary(); if (state.step === 3) renderSlots(true); }
+      if (t.name === 'barber') { state.barber = t.value; validateSlot(); updateSummary(); if (state.step === 3) { pickDay(); renderSlots(true); } }
     });
 
     /* --- Formular prüfen & absenden --- */

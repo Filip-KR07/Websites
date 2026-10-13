@@ -408,13 +408,17 @@
                 <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(32)"><rect width="6" height="6" fill="#211B16"/><path d="M0 0v6" stroke="#5B4A33" stroke-width="1.4"/></pattern>
                 <pattern id="stubble" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r=".95" fill="#2A221C"/><circle cx="5" cy="4.6" r=".85" fill="#2A221C"/><circle cx="2.6" cy="6" r=".6" fill="#2A221C"/></pattern>
                 <linearGradient id="hairFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#211B16"/><stop offset=".62" stop-color="#211B16"/><stop offset=".86" stop-color="#211B16" stop-opacity=".35"/><stop offset="1" stop-color="#211B16" stop-opacity="0"/></linearGradient>
+                <linearGradient id="beardFadeG" gradientUnits="userSpaceOnUse" x1="0" y1="206" x2="0" y2="246"><stop offset="0" stop-color="#000"/><stop offset="1" stop-color="#fff"/></linearGradient>
+                <mask id="beardFade" maskUnits="userSpaceOnUse" x="0" y="0" width="420" height="520"><rect width="420" height="520" fill="url(#beardFadeG)"/></mask>
                 <clipPath id="skinClip"><path d="M120 520C125 470 128 430 118 396C96 366 84 306 88 254C92 172 140 102 215 94C270 90 305 114 316 160C320 178 318 196 324 208C328 214 326 222 322 228C334 244 348 262 356 276C359 282 352 288 340 288C334 288 332 292 336 298C342 304 336 310 330 311C338 316 340 324 332 330C326 334 324 338 328 346C336 362 336 382 318 394C296 404 268 406 250 408C248 430 254 456 250 520Z"/></clipPath>
               </defs>
               <g class="face-grid" aria-hidden="true"><path d="M0 130H420M0 260H420M0 390H420M105 0V520M210 0V520M315 0V520" stroke="#B9AE9C" stroke-width=".6" stroke-dasharray="2 5"/></g>
               <path class="face-skin" d="M120 520C125 470 128 430 118 396C96 366 84 306 88 254C92 172 140 102 215 94C270 90 305 114 316 160C320 178 318 196 324 208C328 214 326 222 322 228C334 244 348 262 356 276C359 282 352 288 340 288C334 288 332 292 336 298C342 304 336 310 330 311C338 316 340 324 332 330C326 334 324 338 328 346C336 362 336 382 318 394C296 404 268 406 250 408C248 430 254 456 250 520Z"/>
               <path class="face-hair" d="M306 150C320 124 328 98 312 78C290 50 226 44 174 60C124 76 92 124 88 188C86 222 92 246 104 270L144 270C150 240 168 220 196 210C226 198 262 180 306 150Z" fill="url(#hairFade)"/>
               <path class="face-hairline" d="M306 150C320 124 328 98 312 78C290 50 226 44 174 60C124 76 92 124 88 188" fill="none"/>
-              <g class="beard-layers">
+              <path class="face-line" d="M120 520C125 470 128 430 118 396C96 366 84 306 88 254C92 172 140 102 215 94C270 90 305 114 316 160C320 178 318 196 324 208C328 214 326 222 322 228C334 244 348 262 356 276C359 282 352 288 340 288C334 288 332 292 336 298C342 304 336 310 330 311C338 316 340 324 332 330C326 334 324 338 328 346C336 362 336 382 318 394C296 404 268 406 250 408C248 430 254 456 250 520"/>
+              <path class="face-mouth" d="M318 311C322 311 326 311 330 311"/>
+              <g class="beard-layers" mask="url(#beardFade)">
                 <path class="beard-stubble" data-beard-stubble fill="url(#stubble)" clip-path="url(#skinClip)"/>
                 <path class="beard-solid" data-beard-solid fill="url(#hatch)"/>
                 <path class="beard-stache" data-beard-stache fill="url(#hatch)"/>
@@ -422,8 +426,8 @@
               <path class="face-ear" d="M212 236C196 226 178 238 182 260C184 280 188 298 202 310C212 316 220 310 218 298M204 256C196 256 194 266 198 276C201 284 206 286 208 282"/>
               <path class="face-brow" d="M286 212C296 206 308 204 320 208"/>
               <path class="face-eye" d="M292 230C298 226 306 226 312 230M296 232C300 235 306 235 310 232"/>
-              <path class="face-line" d="M120 520C125 470 128 430 118 396C96 366 84 306 88 254C92 172 140 102 215 94C270 90 305 114 316 160C320 178 318 196 324 208C328 214 326 222 322 228C334 244 348 262 356 276C359 282 352 288 340 288C334 288 332 292 336 298C342 304 336 310 330 311C338 316 340 324 332 330C326 334 324 338 328 346C336 362 336 382 318 394C296 404 268 406 250 408C248 430 254 456 250 520"/>
-              <path class="face-mouth" d="M318 311C322 311 326 311 330 311"/>
+              
+              
               <g class="chart-marks" aria-hidden="true">
                 <g class="mark" data-mark="cheek"><circle r="10"/><text y="4.5" text-anchor="middle">1</text></g>
                 <g class="mark" data-mark="neck"><circle r="10"/><text y="4.5" text-anchor="middle">2</text></g>
@@ -650,10 +654,10 @@
           <p class="voices-score"><strong class="tnum">4,9</strong><span class="stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span><span>aus 412 Bewertungen</span></p>
         </header>
         <ul class="voice-grid">
-          <li class="voice" data-reveal><blockquote><p>„Erster Barbershop, in dem mir jemand erklärt hat, warum mein Wirbel so steht – und ihn dann in den Schnitt eingebaut hat.“</p></blockquote><p class="voice-by">Jan P. · Neuehrenfeld</p></li>
-          <li class="voice" data-reveal style="--d:60ms"><blockquote><p>„Samirs Heißtuch-Rasur am Hochzeitsmorgen: ruhig, präzise, keine einzige Rötung auf den Fotos.“</p></blockquote><p class="voice-by">Daniel K. · Lindenthal</p></li>
-          <li class="voice" data-reveal style="--d:120ms"><blockquote><p>„Mein Sohn ist acht und hasste Friseure. Aleks hat Geduld, seitdem will er nirgends anders hin.“</p></blockquote><p class="voice-by">Melanie S. · Ehrenfeld</p></li>
-          <li class="voice" data-reveal style="--d:180ms"><blockquote><p>„Online gebucht, pünktlich drangekommen, der Fade sitzt nach drei Wochen noch. Mehr will ich nicht.“</p></blockquote><p class="voice-by">Ömer T. · Bickendorf</p></li>
+          <li class="voice" data-reveal><span class="stars voice-stars" role="img" aria-label="5 von 5 Sternen"><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg></span><blockquote><p>„Erster Barbershop, in dem mir jemand erklärt hat, warum mein Wirbel so steht – und ihn dann in den Schnitt eingebaut hat.“</p></blockquote><p class="voice-by">Jan P. · Neuehrenfeld</p></li>
+          <li class="voice" data-reveal style="--d:60ms"><span class="stars voice-stars" role="img" aria-label="5 von 5 Sternen"><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg></span><blockquote><p>„Samirs Heißtuch-Rasur am Hochzeitsmorgen: ruhig, präzise, keine einzige Rötung auf den Fotos.“</p></blockquote><p class="voice-by">Daniel K. · Lindenthal</p></li>
+          <li class="voice" data-reveal style="--d:120ms"><span class="stars voice-stars" role="img" aria-label="5 von 5 Sternen"><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg></span><blockquote><p>„Mein Sohn ist acht und hasste Friseure. Aleks hat Geduld, seitdem will er nirgends anders hin.“</p></blockquote><p class="voice-by">Melanie S. · Ehrenfeld</p></li>
+          <li class="voice" data-reveal style="--d:180ms"><span class="stars voice-stars" role="img" aria-label="5 von 5 Sternen"><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg></span><blockquote><p>„Online gebucht, pünktlich drangekommen, der Fade sitzt nach drei Wochen noch. Mehr will ich nicht.“</p></blockquote><p class="voice-by">Ömer T. · Bickendorf</p></li>
         </ul>
       </div>
     </section>

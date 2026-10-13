@@ -536,6 +536,10 @@
         if (n) { e.preventDefault(); select(n, true); }
       });
     });
+    var edge = function () { tablist.classList.toggle('at-end', tablist.scrollLeft + tablist.clientWidth >= tablist.scrollWidth - 4); };
+    tablist.addEventListener('scroll', edge, { passive: true });
+    window.addEventListener('resize', edge);
+    edge();
     moveInk(tabs[0], true);
     requestAnimationFrame(function () { ink && ink.classList.add('is-ready'); });
     window.addEventListener('resize', function () { moveInk($('.g-tab[aria-selected="true"]'), true); });
@@ -629,6 +633,7 @@
       render(idx);
       dlg.classList.remove('is-closing');
       dlg.showModal();
+      dlg.focus();
       if (lenis) lenis.stop();
       root.style.overflow = 'hidden';
       render(idx);
@@ -651,7 +656,7 @@
       else if (e.key === 'End') { e.preventDefault(); go(list.length - 1, 1); }
     });
     // Klick auf den dunklen Rand schließt
-    dlg.addEventListener('click', function (e) { if (e.target === stage) close(); });
+    dlg.addEventListener('click', function (e) { if (e.target === stage && !justDragged) close(); });
     $('[data-lb-close]', dlg).addEventListener('click', close);
     $('[data-lb-prev]', dlg).addEventListener('click', function () { go(idx - 1, -1); });
     $('[data-lb-next]', dlg).addEventListener('click', function () { go(idx + 1, 1); });
@@ -659,7 +664,7 @@
     items.forEach(function (it) { $('.g-open', it).addEventListener('click', function () { open(it); }); });
 
     // Wischen (Pointer Events, Geschwindigkeit statt fester Schwelle)
-    var sx = 0, sy = 0, st = 0, dx = 0, dragging = false, pid = null;
+    var sx = 0, sy = 0, st = 0, dx = 0, dragging = false, pid = null, justDragged = false;
     stage.addEventListener('pointerdown', function (e) {
       if (busy || pid !== null || e.button !== 0 || e.target.closest('button')) return;
       pid = e.pointerId; sx = e.clientX; sy = e.clientY; st = performance.now(); dx = 0; dragging = false;
@@ -682,6 +687,7 @@
       pid = null;
       if (!dragging) return;
       dragging = false;
+      justDragged = true; setTimeout(function () { justDragged = false; }, 0);
       var v = Math.abs(dx) / Math.max(1, performance.now() - st);
       fig.classList.remove('is-drag');
       if (Math.abs(dx) > 70 || v > 0.11) {
