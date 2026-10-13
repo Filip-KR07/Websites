@@ -853,23 +853,26 @@
     var cards = qsa('.pe-card', grid);
     var countEl = qs('[data-pe-count]'), countT = qs('[data-pe-count-t]'), empty = qs('[data-pe-empty]');
     var merkEl = qs('[data-pe-merk]'), merkT = qs('[data-pe-merk-t]');
-    var light = 'alle', flags = [], fav = [];
+    var light = 'alle', flags = [], fav = [], collapsed = true, SHOW = 8;
+    var moreBtn = qs('[data-pe-more]');
     function apply() {
       var first = new Map();
-      if (!reduced()) cards.forEach(function (c) { if (!c.classList.contains('is-hidden')) first.set(c, c.getBoundingClientRect()); });
+      if (!reduced()) cards.forEach(function (c) { if (c.offsetParent) first.set(c, c.getBoundingClientRect()); });
       var n = 0;
       cards.forEach(function (c) {
         var ls = c.getAttribute('data-light').split(' '), fs = c.getAttribute('data-flags').split(' ');
         var ok = (light === 'alle' || ls.indexOf(light) > -1) && flags.every(function (f) { return fs.indexOf(f) > -1; });
         c.classList.toggle('is-hidden', !ok);
         if (ok) n++;
+        c.classList.toggle('is-extra', ok && n > SHOW);
       });
       countEl.textContent = n;
       countT.textContent = n === 1 ? 'Pflanze passt' : 'Pflanzen passen';
       empty.hidden = n > 0;
+      if (moreBtn) { moreBtn.hidden = !collapsed || n <= SHOW; moreBtn.textContent = 'Alle ' + n + ' Pflanzen zeigen'; }
       if (reduced() || !cards[0].animate) return;
       cards.forEach(function (c) {
-        if (c.classList.contains('is-hidden')) return;
+        if (!c.offsetParent) return;
         var last = c.getBoundingClientRect(), f = first.get(c);
         if (f) {
           var dx = f.left - last.left, dy = f.top - last.top;
@@ -879,6 +882,14 @@
         }
       });
     }
+    if (moreBtn) moreBtn.addEventListener('click', function () {
+      collapsed = false;
+      grid.classList.remove('is-collapsed');
+      moreBtn.hidden = true;
+      var nxt = qs('.pe-card.is-extra .pe-fav', grid);
+      if (nxt) nxt.focus();
+    });
+    apply();
     qsa('input[name="pe-light"]').forEach(function (i) { i.addEventListener('change', function () { if (i.checked) { light = i.value; apply(); } }); });
     qsa('.pe-flags input, .pe-flag-row input').forEach(function (i) {
       i.addEventListener('change', function () {
