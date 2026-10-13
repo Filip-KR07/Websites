@@ -645,6 +645,7 @@
       if (instant || reduced()) { void s.offsetWidth; s.style.transition = ''; }
     });
     this.cents.textContent = cents ? ',' + pad2(cents) : '';
+    this.node.style.setProperty('--len', (ints.length + (cents ? 1.3 : 0)).toFixed(2));
   };
 
   var cfgSummary = '';

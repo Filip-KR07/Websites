@@ -970,8 +970,8 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(
 .bon__price { container-type: inline-size; display: flex; align-items: flex-end; gap: .5rem; padding-block: .25rem .5rem; border-bottom: 1px dashed var(--line-strong); }
 .odo {
   display: inline-flex; font-family: var(--ff-display); font-weight: 900; line-height: .82;
-  font-size: clamp(5rem, 44cqi, 9.5rem); font-variant-numeric: tabular-nums; letter-spacing: -.01em;
-  height: .82em; overflow: hidden;
+  font-size: clamp(3.4rem, calc((100cqi - 4.5rem) / (var(--len, 2) * .5 + .08)), 9.5rem); font-variant-numeric: tabular-nums; letter-spacing: -.01em;
+  height: .82em; overflow: hidden; flex: none;
 }
 .odo__d { display: inline-block; height: .82em; overflow: hidden; position: relative; }
 .odo__s { display: flex; flex-direction: column; transition: transform 700ms var(--ease-out); }
@@ -1602,3 +1602,7 @@ html.js .kin__in::before { opacity: calc(var(--mb, 0) * .16); transform: transla
   .laps { row-gap: 1.5rem; }
   .laps__side > .h2 { margin-top: -.75rem; }
 }
+
+.coach__back .coach__label, .coach__back .coach__spec { padding-right: 2.9rem; }
+.coach__name { padding-right: 3rem; }
+@media (max-width: 699px) { .coach__name { padding-right: 2.5rem; overflow-wrap: anywhere; } }

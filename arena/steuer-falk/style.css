@@ -938,10 +938,13 @@ html.motion-ok .map:not(.is-in) .map-card { opacity: 0; transform: translate(520
 html.motion-ok .map .map-card { transition: opacity .5s ease 1.4s, transform .6s var(--ease-out) 1.4s; }
 @media (max-width: 599px) {
   .map-labels text { font-size: 26px; }
+  .map-labels text:nth-child(2) { transform: translateX(-120px); }
+  .map-labels text:nth-child(8) { transform: translateX(-70px); }
+  .map-labels text:nth-child(6) { transform: translateY(78px); }
   .map-coords, .map-out, .map-road-label, .map-scale, .map-hbf .map-small { display: none; }
   .map-card rect { width: 300px; height: 80px; }
   .map-card-t { font-size: 26px; }
-  .map-card-s { font-size: 18px; }
+  .map-card-s { font-size: 16px; }
   .map-card { transform: translate(470px, 220px) !important; }
   .map .map-card { transform: translate(470px, 220px); }
   html.motion-ok .map:not(.is-in) .map-card { transform: translate(470px, 232px) !important; }
@@ -1121,7 +1124,7 @@ html.motion-ok .form-ok:not([hidden]) > :nth-child(n+5) { animation-delay: 240ms
 .legal-note strong { color: var(--ink); }
 .legal-body { border-top: 2px solid var(--ink); }
 .legal-body section { display: grid; gap: 8px 32px; padding: 22px 0; border-bottom: 1px solid var(--line-2); }
-@media (min-width: 700px) { .legal-body section { grid-template-columns: 200px minmax(0, 1fr); } .legal-body section > :not(h2) { grid-column: 2; } .legal-body section > h2 { grid-row: 1 / span 9; } }
+@media (min-width: 700px) { .legal-body section { grid-template-columns: 200px minmax(0, 1fr); } .legal-body section > :not(h2) { grid-column: 2; } .legal-body section { row-gap: 0; } .legal-body section > h2 { grid-row: 1 / span 9; } }
 .legal-body h2 { font-family: var(--f-mono); font-size: .74rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--green); padding-top: 4px; }
 .legal-body p, .legal-body li { color: var(--ink-2); max-width: 68ch; }
 .legal-body p + p, .legal-body p + ul, .legal-body ul + p { margin-top: 10px; }

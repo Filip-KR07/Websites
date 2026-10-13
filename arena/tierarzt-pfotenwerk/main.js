@@ -739,7 +739,8 @@
     });
     form.addEventListener('submit', function (e) { e.preventDefault(); });
     var reset = qs('[data-triage-reset]', form);
-    if (reset) reset.addEventListener('click', function () {
+    if (reset) reset.addEventListener('click', function (e) {
+      e.preventDefault();
       qsa('input[name="sym"]', form).forEach(function (i) { i.checked = false; });
       evaluate();
     });

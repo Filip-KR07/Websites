@@ -444,7 +444,7 @@
       var p = cleaned / (GX * GY), q = clamp(p / DONE_AT, 0, 1);
       if (meter) meter.style.transform = 'scaleX(' + q.toFixed(3) + ')';
       if (state === 'fog' && status) status.textContent = q > 0 ? Math.round(q * 100) + ' % freigewischt' : 'Beschlagen. Wischen Sie die Scheibe frei.';
-      if (p >= DONE_AT && state === 'fog') finish();
+      if (p >= DONE_AT && state === 'fog' && !auto) finish();
     }
 
     /* Funkeln */
@@ -549,7 +549,7 @@
     function schedule() { if (!raf && visible && !document.hidden) { lastT = performance.now(); raf = requestAnimationFrame(tick); } }
     function tick(now) {
       raf = 0;
-      var dt = Math.min(48, now - lastT || 16); lastT = now;
+      var dt = clamp(now - lastT, 1, 48); lastT = now;
       var target = pointer, lerpK;
       if (auto) {
         var t = clamp((now - auto.t0) / auto.dur, 0, 1);
@@ -560,7 +560,7 @@
         lerpK = pointer.type === 'mouse' ? 0.3 : 0.55;
       }
       if (isActive() || target !== pointer) {
-        var k = 1 - Math.pow(1 - lerpK, dt / 16.67);
+        var k = lerpK >= 1 ? 1 : 1 - Math.pow(1 - lerpK, dt / 16.67);
         var px = pos.x;
         pos.x += (target.x - pos.x) * k; pos.y += (target.y - pos.y) * k;
         var vx = (pos.x - px) / Math.max(1, dt);
@@ -570,6 +570,7 @@
         sq.style.transform = tr + ' rotate(' + pos.a.toFixed(2) + 'deg)';
         ring.style.transform = tr;
       }
+      if (!isFinite(pos.x) || !isFinite(pos.y)) { pos.x = target.x || 0; pos.y = target.y || 0; pos.a = 0; }
       if (parts.length) drawParts(dt); else if (xctx) xctx.clearRect(0, 0, W, H);
       var moving = Math.abs(target.x - pos.x) + Math.abs(target.y - pos.y) > 0.5;
       if (auto || (isActive() && moving) || parts.length) schedule();
