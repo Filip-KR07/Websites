@@ -13,6 +13,18 @@ ohne externe Anfragen. Jede Demo steht für sich und lässt sich als Startpunkt 
 `index.html` ist die Übersicht („Showroom“) im Stil von filipkramar.de – sie nutzt dessen Schriften aus
 `../assets/fonts/` und verlinkt auf `../#kontakt`.
 
+## Online ansehen (GitHub Pages)
+
+- Übersicht: https://filip-kr07.github.io/Websites/handwerk/
+- Tischlerei Lindner: https://filip-kr07.github.io/Websites/handwerk/tischlerei-lindner/
+- Funke Elektrotechnik: https://filip-kr07.github.io/Websites/handwerk/elektro-funke/
+- FIRSTWERK Dach & Holzbau: https://filip-kr07.github.io/Websites/handwerk/firstwerk-dach/
+
+Veröffentlicht durch `.github/workflows/pages-handwerk.yml` bei jedem Push auf diese Branch, der
+`handwerk/` ändert. Der Workflow baut Tank-Treff (`/`) und Paledo (`/paledo-hamburg/`) mit ein, weil ein
+Repo nur eine Pages-Seite hat. Läuft ein anderer Pages-Workflow danach, fehlt `/handwerk/` wieder – dann
+diesen Workflow unter „Actions“ per „Run workflow“ neu starten.
+
 ## Lokal ansehen
 
 ```bash
