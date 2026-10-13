@@ -1,7 +1,7 @@
 /* Paledo – Café & Deli · Entwurf im Aurel-Design · main.js
    Progressive Enhancement: Ohne JavaScript, ohne GSAP/Lenis oder mit "Bewegung reduzieren" ist die Seite
    vollständig sichtbar und bedienbar. Alles steckt in einer IIFE, es gibt keine Globals.
-   1. Grundlagen  2. Weiches Scrollen & Anker  3. Hero-Intro  4. Navigation  5. Menü-Dialog
+   1. Grundlagen  2. Weiches Scrollen & Anker  3. Hero-Intro  4. Navigation  5. Anker-Links
    6. Einblenden  7. Scroll-Effekte (GSAP)  8. Bowl-Baukasten  9. Öffnungszeiten  10. Aufräumen */
 (() => {
   'use strict';
@@ -64,12 +64,6 @@
     gsap.ticker.add((t) => lenis.raf(t * 1000));
     gsap.ticker.lagSmoothing(0);
   }
-  let sperren = 0;
-  const sperre = (an) => {
-    sperren = Math.max(0, sperren + (an ? 1 : -1));
-    doc.style.overflow = sperren ? 'hidden' : '';
-    if (lenis) (sperren ? lenis.stop() : lenis.start());
-  };
   const nav = $('[data-nav]');
   const scrollZu = (el, { fokus = true, dauer = 1.6 } = {}) => {
     if (!el) return;
@@ -100,9 +94,8 @@
     }
   }
 
-  /* ---------- 4. Navigation: Fläche nach dem ersten Scrollen, weg beim Runterscrollen, Handy-Leiste ---------- */
+  /* ---------- 4. Navigation: weg beim Runterscrollen, zurück beim Hochscrollen, Handy-Leiste ---------- */
   const leiste = $('[data-leiste]');
-  const menu = $('[data-menu]');
   let letzteY = window.scrollY;
   const verdeckt = new Set(); // Bereiche, in denen die Handy-Leiste stört (Footer)
   let scrollRaf = 0;
@@ -110,9 +103,8 @@
     scrollRaf = 0;
     const y = window.scrollY;
     const heroH = hero ? hero.offsetHeight : 0;
-    nav.classList.toggle('is-fest', y > 8);
     const delta = y - letzteY;
-    if (y < heroH * 0.85 || delta < -6 || nav.matches(':focus-within') || menu?.open) nav.classList.remove('is-weg');
+    if (y < heroH * 0.85 || delta < -6 || nav.matches(':focus-within')) nav.classList.remove('is-weg');
     else if (delta > 6) nav.classList.add('is-weg');
     if (Math.abs(delta) > 6) letzteY = y;
     if (leiste) leiste.classList.toggle('is-sichtbar', y > heroH * 0.7 && verdeckt.size === 0);
@@ -138,31 +130,8 @@
     spyLinks.forEach((a) => { const el = $(a.getAttribute('href')); if (el) io.observe(el); });
   }
 
-  /* ---------- 5. Menü (Dialog) ---------- */
-  const burger = $('[data-menu-auf]');
-  const menuZu = () => new Promise((fertig) => {
-    if (!menu || !menu.open) { fertig(); return; }
-    menu.classList.remove('is-offen');
-    setTimeout(() => {
-      menu.close();
-      burger?.setAttribute('aria-expanded', 'false');
-      sperre(false);
-      fertig();
-    }, motion ? 300 : 0);
-  });
-  if (menu && burger && typeof menu.showModal === 'function') {
-    $$('.menu__links li', menu).forEach((li, i) => li.style.setProperty('--i', i));
-    burger.addEventListener('click', () => {
-      if (menu.open) return;
-      menu.showModal();
-      sperre(true);
-      burger.setAttribute('aria-expanded', 'true');
-      requestAnimationFrame(() => requestAnimationFrame(() => menu.classList.add('is-offen')));
-    });
-    $('[data-menu-zu]', menu)?.addEventListener('click', () => { menuZu().then(() => burger.focus()); });
-    menu.addEventListener('cancel', (e) => { e.preventDefault(); menuZu().then(() => burger.focus()); });
-  }
-  // Alle Anker-Links: Menü erst schließen, dann weich scrollen und den Fokus mitnehmen
+  /* ---------- 5. Anker-Links ---------- */
+  // Alle Anker-Links: weich scrollen und den Fokus mitnehmen
   document.addEventListener('click', (e) => {
     const a = e.target.closest('a[href^="#"]');
     if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey) return;
@@ -170,10 +139,8 @@
     const ziel = id && document.getElementById(id);
     if (!ziel) return;
     e.preventDefault();
-    menuZu().then(() => {
-      scrollZu(ziel);
-      if (history.replaceState) history.replaceState(null, '', `#${id}`);
-    });
+    scrollZu(ziel);
+    if (history.replaceState) history.replaceState(null, '', `#${id}`);
   });
 
   /* ---------- 6. Einblenden beim Scrollen ---------- */

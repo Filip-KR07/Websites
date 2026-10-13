@@ -17,11 +17,13 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F5EFE6'/%3E%3Cpath d='M9 27V15a7 7 0 0 1 14 0v12' fill='none' stroke='%232A1D15' stroke-width='1.6'/%3E%3Cpath d='M5 27h22' stroke='%237B5136' stroke-width='1.6'/%3E%3C/svg%3E">
 <link rel="preload" as="font" type="font/woff2" href="fonts/bodoni-moda-latin.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/jost-latin.woff2" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="fonts/pinyon-script-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/dm-sans-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/cormorant-garamond-500-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/parisienne-latin.woff2" crossorigin>
 <link rel="preload" as="image" href="img/hero-1400.webp" imagesrcset="img/hero-800.webp 800w, img/hero-1400.webp 1400w, img/hero-2000.webp 2000w" imagesizes="100vw" media="(min-aspect-ratio: 4/5)">
 <link rel="alternate" hreflang="de" href="index.html">
 <link rel="alternate" hreflang="en" href="en.html">
-<link rel="stylesheet" href="css/style.css?v=3">
+<link rel="stylesheet" href="css/style.css?v=4">
 <script>
   /* Vor dem ersten Rendern: Klassen für JS und Bewegung setzen (kein Aufblitzen).
      motion  = Animationen erlaubt (nicht bei "Bewegung reduzieren" oder ?motion=off)
@@ -69,51 +71,28 @@
   <symbol id="i-teilen" viewBox="0 0 24 24"><path d="M12 15V4m-4 4 4-4 4 4M6 12v7h12v-7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </svg>
 
-<!-- ============ NAVIGATION ============ -->
+<!-- ============ NAVIGATION ============
+     Aufbau wie auf paledohamburg.de: Logo, fünf Links, „Gutschein schenken“, Sprachflaggen.
+     Auf dem Handy stehen die Links in einer eigenen Zeile unter dem Logo (kein Burger-Menü). -->
 <header class="nav" data-nav>
-  <div class="nav__bar wrap">
-    <a class="nav__marke" href="#top" aria-label="Paledo – back to top">Paledo<span class="nav__script" aria-hidden="true">Café <span class="und">&amp;</span> Deli</span></a>
+  <div class="nav__bar">
+    <a class="nav__marke" href="#top" aria-label="Paledo – back to top"><span class="nav__name">PALEDO</span><span class="nav__script">Café &amp; Deli</span></a>
     <nav class="nav__links" aria-label="Main navigation">
-      <a href="#philosophie" data-spy>Philosophy</a>
-      <a href="#bowls" data-spy>Bowls</a>
-      <a href="#gastgeber" data-spy>Hosts</a>
-      <a href="#tag" data-spy>A day</a>
-      <a href="#besuch" data-spy>Visit</a>
+      <a href="#bowls" data-spy>Menu</a>
+      <a href="#besuch" data-spy>Location</a>
+      <a href="#gutscheine" data-spy>Vouchers</a>
+      <a href="#kontakt" data-spy>Contact</a>
+      <a href="#jobs" data-spy>Jobs</a>
     </nav>
     <div class="nav__aktion">
-      <a class="nav__sprache" href="index.html" hreflang="de" lang="de" aria-label="Deutsche Version">DE</a>
-      <a class="knopf knopf--klein nav__cta" href="#gutscheine">Gift a voucher</a>
-      <button class="nav__burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu" data-menu-auf>
-        <span aria-hidden="true"><i></i><i></i></span>
-      </button>
+      <a class="nav__cta" href="#gutscheine">Gift a voucher</a>
+      <div class="nav__flaggen">
+        <a class="nav__flagge" href="index.html" hreflang="de" lang="de" aria-label="Deutsch"><svg viewBox="0 0 5 3" aria-hidden="true"><rect width="5" height="1" fill="#000"/><rect y="1" width="5" height="1" fill="#D00"/><rect y="2" width="5" height="1" fill="#FFCE00"/></svg></a>
+        <a class="nav__flagge" href="en.html" hreflang="en" lang="en" aria-label="English" aria-current="page"><svg viewBox="0 0 60 30" aria-hidden="true"><clipPath id="uk-en"><path d="M30 15h30v15zv15H0zH0V0zV0h30z"/></clipPath><path d="M0 0v30h60V0z" fill="#012169"/><path d="M0 0l60 30m0-30L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0l60 30m0-30L0 30" clip-path="url(#uk-en)" stroke="#C8102E" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/></svg></a>
+      </div>
     </div>
   </div>
 </header>
-
-<!-- Mobiles Menü (Vollbild-Dialog) -->
-<dialog class="menu" id="menu" aria-label="Menu" data-menu>
-  <div class="menu__innen" data-lenis-prevent>
-    <div class="menu__kopf">
-      <span class="nav__marke">Paledo<span class="nav__script" aria-hidden="true">Café <span class="und">&amp;</span> Deli</span></span>
-      <button class="menu__zu" type="button" aria-label="Close menu" data-menu-zu><svg aria-hidden="true"><use href="#i-x"/></svg></button>
-    </div>
-    <nav aria-label="Menu">
-      <ol class="menu__links">
-        <li><a href="#philosophie"><span class="menu__nr">I</span>Philosophy</a></li>
-        <li><a href="#bowls"><span class="menu__nr">II</span>Build your bowl</a></li>
-        <li><a href="#gastgeber"><span class="menu__nr">III</span>Hosts</a></li>
-        <li><a href="#tag"><span class="menu__nr">IV</span>A day at Paledo</a></li>
-        <li><a href="#gutscheine"><span class="menu__nr">V</span>Vouchers</a></li>
-        <li><a href="#besuch"><span class="menu__nr">VI</span>Visit</a></li>
-      </ol>
-    </nav>
-    <div class="menu__fuss">
-      <p class="status" data-status><span class="status__punkt" aria-hidden="true"></span><span data-status-text>Open daily from 9 am</span></p>
-      <p><a href="tel:+494069454466">040 69454466</a><br>Mühlenkamp 1 · 22303 Hamburg</p>
-      <p><a href="index.html" hreflang="de" lang="de">Deutsche Version</a></p>
-    </div>
-  </div>
-</dialog>
 
 <main id="main">
 
@@ -127,7 +106,7 @@
   <div class="hero__schrift" data-hero-schrift>
     <h1 class="hero__titel" id="hero-titel">
       <span class="hero__maske" aria-hidden="true"><span class="hero__b" style="--i:0">P</span><span class="hero__b" style="--i:1">A</span><span class="hero__b" style="--i:2">L</span><span class="hero__b" style="--i:3">E</span><span class="hero__b" style="--i:4">D</span><span class="hero__b" style="--i:5">O</span></span>
-      <span class="hero__script" aria-hidden="true">Café <span class="und">&amp;</span> Deli</span>
+      <span class="hero__script" aria-hidden="true">Café &amp; Deli</span>
       <span class="sr-only">Paledo – café &amp; deli in Hamburg-Winterhude</span>
     </h1>
   </div>
@@ -148,7 +127,7 @@
     <div class="hero__schleier" aria-hidden="true"></div>
     <!-- Schrift, helle Fassung (nur sichtbar, wo das Foto ist) -->
     <div class="hero__schrift hero__schrift--hell" aria-hidden="true" data-hero-schrift>
-      <p class="hero__titel"><span class="hero__maske"><span class="hero__b" style="--i:0">P</span><span class="hero__b" style="--i:1">A</span><span class="hero__b" style="--i:2">L</span><span class="hero__b" style="--i:3">E</span><span class="hero__b" style="--i:4">D</span><span class="hero__b" style="--i:5">O</span></span><span class="hero__script">Café <span class="und">&amp;</span> Deli</span></p>
+      <p class="hero__titel"><span class="hero__maske"><span class="hero__b" style="--i:0">P</span><span class="hero__b" style="--i:1">A</span><span class="hero__b" style="--i:2">L</span><span class="hero__b" style="--i:3">E</span><span class="hero__b" style="--i:4">D</span><span class="hero__b" style="--i:5">O</span></span><span class="hero__script">Café &amp; Deli</span></p>
     </div>
   </div>
 
@@ -423,7 +402,7 @@
         <li><span>IV</span>No additives or flavourings</li>
       </ol>
 
-      <aside class="sommeliere" data-reveal aria-label="Jobs at Paledo">
+      <aside class="sommeliere" id="jobs" data-reveal aria-label="Jobs at Paledo">
         <div class="bogen bogen--klein"><img src="img/latte-480.webp" width="480" height="600" loading="lazy" decoding="async" alt="Two cappuccinos with latte art among green plants"></div>
         <div>
           <p class="versal">Jobs</p>
@@ -521,7 +500,7 @@
       <div class="gutschein__karte" aria-hidden="true">
         <span class="gutschein__bogen"></span>
         <span class="gutschein__marke">Paledo</span>
-        <span class="gutschein__script">Café <span class="und">&amp;</span> Deli</span>
+        <span class="gutschein__script">Café &amp; Deli</span>
         <span class="gutschein__linie"></span>
         <span class="versal">Voucher</span>
         <span class="gutschein__text">for good coffee &amp; honest food</span>
@@ -604,7 +583,7 @@
 </main>
 
 <!-- ============ FOOTER ============ -->
-<footer class="fuss">
+<footer class="fuss" id="kontakt">
   <div class="wrap">
     <div class="fuss__oben">
       <p class="fuss__claim">See you soon on <em>Mühlenkamp.</em></p>
@@ -634,6 +613,6 @@
 <script src="js/vendor/gsap.min.js" defer></script>
 <script src="js/vendor/ScrollTrigger.min.js" defer></script>
 <script src="js/vendor/lenis.min.js" defer></script>
-<script src="js/main.js?v=3" defer></script>
+<script src="js/main.js?v=4" defer></script>
 </body>
 </html>

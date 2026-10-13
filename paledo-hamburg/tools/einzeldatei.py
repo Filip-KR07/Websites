@@ -3,8 +3,8 @@
 
 Schriften, Bilder, CSS und JavaScript (inkl. GSAP/Lenis) werden eingebettet. Die Datei läuft per Doppelklick
 im Browser, ohne Internet, mit allen Animationen. Pro Bild wird nur eine Größe eingebettet (kein srcset).
-Links, die in einer Einzeldatei nicht funktionieren (Sprachwechsel, Impressum, Datenschutz, „Bowl teilen“),
-werden entfernt bzw. auf die Online-Vorschau umgebogen.
+Links, die in einer Einzeldatei nicht funktionieren (Sprachflaggen, Impressum, Datenschutz), zeigen auf die
+Online-Vorschau, „Bowl teilen“ wird entfernt.
 
 Aufruf aus dem Repo-Root:  python3 paledo-hamburg/tools/einzeldatei.py [ZIELORDNER]
 Ergebnis: paledo-hamburg-de.html und paledo-hamburg-en.html im Zielordner (Standard: paledo-hamburg/dist/).
@@ -41,9 +41,8 @@ def bauen(quelle, ziel):
     html = re.sub(r'\s+sizes="[^"]*"', '', html)
     html = re.sub(r'(?<=["\s])img/[\w.-]+\.(?:webp|jpg|png)', lambda m: data_uri(m.group(0)), html)
 
-    # Was in einer Datei nicht geht: Sprachwechsel und Teilen raus, Rechtstexte online verlinken
-    html = re.sub(r'\s*<a class="nav__sprache"[^>]*>[^<]*</a>', '', html)
-    html = re.sub(r'\s*<p><a href="(?:en|index)\.html"[^>]*>[^<]*</a></p>', '', html)
+    # Was in einer Datei nicht geht: Teilen raus, Sprachflaggen und Rechtstexte auf die Online-Vorschau
+    html = html.replace('href="index.html"', f'href="{ONLINE}"').replace('href="en.html"', f'href="{ONLINE}en.html"')
     html = re.sub(r'\s*<button class="knopf" type="button" data-teilen hidden>.*?</button>', '', html, flags=re.S)
     html = html.replace('href="impressum.html"', f'href="{ONLINE}impressum.html"')
     html = html.replace('href="datenschutz.html"', f'href="{ONLINE}datenschutz.html"')

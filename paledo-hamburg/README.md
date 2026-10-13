@@ -14,8 +14,8 @@ python3 -m http.server 8080 --directory paledo-hamburg
 
 ## Sprachen
 
-`index.html` (Deutsch) und `en.html` (Englisch) teilen sich CSS, JS, Bilder und Schriften. Umschalter „EN/DE“ in der Navigation
-und im Handy-Menü. Die Texte der Oberfläche, die `js/main.js` erzeugt (Bowl-Summe, Öffnungsstatus, Teilen), stehen dort oben in
+`index.html` (Deutsch) und `en.html` (Englisch) teilen sich CSS, JS, Bilder und Schriften. Umschalter sind die Flaggen
+oben rechts, wie auf paledohamburg.de. Die Texte der Oberfläche, die `js/main.js` erzeugt (Bowl-Summe, Öffnungsstatus, Teilen), stehen dort oben in
 `TEXT` und richten sich nach `<html lang>`. Impressum und Datenschutz gibt es nur auf Deutsch. Inhaltliche Änderungen bitte in
 beiden HTML-Dateien machen.
 
@@ -26,12 +26,12 @@ python3 paledo-hamburg/tools/einzeldatei.py
 ```
 
 Erzeugt `paledo-hamburg/dist/paledo-hamburg-de.html` und `-en.html` (je ca. 2,2 MB): Schriften, Bilder, CSS und JS sind
-eingebettet, die Datei läuft per Doppelklick im Browser, offline und mit allen Animationen. Sprachwechsel und „Bowl teilen“
-fehlen dort, Impressum und Datenschutz verlinken auf die Online-Vorschau. Nach Änderungen an der Seite neu erzeugen.
+eingebettet, die Datei läuft per Doppelklick im Browser, offline und mit allen Animationen. „Bowl teilen“ fehlt dort,
+Sprachflaggen, Impressum und Datenschutz verlinken auf die Online-Vorschau. Nach Änderungen an der Seite neu erzeugen.
 
 ## Zwischenspeicher
 
-CSS und JS werden mit `?v=3` eingebunden (in allen vier HTML-Dateien). Nach Änderungen an `css/style.css` oder `js/main.js`
+CSS und JS werden mit `?v=4` eingebunden (in allen vier HTML-Dateien). Nach Änderungen an `css/style.css` oder `js/main.js`
 die Zahl erhöhen, sonst zeigen Browser die alte Fassung aus dem Zwischenspeicher.
 
 ## Vorschau (GitHub Pages)
@@ -41,6 +41,13 @@ https://filip-kr07.github.io/Websites/paledo-hamburg/ (englisch: `…/paledo-ham
 Der Workflow `.github/workflows/pages-paledo.yml` veröffentlicht Tank-Treff (Wurzel, von `claude/peaceful-goldberg-e9in4f`) und
 Paledo (`/paledo-hamburg/`) zusammen, weil ein Repo nur eine Pages-Seite hat. Läuft der Tank-Treff-Workflow erneut, ist Paledo
 weg, bis dieser Workflow wieder läuft (Actions → „Run workflow“).
+
+## Kopfleiste
+
+Nachbau der Leiste von paledohamburg.de (Maße, Schriften und Farben dort gemessen): Logo „PALEDO“ in Cormorant Garamond mit
+„Café & Deli“ in Parisienne, Links Speisekarte (`#bowls`), Standort (`#besuch`), Gutscheine (`#gutscheine`), Kontakt (Footer,
+`#kontakt`), Jobs (`#jobs`), runder Knopf „Gutschein schenken“, Flaggen DE/EN. Auf dem Handy stehen die Links in einer
+eigenen Zeile unter dem Logo, wie im Original. Darunter ist alles Aurel-Design.
 
 ## Aufbau
 
@@ -91,4 +98,4 @@ Unsplash-Lizenz, Quelle jeweils `https://images.unsplash.com/photo-<ID>`:
 
 `img/paledo-barista.webp`: Ausschnitt aus `paledohamburg.de/images/hero-paledo.jpg`.
 
-Schriften (SIL Open Font License 1.1, lokal eingebunden): Bodoni Moda, Jost, Pinyon Script.
+Schriften (SIL Open Font License 1.1, lokal eingebunden): Bodoni Moda, Jost, Parisienne, Cormorant Garamond, DM Sans.
