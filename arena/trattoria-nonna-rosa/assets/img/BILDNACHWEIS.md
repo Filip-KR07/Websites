@@ -21,3 +21,15 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 | `tavolata` | 960x1428 | Pasta Food | https://stocksnap.io/photo/pasta-food-AT8N993IPO |
 | `terrasse` | 960x638 | Restaurant Pizza | https://stocksnap.io/photo/restaurant-pizza-9D0F9026F8 |
 | `weisswein` | 960x640 | Wine Table | https://stocksnap.io/photo/wine-table-CZNWTXMZQF |
+
+## Abgeleitete Ausschnitte (ImageMagick)
+
+| Datei | Größe | Quelle (siehe oben) | Bearbeitung |
+|---|---|---|---|
+| `bogen` | 520x640 / 300 | `pastateig` | Hochformat-Ausschnitt für den Bogenrahmen im Hero |
+| `teller` | 570x570 / 285 | `pappardelle` | quadratischer Ausschnitt, rund maskiert |
+| `pol-terrasse` | 600x600 / 300 | `terrasse` | quadratisch, Sepia, verblasst (Polaroid 1987) |
+| `pol-forno` | 600x600 / 300 | `forno` | quadratisch, warm verblasst (Polaroid 1996) |
+| `pol-pastateig` | 600x600 / 300 | `pastateig` | quadratisch, leicht warm (Polaroid 2009) |
+| `pol-kerzen` | 600x600 / 300 | `kerzen` | quadratisch (Polaroid 2017) |
+| `pol-tavolata` | 600x600 / 300 | `tavolata` | quadratisch (Polaroid 2026) |

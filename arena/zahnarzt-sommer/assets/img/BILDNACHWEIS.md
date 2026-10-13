@@ -12,7 +12,6 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 | `fuellung` | 960x636 | Dentist Orthodontist | https://stocksnap.io/photo/dentist-orthodontist-6HV52GTPO3 |
 | `kind` | 960x636 | Dentist Orthodontist | https://stocksnap.io/photo/dentist-orthodontist-0XAP6ZHZ9H |
 | `raum` | 960x640 | Chair Dentist | https://stocksnap.io/photo/chair-dentist-3J10QN5PTS |
-| `ruhe` | 960x640 | Smiling Woman | https://stocksnap.io/photo/smiling-woman-FRDOUEB81I |
 | `stuhl` | 960x640 | Chair Dentist | https://stocksnap.io/photo/chair-dentist-E4SV0WQ539 |
 | `untersuchung` | 960x636 | Dentist Orthodontist | https://stocksnap.io/photo/dentist-orthodontist-YXEEJ34DKF |
 | `zuhause` | 960x640 | Man Smiling | https://stocksnap.io/photo/man-smiling-M56YIGPICM |
