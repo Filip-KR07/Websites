@@ -814,13 +814,17 @@ html:not(.js) .breathe-controls { display: none; }
 @media (max-width: 899px) {
   .breathe { padding: clamp(96px, 20vw, 140px) 0; }
   .breathe-grid { grid-template-columns: minmax(0, 1fr); }
-  .breathe-stage { order: -1; width: min(100%, 380px); grid-row: 2; }
+  .breathe-grid { row-gap: 22px; }
+  .breathe-stage { width: min(100%, 380px); margin-block: 8px; }
   .breathe-copy { display: contents; }
-  .breathe-copy > .eyebrow { order: -3; }
-  .breathe-copy > h2 { order: -2; margin-top: -8px; }
-  .breathe-copy > p:not(.eyebrow):not(.fine) { order: -1; }
-  .breathe-stage { order: 0; }
-  .seg, .breathe-guide, .breathe-controls, .fine-light { order: 1; }
+  .breathe-copy > .eyebrow { order: -6; }
+  .breathe-copy > h2 { order: -5; margin-top: -10px; }
+  .breathe-copy > p:not(.eyebrow):not(.fine) { order: -4; }
+  .seg { order: -3; }
+  .breathe-stage { order: -2; }
+  .breathe-controls { order: -1; }
+  .breathe-guide { order: 0; }
+  .fine-light { order: 1; }
   .breathe-controls .btn { flex: 1 1 auto; }
 }
 
@@ -971,8 +975,7 @@ input[type="range"]:focus-visible { outline: 2px solid var(--sage-2); outline-of
 .team-list { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 2vw, 24px); }
 .person { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: start; padding: clamp(18px, 2.4vw, 28px); border-radius: 30px; background: var(--paper); }
 .person-lead { grid-column: span 2; grid-template-columns: auto minmax(0, 1fr); gap: clamp(18px, 3vw, 36px); align-items: center; background: var(--forest); color: var(--sand); }
-.person-lead .role { color: var(--sage); }
-.person-lead p:not(.role) { color: rgba(237, 230, 218, .82); }
+
 .mono { width: 84px; height: 84px; transition: transform 1200ms var(--ease-out); }
 .person-lead .mono { width: clamp(110px, 12vw, 160px); height: auto; }
 .mono text { font-family: var(--font-display); font-size: 34px; fill: var(--forest); }
@@ -980,6 +983,8 @@ input[type="range"]:focus-visible { outline: 2px solid var(--sage-2); outline-of
 .person-lead h3 { font-size: clamp(1.8rem, 1.3rem + 1.4vw, 2.6rem); }
 .person .role { font-size: .84rem; font-weight: 560; color: var(--clay-ink); margin: 4px 0 8px; }
 .person p:not(.role) { font-size: .94rem; color: var(--ink-2); }
+.person.person-lead .role { color: var(--sage); }
+.person.person-lead p:not(.role) { color: rgba(237, 230, 218, .84); font-size: 1rem; }
 @media (hover: hover) and (pointer: fine) { .person:hover .mono { transform: rotate(-10deg) scale(1.03); } }
 @media (max-width: 1000px) { .team-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) {

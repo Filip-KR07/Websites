@@ -303,7 +303,10 @@
     if (!canvas || !canvas.getContext || !hero || !photo) return;
     var ctx = canvas.getContext('2d');
     if (!ctx) return;
-    var img = photo.querySelector('img');
+    var domImg = photo.querySelector('img');
+    // Eigenes Bildobjekt ohne srcset: naturalWidth/-Height entsprechen dann den
+    // echten Pixeln (bei srcset liefert der Browser dichtekorrigierte Werte).
+    var img = null;
     var chipWord = $('[data-breath-word]');
     var chipDot = $('.bc-dot');
     var noise = makeNoise(11);
@@ -393,9 +396,9 @@
       ctx.fill();
       ctx.globalAlpha = 1;
 
-      // 4 · kleiner Waldgrün-Blob oben rechts
+      // 4 · kleiner Waldgrün-Blob unten rechts
       ctx.fillStyle = C.forest;
-      blob(cx + rw * 1.02 + mx * 40, cy - rh * 0.8 + my * 30, rw * 0.15, rw * 0.15, 3.1, 0.22 * amp, t * 1.3, 40);
+      blob(cx + rw * (narrow ? 0.86 : 0.98) + mx * 40, cy + rh * 0.74 + my * 30, rw * 0.15 * (1 + 0.06 * b), rw * 0.15 * (1 + 0.06 * b), 3.1, 0.22 * amp, t * 1.3, 40);
       ctx.fill();
 
       // 5 · Foto in atmender Maske
@@ -444,10 +447,19 @@
 
     function markReady() { d.classList.add('has-canvas'); }
 
+    function loadCanvasImage() {
+      if (!domImg) return;
+      var src = domImg.currentSrc || domImg.src;
+      var im = new Image();
+      im.decoding = 'async';
+      im.onload = function () { img = im; measure(); draw(); markReady(); };
+      im.src = src;
+    }
+
     measure();
     draw();
-    if (img && img.complete && img.naturalWidth) markReady();
-    else if (img) img.addEventListener('load', function () { measure(); draw(); markReady(); }, { once: true });
+    if (domImg && domImg.complete && domImg.naturalWidth) loadCanvasImage();
+    else if (domImg) domImg.addEventListener('load', loadCanvasImage, { once: true });
 
     if ('ResizeObserver' in window) {
       new ResizeObserver(function () { measure(); draw(); }).observe(hero);

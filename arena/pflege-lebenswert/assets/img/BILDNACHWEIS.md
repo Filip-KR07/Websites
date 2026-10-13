@@ -9,6 +9,7 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 | `ball` | 960x540 | Ball People | https://stocksnap.io/photo/ball-people-XGA8T6UUH6 |
 | `beratung` | 960x1440 | Caregiver Nurse | https://stocksnap.io/photo/caregiver-nurse-MMZWABUQGA |
 | `cafe` | 960x720 | Coffee Cafe | https://stocksnap.io/photo/coffee-cafe-8C35014CE3 |
+| `fenster` | 960x1440 | Wheelchair Person | https://stocksnap.io/photo/wheelchair-person-OQZYXPNK5H |
 | `gruss` | 960x640 | Caregiver Nurse | https://stocksnap.io/photo/caregiver-nurse-VACJ6UWKLO |
 | `haende` | 960x640 | Caregiver Nurse | https://stocksnap.io/photo/caregiver-nurse-TBEMNLXLVQ |
 | `herbst` | 960x640 | Senior Couple | https://stocksnap.io/photo/senior-couple-ET4MKXNRIN |
