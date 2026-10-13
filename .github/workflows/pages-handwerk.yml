@@ -1,0 +1,58 @@
+name: GitHub Pages (Tank-Treff + Paledo + Handwerk)
+
+# Ein Repo hat nur eine Pages-Seite. Damit die Handwerks-Demos die anderen Vorschauen
+# nicht ersetzen, baut dieser Workflow alles zusammen:
+#   /                  -> tank-treff-hamburg/ von der Branch claude/peaceful-goldberg-e9in4f
+#   /paledo-hamburg/   -> paledo-hamburg/ von der Branch claude/paledo-hamburg
+#   /handwerk/         -> handwerk/ von dieser Branch (Pfade auf /Websites/ umgeschrieben)
+# Achtung: Laeuft einer der anderen Pages-Workflows erneut, veroeffentlicht er ohne /handwerk/.
+# Dann diesen Workflow per "Run workflow" noch einmal starten.
+
+on:
+  push:
+    branches: [claude/zen-bardeen-wy4yel]
+    paths: ['handwerk/**', '.github/workflows/pages-handwerk.yml', '.github/scripts/build-handwerk-pages.py']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}handwerk/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/peaceful-goldberg-e9in4f
+          path: _tank
+          sparse-checkout: tank-treff-hamburg
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/paledo-hamburg
+          path: _paledo
+          sparse-checkout: paledo-hamburg
+      - name: Seite zusammenbauen
+        run: |
+          mkdir _site
+          cp -r _tank/tank-treff-hamburg/. _site/
+          cp -r _paledo/paledo-hamburg _site/paledo-hamburg
+          rm -f _site/paledo-hamburg/README.md
+          python3 .github/scripts/build-handwerk-pages.py . _site/handwerk /Websites
+          touch _site/.nojekyll
+          ls _site _site/handwerk
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
