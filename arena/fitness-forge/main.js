@@ -873,7 +873,8 @@
       backBtn.type = 'button';
       backBtn.setAttribute('aria-label', 'Zurück zur Vorderseite von ' + name);
       backBtn.tabIndex = -1;
-      backBtn.innerHTML = '<svg aria-hidden="true"><use href="#i-close"/></svg>';
+      var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'), use = document.createElementNS(NS, 'use');
+      svg.setAttribute('aria-hidden', 'true'); use.setAttribute('href', '#i-close'); svg.appendChild(use); backBtn.appendChild(svg);
       back.appendChild(backBtn);
       function set(on, focus) {
         card.classList.toggle('is-flipped', on);

@@ -296,7 +296,7 @@
     qsa('a', menuEls.menu).forEach(function (a) {
       if (!/^#/.test(a.getAttribute('href') || '')) a.addEventListener('click', function () { closeMenu(false); });
     });
-    window.matchMedia('(min-width: 1180px)').addEventListener('change', function (e) { if (e.matches) closeMenu(false); });
+    window.matchMedia('(min-width: 1100px)').addEventListener('change', function (e) { if (e.matches) closeMenu(false); });
   }
 
   /* ------------------------------------------------------------------
