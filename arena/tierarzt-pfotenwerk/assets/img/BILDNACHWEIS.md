@@ -15,7 +15,6 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 | `kitten` | 960x640 | Animals Cats | https://stocksnap.io/photo/animals-cats-UCS90HFBJL |
 | `pfoten` | 960x640 | Cat Pet | https://stocksnap.io/photo/cat-pet-C9D795487E |
 | `siam` | 960x640 | Cat Kitten | https://stocksnap.io/photo/cat-kitten-0A5CNJCGRF |
-| `strand` | 960x640 | Dogs Animals | https://stocksnap.io/photo/dogs-animals-63348D1909 |
 | `terrier` | 960x640 | Dog Puppy | https://stocksnap.io/photo/dog-puppy-8MNEFJ1N2M |
 | `welpe` | 960x643 | Dog Puppy | https://stocksnap.io/photo/dog-puppy-19KEJ58BB9 |
 | `welpe-sitzt` | 960x624 | Animals Puppy | https://stocksnap.io/photo/animals-puppy-OOH59BAHBL |
