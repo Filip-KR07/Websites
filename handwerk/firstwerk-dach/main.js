@@ -447,6 +447,7 @@
     // SVG-Ebenen aufbauen
     const holder = $('[data-cfg-static]', svg);
     holder.textContent = '';
+    defs.textContent = '';
     const gGround = mk('g', {}, holder);
     for (let v = -2; v <= L + 2; v += 1) { const a = pr([v, -2, 0]), b = pr([v, Dp + 2, 0]); mk('line', { class: 'cfg-gridline', x1: a[0], y1: a[1], x2: b[0], y2: b[1] }, gGround); }
     for (let v = -2; v <= Dp + 2; v += 1) { const a = pr([-2, v, 0]), b = pr([L + 2, v, 0]); mk('line', { class: 'cfg-gridline', x1: a[0], y1: a[1], x2: b[0], y2: b[1] }, gGround); }
@@ -965,14 +966,19 @@
     const track = $('.process__track', root);
     const steps = $$('.step', root);
     const nodes = steps.map(s => $('.step__node', s));
+    const ticks = d.createElementNS('http://www.w3.org/2000/svg', 'path');
+    ticks.setAttribute('class', 'process__ticks');
+    svg.insertBefore(ticks, svg.firstChild);
     let fracs = [], total = 0;
     function layout() {
       if (!mqDesk.matches) return;
       const r = root.getBoundingClientRect();
-      const pts = nodes.map(n => { const b = n.getBoundingClientRect(); return [b.left + b.width / 2 - r.left, b.top + b.height / 2 - r.top]; });
+      const off = 56;
+      const pts = nodes.map(n => { const b = n.getBoundingClientRect(); return [b.left + b.width / 2 - r.left, b.top - r.top + b.height / 2 - off, b.top - r.top]; });
       svg.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
-      const str = pts.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ');
+      const str = pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
       lineEl.setAttribute('points', str); track.setAttribute('points', str);
+      ticks.setAttribute('d', pts.map(p => `M${p[0].toFixed(1)} ${p[1].toFixed(1)}V${p[2].toFixed(1)}`).join(''));
       total = 0; fracs = [0];
       for (let i = 1; i < pts.length; i++) { total += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); fracs.push(total); }
       fracs = fracs.map(f => f / total);
