@@ -1,17 +1,18 @@
-name: GitHub Pages (Tank-Treff + Paledo + Handwerk)
+name: GitHub Pages (Tank-Treff + Paledo + Handwerk + Arena)
 
 # Ein Repo hat nur eine Pages-Seite. Damit die Handwerks-Demos die anderen Vorschauen
 # nicht ersetzen, baut dieser Workflow alles zusammen:
 #   /                  -> tank-treff-hamburg/ von der Branch claude/peaceful-goldberg-e9in4f
 #   /paledo-hamburg/   -> paledo-hamburg/ von der Branch claude/paledo-hamburg
 #   /handwerk/         -> handwerk/ von dieser Branch (Pfade auf /Websites/ umgeschrieben)
-# Achtung: Laeuft einer der anderen Pages-Workflows erneut, veroeffentlicht er ohne /handwerk/.
+#   /arena/            -> arena/ von dieser Branch (ebenso)
+# Achtung: Laeuft einer der anderen Pages-Workflows erneut, veroeffentlicht er ohne /handwerk/ und /arena/.
 # Dann diesen Workflow per "Run workflow" noch einmal starten.
 
 on:
   push:
     branches: [claude/zen-bardeen-wy4yel]
-    paths: ['handwerk/**', '.github/workflows/pages-handwerk.yml', '.github/scripts/build-handwerk-pages.py']
+    paths: ['handwerk/**', '.github/workflows/pages-handwerk.yml', '.github/scripts/build-pages-folder.py']  # arena/** kommt dazu, sobald alle Arena-Demos fertig sind
   workflow_dispatch:
 
 permissions:
@@ -28,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}handwerk/
+      url: ${{ steps.deployment.outputs.page_url }}arena/
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
@@ -47,9 +48,10 @@ jobs:
           cp -r _tank/tank-treff-hamburg/. _site/
           cp -r _paledo/paledo-hamburg _site/paledo-hamburg
           rm -f _site/paledo-hamburg/README.md
-          python3 .github/scripts/build-handwerk-pages.py . _site/handwerk /Websites
+          python3 .github/scripts/build-pages-folder.py . handwerk _site/handwerk /Websites
+          python3 .github/scripts/build-pages-folder.py . arena _site/arena /Websites
           touch _site/.nojekyll
-          ls _site _site/handwerk
+          ls _site _site/handwerk _site/arena
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
