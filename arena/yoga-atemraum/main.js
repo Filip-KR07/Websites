@@ -260,13 +260,8 @@
     els.forEach(function (el) { io.observe(el); });
   }
 
-  function heroIntro() {
-    var els = $$('[data-hero-in]');
-    els.forEach(function (el, i) {
-      el.style.transitionDelay = (motionOff ? 0 : 120 + i * 90) + 'ms';
-      el.classList.add('is-in');
-    });
-  }
+  // Der Hero-Auftakt läuft als CSS-Animation (style.css, [data-hero-in]) –
+  // ohne auf JS oder Schriften zu warten.
 
   /* ------------------------------------------------------------------------
      Hero-Canvas: fließende, atmende Formen (Perlin-Noise), die beim Scrollen
@@ -322,17 +317,27 @@
     var mouse = { x: 0, y: 0, tx: 0, ty: 0 };
     var still = reduced();
     var lastWord = '';
+    var narrow = false;
+    // Die Formen bewegen sich langsam: 30 Bilder/s reichen und halbieren die Last.
+    var FRAME_MS = 1000 / 30;
 
     var C = { sage: '#A9B8A2', clay: '#B9826A', forest: '#26332B', sand2: '#E4DACA', sage3: '#DCE3D5' };
 
     function measure() {
-      var cr = canvas.getBoundingClientRect();
+      var hr = hero.getBoundingClientRect();
       var pr = photo.getBoundingClientRect();
+      narrow = hr.width < 900;
+      // Schmal: Die Leinwand reicht nur bis knapp unter das Foto statt über den
+      // ganzen (hohen) Hero – deutlich weniger Pixel pro Bild.
+      if (narrow) canvas.style.height = Math.round(Math.min(hr.height, pr.bottom - hr.top + 210)) + 'px';
+      else canvas.style.height = '';
+      var cr = canvas.getBoundingClientRect();
       W = cr.width; H = cr.height;
       dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.max(1, Math.round(W * dpr));
       canvas.height = Math.max(1, Math.round(H * dpr));
       R = { x: pr.left - cr.left, y: pr.top - cr.top, w: pr.width, h: pr.height };
+      cachePhoto();
     }
 
     function blob(cx, cy, rx, ry, seed, amp, t, n) {
@@ -354,13 +359,30 @@
       ctx.closePath();
     }
 
-    function drawImageCover(dx, dy, dw, dh) {
+    // Das Foto wird einmal pro Größe in Gerätepixeln vorskaliert; pro Bild
+    // wird es dann nur noch 1:1 kopiert (Skalieren + Glätten war der teuerste Teil).
+    var photoCache = null;
+    function cachePhoto() {
+      photoCache = null;
+      if (!img || !img.naturalWidth || still) return;
+      var ex = R.w * 0.05, ey = R.h * 0.05;
+      var dw = R.w + ex * 2, dh = R.h + ey * 2;
+      var c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(dw * dpr));
+      c.height = Math.max(1, Math.round(dh * dpr));
+      var cx2 = c.getContext('2d');
+      if (!cx2) return;
       var iw = img.naturalWidth, ih = img.naturalHeight;
-      if (!iw || !ih) return;
-      var s = Math.max(dw / iw, dh / ih);
-      var sw = dw / s, sh = dh / s;
-      var sx = (iw - sw) * 0.5, sy = (ih - sh) * 0.3;
-      ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+      var s = Math.max(c.width / iw, c.height / ih);
+      var sw = c.width / s, sh = c.height / s;
+      cx2.imageSmoothingQuality = 'high';
+      cx2.drawImage(img, (iw - sw) * 0.5, (ih - sh) * 0.3, sw, sh, 0, 0, c.width, c.height);
+      photoCache = c;
+    }
+    function drawPhoto(dx, dy) {
+      if (!photoCache) return;
+      // auf das Gerätepixel-Raster runden → reines Kopieren ohne Neuabtastung
+      ctx.drawImage(photoCache, Math.round(dx * dpr) / dpr, Math.round(dy * dpr) / dpr, photoCache.width / dpr, photoCache.height / dpr);
     }
 
     function draw() {
@@ -373,14 +395,16 @@
 
       var cx = R.x + R.w / 2, cy = R.y + R.h / 2, rw = R.w / 2, rh = R.h / 2;
       var mx = mouse.x, my = mouse.y;
-      var narrow = W < 900;
 
-      // 1 · großer, sehr heller Grund-Blob hinter dem Text
-      ctx.fillStyle = C.sand2;
-      ctx.globalAlpha = 0.75;
-      blob(W * (narrow ? 0.1 : 0.16) + mx * 8, H * 0.86 + my * 6, W * (narrow ? 0.5 : 0.3), H * 0.34, 4.2, 0.22 * amp, t * 0.8, 64);
-      ctx.fill();
-      ctx.globalAlpha = 1;
+      // 1 · großer, sehr heller Grund-Blob hinter dem Text (nur breit; schmal
+      //     übernimmt ein ruhiges CSS-Gegenstück, .hero::before)
+      if (!narrow) {
+        ctx.fillStyle = C.sand2;
+        ctx.globalAlpha = 0.75;
+        blob(W * 0.16 + mx * 8, H * 0.86 + my * 6, W * 0.3, H * 0.34, 4.2, 0.22 * amp, t * 0.8, 64);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
 
       // 2 · Salbei-Blob hinter dem Foto + Höhenlinien
       var sx = cx + rw * 0.2 + mx * 18, sy = cy + rh * 0.04 + my * 14;
@@ -411,11 +435,13 @@
       // 5 · Foto in atmender Maske
       var pb = 1 + 0.018 * b;
       blob(cx + mx * 6, cy + my * 5, rw * 0.98 * pb, rh * 0.98 * pb, 9.4, 0.055 * amp, t * 0.9, 96);
-      if (img && img.complete && img.naturalWidth) {
+      if (still) {
+        // Reduzierte Bewegung: Das echte <img> bleibt sichtbar (CSS-Blobmaske),
+        // die Leinwand zeichnet nur die ruhigen Formen drumherum.
+      } else if (photoCache) {
         ctx.save();
         ctx.clip();
-        var ex = R.w * 0.05, ey = R.h * 0.05;
-        drawImageCover(R.x - ex + mx * 4, R.y - ey + my * 3, R.w + ex * 2, R.h + ey * 2);
+        drawPhoto(R.x - R.w * 0.05 + mx * 4, R.y - R.h * 0.05 + my * 3);
         ctx.restore();
       } else {
         ctx.fillStyle = C.sand2;
@@ -439,20 +465,24 @@
     function frame(now) {
       raf = 0;
       if (!visible || document.hidden) { last = 0; return; }
-      var dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
+      if (last && now - last < FRAME_MS - 2) { raf = requestAnimationFrame(frame); return; }
+      var dt = last ? Math.min(0.1, (now - last) / 1000) : 1 / 30;
       last = now;
+      var k60 = dt * 60; // Glättung unabhängig von der Bildrate
       var target = clamp(window.pageYOffset / (hero.offsetHeight * 0.85), 0, 1);
-      calm += (target - calm) * 0.035;
+      calm += (target - calm) * (1 - Math.pow(1 - 0.035, k60));
       // Die Formen werden beim Scrollen langsamer, der Atem bleibt.
       time += dt * (1 - 0.8 * calm);
-      mouse.x += (mouse.tx - mouse.x) * 0.045;
-      mouse.y += (mouse.ty - mouse.y) * 0.045;
+      var km = 1 - Math.pow(1 - 0.045, k60);
+      mouse.x += (mouse.tx - mouse.x) * km;
+      mouse.y += (mouse.ty - mouse.y) * km;
       draw();
       raf = requestAnimationFrame(frame);
     }
-    function start() { if (!raf && !still) raf = requestAnimationFrame(frame); }
+    var running = false; // Bewegung erst nach dem Laden – der erste Bildschirm hat Vorrang
+    function start() { if (!raf && !still && running) raf = requestAnimationFrame(frame); }
 
-    function markReady() { d.classList.add('has-canvas'); }
+    function markReady() { d.classList.add(still ? 'has-canvas-still' : 'has-canvas'); }
 
     function loadCanvasImage() {
       if (!domImg) return;
@@ -479,6 +509,7 @@
       // Reduzierte Bewegung: ein ruhiges Standbild, Chip ausblenden.
       var chip = $('[data-breath-chip]');
       if (chip) chip.hidden = true;
+      markReady();
       return;
     }
 
@@ -496,7 +527,9 @@
       });
       hero.addEventListener('pointerleave', function () { mouse.tx = 0; mouse.ty = 0; });
     }
-    start();
+    var go = function () { setTimeout(function () { running = true; start(); }, 300); };
+    if (document.readyState === 'complete') go();
+    else window.addEventListener('load', go, { once: true });
   }
 
   /* ------------------------------------------------------------------------
@@ -550,20 +583,38 @@
     var mm = gsap.matchMedia();
 
     mm.add('(min-width: 900px)', function () {
+      var section = $('.styles');
       var pin = $('[data-styles-pin]');
       var track = $('[data-styles-track]');
       var num = $('[data-sp-num]');
       var line = $('[data-sp-line]');
       var tween = null;
-      if (pin && track) {
+      var setDist = null;
+      if (section && pin && track) {
         d.classList.add('is-hscroll');
         var panels = $$('.style-panel', track);
         var dist = function () { return Math.max(0, track.scrollWidth - window.innerWidth); };
+        // Kein ScrollTrigger-Pin (position: fixed + Spacer erzeugt Layout-Shifts),
+        // sondern CSS „position: sticky“: Die Sektion wird um die Strecke höher,
+        // die Bühne klebt oben, GSAP schiebt nur die Spur.
+        setDist = function () { section.style.setProperty('--hs-dist', dist() + 'px'); };
+        setDist();
+        ST.addEventListener('refreshInit', setDist);
+        // Fokus: Die Tafel in der Mitte ist voll da, die angeschnittenen Nachbarn
+        // treten zurück – so wirkt der Anschnitt gewollt statt abgeschnitten.
+        var focusPanels = function (prog) {
+          var pos = prog * (panels.length - 1);
+          panels.forEach(function (p, k) {
+            var w = clamp(1 - Math.abs(pos - k) * 1.35, 0, 1);
+            p.style.opacity = (0.22 + 0.78 * w).toFixed(3);
+          });
+        };
         tween = gsap.to(track, {
           x: function () { return -dist(); },
           ease: 'none',
+          onUpdate: function () { focusPanels(this.progress()); },
           scrollTrigger: {
-            trigger: pin, pin: true, scrub: 0.8, anticipatePin: 1, invalidateOnRefresh: true,
+            trigger: section, scrub: 0.8, invalidateOnRefresh: true,
             start: 'top top',
             end: function () { return '+=' + dist(); },
             onUpdate: function (self) {
@@ -573,6 +624,7 @@
             }
           }
         });
+        focusPanels(0);
         panels.forEach(function (p) {
           var im = p.querySelector('img');
           if (!im) return;
@@ -590,7 +642,12 @@
           scrollTrigger: { trigger: '.studio', start: 'top bottom', end: 'bottom top', scrub: true }
         });
       });
-      return function () { d.classList.remove('is-hscroll'); };
+      return function () {
+        d.classList.remove('is-hscroll');
+        if (setDist) ST.removeEventListener('refreshInit', setDist);
+        if (section) section.style.removeProperty('--hs-dist');
+        $$('.style-panel').forEach(function (p) { p.style.opacity = ''; });
+      };
     });
 
     // Pfad „Erste Stunde“
@@ -603,7 +660,8 @@
     }
 
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ST.refresh(); });
-    window.addEventListener('load', function () { ST.refresh(); });
+    if (document.readyState === 'complete') ST.refresh();
+    else window.addEventListener('load', function () { ST.refresh(); });
   }
 
   /* ------------------------------------------------------------------------
@@ -687,11 +745,25 @@
       });
       days.forEach(function (day, i) {
         var empty = day.querySelector('.day-empty');
-        if (empty) empty.hidden = perDay[i] > 0;
+        if (!empty) return;
+        empty.hidden = perDay[i] > 0;
+        // Leerer Tag: direkt zum nächsten Tag mit passenden Stunden springen (Tab-Ansicht)
+        var jump = empty.querySelector('.day-jump');
+        if (!jump) return;
+        var to = -1;
+        for (var k = 1; k < 7 && to < 0 && total; k++) if (perDay[(i + k) % 7]) to = (i + k) % 7;
+        jump.hidden = to < 0;
+        if (to > -1) {
+          var first = SLOTS.filter(function (s) { return s.day === to && !s.el.hidden; })
+            .sort(function (a, b) { return a.start < b.start ? -1 : 1; })[0];
+          jump.setAttribute('data-to', String(to));
+          jump.querySelector('span').textContent = 'Nächste: ' + DAYS[to] + (first ? ', ' + first.start + NBSP + 'Uhr · ' + first.title : '');
+        }
       });
       tabs.forEach(function (t, i) {
         var n = t.querySelector('[data-tab-n]');
         if (n) n.textContent = String(perDay[i]);
+        t.classList.toggle('is-empty', perDay[i] === 0);
       });
       var filtered = v.style !== 'all' || v.level !== 'all' || v.teacher !== 'all';
       if (countEl) countEl.textContent = filtered
@@ -744,6 +816,18 @@
         else if (k === 'End') to = n - 1;
         if (to > -1) { e.preventDefault(); selectDay(to, true); }
       });
+    });
+    days.forEach(function (day) {
+      var empty = day.querySelector('.day-empty');
+      if (!empty) return;
+      var jump = document.createElement('button');
+      jump.type = 'button';
+      jump.className = 'text-btn day-jump';
+      jump.hidden = true;
+      jump.appendChild(document.createElement('span'));
+      jump.insertAdjacentHTML('beforeend', '<svg aria-hidden="true"><use href="#i-arrow"/></svg>');
+      jump.addEventListener('click', function () { selectDay(parseInt(jump.getAttribute('data-to'), 10), true); });
+      empty.appendChild(jump);
     });
     var mqTabs = window.matchMedia('(max-width: 699px)');
     setTabbed(mqTabs.matches);
@@ -1252,6 +1336,9 @@
         t.setAttribute('aria-selected', on ? 'true' : 'false');
         t.tabIndex = on ? 0 : -1;
         panels[k].classList.toggle('is-active', on);
+        // Ausgeblendete Tarife sind auch für Screenreader und Tab-Taste weg.
+        panels[k].inert = !on;
+        if (on) panels[k].removeAttribute('aria-hidden'); else panels[k].setAttribute('aria-hidden', 'true');
         if (on && focus) t.focus();
       });
       if (pill) pill.style.transform = 'translateX(' + (i * 100) + '%)';
@@ -1421,31 +1508,41 @@
   }
 
   /* ------------------------------------------------------------------------
+     Team: auf dem Handy eine Wisch-Reihe – dann per Tastatur fokussierbar
+     ------------------------------------------------------------------------ */
+  function initTeam() {
+    var list = $('[data-team-list]');
+    if (!list) return;
+    var mq = window.matchMedia('(max-width: 640px)');
+    var set = function () { if (mq.matches) list.setAttribute('tabindex', '0'); else list.removeAttribute('tabindex'); };
+    set();
+    mq.addEventListener('change', set);
+  }
+
+  /* ------------------------------------------------------------------------
      Start
      ------------------------------------------------------------------------ */
   function init() {
     window.__atemReady = true;
     d.classList.add('js'); // falls das Sicherheitsnetz im <head> schon gegriffen hat
+    // Sofort: alles, was den ersten Bildschirm betrifft.
     safe(initScroll, 'scroll');
     safe(initAnchors, 'anchors');
     safe(initHeader, 'header');
     safe(initMenu, 'menu');
     safe(initReveal, 'reveal');
-    safe(initSchedule, 'schedule');
+    safe(initSchedule, 'schedule'); // füllt auch die Karte „Nächste Stunde“ im Hero
     safe(initHero, 'hero');
-    safe(initEthos, 'ethos');
-    safe(initQuiz, 'quiz');
-    safe(initBreathe, 'breathe');
-    safe(initPricing, 'pricing');
-    safe(initForm, 'form');
-    safe(initMap, 'map');
-    safe(initChoreo, 'choreo');
-    var go = function () { requestAnimationFrame(heroIntro); };
-    if (document.fonts && document.fonts.ready) {
-      var done = false;
-      document.fonts.ready.then(function () { if (!done) { done = true; go(); } });
-      setTimeout(function () { if (!done) { done = true; go(); } }, 600);
-    } else go();
+    // Danach in eigenen kleinen Tasks (statt eines langen Blocks), damit der
+    // erste Bildschirm nicht wartet. Reihenfolge bleibt erhalten, Choreo zuletzt.
+    var later = [[initEthos, 'ethos'], [initQuiz, 'quiz'], [initBreathe, 'breathe'], [initPricing, 'pricing'], [initForm, 'form'], [initMap, 'map'], [initTeam, 'team'], [initChoreo, 'choreo']];
+    var step = function () {
+      var t = later.shift();
+      if (!t) return;
+      safe(t[0], t[1]);
+      if (later.length) setTimeout(step, 0);
+    };
+    setTimeout(step, 0);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

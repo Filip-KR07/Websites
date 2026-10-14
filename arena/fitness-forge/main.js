@@ -120,6 +120,10 @@
     var hasCents = Math.abs(v - Math.round(v)) > 0.001;
     return v.toLocaleString('de-DE', { minimumFractionDigits: (hasCents || forceCents) ? 2 : 0, maximumFractionDigits: 2 }) + ' €';
   };
+  /* „A · B · C“: Teile bleiben zusammen, Umbruch nur nach dem Trennpunkt (nie „· C“ am Zeilenanfang) */
+  var joinDot = function (parts) {
+    return parts.map(function (t) { return String(t).replace(/ /g, '\u00A0'); }).join('\u00A0· ');
+  };
   var el = function (tag, cls, text) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -655,7 +659,8 @@
     var odo = new Odo(qs('[data-odo]', form));
     var lines = qs('[data-cfg-lines]', form), nameEl = qs('[data-cfg-name]', form);
     var startEl = qs('[data-cfg-start]', form), yearEl = qs('[data-cfg-year]', form);
-    var liveEl = qs('[data-cfg-live]', form), mini = qs('[data-cfg-mini]', form);
+    var liveEl = qs('[data-cfg-live]', form), mini = qs('[data-cfg-mini]', form), miniName = qs('[data-cfg-mini-name]', form);
+    var lastTotal = null;
     var pt = qs('#pt-range', form), ptOut = qs('[data-pt-out]', form);
     var saunaLbl = qs('[data-extra="sauna"]', form), saunaIn = qs('input[name="sauna"]', form), saunaNote = qs('[data-sauna-note]', form);
     var saunaNoteText = saunaNote.textContent, saunaPrice = qs('.tgl__price', saunaLbl), saunaPriceText = saunaPrice.textContent;
@@ -692,7 +697,15 @@
       fillRange(pt);
       nameEl.textContent = z.name + ' · ' + l.name;
       odo.set(total, first);
-      if (mini) mini.textContent = euro(total);
+      if (mini) {
+        mini.textContent = euro(total);
+        if (miniName) miniName.textContent = z.name + ' · ' + l.name;
+        // Rückmeldung am angedockten Preis, wenn er sichtbar ist und sich ändert
+        if (lastTotal !== null && total !== lastTotal && !reduced() && mini.animate && mini.parentNode.classList.contains('is-on')) {
+          mini.animate([{ transform: 'scale(1.12)' }, { transform: 'none' }], { duration: 260, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+        }
+        lastTotal = total;
+      }
       startEl.textContent = start ? euro(start) : 'entfällt';
       yearEl.textContent = euro(Math.round((total * 12 + start) * 100) / 100);
       lines.textContent = '';
@@ -763,7 +776,7 @@
       var units = ziel.plaene[n], days = PLAN_TAGE[n];
       out.textContent = n + ' Tage';
       var p = (n - range.min) / (range.max - range.min) * 100; range.style.setProperty('--fill', p + '%');
-      titleEl.textContent = ziel.name + ' · ' + n + ' Tage · ' + erf.name;
+      titleEl.textContent = joinDot([ziel.name, n + ' Tage', erf.name]);
       if (erfKey === 'neu' && n >= 5) {
         warn.hidden = false;
         warn.textContent = 'Hinweis: Für den Einstieg empfehlen unsere Coaches zwei bis vier Trainingstage – Erholung gehört zum Plan. Im Probetraining stimmen Sie das gemeinsam ab.';
@@ -801,7 +814,7 @@
           var k = suggest(d, u.typ, erfKey);
           var kp = el('p', 'pcard__kurs');
           kp.appendChild(el('b', null, k ? 'Passender Kurs' : 'Open Gym'));
-          kp.appendChild(document.createTextNode(k ? k.name + ' · ' + k.start + ' Uhr · ' + COACHES[k.coach].split(' ')[0] : 'Kein passender Kurs – Plan frei trainieren'));
+          kp.appendChild(document.createTextNode(k ? k.name + '\u00A0· ' + k.start + '\u00A0Uhr\u00A0· ' + COACHES[k.coach].split(' ')[0] : 'Kein passender Kurs – Plan frei trainieren'));
           li.appendChild(kp);
           tx.push('  → ' + (k ? 'Kurs: ' + k.name + ', ' + k.start + '–' + k.ende + ' Uhr (' + COACHES[k.coach] + ')' : 'Open Gym, frei nach Plan'));
           txt = txt.concat(tx, ['']);

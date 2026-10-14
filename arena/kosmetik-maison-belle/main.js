@@ -312,11 +312,17 @@
     gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     var uRes = gl.getUniformLocation(prog, 'uRes'), uTime = gl.getUniformLocation(prog, 'uTime'), uMouse = gl.getUniformLocation(prog, 'uMouse');
 
-    var RES_SCALE = 0.62; // Seide ist weich – reduzierte Auflösung spart Leistung
+    /* Seide ist weich – reduzierte Auflösung spart Leistung. Adaptive Qualität: Schafft das Gerät
+       die Seide nicht flüssig (mittlere Frame-Zeit > 40 ms), geht die Auflösung stufenweise herunter;
+       bei sehr langsamer Grafik (> 120 ms, z. B. Software-Rendering) bleibt ein ruhendes Standbild. */
+    var QUALITY = [0.62, 0.46, 0.34];
+    var level = 0, RES_SCALE = QUALITY[0];
+    var SLOW_MS = 40, VERY_SLOW_MS = 120;
     var w = 0, h = 0, cssW = 0, cssH = 0;
     var mouse = { x: 0.9, y: 0.15, tx: 0.9, ty: 0.15 };
-    var t0 = performance.now(), tFrozen = 21.0;
-    var running = false, inView = true, raf = 0;
+    var t0 = performance.now(), tFrozen = 21.0, tNow = tFrozen;
+    var running = false, inView = true, raf = 0, frozen = false;
+    var lastTs = 0, warm = 2, acc = 0, n = 0;
 
     function resize() {
       var dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -324,7 +330,7 @@
       w = Math.max(2, Math.round(cssW * dpr * RES_SCALE)); h = Math.max(2, Math.round(cssH * dpr * RES_SCALE));
       if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
       gl.viewport(0, 0, w, h);
-      if (!MOTION) draw(tFrozen);
+      if (!MOTION || frozen) draw(tNow);
     }
     function draw(time) {
       gl.uniform2f(uRes, w, h);
@@ -332,17 +338,35 @@
       gl.uniform2f(uMouse, mouse.x, mouse.y);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
+    function govern(now) {
+      if (lastTs) {
+        if (warm > 0) warm--;
+        else {
+          acc += now - lastTs; n++;
+          if (n >= 3 && (n >= 12 || acc >= 500)) {
+            var avg = acc / n;
+            acc = 0; n = 0;
+            if (avg > VERY_SLOW_MS || (avg > SLOW_MS && level === QUALITY.length - 1)) { frozen = true; return; }
+            if (avg > SLOW_MS) { level++; RES_SCALE = QUALITY[level]; resize(); warm = 3; }
+          }
+        }
+      }
+      lastTs = now;
+    }
     function frame(now) {
       raf = 0;
       if (!running) return;
+      govern(now);
+      if (frozen) { running = false; return; } // letzter Frame bleibt als Standbild stehen
       mouse.x = lerp(mouse.x, mouse.tx, 0.045);
       mouse.y = lerp(mouse.y, mouse.ty, 0.045);
-      draw(tFrozen + (now - t0) / 1000);
+      tNow = tFrozen + (now - t0) / 1000;
+      draw(tNow);
       raf = requestAnimationFrame(frame);
     }
     function update() {
-      var should = MOTION && inView && !document.hidden;
-      if (should && !running) { running = true; if (!raf) raf = requestAnimationFrame(frame); }
+      var should = MOTION && inView && !document.hidden && !frozen;
+      if (should && !running) { running = true; lastTs = 0; warm = 2; acc = 0; n = 0; if (!raf) raf = requestAnimationFrame(frame); }
       else if (!should) { running = false; if (raf) { cancelAnimationFrame(raf); raf = 0; } }
     }
     if (MOTION && finePointer) {
@@ -446,7 +470,7 @@
   /* ------------------------------------------------------------------
      II · Behandlungsmenü mit Filtern (FLIP-Übergänge)
      ------------------------------------------------------------------ */
-  var carte = { reset: null };
+  var carte = { reset: null, reveal: null };
   function initCarte() {
     var form = $('#filters'), grid = $('#menu-grid');
     if (!form || !grid) return;
@@ -455,6 +479,31 @@
     var countOut = $('[data-count-out]'), countWord = $('[data-count-word]');
     var empty = $('#menu-empty');
     var token = 0, rangeTimer = 0;
+    /* Handy (< 700 px): Karten liegen in einer Wisch-Schiene – Position, Fortschritt, Hinweis */
+    var rail = $('[data-rail]'), railPos = $('[data-rail-pos]'), railTotal = $('[data-rail-total]'), railBar = $('[data-rail-bar]');
+    var mqRail = window.matchMedia ? matchMedia('(max-width: 699px)') : { matches: false };
+    var railTick = false;
+    function railUpdate() {
+      railTick = false;
+      if (!rail || !mqRail.matches) return;
+      var vis = items.filter(function (li) { return !li.hidden; });
+      var n = vis.length, sl = grid.scrollLeft, max = grid.scrollWidth - grid.clientWidth;
+      rail.hidden = n === 0;
+      var step = n > 1 ? vis[1].offsetLeft - vis[0].offsetLeft : 1;
+      var idx = n ? clamp(Math.round(sl / Math.max(1, step)) + 1, 1, n) : 0;
+      if (n && max > 0 && sl >= max - 2) idx = n;
+      railPos.textContent = idx;
+      railTotal.textContent = n;
+      railBar.style.transform = 'scaleX(' + (grid.scrollWidth ? clamp((sl + grid.clientWidth) / grid.scrollWidth, 0, 1) : 1) + ')';
+    }
+    if (rail) {
+      grid.addEventListener('scroll', function () {
+        if (grid.scrollLeft > 24) rail.classList.add('is-moved');
+        if (!railTick) { railTick = true; requestAnimationFrame(railUpdate); }
+      }, { passive: true });
+      if (mqRail.addEventListener) mqRail.addEventListener('change', railUpdate);
+      window.addEventListener('resize', function () { if (!railTick) { railTick = true; requestAnimationFrame(railUpdate); } }, { passive: true });
+    }
 
     function state() {
       return {
@@ -479,6 +528,7 @@
       countOut.textContent = n;
       countWord.textContent = n === 1 ? 'Behandlung' : 'Behandlungen';
       empty.hidden = n !== 0;
+      railUpdate();
       scheduleRefresh(700);
     }
     function apply() {
@@ -487,6 +537,7 @@
       items.forEach(function (li) { if (li.getAnimations) li.getAnimations().forEach(function (a) { a.cancel(); }); });
       if (!UI_MOTION || !items[0].animate) {
         items.forEach(function (li) { li.hidden = !matches(li, st); });
+        if (mqRail.matches) grid.scrollLeft = 0;
         after(st); return;
       }
       var leaving = items.filter(function (li) { return !li.hidden && !matches(li, st); });
@@ -496,6 +547,7 @@
         var first = new Map();
         items.forEach(function (li) { if (!li.hidden) first.set(li, li.getBoundingClientRect()); });
         items.forEach(function (li) { li.hidden = !matches(li, st); });
+        if (mqRail.matches) grid.scrollLeft = 0; // Schiene beginnt wieder vorn – FLIP gleitet von der alten Position
         var k = 0;
         items.forEach(function (li) {
           if (li.hidden) return;
@@ -531,7 +583,13 @@
     var resetBtn = $('[data-filter-reset]');
     if (resetBtn) resetBtn.addEventListener('click', function () { form.reset(); });
     carte.reset = function () { form.reset(); paintRange(); items.forEach(function (li) { li.hidden = false; }); after(); };
+    carte.reveal = function (li) {
+      if (!mqRail.matches) return;
+      var pad = parseFloat(getComputedStyle(grid).scrollPaddingLeft) || 0;
+      grid.scrollTo({ left: Math.max(0, li.offsetLeft - pad), behavior: UI_MOTION && !reduced ? 'smooth' : 'auto' });
+    };
     paintRange();
+    railUpdate();
 
     // Lichtkegel, der dem Mauszeiger auf der Karte folgt
     if (finePointer) {
@@ -550,6 +608,7 @@
     var t = TREATS[id];
     if (!t) return;
     if (t.el.hidden && carte.reset) carte.reset();
+    if (carte.reveal) carte.reveal(t.el);
     var card = $('.treat-card', t.el);
     scrollToEl(t.el, { offset: -(headerH() + 40), focusEl: $('.treat-book', t.el) });
     t.el.classList.remove('is-highlight');
@@ -834,6 +893,7 @@
     var flipBtn = $('[data-gift-flip]'), flipLabel = $('[data-flip-label]');
     var faces = $$('.gc-face', card);
     var lastColor = 'puder', submitted = false;
+    var mini = $('[data-gift-mini]'), miniVal = $('[data-gm-value]'), miniTo = $('[data-gm-to]'), miniCard = $('[data-gm-card]');
 
     var year = new Date().getFullYear();
     validOut.textContent = '31.12.' + (year + GIFT.VALID_YEARS);
@@ -890,6 +950,11 @@
       var sum = amount();
       total.textContent = sum != null ? fmtEuro(sum + (GIFT.SHIPPING[ship] || 0)) : '–';
       shipNote.textContent = GIFT.SHIP_NOTE[ship];
+      if (mini) {
+        miniVal.textContent = vOut.textContent;
+        miniTo.textContent = to.value.trim() ? 'Für ' + to.value.trim() : 'Live-Vorschau';
+        miniCard.dataset.color = color;
+      }
       if (submitted) validate(false);
     }
     function setErr(input, el, text) {
@@ -938,6 +1003,20 @@
       if (top < headerH() || top > window.innerHeight * 0.6) scrollToEl(success, { offset: -(headerH() + 30) });
       scheduleRefresh(300);
     });
+    // Live-Pille (Handy/Tablet): erscheint, sobald die große Vorschau aus dem Bild ist
+    if (mini && 'IntersectionObserver' in window) {
+      var mqMini = matchMedia('(max-width: 899px)');
+      var stageOut = false;
+      var syncMini = function () { mini.classList.toggle('is-on', mqMini.matches && stageOut && !form.hidden); };
+      new IntersectionObserver(function (en) {
+        var e = en[0];
+        stageOut = !e.isIntersecting && e.boundingClientRect.top < 0; // nur wenn die Karte oberhalb verschwunden ist
+        syncMini();
+      }, { rootMargin: '-' + (headerH() + 40) + 'px 0px 0px 0px' }).observe(stage);
+      if (mqMini.addEventListener) mqMini.addEventListener('change', syncMini);
+      form.addEventListener('submit', function () { setTimeout(syncMini, 0); });
+      mini.addEventListener('click', function () { scrollToEl(stage, { offset: -(headerH() + 16) }); });
+    }
     $('[data-gift-again]').addEventListener('click', function () {
       success.hidden = true; form.hidden = false; newCode();
       scheduleRefresh(300);
@@ -1230,27 +1309,37 @@
      Start
      ------------------------------------------------------------------ */
   function safe(fn, name) { try { fn(); } catch (e) { if (window.console) console.warn('[Maison Belle] ' + name + ':', e); } }
+  /* Sofort: was der erste Bildschirm braucht. Der Rest läuft in Häppchen (≤ 40 ms je Task),
+     damit der Main-Thread während des Hero-Intros frei bleibt (keine langen Boot-Tasks). */
   safe(initScroll, 'scroll');
   safe(initHeader, 'header');
   safe(initMenu, 'menu');
   safe(initIntro, 'intro');
-  safe(initSilk, 'silk');
-  safe(initReveals, 'reveals');
-  safe(initCounters, 'counters');
-  safe(initWords, 'words');
-  safe(initParallax, 'parallax');
-  safe(initCarte, 'carte');
-  safe(initGoto, 'goto');
-  safe(initBookLinks, 'book');
-  safe(initQuiz, 'quiz');
-  safe(initActives, 'actives');
-  safe(initRitual, 'ritual');
-  safe(initGift, 'gift');
-  safe(initCarousel, 'carousel');
-  safe(initHours, 'hours');
-  safe(initMap, 'map');
-  safe(initFaq, 'faq');
-  safe(initBooking, 'booking');
   window.__maisonReady = true;
+  var queue = [
+    [initReveals, 'reveals'], [initCounters, 'counters'], [initWords, 'words'], [initParallax, 'parallax'],
+    [initCarte, 'carte'], [initGoto, 'goto'], [initBookLinks, 'book'], [initQuiz, 'quiz'],
+    [initActives, 'actives'], [initRitual, 'ritual'], [initGift, 'gift'], [initCarousel, 'carousel'],
+    [initHours, 'hours'], [initMap, 'map'], [initFaq, 'faq'], [initBooking, 'booking']
+  ];
+  var yieldTask = function (fn) {
+    if (window.scheduler && typeof scheduler.postTask === 'function') scheduler.postTask(fn, { priority: 'user-visible' });
+    else setTimeout(fn, 0);
+  };
+  (function runQueue() {
+    var t0 = performance.now();
+    while (queue.length) {
+      var job = queue.shift();
+      safe(job[0], job[1]);
+      if (queue.length && performance.now() - t0 > 40) { yieldTask(runQueue); return; }
+    }
+    window.__maisonBooted = true;
+    if (hasGSAP) ScrollTrigger.refresh();
+  })();
+  // Seide erst nach dem Intro starten (CSS-Verlauf steht bis dahin, die Leinwand blendet weich ein)
+  setTimeout(function () {
+    var start = function () { safe(initSilk, 'silk'); };
+    if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 1200 }); else start();
+  }, 900);
   if (hasGSAP) window.addEventListener('load', function () { ScrollTrigger.refresh(); });
 })();

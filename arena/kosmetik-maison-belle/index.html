@@ -15,6 +15,7 @@
   <meta property="og:title" content="Maison Belle – Haut, die ruhig leuchtet. Kosmetik an der Königsallee">
   <meta property="og:description" content="Gesichtsbehandlungen, Körperrituale und Handpflege an der Kö in Düsseldorf – mit Hautanalyse vor jeder ersten Behandlung. (Demo, fiktiver Betrieb)">
   <link rel="preload" href="/arena/kosmetik-maison-belle/assets/fonts/dm-serif-display-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/arena/kosmetik-maison-belle/assets/fonts/dm-serif-display-latin-400-italic.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/arena/kosmetik-maison-belle/assets/fonts/jost-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/arena/kosmetik-maison-belle/style.css">
   <script>
@@ -196,6 +197,28 @@
       </div>
       <a class="scroll-cue" href="#haltung" aria-label="Weiter zum Abschnitt Haltung"><span aria-hidden="true"></span></a>
     </section>
+    <script>
+      /* Hero-Intro sofort starten, sobald die Hero-Schriften da sind (max. 650 ms) –
+         unabhängig von GSAP/main.js, damit der erste Eindruck nicht auf das Skript-Bündel wartet. */
+      (function () {
+        var d = document.documentElement, done = false;
+        if (!d.classList.contains('is-loading')) return;
+        function go() {
+          if (done) return; done = true;
+          requestAnimationFrame(function () { requestAnimationFrame(function () { d.classList.remove('is-loading'); }); });
+        }
+        try {
+          if (document.fonts && document.fonts.load) {
+            Promise.all([
+              document.fonts.load('400 1em "DM Serif Display"'),
+              document.fonts.load('italic 400 1em "DM Serif Display"'),
+              document.fonts.load('400 1em Jost')
+            ]).then(go, go);
+          } else go();
+        } catch (e) { go(); }
+        setTimeout(go, 650);
+      })();
+    </script>
 
     <!-- ============ RIBBON ============ -->
     <div class="ribbon" aria-hidden="true">
@@ -419,6 +442,11 @@
             </article>
           </li>
         </ul>
+        <div class="rail-meta" aria-hidden="true" data-rail>
+          <span class="rail-pos"><b data-rail-pos>1</b>&thinsp;/&thinsp;<span data-rail-total>16</span></span>
+          <span class="rail-track"><span data-rail-bar></span></span>
+          <span class="rail-hint">Wischen <svg class="i-arrow" viewBox="0 0 24 24" focusable="false"><path d="M4 12h15m-5-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
         <div class="menu-empty" id="menu-empty" hidden>
           <p>Für diese Auswahl haben wir gerade keine Behandlung. Erhöhen Sie das Budget oder setzen Sie die Filter zurück.</p>
           <button class="btn btn-ghost" type="button" data-filter-reset>Filter zurücksetzen</button>
@@ -714,6 +742,13 @@
 
         <div class="gift-grid">
           <form class="gift-form" id="gift-form" novalidate>
+            <div class="gift-mini-wrap">
+              <button class="gift-mini" type="button" data-gift-mini aria-label="Zur Live-Vorschau der Gutscheinkarte">
+                <span class="gm-card" data-gm-card data-color="puder" aria-hidden="true"><i>MB</i></span>
+                <span class="gm-text" aria-hidden="true"><b data-gm-value>100&nbsp;€</b><small data-gm-to>Live-Vorschau</small></span>
+                <svg class="gm-up" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19V5m-6 6 6-6 6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
             <fieldset class="seg">
               <legend>Art des Gutscheins</legend>
               <div class="seg-row">

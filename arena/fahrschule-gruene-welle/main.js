@@ -256,7 +256,8 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
   const SIGNAL_TEXT = { red: 'Rot – bitte warten', redyellow: 'Rot-Gelb – gleich geht’s los', green: 'Grün – los geht’s' };
   const LOGO_CLASS = { red: 'is-r', redyellow: 'is-ry', green: 'is-g' };
   $$('.hl__in').forEach((el, i) => el.style.setProperty('--i', i));
-  const fadeDelays = { 'hero__eyebrow': 0, 'ampel-status': 80, 'hero__visual': 220, 'hero__lede': 1500, 'hero__ctas': 1600, 'hero__trust': 1700, 'hero__note': 1800 };
+  // Text, Bild und Aktionen sind sofort da (LCP, CTA im ersten Moment) – nur die Headline wartet an der Haltlinie
+  const fadeDelays = { 'hero__eyebrow': 0, 'ampel-status': 60, 'hero__lede': 120, 'hero__visual': 180, 'hero__ctas': 240, 'hero__trust': 320, 'hero__note': 380 };
   $$('[data-hero-fade]').forEach((el) => {
     const key = Object.keys(fadeDelays).find((k) => el.classList.contains(k));
     el.style.setProperty('--d', key ? fadeDelays[key] : 0);
@@ -280,7 +281,7 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
       $$('.hl__in').forEach((el) => { el.style.transition = ''; });
     }
     setSignal('red');
-    const t1 = MOTION ? 700 : 250, t2 = MOTION ? 1400 : 500;
+    const t1 = MOTION ? 450 : 200, t2 = MOTION ? 950 : 400;
     timers.push(setTimeout(() => setSignal('redyellow'), t1));
     timers.push(setTimeout(() => {
       setSignal('green');
@@ -329,38 +330,44 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     const end = relRect($('[data-lane-end]'));
     let x = xl;
     let p = `M ${x} ${road.bottom}`;
+    // Stützstellen für Position/Winkel des Autos direkt aus der Geometrie
+    // (statt getPointAtLength – das kostete auf Mittelklasse-Handys > 400 ms pro Aufbau)
+    const px = [x], py = [road.bottom];
+    const CURVE_STEPS = 48;
     lane.skips = [];
     $$('[data-lane-x]').forEach((s) => {
       const v = s.dataset.laneX;
       const r = relRect(s);
       if (v === 'skip') {
-        if (x !== null) p += ` L ${x} ${r.top + 1}`;
+        if (x !== null) { p += ` L ${x} ${r.top + 1}`; px.push(x); py.push(r.top + 1); }
         lane.skips.push([r.top + 1, r.bottom - 1]);
         x = null;
         return;
       }
       const nx = v === 'r' ? xr : xl;
-      if (x === null) { p += ` M ${nx} ${r.top - 1}`; x = nx; return; }
+      if (x === null) { p += ` M ${nx} ${r.top - 1}`; px.push(nx); py.push(r.top - 1); x = nx; return; }
       if (nx !== x) {
-        const yb = r.top;
-        p += ` L ${x} ${yb - h / 2} C ${x} ${yb} ${nx} ${yb} ${nx} ${yb + h / 2}`;
+        const yb = r.top, y0 = yb - h / 2;
+        p += ` L ${x} ${y0} C ${x} ${yb} ${nx} ${yb} ${nx} ${yb + h / 2}`;
+        px.push(x); py.push(y0);
+        // kubische Bézierkurve (x, y0) → (x, yb) → (nx, yb) → (nx, yb + h/2) abtasten
+        for (let i = 1; i <= CURVE_STEPS; i++) {
+          const t = i / CURVE_STEPS, u = 1 - t;
+          const b0 = u * u * u, b1 = 3 * u * u * t, b2 = 3 * u * t * t, b3 = t * t * t;
+          px.push(b0 * x + b1 * x + b2 * nx + b3 * nx);
+          py.push(b0 * y0 + (b1 + b2) * yb + b3 * (yb + h / 2));
+        }
         x = nx;
       }
     });
     p += ` L ${x} ${end.top}`;
+    px.push(x); py.push(end.top);
     lanePath.setAttribute('d', p);
     laneGhost.setAttribute('d', p);
     laneCasing.setAttribute('d', p);
     laneClip.setAttribute('width', W);
-    // Stützstellen für Position/Winkel des Autos
-    const total = lanePath.getTotalLength();
-    const n = Math.min(4000, Math.ceil(total / 6));
-    lane.ys = new Float32Array(n + 1);
-    lane.xs = new Float32Array(n + 1);
-    for (let i = 0; i <= n; i++) {
-      const pt = lanePath.getPointAtLength((total * i) / n);
-      lane.xs[i] = pt.x; lane.ys[i] = pt.y;
-    }
+    lane.xs = Float32Array.from(px);
+    lane.ys = Float32Array.from(py);
     lane.y0 = road.bottom; lane.y1 = end.top; lane.H = H;
     lane.ok = true;
     updateLane();
@@ -728,7 +735,7 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
   // Ab dem Monat mit dem nächsten Termin starten, falls der laufende Monat keine mehr hat
   if (upcoming.length && upcoming[0].start.getMonth() !== today.getMonth()) kalOffset = 0;
 
-  function renderKal() {
+  function renderKal(dir) {
     const y = monthStart.getFullYear(), m = monthStart.getMonth() + kalOffset;
     const first = new Date(y, m, 1);
     const last = new Date(y, m + 1, 0);
@@ -780,6 +787,13 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
       kalList.append(p);
     }
     list.forEach((c) => kalList.append(courseCard(c)));
+    if (dir) {
+      [kalGrid, kalList].forEach((n) => {
+        n.classList.remove('kal-in-next', 'kal-in-prev');
+        void n.offsetWidth;
+        n.classList.add(dir > 0 ? 'kal-in-next' : 'kal-in-prev');
+      });
+    }
   }
   function el(tag, cls, text) { const e = d.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function icon(id) { const s = d.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('aria-hidden', 'true'); const u = d.createElementNS('http://www.w3.org/2000/svg', 'use'); u.setAttribute('href', '#' + id); s.append(u); return s; }
@@ -807,8 +821,8 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     art.append(top, h, when, seats, foot);
     return art;
   }
-  kalPrev.addEventListener('click', () => { if (kalOffset > 0) { kalOffset--; renderKal(); } });
-  kalNext.addEventListener('click', () => { if (kalOffset < KURS_MONATE - 1) { kalOffset++; renderKal(); } });
+  kalPrev.addEventListener('click', () => { if (kalOffset > 0) { kalOffset--; renderKal(-1); } });
+  kalNext.addEventListener('click', () => { if (kalOffset < KURS_MONATE - 1) { kalOffset++; renderKal(1); } });
   kalGrid.addEventListener('click', (e) => {
     const bar = e.target.closest('.kal__bar');
     if (!bar) return;
@@ -1004,9 +1018,13 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     w.addEventListener('resize', rebuildLane);
   }
   if (!('IntersectionObserver' in w)) $('[data-explorer]').classList.add('is-seen');
-  w.addEventListener('load', () => { if (hasGsap) w.ScrollTrigger.refresh(); rebuildLane(); });
-  if (d.fonts && d.fonts.ready) d.fonts.ready.then(() => { if (hasGsap) w.ScrollTrigger.refresh(); rebuildLane(); });
-  buildLane();
+  // ScrollTrigger refresht nach „load“ selbst (und löst damit rebuildLane aus) – kein zweiter Refresh nötig
+  if (!hasGsap) w.addEventListener('load', rebuildLane);
+  if (d.fonts && d.fonts.ready && d.fonts.status !== 'loaded') d.fonts.ready.then(() => { if (hasGsap) w.ScrollTrigger.refresh(); else rebuildLane(); });
+  // Fahrbahnlinie erst nach dem ersten Bild aufbauen – sie beginnt unterhalb des Hero,
+  // so blockiert das Vermessen der Seite nicht die Ampel-Choreografie.
+  if ('requestIdleCallback' in w) w.requestIdleCallback(buildLane, { timeout: 700 });
+  else setTimeout(buildLane, 200);
   onScroll();
 
   w.__gwReady = true;

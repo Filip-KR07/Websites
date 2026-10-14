@@ -92,6 +92,7 @@ h1, h2, h3, h4, p, ul, ol, dl, dd, figure, blockquote { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 [hidden] { display: none !important; }
 .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.nowrap { white-space: nowrap; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 :focus-visible { outline: 3px solid var(--green); outline-offset: 3px; border-radius: 6px; }
 .sec--dark :focus-visible, .hero :focus-visible, .ftr :focus-visible, .menu :focus-visible { outline-color: var(--yellow); }
@@ -211,7 +212,8 @@ ul, ol { padding: 0; list-style: none; }
   transition: background-color 260ms ease, box-shadow 260ms ease;
 }
 html:not(.js) .hdr { background: rgba(26, 29, 31, .94); }
-.hdr.is-scrolled { background: rgba(26, 29, 31, .9); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); box-shadow: 0 1px 0 rgba(255,255,255,.06); }
+/* bewusst ohne backdrop-filter: der Blur über der mitlaufenden Fahrbahnlinie kostete beim Scrollen jeden Frame Main-Thread-Zeit */
+.hdr.is-scrolled { background: rgba(26, 29, 31, .97); box-shadow: 0 1px 0 rgba(255,255,255,.06), 0 10px 30px -18px rgba(0,0,0,.5); }
 .hdr__in { height: 100%; display: flex; align-items: center; gap: 22px; }
 .logo { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; margin-right: auto; }
 .logo__lights {
@@ -258,7 +260,7 @@ html:not(.js) .logo__lights i.g { background: var(--green); }
 @media (max-width: 899px) {
   :root { --hdr-h: 64px; }
   .hdr__cta { display: none; }
-  .hdr { background: rgba(26, 29, 31, .92); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  .hdr { background: rgba(26, 29, 31, .97); }
 }
 
 /* Mobiles Menü */
@@ -485,9 +487,9 @@ html:not(.js) .lane { display: none; }
 
 /* Hero-Choreografie (nur mit JS + Bewegung) */
 html.js.motion-ok:not(.reveal-all) .hero:not(.is-go) .hl__in { transform: translateX(-102%) skewX(-10deg); }
-html.js.motion-ok .hl__in { transition: transform 1000ms var(--ease-in-out); transition-delay: calc(var(--i, 0) * 90ms); }
+html.js.motion-ok .hl__in { transition: transform 820ms cubic-bezier(0.6, 0, 0.2, 1); transition-delay: calc(var(--i, 0) * 70ms); }
 html.js.motion-ok:not(.reveal-all) .hero:not(.is-ready) [data-hero-fade] { opacity: 0; transform: translateY(16px); }
-html.js.motion-ok [data-hero-fade] { transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out); transition-delay: calc(var(--d, 0) * 1ms); }
+html.js.motion-ok [data-hero-fade] { transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out); transition-delay: calc(var(--d, 0) * 1ms); }
 html.js.motion-off .hero:not(.is-ready) .hl__in { opacity: .001; }
 html.js.motion-off .hl__in { transition: opacity 400ms ease; }
 
@@ -674,6 +676,18 @@ html:not(.js) .xtab[aria-selected="true"] { color: var(--ink); }
   content: ""; position: absolute; left: 0; right: 0; bottom: 16%; height: 4px;
   background: repeating-linear-gradient(90deg, rgba(26,29,31,.25) 0 26px, transparent 26px 46px);
 }
+.xpanel__mark { display: none; }
+@media (min-width: 980px) {
+  /* große Klassen-Marke füllt die Bühne (gefüllt statt Kontur: die Variable Font hat überlappende Konturen) */
+  .xpanel__mark {
+    display: block; position: absolute; right: clamp(18px, 3vw, 40px); top: clamp(120px, 26%, 180px);
+    font-family: var(--f-display); font-weight: 800; font-size: clamp(6rem, 11vw, 10.5rem); line-height: .8; letter-spacing: -.05em;
+    color: rgba(0, 178, 107, .13);
+    pointer-events: none; user-select: none;
+  }
+}
+html.motion-ok .xpanel.is-enter .xpanel__mark { animation: markIn 700ms var(--ease-out) both 60ms; }
+@keyframes markIn { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
 .vehicle { position: relative; z-index: 1; width: 100%; max-width: 540px; margin-inline: auto; overflow: visible; }
 .vehicle__ground { stroke: rgba(26,29,31,.0); }
 .age-sign {
@@ -688,7 +702,7 @@ html:not(.js) .xtab[aria-selected="true"] { color: var(--ink); }
 .age-cap b { font-family: var(--f-display); font-size: .9rem; }
 .age-cap span { font-size: .85rem; color: var(--muted); }
 .xpanel__title { font-family: var(--f-display); font-weight: 800; font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.4rem); letter-spacing: -.03em; line-height: 1.1; }
-.xpanel__title span { font-weight: 500; color: var(--muted); font-size: .6em; letter-spacing: -.01em; }
+.xpanel__title span { font-weight: 500; color: var(--muted); font-size: .6em; letter-spacing: -.01em; white-space: nowrap; }
 .xpanel__info { display: grid; gap: 20px; justify-items: start; }
 .xpanel__lead { color: var(--muted); max-width: 54ch; }
 .facts { display: grid; gap: 0; width: 100%; border-top: 2px dashed var(--line-strong); }
@@ -697,14 +711,14 @@ html:not(.js) .xtab[aria-selected="true"] { color: var(--ink); }
 .facts dd { font-weight: 600; }
 @media (min-width: 640px) { .facts div { grid-template-columns: 150px 1fr; gap: 16px; align-items: baseline; } }
 @media (min-width: 980px) {
-  .xpanel { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); }
+  .xpanel { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); align-items: stretch; }
 }
 /* Fahrzeug fährt ein */
 @keyframes driveIn { from { transform: translateX(-38%); opacity: 0; } 30% { opacity: 1; } to { transform: none; opacity: 1; } }
 @keyframes spinIn { from { --spin: -620deg; } to { --spin: 0deg; } }
 @keyframes infoIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes signIn { from { opacity: 0; transform: scale(.9) rotate(-8deg); } to { opacity: 1; transform: none; } }
-html.js.motion-ok:not(.reveal-all) .explorer:not(.is-seen) .vehicle__body { opacity: 0; }
+html.js.motion-ok:not(.reveal-all) .explorer:not(.is-seen) .vehicle__body, html.js.motion-ok:not(.reveal-all) .explorer:not(.is-seen) .xpanel__mark { opacity: 0; }
 html.motion-ok .xpanel.is-enter .vehicle__body { animation: driveIn 900ms var(--ease-out) both; }
 html.motion-ok .xpanel.is-enter .vehicle { animation: spinIn 900ms var(--ease-out) both; }
 html.motion-ok .xpanel.is-enter .xpanel__info > * { animation: infoIn 500ms var(--ease-out) both; animation-delay: calc(var(--k, 0) * 50ms + 120ms); }
@@ -906,6 +920,9 @@ html.motion-ok .qz__feedback:not([hidden]) { animation: infoIn 260ms var(--ease-
 .qz__result { display: grid; gap: clamp(22px, 4vw, 48px); padding: clamp(26px, 4vw, 52px) clamp(18px, 3vw, 44px); }
 .qz__result[hidden] { display: none; }
 .qz__result:focus { outline: none; }
+html.motion-ok .qz__result:not([hidden]) { animation: infoIn 320ms var(--ease-out) both; }
+@keyframes lightOn { from { opacity: 0; } }
+html.motion-ok .qz__result:not([hidden]) .ampel__light::after { animation: lightOn 260ms ease 280ms both; }
 .qz__resultlight { justify-self: start; display: grid; justify-items: center; }
 .ampel__body--sm { --lw: 46px; }
 .qz__result[data-pass="1"] .ampel__light--g::after,
@@ -950,6 +967,15 @@ html:not(.js) .kal__main { display: none; }
 .kal__bar.is-first { left: 4px; border-top-left-radius: 5px; border-bottom-left-radius: 5px; }
 .kal__bar.is-last { right: 4px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; }
 .kal__bar.is-sel { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--asphalt); z-index: 1; }
+.kal__bar:active { transform: scaleY(.8); }
+@media (hover: hover) and (pointer: fine) { .kal__bar:not(.is-sel):hover { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px rgba(26,29,31,.35); z-index: 1; } }
+/* Monatswechsel: kurzer, richtungsbewusster Übergang statt hartem Austausch */
+@keyframes kalNext { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+@keyframes kalPrev { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+html.motion-ok .kal-in-next { animation: kalNext 240ms var(--ease-out) both; }
+html.motion-ok .kal-in-prev { animation: kalPrev 240ms var(--ease-out) both; }
+html.motion-ok .kal__list.kal-in-next, html.motion-ok .kal__list.kal-in-prev { animation-delay: 40ms; }
+html.motion-off .kal-in-next, html.motion-off .kal-in-prev { animation: fadeIn 160ms ease both; }
 .kal__bar.is-past { opacity: .35; }
 .kal__bartag { position: absolute; left: 6px; right: 0; bottom: 18px; font-size: .62rem; font-weight: 800; letter-spacing: .02em; color: var(--asphalt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
 @media (max-width: 639px) { .kal__bartag { display: none; } .kal__cell { padding: 5px 4px 16px; font-size: .78rem; } .kal__cell.is-theory::after { right: 4px; top: 7px; width: 6px; height: 6px; } }
@@ -1238,10 +1264,9 @@ html.motion-ok .qa[open] .qa__a { animation: infoIn 300ms var(--ease-out); }
 .demo-pill {
   display: inline-flex; align-items: center; gap: 9px;
   padding: 9px 15px; border-radius: 999px;
-  background: rgba(26, 29, 31, .9); color: #D5DCD9;
+  background: rgba(26, 29, 31, .95); color: #D5DCD9;
   border: 1px solid rgba(255,255,255,.14);
   font-size: .75rem; font-weight: 600; letter-spacing: .01em; text-decoration: none;
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   transition: color 200ms ease, border-color 200ms ease, transform 160ms var(--ease-out);
 }
 .demo-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }

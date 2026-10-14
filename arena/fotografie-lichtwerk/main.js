@@ -193,11 +193,9 @@
   var VERT = 'attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
   var FRAG = [
     'precision mediump float;',
-    'uniform sampler2D uTex;uniform float uP;uniform float uT;uniform vec2 uScale;uniform vec2 uRes;',
+    'uniform sampler2D uTex;uniform sampler2D uNoise;uniform float uP;uniform float uT;uniform vec2 uScale;uniform vec2 uRes;',
     'varying vec2 v;',
     'float h(vec2 q){q=fract(q*vec2(123.34,456.21));q+=dot(q,q+45.32);return fract(q.x*q.y);}',
-    'float n(vec2 q){vec2 i=floor(q),f=fract(q);float a=h(i),b=h(i+vec2(1.,0.)),c=h(i+vec2(0.,1.)),d=h(i+vec2(1.,1.));vec2 u=f*f*(3.-2.*f);return mix(mix(a,b,u.x),mix(c,d,u.x),u.y);}',
-    'float fbm(vec2 q){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*n(q);q*=2.03;a*=.5;}return s;}',
     'void main(){',
     '  vec2 uv=(v-.5)*uScale+.5;',
     '  vec3 c=texture2D(uTex,uv).rgb;',
@@ -209,7 +207,8 @@
     '  float em=smoothstep(.0,1.,a*1.35-(1.-l)*.35);',
     '  vec3 negShow=neg*em;',
     // Phase 2: Entwicklerwelle kippt das Negativ zum Positiv
-    '  float f=v.x*.42+(1.-v.y)*.38+fbm(v*vec2(3.2,2.4)+uT*.015)*.42;',
+    // Entwicklerwelle: fbm-Rauschen kommt vorberechnet aus einer kleinen Textur (statt 64 Hashes pro Pixel)
+    '  float f=v.x*.42+(1.-v.y)*.38+texture2D(uNoise,v).r*.42;',
     '  float front=mix(-.2,1.32,smoothstep(.34,.80,uP));',
     '  float pos=1.-smoothstep(front-.07,front+.07,f);',
     '  float edge=1.-clamp(abs(f-front)/.07,0.,1.);',
@@ -716,11 +715,16 @@
       root.classList.add('story-h');
       panels.forEach(function (p) { p.classList.add('is-in'); });
       var dist = function () { return Math.max(0, track.scrollWidth - window.innerWidth); };
+      // Statt GSAP-Pin (position: fixed → Layout-Shifts) hält position: sticky die Bühne.
+      // Die Sektion bekommt die Scrollstrecke als Höhe; gesetzt vor jeder Neuberechnung.
+      var setHeight = function () { section.style.height = (pin.offsetHeight + dist()) + 'px'; };
+      setHeight();
+      ScrollTrigger.addEventListener('refreshInit', setHeight);
       var setYear = function (n) { years.forEach(function (y, i) { y.classList.toggle('is-on', i <= n); }); };
       var tween = gsap.to(track, {
         x: function () { return -dist(); }, ease: 'none',
         scrollTrigger: {
-          trigger: pin, start: 'top top', end: function () { return '+=' + dist(); }, pin: true, scrub: 0.8, invalidateOnRefresh: true, anticipatePin: 1,
+          trigger: section, start: 'top top', end: 'bottom bottom', scrub: 0.8, invalidateOnRefresh: true,
           onUpdate: function (self) { if (fill) fill.style.transform = 'scaleX(' + self.progress.toFixed(4) + ')'; }
         }
       });
@@ -733,7 +737,7 @@
         gsap.fromTo(im, { xPercent: -5 }, { xPercent: 5, ease: 'none', scrollTrigger: { trigger: panel, containerAnimation: tween, start: 'left right', end: 'right left', scrub: true } });
         ScrollTrigger.create({ trigger: panel, containerAnimation: tween, start: 'left 62%', onEnter: function () { setYear(i); }, onLeaveBack: function () { setYear(i - 1); } });
       });
-      return function () { root.classList.remove('story-h'); gsap.set(track, { clearProps: 'x' }); };
+      return function () { ScrollTrigger.removeEventListener('refreshInit', setHeight); section.style.height = ''; root.classList.remove('story-h'); gsap.set(track, { clearProps: 'x' }); };
     });
   }
 

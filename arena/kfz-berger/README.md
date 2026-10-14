@@ -14,7 +14,7 @@ Header mit Mini-Drehzahlmesser im Logo · Hero (Drehzahlmesser + Foto) · Werkst
 4. **HU-Erinnerung**: Monat/Jahr der letzten HU (oder Erstzulassung) → Fälligkeit, Plakette in Jahresfarbe mit Monat oben, Live-Countdown, Zyklusbalken, `.ics`-Erinnerung und Übernahme in die Terminanfrage (nächster Di/Do).
 5. **Live-Werkstattstatus** (simuliert, pro Tag deterministisch): freie Slots heute, nächster Slot, Ersatzwagen, Hebebühnen-Belegung; Kurzstatus auch im Header und im Hero.
 
-Außerdem: horizontale Ablauf-Strecke mit animierter Schaltkulisse (Desktop), schwebende Bildvorschau in der Leistungstabelle, Bewertungs-Messinstrument, Formular mit Validierung und Erfolgsansicht („Demo – es wurde nichts gesendet“).
+Außerdem: horizontale Ablauf-Strecke mit animierter Schaltkulisse (Desktop, per CSS `position: sticky` statt GSAP-Pin – keine Layout-Shifts; auf dem Handy als Wisch-Karussell mit Gang-Anzeige), schwebende Bildvorschau in der Leistungstabelle, Bewertungs-Messinstrument, Formular mit Validierung und Erfolgsansicht („Demo – es wurde nichts gesendet“).
 
 ## Anpassen
 - **Name, Telefon, Adresse, Zeiten**: in `index.html` (Header, Kontakt, Footer, JSON-LD `AutoRepair`) sowie in `impressum.html`/`datenschutz.html`. Telefonnummer suchen/ersetzen: `0231&nbsp;555&nbsp;72&nbsp;40` und `+492315557240`.

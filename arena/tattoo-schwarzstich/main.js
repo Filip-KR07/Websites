@@ -194,14 +194,20 @@
     } else setTimeout(startHero, 200);
   }
 
-  /* ---------- Hero: Dotwork-Mandala auf Canvas (Nadel zeichnet Punkt für Punkt) ---------- */
+  /* ---------- Hero: Dotwork-Mandala auf Canvas (Nadel zeichnet Punkt für Punkt) ----------
+     Leistung: Fertige Punkte werden einmal in ein Offscreen-Bitmap „gebacken“. Danach zeichnet das
+     Canvas nur noch neu, solange die Nadel zeichnet oder der Mauszeiger Punkte verdrängt. Die langsame
+     Drehung macht CSS (Compositor, siehe .hero-canvas in style.css) – kein Dauer-Neuzeichnen. */
   (function heroCanvas() {
-    var cv = $('.hero-canvas');
-    if (!cv || !cv.getContext) return;
+    var cv = $('.hero-canvas'), wrap = $('.hero-canvas-wrap');
+    if (!cv || !cv.getContext || !wrap) return;
     var ctx = cv.getContext('2d');
-    var pts = [], W = 0, H = 0, dpr = 1, R = 0, start = 0, visible = true, raf = 0;
-    var DRAW_MS = 2600;
-    var pointer = { x: -9999, y: -9999, active: false };
+    var base = document.createElement('canvas'), bctx = base.getContext('2d');
+    var TAU = Math.PI * 2, DRAW_MS = 2600, FRESH_MS = 240, RAD = 80, PUSH = 16, CELL = 40;
+    var BONE = '#B7B3A9', RED = '#D9262F', FRESH = '#E5484F'; // BONE = Knochen mit 78 % Deckung auf Schwarz, deckend gerechnet
+    var N = 0, PX, PY, BORN, RING, grid = [], cols = 0;
+    var W = 0, H = 0, dpr = 1, R = 0, dotR = 1.25, start = 0, baked = 0, visible = true, raf = 0;
+    var ptr = { cx: 0, cy: 0, on: false }, sm = { x: 0, y: 0, s: 0, init: false };
 
     function density(x, y) {
       var r = Math.sqrt(x * x + y * y), t = Math.atan2(y, x), k, edge;
@@ -230,89 +236,156 @@
     function band(r) { return r < 0.17 ? 5 : r < 0.21 ? 4 : r < 0.58 ? 3 : r < 0.64 ? 1 : r < 0.88 ? 0 : 2; }
 
     function build() {
-      var rect = cv.getBoundingClientRect();
-      if (!rect.width) return false;
+      W = wrap.offsetWidth; H = wrap.offsetHeight;
+      if (!W || !H) return false;
       dpr = Math.min(2, window.devicePixelRatio || 1);
-      W = rect.width; H = rect.height;
-      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      cv.width = base.width = Math.round(W * dpr); cv.height = base.height = Math.round(H * dpr);
       R = Math.min(W, H) * 0.47;
+      dotR = W < 520 ? 1.15 : 1.25;
       var spacingPx = W < 520 ? 4.2 : 3.5;
-      var s = spacingPx / R, row = 0, seed = 7;
+      var s = spacingPx / R, row = 0, seed = 7, tmp = [];
       var rnd = function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
-      pts = [];
       for (var y = -1; y <= 1; y += s * 0.866, row++) {
         for (var x = -1 + (row % 2 ? s / 2 : 0); x <= 1; x += s) {
           var jx = x + (rnd() - 0.5) * s * 0.7, jy = y + (rnd() - 0.5) * s * 0.7;
           var d = density(jx, jy);
           if (d > 0 && rnd() < d) {
             var r = Math.sqrt(jx * jx + jy * jy), a = Math.atan2(jy, jx);
-            pts.push({ x: jx, y: jy, ox: 0, oy: 0, ring: r >= 0.6 && r < 0.63, key: band(r) + (a + Math.PI) / (2 * Math.PI) * 0.999 });
+            tmp.push({ x: jx * R, y: jy * R, ring: r >= 0.6 && r < 0.63, key: band(r) + (a + Math.PI) / (2 * Math.PI) * 0.999 });
           }
         }
       }
-      pts.sort(function (p, q) { return p.key - q.key; });
-      for (var i = 0; i < pts.length; i++) pts[i].born = (i / pts.length) * DRAW_MS;
+      tmp.sort(function (p, q) { return p.key - q.key; });
+      N = tmp.length;
+      PX = new Float32Array(N); PY = new Float32Array(N); BORN = new Float32Array(N); RING = new Uint8Array(N);
+      cols = Math.ceil((2 * R) / CELL) + 1; grid = new Array(cols * cols);
+      for (var i = 0; i < N; i++) {
+        var p = tmp[i];
+        PX[i] = p.x; PY[i] = p.y; RING[i] = p.ring ? 1 : 0; BORN[i] = (i / N) * DRAW_MS;
+        var gi = Math.min(cols - 1, Math.floor((p.y + R) / CELL)) * cols + Math.min(cols - 1, Math.floor((p.x + R) / CELL));
+        (grid[gi] || (grid[gi] = [])).push(i);
+      }
+      baked = 0;
+      bctx.setTransform(1, 0, 0, 1, 0, 0); bctx.clearRect(0, 0, base.width, base.height);
       return true;
+    }
+    // Reife Punkte (älter als FRESH_MS) einmalig ins Offscreen-Bitmap zeichnen
+    function bakeTo(limit) {
+      if (baked >= N || BORN[baked] > limit) return;
+      var pb = new Path2D(), pr = new Path2D();
+      while (baked < N && BORN[baked] <= limit) {
+        var i = baked++, path = RING[i] ? pr : pb;
+        path.moveTo(PX[i] + dotR, PY[i]); path.arc(PX[i], PY[i], dotR, 0, TAU);
+      }
+      bctx.setTransform(dpr, 0, 0, dpr, W / 2 * dpr, H / 2 * dpr);
+      bctx.fillStyle = BONE; bctx.fill(pb);
+      bctx.fillStyle = RED; bctx.fill(pr);
+    }
+    function spinAngle() {
+      var a = cv.getAnimations ? cv.getAnimations()[0] : null;
+      if (!a || a.currentTime == null) return 0;
+      var dur = +a.effect.getTiming().duration || 180000;
+      return ((a.currentTime % dur) / dur) * TAU;
+    }
+    function toLocal(cx, cy) {
+      var r = wrap.getBoundingClientRect(), px = cx - (r.left + r.width / 2), py = cy - (r.top + r.height / 2);
+      var a = -spinAngle(), c = Math.cos(a), s = Math.sin(a);
+      return { x: px * c - py * s, y: px * s + py * c };
+    }
+    function push(i, path, rr) {
+      var X = PX[i], Y = PY[i];
+      if (sm.s > 0) {
+        var dx = X - sm.x, dy = Y - sm.y, dd = dx * dx + dy * dy;
+        if (dd < RAD * RAD) { var d = Math.sqrt(dd) || 1, k = 1 - d / RAD, f = k * k * PUSH * sm.s; X += dx / d * f; Y += dy / d * f; }
+      }
+      path.moveTo(X + rr, Y); path.arc(X, Y, rr, 0, TAU);
     }
 
     function frame(now) {
       raf = 0;
+      if (!N) return;
       if (!start) start = now;
-      var t = animate ? now - start : DRAW_MS + 1000;
-      var rot = animate ? (now - start) * 0.000035 : 0;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, W, H);
-      ctx.translate(W / 2, H / 2);
-      ctx.rotate(rot);
-      var dotR = W < 520 ? 1.15 : 1.25;
-      // Pointer in rotierte Koordinaten umrechnen
-      var px = pointer.x - W / 2, py = pointer.y - H / 2;
-      var cr = Math.cos(-rot), sr = Math.sin(-rot);
-      var lx = px * cr - py * sr, ly = px * sr + py * cr;
-      var RAD = 80, moving = false;
-      var bone = new Path2D(), red = new Path2D(), fresh = new Path2D();
-      for (var i = 0; i < pts.length; i++) {
-        var p = pts[i];
-        if (t < p.born) break;
-        var X = p.x * R, Y = p.y * R;
-        if (animate) {
-          var tx = 0, ty = 0;
-          if (pointer.active) {
-            var dx = X - lx, dy = Y - ly, dd = dx * dx + dy * dy;
-            if (dd < RAD * RAD) { var dist = Math.sqrt(dd) || 1, f = Math.pow(1 - dist / RAD, 2) * 16; tx = dx / dist * f; ty = dy / dist * f; }
-          }
-          p.ox += (tx - p.ox) * 0.12; p.oy += (ty - p.oy) * 0.12;
-          if (Math.abs(p.ox) > 0.05 || Math.abs(p.oy) > 0.05) moving = true;
-          X += p.ox; Y += p.oy;
-        }
-        var age = t - p.born;
-        var target = p.ring ? red : (age < 240 ? fresh : bone);
-        var rr = age < 240 ? dotR * (0.6 + 0.4 * age / 240) : dotR;
-        target.moveTo(X + rr, Y);
-        target.arc(X, Y, rr, 0, 6.2832);
+      var t = animate ? now - start : Infinity;
+      bakeTo(t - FRESH_MS);
+      // Zeiger mit Feder (Lerp) – Stärke blendet ein und aus, statt hart zu springen
+      var near = false, l = null;
+      if (ptr.on) { l = toLocal(ptr.cx, ptr.cy); near = Math.sqrt(l.x * l.x + l.y * l.y) < R + RAD; }
+      if (near) {
+        if (!sm.init) { sm.x = l.x; sm.y = l.y; sm.init = true; }
+        sm.x += (l.x - sm.x) * 0.2; sm.y += (l.y - sm.y) * 0.2;
       }
-      ctx.fillStyle = 'rgba(232,226,214,.78)'; ctx.fill(bone);
-      ctx.fillStyle = '#D9262F'; ctx.fill(red);
-      ctx.fillStyle = '#E5484F'; ctx.fill(fresh);
-      if (animate && visible && !document.hidden) raf = requestAnimationFrame(frame);
+      sm.s += ((near ? 1 : 0) - sm.s) * 0.12;
+      if (!near && sm.s < 0.004) { sm.s = 0; sm.init = false; }
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(base, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, W / 2 * dpr, H / 2 * dpr);
+      if (sm.s > 0) {
+        // Loch ins Bitmap stanzen und die Punkte darin verdrängt neu zeichnen
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath(); ctx.arc(sm.x, sm.y, RAD + 2, 0, TAU); ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+        var Q = RAD + 3 + dotR, pb = new Path2D(), pr = new Path2D();
+        var x0 = Math.max(0, Math.floor((sm.x - Q + R) / CELL)), x1 = Math.min(cols - 1, Math.floor((sm.x + Q + R) / CELL));
+        var y0 = Math.max(0, Math.floor((sm.y - Q + R) / CELL)), y1 = Math.min(cols - 1, Math.floor((sm.y + Q + R) / CELL));
+        for (var gy = y0; gy <= y1; gy++) for (var gx = x0; gx <= x1; gx++) {
+          var cell = grid[gy * cols + gx]; if (!cell) continue;
+          for (var k = 0; k < cell.length; k++) {
+            var i = cell[k]; if (i >= baked) continue;
+            var ex = PX[i] - sm.x, ey = PY[i] - sm.y;
+            if (ex * ex + ey * ey < Q * Q) push(i, RING[i] ? pr : pb, dotR);
+          }
+        }
+        ctx.fillStyle = BONE; ctx.fill(pb);
+        ctx.fillStyle = RED; ctx.fill(pr);
+      }
+      if (baked < N) {
+        // frisch gestochene Punkte: wachsen kurz und leuchten rot, bevor sie ins Bitmap wandern
+        var pf = new Path2D(), pr2 = new Path2D();
+        for (var j = baked; j < N && BORN[j] <= t; j++) push(j, RING[j] ? pr2 : pf, dotR * (0.6 + 0.4 * (t - BORN[j]) / FRESH_MS));
+        ctx.fillStyle = FRESH; ctx.fill(pf);
+        ctx.fillStyle = RED; ctx.fill(pr2);
+      }
+      var busy = baked < N || near || sm.s > 0;
+      if (animate && busy && visible && !document.hidden) raf = requestAnimationFrame(frame);
     }
-    function kick() { if (!raf && visible && !document.hidden) raf = requestAnimationFrame(frame); }
-    if (!build()) return;
-    if (!animate) { frame(performance.now()); return; }
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (visible) kick(); }, { threshold: 0 }).observe(cv);
+    function kick() { if (!raf && N && visible && !document.hidden) raf = requestAnimationFrame(frame); }
+    function init() {
+      if (!build()) return;
+      if (!animate) { frame(performance.now()); return; }
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (visible) kick(); }, { threshold: 0 }).observe(wrap);
+        var heroEl = $('.hero');
+        new IntersectionObserver(function (en) { heroEl.classList.toggle('is-off', !en[0].isIntersecting); }, { threshold: 0 }).observe(heroEl);
+      }
+      document.addEventListener('visibilitychange', kick);
+      if (finePointer) {
+        var art = $('.hero');
+        art.addEventListener('pointermove', function (e) {
+          ptr.cx = e.clientX; ptr.cy = e.clientY; ptr.on = true;
+          var r = wrap.getBoundingClientRect(), dx = e.clientX - r.left - r.width / 2, dy = e.clientY - r.top - r.height / 2;
+          if (sm.s > 0 || dx * dx + dy * dy < (R + RAD) * (R + RAD)) kick(); // abseits des Mandalas nichts neu zeichnen
+        });
+        art.addEventListener('pointerleave', function () { ptr.on = false; kick(); });
+      }
+      kick();
     }
-    document.addEventListener('visibilitychange', kick);
-    if (finePointer) {
-      var art = $('.hero');
-      art.addEventListener('pointermove', function (e) {
-        var r = cv.getBoundingClientRect();
-        pointer.x = e.clientX - r.left; pointer.y = e.clientY - r.top; pointer.active = true;
-      });
-      art.addEventListener('pointerleave', function () { pointer.active = false; });
-    }
-    var rz; window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(function () { var old = start; build(); start = old; kick(); }, 200); });
-    kick();
+    var rz, lastW = 0;
+    window.addEventListener('resize', function () {
+      clearTimeout(rz);
+      rz = setTimeout(function () {
+        if (wrap.offsetWidth === lastW) return;
+        lastW = wrap.offsetWidth;
+        var old = start; if (!build()) return; start = old;
+        if (!animate) { frame(performance.now()); return; }
+        if (start) bakeTo(performance.now() - start - FRESH_MS);
+        frame(performance.now());
+      }, 200);
+    });
+    // Aufbau erst, wenn der Browser Luft hat: erster Bildschirm (Titel, Foto) zuerst
+    var go = function () { lastW = wrap.offsetWidth; init(); };
+    if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 400 }); else setTimeout(go, 60);
   })();
 
   /* ---------- Manifest: Wörter füllen sich beim Scrollen ---------- */
@@ -438,7 +511,7 @@
 
     // Lightbox
     var lb = $('#lightbox'), lbMedia = $('#lb-media'), lbTitle = $('#lb-title'), lbMeta = $('#lb-meta'), lbCount = $('#lb-count');
-    var list = [], idx = 0, opener = null;
+    var list = [], idx = 0, opener = null, dir = 0;
     function render() {
       var btn = list[idx].querySelector('.pf-btn');
       lbMedia.textContent = '';
@@ -457,6 +530,12 @@
       lbTitle.textContent = btn.dataset.title;
       lbMeta.textContent = btn.dataset.meta;
       lbCount.textContent = String(idx + 1).padStart(2, '0') + ' / ' + String(list.length).padStart(2, '0');
+      // Richtung sichtbar machen: das neue Motiv kommt von der Seite, in die geblättert wurde
+      var el = lbMedia.firstElementChild;
+      if (animate && dir && el && el.animate) {
+        el.animate([{ opacity: 0, transform: 'translateX(' + (dir * 28) + 'px)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+      }
+      dir = 0;
     }
     function open(li) {
       list = items.filter(function (x) { return !x.hidden; });
@@ -466,17 +545,40 @@
       lb.showModal();
       lockScroll(true);
     }
-    function go(d) { idx = (idx + d + list.length) % list.length; render(); }
+    function go(d, quiet) { idx = (idx + d + list.length) % list.length; dir = quiet ? 0 : d; render(); }
     items.forEach(function (li) { li.querySelector('.pf-btn').addEventListener('click', function () { open(li); }); });
     $('#lb-prev').addEventListener('click', function () { go(-1); });
     $('#lb-next').addEventListener('click', function () { go(1); });
     $('#lb-close').addEventListener('click', function () { lb.close(); });
     lb.addEventListener('keydown', function (e) {
-      if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
-      if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+      // Tastatur blättert ohne Animation (häufige Aktion, soll sofort reagieren)
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1, true); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(1, true); }
     });
     lb.addEventListener('click', function (e) { if (e.target === lb) lb.close(); });
     lb.addEventListener('close', function () { lockScroll(false); if (opener) opener.focus({ preventScroll: true }); });
+
+    // Touch: Wischen blättert – das Bild folgt dem Finger, ein schneller Schwung reicht
+    var sw = null;
+    lbMedia.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' || !e.isPrimary || list.length < 2) return;
+      sw = { x: e.clientX, t: performance.now(), id: e.pointerId, dx: 0 };
+    });
+    lbMedia.addEventListener('pointermove', function (e) {
+      if (!sw || e.pointerId !== sw.id) return;
+      sw.dx = e.clientX - sw.x;
+      var el = lbMedia.firstElementChild;
+      if (el && animate) { el.style.transition = 'none'; el.style.transform = 'translateX(' + sw.dx + 'px)'; el.style.opacity = String(1 - Math.min(0.5, Math.abs(sw.dx) / 600)); }
+    });
+    function endSwipe(e) {
+      if (!sw || e.pointerId !== sw.id) return;
+      var dx = sw.dx, v = Math.abs(dx) / Math.max(1, performance.now() - sw.t), el = lbMedia.firstElementChild;
+      sw = null;
+      if (e.type === 'pointerup' && (Math.abs(dx) > 70 || (Math.abs(dx) > 18 && v > 0.35))) { go(dx < 0 ? 1 : -1); return; }
+      if (el) { el.style.transition = 'transform 200ms cubic-bezier(0.23, 1, 0.32, 1), opacity 200ms ease'; el.style.transform = ''; el.style.opacity = ''; }
+    }
+    lbMedia.addEventListener('pointerup', endSwipe);
+    lbMedia.addEventListener('pointercancel', endSwipe);
     $('#lb-request').addEventListener('click', function (e) {
       var item = list[idx];
       e.preventDefault();
@@ -735,6 +837,7 @@
       return { ok: true };
     }
     function goTo(n, focusPanel) {
+      form.dataset.dir = n < step ? 'back' : 'fwd';
       step = n;
       form.dataset.step = String(n);
       stepBtns.forEach(function (b) {
@@ -814,10 +917,11 @@
 
   /* ---------- Pflege: Tag-Regler ---------- */
   var careCards = $$('.care-card');
+  var careRail = null; // wird in der Scroll-Choreografie gesetzt (Desktop): { goTo(card) }
   (function careTool() {
     var input = $('#care-day'), out = $('#care-day-out'), now = $('#care-now');
     if (!input) return;
-    function upd() {
+    function upd(e) {
       var d = +input.value;
       out.textContent = d >= 45 ? '45+' : String(d);
       input.setAttribute('aria-valuetext', d === 0 ? 'heute gestochen' : d >= 45 ? 'über sechs Wochen' : d + (d === 1 ? ' Tag' : ' Tage'));
@@ -833,6 +937,8 @@
         s.textContent = hit.querySelector('.care-when').textContent + ' – ' + hit.querySelector('.care-title').textContent + ': ';
         now.appendChild(s);
         now.appendChild(document.createTextNode(hit.querySelector('li').textContent));
+        // Desktop: Der Regler zieht die Zeitleiste zur passenden Phase
+        if (e && careRail) careRail.goTo(hit);
       }
     }
     input.addEventListener('input', upd);
@@ -875,29 +981,67 @@
     mm.add('(min-width: 900px)', function () {
       // Hero-Parallaxe
       gsap.to('.hero-figure', { yPercent: -10, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
-      gsap.to('.hero-canvas', { y: 80, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+      gsap.to('.hero-canvas-wrap', { y: 80, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
       gsap.to('.hero-title', { y: -50, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
       gsap.fromTo('.studio-fig--b', { y: 60 }, { y: -40, ease: 'none', scrollTrigger: { trigger: '.studio', start: 'top bottom', end: 'bottom top', scrub: true } });
 
-      // Pflege: horizontale Strecke mit Tageszähler
+      // Pflege: siehe eigenes matchMedia unten (braucht auch Mindesthöhe)
+    });
+    mm.add('(min-width: 900px) and (min-height: 640px)', function () {
+      // Pflege: horizontale Strecke mit Tageszähler. Die Bühne klebt per CSS (position: sticky),
+      // GSAP schiebt nur die Karten – kein Pin, also kein Layout-Shift.
       root.classList.add('has-pin');
-      var pin = $('.care-pin'), list = $('.care-list'), big = $('#care-big'), fill = $('.care-line-fill');
-      var dist = function () { return Math.max(0, list.scrollWidth - (window.innerWidth - list.getBoundingClientRect().left) + parseFloat(getComputedStyle(document.documentElement).fontSize) * 3); };
-      var days = [0, 2, 5, 11, 21, 35, 60];
+      var pin = $('.care-pin'), list = $('.care-list'), track = $('.care-track'), big = $('#care-big'), fill = $('.care-line-fill');
+      var dist = 0, stops = [], focus = null;
+      function measure() {
+        var cs = getComputedStyle(track);
+        var left = track.getBoundingClientRect().left + parseFloat(cs.paddingLeft);
+        dist = Math.max(0, Math.round(left + list.scrollWidth + parseFloat(getComputedStyle(root).fontSize) * 3 - window.innerWidth));
+        pin.style.setProperty('--care-dist', dist + 'px');
+        // Haltepunkte: Karte i erreicht die Leseposition bei Fortschritt p = Abstand / Abstand der letzten Karte
+        var lastLeft = careCards[careCards.length - 1].offsetLeft || 1;
+        stops = careCards.map(function (c) { return { p: c.offsetLeft / lastLeft, day: +c.dataset.from, card: c }; });
+      }
+      function dayAt(p) {
+        for (var i = 0; i < stops.length - 1; i++) {
+          var a = stops[i], b = stops[i + 1];
+          if (p <= b.p) { var k = (p - a.p) / Math.max(1e-4, b.p - a.p); return { day: a.day + (b.day - a.day) * k, card: k < 0.5 ? a.card : b.card }; }
+        }
+        return { day: Infinity, card: stops[stops.length - 1].card };
+      }
+      measure();
+      ScrollTrigger.addEventListener('refreshInit', measure);
       var tl = gsap.to(list, {
-        x: function () { return -dist(); }, ease: 'none',
+        x: function () { return -dist; }, ease: 'none',
         scrollTrigger: {
-          trigger: pin, start: 'top top', end: function () { return '+=' + dist(); }, pin: true, scrub: 0.6, invalidateOnRefresh: true, anticipatePin: 1,
+          trigger: pin, start: 'top top', end: 'bottom bottom', scrub: 0.5, invalidateOnRefresh: true,
           onUpdate: function (self) {
             var p = self.progress;
             if (fill) fill.style.transform = 'scaleX(' + p.toFixed(3) + ')';
-            var f = p * (days.length - 1), i = Math.floor(f), k = f - i;
-            var d = i >= days.length - 1 ? days[days.length - 1] : Math.round(days[i] + (days[i + 1] - days[i]) * k);
-            big.textContent = d >= 45 ? '∞' : String(d);
+            var r = dayAt(p), d = Math.round(r.day);
+            big.textContent = (r.day >= 45 || p > 0.995) ? '∞' : String(d);
+            if (r.card !== focus) { if (focus) focus.classList.remove('is-focus'); focus = r.card; focus.classList.add('is-focus'); }
           }
         }
       });
-      return function () { root.classList.remove('has-pin'); tl.kill(); gsap.set(list, { clearProps: 'transform' }); };
+      var st = tl.scrollTrigger;
+      careRail = {
+        goTo: function (card) {
+          if (!st || !st.isActive) return; // nur, wenn die Bühne gerade klebt – sonst springt der Regler unter dem Finger weg
+          var stop = stops.filter(function (x) { return x.card === card; })[0];
+          if (!stop) return;
+          var y = st.start + Math.min(1, stop.p) * (st.end - st.start);
+          if (lenis) lenis.scrollTo(y, { duration: 0.9, easing: function (t) { return 1 - Math.pow(1 - t, 3); } });
+          else window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      };
+      return function () {
+        careRail = null;
+        ScrollTrigger.removeEventListener('refreshInit', measure);
+        root.classList.remove('has-pin'); tl.kill(); gsap.set(list, { clearProps: 'transform' });
+        pin.style.removeProperty('--care-dist');
+        if (focus) focus.classList.remove('is-focus');
+      };
     });
     window.addEventListener('load', function () { ScrollTrigger.refresh(); });
   }

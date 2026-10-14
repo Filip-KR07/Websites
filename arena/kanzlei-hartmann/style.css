@@ -72,7 +72,7 @@ body {
 img, svg { display: block; max-width: 100%; }
 img { height: auto; }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .2em; }
-p { margin: 0 0 1em; }
+p { margin: 0 0 1em; text-wrap: pretty; }
 h1, h2, h3, h4 { margin: 0; font-weight: 400; text-wrap: balance; }
 ul, ol { margin: 0; padding: 0; }
 button, input, select, textarea { font: inherit; color: inherit; }
@@ -195,6 +195,10 @@ html:not(.js) .site-head { background: rgba(247, 244, 238, .96); border-bottom-c
 .head-actions { display: flex; align-items: center; gap: 1rem; flex: none; }
 .head-tel { display: inline-flex; align-items: center; gap: .45rem; font-weight: 600; font-size: .925rem; text-decoration: none; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .head-tel .ico { color: var(--bordeaux); }
+.head-tel { transition: transform 160ms var(--ease-out); }
+.head-tel:active { transform: scale(.95); }
+/* Eigene Druck-Zustände statt des grauen/blauen Tipp-Rechtecks auf dem Handy */
+label, summary, .ex-tab, .faq-cat, .head-tel, .menu-btn { -webkit-tap-highlight-color: transparent; }
 .menu-btn { display: none; align-items: center; gap: .6rem; min-height: 44px; padding: .5rem .2rem .5rem .6rem; background: none; border: 0; font-weight: 600; font-size: .9rem; transition: transform 160ms var(--ease-out); }
 .menu-btn:active { transform: scale(.97); }
 .menu-btn-lines { width: 20px; height: 9px; border-block: 1.5px solid currentColor; }
@@ -297,14 +301,17 @@ html.anim .menu.is-open .toc li { opacity: 1; transform: none; }
 .hero-facts span:last-child { font-size: .85rem; color: var(--muted); }
 
 /* Hero-Intro (nur mit Animation) */
-/* Text: CSS-Keyframes ab dem ersten Frame – wartet nicht auf main.js (frühes LCP, läuft auf dem Compositor) */
+/* Text: CSS-Keyframes, sobald der Hero vollständig geparst ist (Inline-Skript direkt nach dem Hero setzt .hero-ready).
+   Wartet nicht auf main.js/GSAP → frühes LCP; läuft auf dem Compositor. Vorher unsichtbar, damit beim
+   schrittweisen Parsen nichts sichtbar springt (CLS). */
 @keyframes hero-rise { from { transform: translateY(108%); } }
 @keyframes hero-up { from { opacity: 0; transform: translateY(14px); } }
-html.anim .ln-in { animation: hero-rise 1.1s var(--ease-out) calc(var(--i) * 90ms + 120ms) backwards; }
-html.anim .hero-kicker { animation: hero-up .7s var(--ease-out) 60ms backwards; }
-html.anim .hero-lead { animation: hero-up .8s var(--ease-out) 300ms backwards; }
-html.anim .hero-cta { animation: hero-up .8s var(--ease-out) 380ms backwards; }
-html.anim .frist-chip { animation: hero-up .8s var(--ease-out) 460ms backwards; }
+html.anim:not(.hero-ready) .hero-main { opacity: 0; }
+html.anim.hero-ready .ln-in { animation: hero-rise 1.1s var(--ease-out) calc(var(--i) * 90ms + 120ms) backwards; }
+html.anim.hero-ready .hero-kicker { animation: hero-up .7s var(--ease-out) 60ms backwards; }
+html.anim.hero-ready .hero-lead { animation: hero-up .8s var(--ease-out) 300ms backwards; }
+html.anim.hero-ready .hero-cta { animation: hero-up .8s var(--ease-out) 380ms backwards; }
+html.anim.hero-ready .frist-chip { animation: hero-up .8s var(--ease-out) 460ms backwards; }
 /* Tafel, Foto, Randnummern: warten auf main.js, weil sie mit dem Canvas-Intro gekoppelt sind */
 html.anim .hero-facts li { opacity: 0; transform: translateY(14px); }
 html.anim .plate-frame { clip-path: inset(calc(100% + 12px) -12px -12px -12px); }
@@ -355,8 +362,9 @@ html:not(.js) .ex-ind, html:not(.js) .ex-tabs, html:not(.js) .ex-hint { display:
 .ex-tab {
   display: grid; grid-template-columns: 2.3rem minmax(0, 1fr); text-align: left; align-items: baseline;
   padding: .95rem .5rem .95rem 1.25rem; background: none; border: 0; border-radius: 0; color: var(--graphite);
-  transition: color 200ms ease, background-color 200ms ease;
+  transition: color 200ms ease, background-color 200ms ease, transform 160ms var(--ease-out);
 }
+.ex-tab:active { transform: scale(.98); }
 .ex-tab-n { font-family: var(--font-display); font-style: italic; color: var(--muted); font-size: 1rem; }
 .ex-tab-t { font-family: var(--font-display); font-size: 1.35rem; line-height: 1.2; color: inherit; hyphens: auto; overflow-wrap: break-word; }
 .ex-tab-s { grid-column: 2; font-size: .8rem; color: var(--muted); margin-top: .15rem; line-height: 1.35; }
@@ -662,6 +670,8 @@ html.anim .map.is-in .pin-pulse { animation: pin-pulse 2.6s var(--ease-out) infi
 .qa:last-child { border-bottom: 1px solid var(--rule-strong); }
 .qa summary { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr) 1.6rem; align-items: baseline; gap: .4rem; padding: 1.1rem 0; cursor: pointer; list-style: none; }
 .qa summary::-webkit-details-marker { display: none; }
+.qa-q { transition: color 200ms ease; }
+.qa summary:active .qa-q { color: var(--bordeaux); }
 .qa-n { font-family: var(--font-display); font-style: italic; color: var(--bordeaux); font-size: .95rem; font-variant-numeric: tabular-nums; }
 .qa-q { font-family: var(--font-display); font-size: clamp(1.15rem, 1rem + .5vw, 1.4rem); line-height: 1.3; }
 .qa summary::after { content: ""; justify-self: end; align-self: center; width: 14px; height: 14px; background: linear-gradient(currentColor, currentColor) center / 14px 1.5px no-repeat, linear-gradient(currentColor, currentColor) center / 1.5px 14px no-repeat; transition: transform 240ms var(--ease-out); color: var(--bordeaux); }
@@ -737,7 +747,8 @@ html:not(.js) .wz-step + .wz-step { margin-top: 2.4rem; }
 .counter-bar span { display: block; height: 100%; background: var(--bordeaux); transform-origin: left; transform: scaleX(0); transition: transform 160ms linear; }
 .field-error { color: var(--error); font-size: .875rem; font-weight: 600; margin: .45rem 0 0; }
 .urgency { display: grid; gap: .6rem; }
-.urg { position: relative; display: flex; flex-direction: column; padding: .9rem 1rem .9rem 2.8rem; border: 1px solid var(--rule-strong); background: var(--paper); cursor: pointer; transition: border-color 200ms ease, background-color 200ms ease; }
+.urg { position: relative; display: flex; flex-direction: column; padding: .9rem 1rem .9rem 2.8rem; border: 1px solid var(--rule-strong); background: var(--paper); cursor: pointer; transition: border-color 200ms ease, background-color 200ms ease, transform 160ms var(--ease-out); }
+.urg:active { transform: scale(.985); }
 .urg input { position: absolute; left: 1rem; top: 1.15rem; width: 18px; height: 18px; margin: 0; accent-color: var(--bordeaux); }
 .urg-t { font-family: var(--font-display); font-size: 1.15rem; }
 .urg-s { font-size: .85rem; color: var(--muted); }
@@ -755,6 +766,8 @@ html:not(.js) .wz-step + .wz-step { margin-top: 2.4rem; }
 .seg span { display: grid; place-items: center; min-height: 44px; padding: .4rem .3rem; font-size: .88rem; text-align: center; transition: background-color 200ms ease, color 200ms ease; }
 .seg label + label span { border-left: 1px solid var(--rule-strong); }
 .seg input:checked + span { background: var(--ink); color: var(--paper); }
+.seg label:active span { background: rgba(18, 18, 18, .06); }
+.seg label:active input:checked + span { background: var(--ink); }
 .seg input:focus-visible + span { outline: 2px solid var(--bordeaux); outline-offset: -3px; }
 .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1rem; }
 .check { display: flex; gap: .8rem; align-items: flex-start; margin-top: 1rem; font-size: .95rem; cursor: pointer; }

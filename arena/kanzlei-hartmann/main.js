@@ -544,7 +544,8 @@
       cur = i;
       placeInd();
       if (opts.focus) tabs[i].focus();
-      if (changed && !opts.silent) animatePanel(panels[i]);
+      // Pfeiltasten (häufig, schnell hintereinander): ohne Einblend-Animation – Tastatur-Aktionen sollen sofort wirken
+      if (changed && !opts.silent && !opts.focus) animatePanel(panels[i]);
       // Höhe des Panels ändert sich → Trigger darunter neu messen, aber erst nach der Panel-Animation (nicht im Klick)
       if (hasGsap && !opts.silent) softRefresh(420);
     }

@@ -275,8 +275,11 @@
     const gear = (T.speed < 40 && r < 1300) ? 'N' : String(1 + Math.min(5, Math.floor(p * 6)));
     if (gear !== T.lastGear) { tach.gearTxt.textContent = gear; T.lastGear = gear; }
   }
-  function tachFrame(now) {
-    const dt = Math.min(0.034, (now - T.last) / 1000 || 0.016);
+  function tachFrame() {
+    // eigene, monotone Zeitbasis: Der rAF-Zeitstempel kann vor dem Scroll-Event liegen, das den Loop gestartet hat
+    const now = performance.now();
+    const raw = (now - T.last) / 1000;
+    const dt = raw > 0.002 ? Math.min(0.034, raw) : 0.016;
     T.last = now;
     const y = scrollY;
     const inst = Math.abs(y - T.y) / dt;
@@ -581,10 +584,11 @@
   let prevKeys = [];
   // Preisanzeige zählt wie ein Zählwerk zum neuen Wert (unterbrechbar: startet immer beim gerade angezeigten Wert)
   const PT = { a: null, b: null, raf: 0 };
+  const takeBtn = $('[data-co-take]');
   const showPrice = (a, b) => { co.min.textContent = fmtInt(a); co.max.textContent = fmtInt(b); };
   function tweenPrice(r) {
     cancelAnimationFrame(PT.raf);
-    if (!r.lines.length) { PT.a = PT.b = null; co.min.textContent = co.max.textContent = '–'; return; }
+    if (!r.lines.length) { PT.a = PT.b = null; co.min.textContent = '—'; co.max.textContent = ''; return; }
     if (!motionOK || PT.a == null) { PT.a = r.min; PT.b = r.max; showPrice(r.min, r.max); return; }
     const a0 = PT.a, b0 = PT.b, t0 = performance.now(), dur = 450;
     const step = now => {
@@ -615,6 +619,9 @@
       co.lines.appendChild(li);
     });
     prevKeys = r.sel.slice();
+    // leerer Zustand: Preis gedimmt, Übernahme-Button als nicht verfügbar markiert
+    co.sheet.classList.toggle('is-empty', !r.lines.length);
+    takeBtn.setAttribute('aria-disabled', r.lines.length ? 'false' : 'true');
     tweenPrice(r);
     const aPct = clamp(r.min / PRICE_SCALE_MAX, 0, 1) * 100;
     const w = r.lines.length ? Math.max(0.012, clamp((r.max - r.min) / PRICE_SCALE_MAX, 0, 1 - aPct / 100)) : 0;

@@ -304,14 +304,17 @@ strong { font-weight: 560; }
 .menu-foot p { color: var(--muted); font-size: .92rem; text-align: center; }
 
 /* ---------- Reveal ---------- */
-.js:not(.motion-off) [data-reveal]:not(.is-in),
-.js:not(.motion-off) [data-hero-in]:not(.is-in) { opacity: 0; transform: translateY(26px); }
-.js:not(.motion-off) [data-reveal],
-.js:not(.motion-off) [data-hero-in] {
+.js:not(.motion-off) [data-reveal]:not(.is-in) { opacity: 0; transform: translateY(26px); }
+.js:not(.motion-off) [data-reveal] {
   transition: opacity 1100ms var(--ease-out), transform 1300ms var(--ease-out);
 }
-.js.reduced [data-reveal]:not(.is-in), .js.reduced [data-hero-in]:not(.is-in) { transform: none; }
-.js.reduced [data-reveal], .js.reduced [data-hero-in] { transition: opacity 600ms ease; }
+.js.reduced [data-reveal]:not(.is-in) { transform: none; }
+.js.reduced [data-reveal] { transition: opacity 600ms ease; }
+/* Hero-Auftakt als CSS-Animation ab dem ersten Frame: wartet weder auf JS noch auf
+   Schriften (LCP), läuft auf dem Compositor. Reihenfolge über --i. */
+.js:not(.motion-off) [data-hero-in] { animation: hero-in 1200ms var(--ease-out) both; animation-delay: calc(40ms + var(--i, 0) * 80ms); }
+@keyframes hero-in { from { opacity: 0; transform: translateY(22px); } }
+.js.reduced [data-hero-in] { animation-name: fade-in; animation-duration: 700ms; }
 
 /* ---------- Organische Rahmen ---------- */
 .blob-frame { position: relative; overflow: hidden; isolation: isolate; border-radius: var(--blob-1); background: var(--sand-2); }
@@ -340,7 +343,7 @@ strong { font-weight: 560; }
 .hero-static .hs-a { width: 44vw; height: 44vw; max-width: 640px; max-height: 640px; right: 4vw; top: 12%; background: var(--sage); border-radius: var(--blob-1); opacity: .85; }
 .hero-static .hs-b { width: 18vw; height: 18vw; max-width: 260px; max-height: 260px; right: 34vw; bottom: 8%; background: var(--clay); border-radius: var(--blob-3); opacity: .8; }
 .hero-static .hs-c { width: 7vw; height: 7vw; max-width: 100px; max-height: 100px; right: 8vw; top: 16%; background: var(--forest); border-radius: var(--blob-2); }
-.has-canvas .hero-static { opacity: 0; transition: opacity 900ms ease; }
+.has-canvas .hero-static, .has-canvas-still .hero-static { opacity: 0; transition: opacity 900ms ease; }
 
 .hero-grid { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr); gap: clamp(24px, 4vw, 72px); align-items: center; }
 .hero-copy { container-type: inline-size; max-width: 760px; }
@@ -399,14 +402,25 @@ html:not(.js) .breath-chip { display: none; }
 
 @media (max-width: 899px) {
   .hero { min-height: auto; padding-bottom: 56px; }
-  .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  /* ruhiger Grund-Blob hinter dem Text (auf dem Handy statt im Canvas) */
+  .hero::before { content: ""; position: absolute; z-index: -2; left: -34vw; bottom: -4%; width: 112vw; height: 46%; border-radius: var(--blob-2); background: var(--sand-2); opacity: .75; pointer-events: none; }
+  .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  /* Handy: Das atmende Bild steht direkt unter der Headline – der erste
+     Bildschirm zeigt die Signatur statt nur Fließtext. Aktion bleibt unten in der Leiste. */
+  .hero-copy { display: contents; }
+  .hero-eyebrow { order: 1; }
+  .hero-title { order: 2; font-size: clamp(2.7rem, 12.6vw, 4.6rem); margin: .3em 0 .12em; }
+  .hero-visual { order: 3; margin: 0 0 26px; }
+  .hero-lead { order: 4; }
+  .hero-actions { order: 5; margin-top: 26px; }
+  .hero-trust { order: 6; }
   .hero-actions .btn { flex: 1 1 auto; }
   .hero-trust { gap: 12px 22px; margin-top: 28px; }
   .hero-trust li { font-size: .8rem; }
   .hero-trust strong { font-size: .95rem; }
-  .hero-photo { width: min(78%, 360px); }
-  .hero-card { left: 0; bottom: 6%; max-width: 220px; padding: 12px 14px; }
-  .breath-chip { right: 0; top: 4%; }
+  .hero-photo { width: min(68%, 330px); }
+  .hero-card { left: 0; bottom: 4%; max-width: 210px; padding: 11px 14px; }
+  .breath-chip { right: 0; top: 6%; }
   .hero-scroll { display: none; }
 }
 
@@ -479,8 +493,10 @@ html:not(.js) .breath-chip { display: none; }
 .meter[data-v="3"] i:nth-child(-n+3) { background: var(--sage-deep); }
 
 /* horizontale Strecke (nur Desktop, per JS aktiviert) */
-.is-hscroll .styles { padding-bottom: clamp(80px, 8vw, 120px); padding-top: 0; }
-.is-hscroll .styles-pin { height: 100vh; display: flex; flex-direction: column; justify-content: center; overflow: hidden; padding-top: calc(var(--header-h) + 8px); }
+/* Sticky statt ScrollTrigger-Pin: Die Sektion ist um die Strecke (--hs-dist, per JS) höher,
+   die Bühne klebt oben – keine fixe Positionierung, kein Pin-Spacer, keine Layout-Shifts. */
+.is-hscroll .styles { --hs-pad: clamp(80px, 8vw, 120px); padding-top: 0; padding-bottom: var(--hs-pad); height: calc(100vh + var(--hs-dist, 0px) + var(--hs-pad)); }
+.is-hscroll .styles-pin { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; justify-content: center; overflow: hidden; padding-top: calc(var(--header-h) + 8px); }
 .is-hscroll .styles-progress { display: inline-flex; }
 .is-hscroll .styles-head { margin-bottom: clamp(24px, 3.5vh, 48px); }
 .is-hscroll .styles-viewport { width: 100%; }
@@ -673,6 +689,9 @@ select {
 .reduced .slot.is-entering, .motion-off .slot.is-entering { animation-name: fade-in; }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 .day-empty { font-size: .84rem; color: var(--muted); padding: 10px 6px; font-style: italic; }
+.day-jump { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; min-height: 44px; font-style: normal; text-align: left; }
+.day-jump svg { width: 16px; height: 16px; flex: none; }
+.week:not(.is-tabbed) .day-jump { display: none; }
 .schedule-fine { margin-top: 24px; }
 
 @media (max-width: 1179px) {
@@ -699,6 +718,7 @@ select {
     transition: background-color 220ms ease, color 220ms ease;
   }
   .day-tabs button[aria-selected="true"] { background: var(--forest); color: var(--sand); }
+  .day-tabs button.is-empty:not([aria-selected="true"]) { color: var(--muted); opacity: .6; }
   .day-tabs button.is-today:not([aria-selected="true"])::after { content: ""; position: absolute; top: 6px; right: 22%; width: 5px; height: 5px; border-radius: 50%; background: var(--clay); }
   .dt-n { font-size: .68rem; font-weight: 450; opacity: .75; font-variant-numeric: tabular-nums; }
   .week { grid-template-columns: minmax(0, 1fr); gap: 24px; }
@@ -991,12 +1011,33 @@ input[type="range"]:focus-visible { outline: 2px solid var(--sage-2); outline-of
 .person-join .text-link { margin-top: 12px; font-size: .94rem; }
 @media (hover: hover) and (pointer: fine) { .person:hover .mono { transform: rotate(-10deg) scale(1.03); } }
 @media (max-width: 1100px) { .team-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.team-swipe { display: none; }
+/* Handy: Das Team als Wisch-Reihe statt acht gestapelter Karten (≈ 3 Bildschirme) */
 @media (max-width: 640px) {
-  .team-list { grid-template-columns: minmax(0, 1fr); }
-  .person-lead { grid-column: auto; grid-template-columns: minmax(0, 1fr); }
+  .team .container { timeline-scope: --team; }
+  .team-list {
+    grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 80%; gap: 12px;
+    overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none;
+    margin-inline: calc(-1 * max(var(--gutter), env(safe-area-inset-left))) calc(-1 * max(var(--gutter), env(safe-area-inset-right)));
+    padding: 4px max(var(--gutter), env(safe-area-inset-right)) 10px max(var(--gutter), env(safe-area-inset-left));
+    scroll-padding-inline: max(var(--gutter), env(safe-area-inset-left));
+    scroll-timeline: --team x;
+  }
+  .team-list::-webkit-scrollbar { display: none; }
+  .team-list > li { scroll-snap-align: start; }
+  .person, .person-lead { grid-column: auto; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 14px; }
   .mono { width: 64px; height: 64px; }
-  .person-lead .mono { width: 96px; }
+  .person-lead .mono { width: 84px; }
+  /* in der Reihe nicht einzeln einblenden – die Karten gleiten ja seitlich herein */
+  .js:not(.motion-off) .team-list > [data-reveal]:not(.is-in) { opacity: 1; transform: none; }
+  .team-swipe { display: flex; align-items: center; gap: 14px; margin-top: 14px; font-size: .84rem; color: var(--muted); }
+  .ts-bar { position: relative; flex: 0 0 72px; height: 2px; border-radius: 2px; background: var(--line); overflow: hidden; }
+  .ts-bar i { position: absolute; inset: 0; background: var(--forest); transform: scaleX(.125); transform-origin: left; }
+  @supports (animation-timeline: scroll()) {
+    .ts-bar i { animation: ts-grow linear both; animation-timeline: --team; }
+  }
 }
+@keyframes ts-grow { from { transform: scaleX(.125); } to { transform: scaleX(1); } }
 
 /* ==========================================================================
    STIMMEN
@@ -1274,3 +1315,4 @@ input[type="range"]:focus-visible { outline: 2px solid var(--sage-2); outline-of
 .motion-off .price-panel { transform: none; filter: none; transition-duration: 1ms; }
 .motion-off .ps-pill { transition-duration: 1ms; }
 @media (max-width: 1100px) and (min-width: 641px) { .person-join { grid-column: span 2; } }
+.team-list:focus-visible { outline-offset: -3px; border-radius: 30px; }

@@ -417,21 +417,25 @@ html.js .menu[open] .menu-list li:nth-child(7) { animation-delay: .24s; }
 @keyframes cue { 0% { transform: scaleY(0); opacity: 1; } 60% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
 
 /* Hero-Intro (nur mit JS) */
-html.js .hero-title .line > span { transition: transform 1.15s var(--ease-out); }
-html.js .hero-title .line:nth-child(2) > span { transition-delay: .09s; }
-html.js .hero-title .line:nth-child(3) > span { transition-delay: .18s; }
+html.js .hero-title .line > span { transition: transform 1.1s var(--ease-out); }
+html.js .hero-title .line:nth-child(2) > span { transition-delay: .07s; }
+html.js .hero-title .line:nth-child(3) > span { transition-delay: .14s; }
 html.js.is-loading .hero-title .line > span { transform: translateY(108%); }
-html.js [data-hero-item] { transition: opacity .9s var(--ease-out) .42s, transform .9s var(--ease-out) .42s; }
-html.js .hero-lead[data-hero-item] { transition-delay: .5s; }
-html.js .hero-ctas[data-hero-item] { transition-delay: .58s; }
-html.js .hero-trust[data-hero-item] { transition-delay: .66s; }
+/* Text folgt dem Titel dicht (60–80 ms Stagger) – der Lead ist das LCP-Element und soll nicht warten */
+html.js [data-hero-item] { transition: opacity .55s var(--ease-out) .18s, transform .8s var(--ease-out) .18s; }
+html.js .hero-lead[data-hero-item] { transition-delay: .18s; }
+html.js .hero-ctas[data-hero-item] { transition-delay: .26s; }
+html.js .hero-trust[data-hero-item] { transition-delay: .34s; }
 html.js.is-loading [data-hero-item] { opacity: 0; transform: translateY(18px); }
 html.js .hero-arch { transition: clip-path 1.3s var(--ease-in-out) .1s; clip-path: inset(0 0 0 0); }
 html.js.is-loading .hero-arch { clip-path: inset(100% 0 0 0); }
 html.js .hero-arch img { transition: transform 1.8s var(--ease-out) .1s; }
 html.js.is-loading .hero-arch img { transform: scale(1.18); }
-html.js .arch-outline, html.js .rotor, html.js .hero-card { transition: opacity .9s var(--ease-out) .9s, transform .9s var(--ease-out) .9s; }
-html.js.is-loading .arch-outline, html.js.is-loading .rotor, html.js.is-loading .hero-card { opacity: 0; transform: translateY(14px); }
+html.js .arch-outline, html.js .rotor { transition: opacity .8s var(--ease-out) .7s, transform .8s var(--ease-out) .7s; }
+/* Karte: Intro über `translate`, damit `transform` frei für das Hover-/Press-Feedback bleibt (sonst 0,7 s Verzögerung beim Hover) */
+html.js .hero-card { transition: opacity .8s var(--ease-out) .7s, translate .8s var(--ease-out) .7s, transform .25s var(--ease-out), box-shadow .25s ease; }
+html.js.is-loading .arch-outline, html.js.is-loading .rotor { opacity: 0; transform: translateY(14px); }
+html.js.is-loading .hero-card { opacity: 0; translate: 0 14px; }
 
 @media (max-width: 899px) {
   .hero { align-items: flex-start; min-height: 0; padding-bottom: 56px; }
@@ -651,7 +655,28 @@ input[type="range"]:focus-visible::-moz-range-thumb { outline: 2px solid var(--r
   .treat-card { padding: 22px 20px 16px; }
   .treat-tags { display: none; }
   .treat-desc { margin-top: 10px; }
+  /* Handy: Menü als Wisch-Schiene statt 16 gestapelter Karten (≈ 4 000 px) – randlos, mit Einrasten und Vorschau der nächsten Karte */
+  .menu-grid {
+    position: relative;
+    grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: min(84%, 330px); gap: 12px;
+    margin-inline: calc(-1 * var(--gutter)); padding: 6px var(--gutter) 18px;
+    overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter);
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .menu-grid::-webkit-scrollbar { display: none; }
+  .treat { scroll-snap-align: start; }
+  html.js .rail-meta { display: flex; }
 }
+.rail-meta { display: none; align-items: center; gap: 14px; margin-top: 2px; font-size: .7rem; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-soft); }
+.rail-meta[hidden] { display: none !important; }
+.rail-pos { white-space: nowrap; font-variant-numeric: tabular-nums; min-width: 4.6em; }
+.rail-pos b { font-weight: 500; color: var(--ink); }
+.rail-track { flex: 1; height: 2px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.rail-track span { display: block; height: 100%; background: var(--pflaume); transform-origin: 0 50%; transform: scaleX(.1); transition: transform .2s var(--ease-out); }
+.rail-hint { display: inline-flex; align-items: center; gap: 6px; transition: opacity .3s ease; }
+.rail-hint .i-arrow { width: 16px; height: 16px; animation: nudge 2.4s var(--ease-in-out) infinite; }
+.rail-meta.is-moved .rail-hint { opacity: 0; }
+@keyframes nudge { 0%, 60%, 100% { transform: none; } 30% { transform: translateX(5px); } }
 
 /* ---------- III · Hautcheck ---------- */
 .quiz-sec { overflow: hidden; isolation: isolate; }
@@ -728,8 +753,11 @@ input[type="range"]:focus-visible::-moz-range-thumb { outline: 2px solid var(--r
 .quiz-nojs a { color: var(--champagner); }
 html.js .quiz-nojs { display: none; }
 html:not(.js) .quiz-nav, html:not(.js) .quiz-progress { display: none; }
-html.js .q:not(.is-active) { display: none; }
-html.js .quiz-stage { display: block; }
+/* Alle Fragen liegen in derselben Rasterzelle: Die Karte nimmt die Höhe der längsten Frage an,
+   „Weiter“/„Zurück“ bleiben beim Durchklicken an Ort und Stelle (kein Springen der Seite). */
+html.js .quiz-stage { display: grid; }
+html.js .q { grid-area: 1 / 1; }
+html.js .q:not(.is-active) { visibility: hidden; }
 .q.is-enter { animation: qIn .42s var(--ease-out) both; }
 .q.is-enter-back { animation: qInBack .42s var(--ease-out) both; }
 @keyframes qIn { from { opacity: 0; transform: translateX(24px); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
@@ -1056,7 +1084,38 @@ html.js .field--custom:not(.is-open) { display: none; }
 .summary dt { font-size: .7rem; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--rose-deep); padding-top: 3px; }
 .summary dd { margin: 0; overflow-wrap: anywhere; }
 .demo-note { padding: 14px 16px; border-radius: 14px; background: rgba(232, 215, 185, .45); font-size: .92rem; }
+/* Handy/Tablet: Die Vorschau steht über dem Formular. Sobald sie aus dem Bild scrollt,
+   begleitet eine kleine Live-Pille (Farbe, Wert, Name) das Ausfüllen – Tippen führt zurück zur Karte. */
+.gift-mini-wrap { display: none; }
+.gift-mini {
+  position: absolute; right: 0; top: 0;
+  display: flex; align-items: center; gap: 10px; max-width: min(78vw, 320px); min-height: 52px; padding: 6px 14px 6px 6px;
+  border-radius: 999px; border: 1px solid var(--line); color: var(--ink); text-align: left;
+  background: rgba(251, 246, 243, .88); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: 0 18px 36px -22px rgba(59, 31, 43, .45);
+  opacity: 0; visibility: hidden; transform: translateY(-8px) scale(.97); transform-origin: 100% 0;
+  transition: opacity .18s ease-out, transform .2s var(--ease-out), visibility 0s linear .2s;
+}
+.gift-mini.is-on { opacity: 1; visibility: visible; transform: none; transition: opacity .2s var(--ease-out), transform .26s var(--ease-out), visibility 0s; }
+.gift-mini:active { transform: scale(.97); }
+.gm-card {
+  flex: none; display: grid; place-items: end start; width: 30px; height: 40px; padding: 4px 5px; border-radius: 6px;
+  background: linear-gradient(150deg, #FCF6F2 0%, #F2E1D9 55%, #E7CEC2 100%); color: #84465A;
+  box-shadow: 0 8px 14px -8px rgba(59, 31, 43, .5), inset 0 0 0 1px rgba(255, 255, 255, .5);
+  transition: background .4s ease, color .4s ease;
+}
+.gm-card i { font-family: var(--font-display); font-size: .62rem; line-height: 1; }
+.gm-card[data-color="pflaume"] { background: linear-gradient(150deg, #5A3143 0%, #3B1F2B 55%, #2A141E 100%); color: #E8D7B9; }
+.gm-card[data-color="champagner"] { background: linear-gradient(150deg, #FAF2E3 0%, #EEDDBC 55%, #DEC496 100%); color: #7A4A3A; }
+.gm-card[data-color="nude"] { background: linear-gradient(150deg, #EFD9CE 0%, #DDBBAB 55%, #C99F8C 100%); color: #6F3549; }
+.gm-text { display: grid; min-width: 0; line-height: 1.15; }
+.gm-text b { font-family: var(--font-display); font-weight: 400; font-size: 1.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.gm-text small { font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gm-up { flex: none; width: 18px; height: 18px; color: var(--rose-deep); }
+html.reduced .gift-mini { transform: none !important; }
+
 @media (max-width: 899px) {
+  html.js .gift-mini-wrap { display: block; position: sticky; top: calc(var(--header-h) + 10px); z-index: 6; height: 0; margin-bottom: -26px; }
   .gift-grid { grid-template-columns: minmax(0, 1fr); }
   .gift-stage-col { position: relative; top: 0; order: -1; }
   .gift-stage { width: min(84%, 380px); }
@@ -1343,6 +1402,15 @@ html.js .day-fallback { display: none; }
   .action-bar svg { width: 18px; height: 18px; }
   .ab-call { color: var(--puder); border: 1px solid var(--line-dark); }
   .ab-book { background: var(--champagner); color: var(--pflaume); }
+  /* Weicher Unschärfe-Rand unter der schwebenden Leiste (wie die „Scroll Edge“-Kante in iOS):
+     Text, der unter der Leiste durchläuft, wird ausgeblendet statt hart angeschnitten. */
+  body:has(.action-bar)::after {
+    content: ""; position: fixed; left: 0; right: 0; bottom: 0; z-index: 94; pointer-events: none;
+    height: calc(92px + env(safe-area-inset-bottom));
+    -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+    -webkit-mask-image: linear-gradient(to top, #000 42%, transparent);
+    mask-image: linear-gradient(to top, #000 42%, transparent);
+  }
 }
 
 /* ---------- Toast ---------- */
@@ -1377,11 +1445,12 @@ html.js .day-fallback { display: none; }
 html.reduced [data-reveal] { transform: none !important; transition: opacity .6s ease !important; }
 html.reduced .hero-title .line > span, html.reduced [data-hero-item], html.reduced .hero-arch img,
 html.reduced .arch-outline, html.reduced .rotor, html.reduced .hero-card { transform: none !important; }
+html.reduced .hero-card { translate: none !important; }
 html.reduced .hero-arch { clip-path: none !important; transition: opacity .8s ease !important; }
 html.reduced.is-loading .hero-arch, html.reduced.is-loading .hero-title .line > span { opacity: 0; }
 html.reduced .hero-title .line > span { transition: opacity .8s ease !important; }
 html.reduced .ribbon-track, html.reduced .rotor svg, html.reduced .drop-float, html.reduced .orb-sheen,
-html.reduced .m-pulse, html.reduced .scroll-cue span, html.reduced .gc-value { animation: none !important; }
+html.reduced .m-pulse, html.reduced .scroll-cue span, html.reduced .gc-value, html.reduced .rail-hint .i-arrow { animation: none !important; }
 html.reduced .q.is-enter, html.reduced .q.is-enter-back, html.reduced .quiz-result, html.reduced .active-panel.is-enter { animation-name: fadeOnly !important; }
 html.reduced .slide { transform: none !important; filter: none !important; }
 html.reduced .gift-card { transition: transform .01s linear; }
@@ -1392,6 +1461,7 @@ html.motion-off *, html.motion-off *::before, html.motion-off *::after {
 }
 html.motion-off [data-reveal], html.motion-off [data-hero-item], html.motion-off .hero-title .line > span,
 html.motion-off .arch-outline, html.motion-off .rotor, html.motion-off .hero-card { opacity: 1 !important; transform: none !important; }
+html.motion-off .hero-card { translate: none !important; }
 html.motion-off .hero-arch { clip-path: none !important; }
 html.motion-off .hero-arch img { transform: none !important; }
 
