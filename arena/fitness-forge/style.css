@@ -598,8 +598,10 @@ html:not(.js) .band__track, html.motion-off .band__track { animation: none; }
 }
 
 /* aktiv: horizontale Strecke (nur mit JS, Bewegung erlaubt, ≥ 900 px) */
-html.has-hscroll .disc { padding: 0; }
-html.has-hscroll .disc__pin { height: 100vh; height: 100svh; overflow: hidden; display: flex; align-items: center; }
+/* Pin per CSS sticky statt position: fixed – kein Layout-Sprung (CLS) beim Ein- und Ausrasten.
+   Die Höhe der Sektion (Strecke + Bildschirmhöhe) setzt main.js als --disc-h. */
+html.has-hscroll .disc { padding: 0; height: var(--disc-h, 400vh); }
+html.has-hscroll .disc__pin { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; overflow: clip; display: flex; align-items: center; }
 html.has-hscroll .disc__track {
   display: flex; align-items: center; gap: clamp(3rem, 6vw, 7rem);
   max-width: none; margin: 0; padding: calc(var(--hdr) + 1rem) clamp(2rem, 6vw, 6rem) 3rem;
@@ -1489,13 +1491,17 @@ textarea { resize: vertical; min-height: 7.5rem; }
 /* ==========================================================================
    Bewegung: Ausgangszustände nur mit JS (und ohne motion-off / reduced)
    ========================================================================== */
-html.js:not(.motion-off):not(.reduced) .kin__in { transform: translateY(105%); }
-html.js:not(.motion-off):not(.reduced).hero-in .kin__in { transform: none; transition: transform 1100ms var(--ease-out); transition-delay: calc(var(--i, 0) * 90ms + 60ms); }
-html.js:not(.motion-off):not(.reduced) .hero__photo { clip-path: inset(0 0 100% 0); }
-html.js:not(.motion-off):not(.reduced).hero-in .hero__photo { clip-path: inset(-40px -40px -40px -40px); transition: clip-path 1200ms var(--ease-in-out) 250ms; }
-html.js:not(.motion-off):not(.reduced) [data-hero-fade] { opacity: 0; transform: translateY(18px); }
-html.js:not(.motion-off):not(.reduced).hero-in [data-hero-fade] { opacity: 1; transform: none; transition: opacity 800ms var(--ease-out), transform 900ms var(--ease-out); transition-delay: var(--d, 0ms); }
-html.js:not(.motion-off):not(.reduced).hero-done .kin__in { transition: none; }
+/* Hero-Intro als reine CSS-Choreografie: startet mit dem ersten Frame und wartet nicht auf main.js
+   (früherer LCP). fill-mode „backwards“: nach dem Intro bleibt kein Animationswert hängen. */
+html.js:not(.motion-off):not(.reduced) .kin__in { animation: kinIn 1050ms var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 90ms + 60ms); }
+@keyframes kinIn { from { transform: translateY(105%); } to { transform: none; } }
+html.js:not(.motion-off):not(.reduced) .hero__photo { animation: photoIn 1100ms var(--ease-in-out) 220ms backwards; }
+@keyframes photoIn { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(-40px -40px -40px -40px); } }
+html.js:not(.motion-off):not(.reduced) [data-hero-fade] { animation: heroFade 800ms var(--ease-out) backwards; animation-delay: var(--d, 0ms); }
+@keyframes heroFade { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+/* Partikel-Canvas blendet weich ein, sobald main.js ihn startet */
+html.js .hero__canvas { opacity: 0; transition: opacity 900ms ease; }
+html.js .hero__canvas.is-on { opacity: 1; }
 
 html.js:not(.motion-off) .rv { opacity: 0; transform: translateY(26px); transition: opacity 800ms var(--ease-out), transform 900ms var(--ease-out); transition-delay: var(--d, 0ms); }
 html.js:not(.motion-off) .rv.is-in { opacity: 1; transform: none; }

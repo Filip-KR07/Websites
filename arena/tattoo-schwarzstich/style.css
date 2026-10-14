@@ -319,10 +319,17 @@ html.js.reduced [data-ink].is-inked { opacity: 1; }
 .hero-trust span { font-size: .8rem; color: var(--bone-2); }
 
 .hero-art { position: relative; display: grid; place-items: center; min-height: 0; }
-.hero-canvas {
-  position: absolute; left: 50%; top: 50%; width: min(150%, 760px); aspect-ratio: 1; height: auto;
-  max-width: none; transform: translate(-50%, -50%); pointer-events: none; z-index: 0;
+.hero-canvas-wrap {
+  --cv: min(150%, 760px);
+  position: absolute; left: 50%; top: 50%; z-index: 0;
+  width: var(--cv); aspect-ratio: 1;
+  margin: calc(var(--cv) / -2) 0 0 calc(var(--cv) / -2); /* zentriert ohne transform – die Parallaxe gehört GSAP */
+  pointer-events: none;
 }
+.hero-canvas { width: 100%; height: 100%; max-width: none; }
+/* Langsame Drehung läuft auf dem Compositor statt per JS-Neuzeichnen (180 s pro Umdrehung) */
+html.js:not(.motion-off):not(.reduced) .hero-canvas { animation: mandala-spin 180s linear infinite; }
+@keyframes mandala-spin { to { transform: rotate(360deg); } }
 .hero-figure { position: relative; z-index: 1; width: min(100%, 25rem); margin: 0; }
 .hero-figure::before {
   content: ""; position: absolute; inset: -12px; border: 1px solid var(--line-strong);
@@ -811,7 +818,7 @@ html.js .wiz[data-step="5"] [data-wiz="next"] { display: none; }
 .field--care output { font-weight: 700; color: var(--bone); }
 .care-now { padding: .9rem 1rem; border-left: 3px solid var(--red-hi); background: rgba(11, 11, 11, .5); font-size: .92rem; min-height: 3.2rem; }
 .care-now strong { color: var(--bone); }
-.care-pin { position: relative; }
+.care-pin, .care-stage, .care-rail { position: relative; }
 .care-track { position: relative; width: min(100% - 2 * var(--gutter), 1320px); margin-inline: auto; }
 .care-line { display: none; }
 .care-list { display: grid; gap: 1rem; position: relative; }
@@ -841,7 +848,17 @@ html.js .wiz[data-step="5"] [data-wiz="next"] { display: none; }
 
 @media (min-width: 900px) {
   .care-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  html.js.has-pin .care-pin { height: 100svh; display: flex; align-items: center; overflow: hidden; }
+  /* Horizontale Strecke: position: sticky statt GSAP-Pin – kein Umhängen ins Fixed-Layout, kein Layout-Shift.
+     Die Scrolllänge (--care-dist) setzt main.js; die Bühne bleibt 100svh hoch kleben. */
+  html.js.has-pin .care { padding-top: 0; }
+  html.js.has-pin .care-pin { height: calc(100svh + var(--care-dist, 0px)); }
+  html.js.has-pin .care-stage {
+    position: sticky; top: 0; height: 100svh; overflow: hidden;
+    display: grid; grid-template-rows: auto minmax(0, 1fr); align-content: center;
+    padding: calc(var(--header-h) + clamp(1rem, 4svh, 3rem)) 0 clamp(1rem, 4svh, 2.5rem);
+  }
+  html.js.has-pin .care-head { margin-bottom: clamp(1rem, 3svh, 2.5rem); }
+  html.js.has-pin .care-rail { display: flex; align-items: center; min-height: 0; }
   html.js.has-pin .care-track { width: auto; margin: 0; padding: 0 var(--gutter) 0 calc(var(--gutter) + 18rem); }
   html.js.has-pin .care-list { display: flex; gap: 1.25rem; width: max-content; padding-top: 2.5rem; }
   html.js.has-pin .care-card { flex: none; }
@@ -852,10 +869,19 @@ html.js .wiz[data-step="5"] [data-wiz="next"] { display: none; }
     width: calc(var(--gutter) + 19rem); padding-left: var(--gutter); pointer-events: none;
     background: linear-gradient(90deg, var(--coal) 78%, rgba(20, 19, 18, 0));
   }
-  html.js.has-pin .care-card { width: 24rem; min-height: 21rem; }
+  html.js.has-pin .care-card { width: 24rem; min-height: clamp(15rem, 36svh, 21rem); }
   html.js.has-pin .care-card.is-now::after { top: auto; bottom: -.7rem; }
+  html.js.has-pin .care-card.is-focus:not(.is-now) { border-color: var(--line-strong); }
+  html.js.has-pin .care-card.is-focus::before { background: var(--bone); }
   .care-day-k { font-size: .8rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--bone-3); }
-  .care-day-n { font-family: var(--f-display); font-weight: 800; font-size: 11rem; line-height: .85; color: var(--bone); }
+  .care-day-n { font-family: var(--f-display); font-weight: 800; font-size: clamp(7rem, 17svh, 11rem); line-height: .85; color: var(--bone); font-variant-numeric: lining-nums tabular-nums; }
+}
+/* Niedrige Laptop-Bildschirme: Kopf der Bühne verdichten, damit Kopf + Karten in 100svh passen */
+@media (min-width: 900px) and (max-height: 820px) {
+  html.js.has-pin .care-head .display { font-size: clamp(3.4rem, 11svh, 6.5rem); }
+  html.js.has-pin .care-tool { gap: .6rem; }
+  html.js.has-pin .care-head .sec-intro { font-size: .92rem; }
+  html.js.has-pin .care-now { min-height: 0; padding-block: .6rem; }
 }
 
 /* ==========================================================================
@@ -1092,7 +1118,7 @@ html.js:not(.motion-off):not(.reduced) [data-reveal].is-in { opacity: 1; transfo
   .hero-title { font-size: clamp(4rem, 30cqi, 9rem); }
   .hero-art { padding: 1rem 0 2rem; }
   .hero-figure { width: min(72%, 22rem); }
-  .hero-canvas { width: min(130%, 560px); }
+  .hero-canvas-wrap { --cv: min(130%, 560px); }
   .hero-flash { left: 2%; bottom: 14%; width: 7.2rem; }
   .hero-flash-d { font-size: 1.1rem; }
   .hero-linol { inset: 50% 0 0 0; }
@@ -1205,7 +1231,7 @@ html.motion-off *, html.motion-off *::before, html.motion-off *::after { animati
 
 /* Druck */
 @media print {
-  .site-header, .action-bar, .demo-pill, .progress, body::after, .hero-canvas, .style-preview, .marquee { display: none !important; }
+  .site-header, .action-bar, .demo-pill, .progress, body::after, .hero-canvas-wrap, .style-preview, .marquee { display: none !important; }
   body { background: #fff; color: #000; }
 }
 

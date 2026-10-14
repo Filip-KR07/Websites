@@ -86,6 +86,13 @@
   function isMobile() { return window.matchMedia('(max-width: 899.98px)').matches; }
   function finePointer() { return window.matchMedia('(hover: hover) and (pointer: fine)').matches; }
   function headH() { var h = $('.site-head'); return h ? h.offsetHeight : 70; }
+  // ScrollTrigger.refresh misst die ganze Seite neu (teuer) – Aufrufe bündeln
+  var refreshT = 0;
+  function softRefresh(ms) {
+    if (!window.ScrollTrigger) return;
+    clearTimeout(refreshT);
+    refreshT = setTimeout(function () { window.ScrollTrigger.refresh(); }, ms == null ? 300 : ms);
+  }
 
   /* ===== Smooth Scroll + ScrollTrigger ================================== */
   var lenis = null;
@@ -134,14 +141,23 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll);
 
+  // Maße fürs Lesebändchen nur bei Größenänderung messen – nicht in jedem Scroll-Frame (kein Layout-Lesen pro Frame)
+  var rib = { max: 1, box: 0, stub: 30 }, scrolled = null, lastRib = '';
+  function measureRibbon() {
+    rib.max = Math.max(1, d.documentElement.scrollHeight - window.innerHeight);
+    rib.box = ribbon ? ribbon.parentNode.offsetHeight : 0;
+    rib.stub = isMobile() ? 20 : 30;
+  }
+  measureRibbon();
+  window.addEventListener('resize', measureRibbon);
+  if ('ResizeObserver' in window) new ResizeObserver(function () { measureRibbon(); onScroll(); }).observe(d.body);
   scrollHandlers.push(function (y) {
-    if (head) head.classList.toggle('is-scrolled', y > 8);
+    var sc = y > 8;
+    if (head && sc !== scrolled) { scrolled = sc; head.classList.toggle('is-scrolled', sc); }
     if (ribbon) {
-      var max = Math.max(1, d.documentElement.scrollHeight - window.innerHeight);
-      var p = clamp(y / max, 0, 1);
-      var box = ribbon.parentNode.offsetHeight;
-      var stub = isMobile() ? 20 : 30;
-      ribbon.style.transform = 'translate3d(0,' + (-(1 - p) * (box - stub)).toFixed(1) + 'px,0)';
+      var p = clamp(y / rib.max, 0, 1);
+      var tf = 'translate3d(0,' + (-(1 - p) * (rib.box - rib.stub)).toFixed(1) + 'px,0)';
+      if (tf !== lastRib) { lastRib = tf; ribbon.style.transform = tf; }
     }
   });
 
@@ -465,7 +481,7 @@
       } else {
         var r = compute(cfg.rule, start);
         kicker.textContent = 'Rechnerisches Fristende · Orientierung';
-        endEl.textContent = fmtLong.format(r.end);
+        endEl.textContent = fmtLong.format(r.end).replace(/(\d+\.) /, '$1\u00A0'); // „4. November“ bleibt zusammen
         var left = dayDiff(td, r.end);
         if (start > td) { leftEl.textContent = 'Das Datum liegt in der Zukunft – bitte prüfen'; }
         else if (left > 1) leftEl.textContent = 'noch ' + left + ' Tage';
@@ -529,7 +545,8 @@
       placeInd();
       if (opts.focus) tabs[i].focus();
       if (changed && !opts.silent) animatePanel(panels[i]);
-      if (hasGsap) window.ScrollTrigger.refresh();
+      // Höhe des Panels ändert sich → Trigger darunter neu messen, aber erst nach der Panel-Animation (nicht im Klick)
+      if (hasGsap && !opts.silent) softRefresh(420);
     }
     tabs.forEach(function (t, k) {
       t.addEventListener('click', function () { select(k); });
@@ -587,7 +604,8 @@
         cleanT = setTimeout(function () { frames.forEach(function (f) { f.classList.remove('was-on'); }); }, STATIC ? 0 : 950);
       }
     }
-    scrollHandlers.push(function () {
+    var near = true;
+    function track() {
       var vh = window.innerHeight;
       var r = wrap.getBoundingClientRect();
       var line = vh * 0.55;
@@ -598,7 +616,11 @@
         if (steps[k].getBoundingClientRect().top < line) idx = k;
       }
       setActive(Math.max(0, idx));
-    });
+    }
+    scrollHandlers.push(function () { if (near) track(); });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (es) { near = es[0].isIntersecting; track(); }, { rootMargin: '25% 0px 25% 0px' }).observe(wrap);
+    }
     onScroll();
   })();
 
@@ -1087,7 +1109,7 @@
       $$('[data-parallax]').forEach(function (box) {
         var img = $('img', box);
         if (!img) return;
-        gsap.fromTo(img, { yPercent: -5, scale: 1.12 }, { yPercent: 5, scale: 1.12, ease: 'none', scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: true } });
+        gsap.fromTo(img, { yPercent: -3.5, scale: 1.08 }, { yPercent: 3.5, scale: 1.08, ease: 'none', scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: true } });
       });
     });
   })();
@@ -1100,7 +1122,7 @@
     var ctx = canvas.getContext('2d');
     var W = 0, H = 0, S = 6.5, N = 0, M = 0, STEP = 3;
     var fieldRows = [], insideRows = [], xs = new Float32Array(1), ys = new Float32Array(1);
-    var raf = 0, visible = true, running = false, t0 = 0, introStart = 0, lastFrame = 0;
+    var raf = 0, visible = true, running = false, t0 = 0, introStart = 0, lastNow = 0, animT = 0;
     var mouse = { x: -999, y: -999, tx: -999, ty: -999, s: 0, ts: 0 };
     var para = new Path2D(PARA_D);
 
@@ -1159,14 +1181,16 @@
       var yOff = (H - N * S) / 2 + S / 2;
       for (var j = 0; j < N; j++) {
         var y = yOff + j * S, fy = clamp(Math.round(y * sc), 0, mh - 1);
-        var fr = new Float32Array(M), ir = new Uint8Array(M);
+        var fr = new Float32Array(M), ir = new Uint8Array(M), lo = -1, hi = -1;
         for (var k = 0; k < M; k++) {
           var fx = clamp(Math.round(k * STEP * sc), 0, mw - 1);
           var v = f[fy * mw + fx] / mx;
           fr[k] = v * v * (3 - 2 * v); // weiche Kante
           ir[k] = sharp[fy * mw + fx] > 0.5 ? 1 : 0;
+          if (fr[k] > 0.003) { if (lo < 0) lo = k; hi = k; }
         }
-        fieldRows.push({ y: y, f: fr, inside: ir });
+        // lo/hi: Bereich mit Relief – nur dort muss die Zeile die Linien dahinter verdecken
+        fieldRows.push({ y: y, f: fr, inside: ir, lo: lo, hi: hi });
       }
       return true;
     }
@@ -1174,7 +1198,7 @@
     function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
 
     function draw(now) {
-      var t = (now - t0) / 1000;
+      var t = animT / 1000; // Laufzeit nur, solange gezeichnet wird – kein Sprung nach einer Pause
       var ip = STATIC ? 1 : clamp((now - introStart) / 2000, 0, 1);
       var k = easeOut(ip);
       var waveAmp = STATIC ? 0 : ENGRAVE.wave;
@@ -1182,6 +1206,7 @@
       mouse.y += (mouse.ty - mouse.y) * 0.14;
       mouse.s += (mouse.ts - mouse.s) * 0.08;
       var mr2 = 2 * ENGRAVE.mouseRadius * ENGRAVE.mouseRadius;
+      var mReach = ENGRAVE.mouseRadius * 2.6, mOn = mouse.s > 0.01;
       ctx.clearRect(0, 0, W, H);
       for (var j = 0; j < N; j++) {
         var row = fieldRows[j];
@@ -1200,15 +1225,25 @@
           xs[i] = x; ys[i] = row.y + dy;
         }
         var last = Math.min(maxK, M - 1);
-        // Verdecken (Relief)
-        ctx.beginPath();
-        ctx.moveTo(xs[0], ys[0]);
-        for (i = 1; i <= last; i++) ctx.lineTo(xs[i], ys[i]);
-        ctx.lineTo(xs[last], row.y + 1.2);
-        ctx.lineTo(xs[0], row.y + 1.2);
-        ctx.closePath();
-        ctx.fillStyle = ENGRAVE.paper;
-        ctx.fill();
+        // Verdecken (Relief) – nur wo sich die Linie hebt: im Zeichen und unter der Maus
+        var fl = row.lo, fh = row.hi;
+        if (mOn && Math.abs(row.y - mouse.y) < mReach) {
+          var ml = Math.floor((mouse.x - mReach) / STEP), mh = Math.ceil((mouse.x + mReach) / STEP);
+          fl = fl < 0 ? ml : Math.min(fl, ml); fh = Math.max(fh, mh);
+        }
+        if (fh >= 0) {
+          fl = Math.max(0, fl - 2); fh = Math.min(last, fh + 2);
+          if (fh > fl) {
+            ctx.beginPath();
+            ctx.moveTo(xs[fl], ys[fl]);
+            for (i = fl + 1; i <= fh; i++) ctx.lineTo(xs[i], ys[i]);
+            ctx.lineTo(xs[fh], row.y + 1.2);
+            ctx.lineTo(xs[fl], row.y + 1.2);
+            ctx.closePath();
+            ctx.fillStyle = ENGRAVE.paper;
+            ctx.fill();
+          }
+        }
         // feine Linie
         ctx.beginPath();
         ctx.moveTo(xs[0], ys[0]);
@@ -1233,17 +1268,20 @@
     function loop(now) {
       raf = 0;
       if (!running) return;
-      var idle = mouse.ts === 0 && mouse.s < 0.01 && now - introStart > 2100;
-      // Im Ruhezustand ~30 fps, das spart Akku
-      if (!idle || now - lastFrame > 32) { draw(now); lastFrame = now; }
+      animT += lastNow ? Math.min(64, now - lastNow) : 16;
+      lastNow = now;
+      draw(now);
+      // Ruhe (Intro fertig, keine Maus): letztes Bild bleibt stehen, der Hauptthread ist frei.
+      if (mouse.ts === 0 && mouse.s < 0.01 && now - introStart > 2100) { running = false; lastNow = 0; return; }
       raf = requestAnimationFrame(loop);
     }
     function start() {
       if (running || STATIC) return;
       running = true;
+      lastNow = 0;
       raf = requestAnimationFrame(loop);
     }
-    function stop() { running = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
+    function stop() { running = false; lastNow = 0; if (raf) cancelAnimationFrame(raf); raf = 0; }
 
     function init() {
       if (!build()) return;
@@ -1266,6 +1304,7 @@
         mouse.tx = e.clientX - r.left; mouse.ty = e.clientY - r.top;
         if (mouse.x < -900) { mouse.x = mouse.tx; mouse.y = mouse.ty; }
         mouse.ts = 1;
+        if (visible && !d.hidden) start();
       });
       plate.addEventListener('pointerleave', function () { mouse.ts = 0; });
     }
@@ -1277,7 +1316,7 @@
         var r = canvas.getBoundingClientRect();
         if (Math.abs(r.width - lastW) < 2 && Math.abs(r.height - lastH) < 2) return;
         lastW = r.width; lastH = r.height;
-        if (build() && STATIC) draw(performance.now());
+        if (build() && !running) draw(performance.now()); // neue Canvas-Größe löscht das Bild
       }, 150);
     }
     if ('ResizeObserver' in window) new ResizeObserver(onResize).observe(canvas);
@@ -1289,13 +1328,14 @@
   /* ===== Start ========================================================== */
   function loaded() {
     root.classList.add('is-loaded');
-    if (hasGsap) setTimeout(function () { window.ScrollTrigger.refresh(); }, 300);
+    if (hasGsap) softRefresh(300); // nach dem Laden der Schriften
   }
   var fontsReady = d.fonts && d.fonts.ready ? d.fonts.ready : Promise.resolve();
   Promise.race([fontsReady, new Promise(function (r) { setTimeout(r, 700); })]).then(function () {
     requestAnimationFrame(loaded);
   });
-  window.addEventListener('load', function () { if (hasGsap) window.ScrollTrigger.refresh(); onScroll(); });
+  // ScrollTrigger misst bei „load“ selbst neu (autoRefreshEvents)
+  window.addEventListener('load', function () { measureRibbon(); onScroll(); });
 
   // Direkter Aufruf mit Hash (z. B. #fristen): nach dem Layout korrekt positionieren
   if (location.hash && location.hash.length > 1) {

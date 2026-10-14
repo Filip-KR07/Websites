@@ -60,7 +60,10 @@
     if (!el) return;
     const offset = -(hdrH() + 12);
     if (lenis) {
-      lenis.scrollTo(el, { offset, duration: 1.15, easing: t => 1 - Math.pow(1 - t, 4), onComplete: after });
+      // Ziel aus der echten Scrollposition berechnen (nicht aus Lenis' internem Wert –
+      // der hinkt nach einem nativen Sprung einen Frame hinterher und das Ziel wäre falsch)
+      const y = el.getBoundingClientRect().top + window.scrollY + offset;
+      lenis.scrollTo(y, { duration: 1.15, easing: t => 1 - Math.pow(1 - t, 4), onComplete: after });
     } else {
       const y = el.getBoundingClientRect().top + window.scrollY + offset;
       window.scrollTo({ top: y, behavior: REDUCE ? 'auto' : 'smooth' });

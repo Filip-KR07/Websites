@@ -106,8 +106,7 @@
       f.focus({ preventScroll: true });
     };
     var dest = function () { return isTop ? 0 : target.getBoundingClientRect().top + window.scrollY - headerOffset() + 1; };
-    // Abschnitte weiter unten werden erst beim Näherkommen gerendert (content-visibility: auto).
-    // Ändert sich dabei ihre Höhe, landet der erste Sprung leicht daneben → kurz nachführen.
+    // Ändert sich unterwegs das Layout (spät geladene Bilder/Schriften), landet der Sprung leicht daneben → kurz nachführen.
     var settle = function (again) {
       var off = dest() - window.scrollY;
       if (Math.abs(off) > 3 && again) {
@@ -1175,5 +1174,6 @@
       document.fonts.ready.then(function () { if (document.readyState === 'complete') ScrollTrigger.refresh(); });
     }
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+  // Eigener Task statt direkt im Block der defer-Skripte (GSAP/ScrollTrigger/Lenis laufen dort schon am Stück)
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else nextTask(start);
 })();

@@ -79,15 +79,24 @@
   const DAYS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
   const DAYS_S = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
   const nbsp = ' ';
-  const euro = n => n.toLocaleString('de-DE') + nbsp + '€';
+  // Ganzzahlen deutsch formatieren ohne Intl (dessen erste Initialisierung kostet auf schwachen Handys spürbar Zeit)
+  const fmtInt = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const euro = n => fmtInt(n) + nbsp + '€';
   const hhmm = h => { const H = Math.floor(h); const M = Math.round((h - H) * 60); return H + ':' + String(M).padStart(2, '0'); };
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const hasGSAP = !!(window.gsap && window.ScrollTrigger);
   let lenis = null;
 
-  /* ---------- Smooth Scroll ---------- */
-  if (hasGSAP) gsap.registerPlugin(ScrollTrigger);
-  if (motionOK && window.Lenis) {
+  /* ---------- Smooth Scroll ----------
+     Lenis wird erst nach dem Hero-Intro (oder beim ersten Scrollen) gestartet – siehe startScroll() unten.
+     Bis dahin scrollt der Browser nativ; der Wechsel ist nicht spürbar. */
+  if (hasGSAP) {
+    gsap.registerPlugin(ScrollTrigger);
+    // kein automatisches Refresh bei DOMContentLoaded/load: Die Trigger entstehen erst nach dem Intro, refresh() folgt dann gezielt
+    ScrollTrigger.config({ autoRefreshEvents: 'visibilitychange,resize' });
+  }
+  function initLenis() {
+    if (lenis || !motionOK || !window.Lenis) return;
     lenis = new Lenis({ duration: 1.1, smoothWheel: true, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
     window.__lenis = lenis;
     if (hasGSAP) {
@@ -122,6 +131,13 @@
     history.replaceState(null, '', id);
   });
 
+  /* ---------- Scrollhöhe nur bei Layoutänderung messen (kein erzwungenes Layout pro Frame) ---------- */
+  let maxScroll = 1;
+  const measureMax = () => { maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight); };
+  if ('ResizeObserver' in window) new ResizeObserver(measureMax).observe(document.body); // meldet sich einmal sofort nach dem ersten Layout
+  else measureMax();
+  addEventListener('resize', measureMax, { passive: true });
+
   /* ---------- Header: Zustand, Fortschritt, aktive Navigation ---------- */
   const hdr = $('[data-hdr]');
   const prog = $('[data-progress]');
@@ -131,8 +147,7 @@
     if (y === lastY) return;
     lastY = y;
     hdr.classList.toggle('is-solid', y > 24);
-    const max = document.documentElement.scrollHeight - innerHeight;
-    prog.style.transform = 'scaleX(' + (max > 0 ? clamp(y / max, 0, 1) : 0).toFixed(4) + ')';
+    prog.style.transform = 'scaleX(' + clamp(y / maxScroll, 0, 1).toFixed(4) + ')';
   }
   addEventListener('scroll', onScrollUI, { passive: true });
   onScrollUI();
@@ -215,7 +230,7 @@
         const el = en.target, end = +el.dataset.count, t0 = performance.now(), dur = 1300;
         const step = now => {
           const p = clamp((now - t0) / dur, 0, 1), e = 1 - Math.pow(1 - p, 4);
-          el.textContent = Math.round(end * e).toLocaleString('de-DE');
+          el.textContent = fmtInt(end * e);
           if (p < 1) requestAnimationFrame(step);
         };
         requestAnimationFrame(step);
@@ -236,13 +251,16 @@
     logo: $('[data-logo-needle]'),
     wrap: $('[data-tach-wrap]')
   };
-  const T = { rpm: RPM_IDLE, v: 0, target: RPM_IDLE, speed: 0, idle: RPM_IDLE, running: false, last: 0, y: scrollY, heroVisible: true, sweep: 0, lastTxt: '', lastGear: '', ledMask: -1 };
+  const T = { rpm: RPM_IDLE, v: 0, target: RPM_IDLE, speed: 0, idle: RPM_IDLE, running: false, last: 0, y: scrollY, heroVisible: true, sweep: 0, lastTxt: '', lastGear: '', ledMask: -1, logoA: 999, needleA: 999 };
   const angleOf = rpm => -120 + (clamp(rpm, 0, RPM_SCALE) / RPM_SCALE) * 240;
   function renderTach() {
     const r = T.rpm;
-    if (tach.logo) tach.logo.setAttribute('transform', 'rotate(' + (-122 + clamp(r, 0, RPM_SCALE) / RPM_SCALE * 244).toFixed(2) + ' 20 22)');
+    const la = -122 + clamp(r, 0, RPM_SCALE) / RPM_SCALE * 244;
+    if (tach.logo && Math.abs(la - T.logoA) > 0.4) { tach.logo.setAttribute('transform', 'rotate(' + la.toFixed(1) + ' 20 22)'); T.logoA = la; }
     if (!T.heroVisible) return;
-    tach.needle.setAttribute('transform', 'rotate(' + angleOf(r).toFixed(2) + ' 200 200)');
+    // Nadel als eigene Ebene: reine CSS-Transformation, kein Neuzeichnen des Zifferblatts
+    const na = angleOf(r);
+    if (Math.abs(na - T.needleA) > 0.05) { tach.needle.style.transform = 'rotate(' + na.toFixed(2) + 'deg)'; T.needleA = na; }
     tach.prog.style.strokeDashoffset = (1000 - clamp(r, 0, RPM_SCALE) / RPM_SCALE * 1000).toFixed(1);
     const txt = String(Math.round(clamp(r, 0, 9999) / 10) * 10).padStart(4, '0');
     if (txt !== T.lastTxt) { tach.rpmTxt.textContent = txt; T.lastTxt = txt; }
@@ -253,8 +271,7 @@
       tach.leds.forEach((l, i) => l.classList.toggle('on', !!(mask & (1 << i))));
       T.ledMask = mask;
     }
-    const max = document.documentElement.scrollHeight - innerHeight;
-    const p = max > 0 ? scrollY / max : 0;
+    const p = scrollY / maxScroll;
     const gear = (T.speed < 40 && r < 1300) ? 'N' : String(1 + Math.min(5, Math.floor(p * 6)));
     if (gear !== T.lastGear) { tach.gearTxt.textContent = gear; T.lastGear = gear; }
   }
@@ -294,25 +311,27 @@
   if (motionOK) {
     addEventListener('scroll', kickTach, { passive: true });
     new IntersectionObserver(([en]) => { T.heroVisible = en.isIntersecting; if (en.isIntersecting) kickTach(); }).observe(tach.wrap);
-    // Leerlauf: Drehzahl zittert minimal, solange der Hero sichtbar ist
+    // Leerlauf: nur die Digitalanzeige zittert minimal – kein Dauer-Animationsloop, die Nadel bleibt ruhig
     setInterval(() => {
-      if (document.hidden || !T.heroVisible || T.sweep) return;
-      T.idle = RPM_IDLE + (Math.random() * 30 - 15);
-      kickTach();
-    }, 700);
+      if (document.hidden || !T.heroVisible || T.sweep || T.running) return;
+      const txt = String(Math.round((RPM_IDLE + Math.random() * 30 - 15) / 10) * 10).padStart(4, '0');
+      if (txt !== T.lastTxt) { tach.rpmTxt.textContent = txt; T.lastTxt = txt; }
+    }, 900);
   }
   renderTach();
 
-  /* ---------- Hero-Intro ---------- */
-  $$('[data-hero-line]').forEach((el, i) => el.style.setProperty('--i', i));
-  $$('[data-hero-in]').forEach((el, i) => el.style.setProperty('--i', i));
-  const go = () => {
-    root.classList.add('hero-go');
-    if (motionOK) setTimeout(() => { T.sweep = performance.now(); kickTach(); }, 650);
+  /* ---------- Hero-Intro ----------
+     Die Klasse `hero-go` setzt ein kleines Inline-Skript am Ende von index.html, damit das Intro nicht auf
+     GSAP/Lenis/main.js warten muss. Hier startet nur der Nadel-Sweep – 650 ms nach dem Intro-Start. */
+  const sweepFrom = t0 => {
+    if (!motionOK) return;
+    setTimeout(() => { T.sweep = performance.now(); kickTach(); }, Math.max(0, 650 - (performance.now() - t0)));
   };
-  if (document.fonts && document.fonts.ready) {
-    Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 700))]).then(() => requestAnimationFrame(go));
-  } else go();
+  if (root.classList.contains('hero-go')) sweepFrom(window.__heroGoAt || performance.now());
+  else {
+    document.addEventListener('berger:herogo', () => sweepFrom(window.__heroGoAt || performance.now()), { once: true });
+    setTimeout(() => { if (!root.classList.contains('hero-go')) { root.classList.add('hero-go'); sweepFrom(performance.now()); } }, 1500);
+  }
 
   /* ======================================================================
      5) Live-Werkstattstatus (simuliert, deterministisch pro Tag)
@@ -481,12 +500,12 @@
     if (!ind || !tab) return;
     ind.style.transform = 'translateX(' + tab.offsetLeft + 'px) scaleX(' + (tab.offsetWidth / 100) + ')';
   }
-  function selectPart(part, focus) {
+  function selectPart(part, focus, noMeasure) {
     tabs.forEach(t => {
       const on = t.dataset.part === part;
       t.setAttribute('aria-selected', on ? 'true' : 'false');
       t.tabIndex = on ? 0 : -1;
-      if (on) { placeInd(t); if (focus) t.focus(); }
+      if (on) { if (!noMeasure) placeInd(t); if (focus) t.focus(); }
     });
     panels.forEach(p => {
       const on = p.dataset.panel === part;
@@ -515,8 +534,10 @@
     const hit = e.target.closest('[data-hit]');
     if (hit) selectPart(hit.dataset.hit);
   });
-  selectPart('motor');
-  addEventListener('resize', () => placeInd(tabs.find(t => t.getAttribute('aria-selected') === 'true')));
+  selectPart('motor', false, true);
+  const placeSel = () => placeInd(tabs.find(t => t.getAttribute('aria-selected') === 'true'));
+  requestAnimationFrame(placeSel); // Layout erst im nächsten Frame lesen – kein erzwungenes Layout während der Initialisierung
+  addEventListener('resize', placeSel);
   if (document.fonts) document.fonts.ready.then(() => placeInd(tabs.find(t => t.getAttribute('aria-selected') === 'true')));
 
   /* ======================================================================
@@ -532,7 +553,7 @@
   const fmtH = h => {
     if (h < 1) return Math.round(h * 60 / 5) * 5 + nbsp + 'min';
     const r = Math.round(h * 4) / 4;
-    return r.toLocaleString('de-DE', { maximumFractionDigits: 2 });
+    return String(r).replace('.', ',');
   };
   function fmtRange(a, b) {
     if (b < 1) return 'ca. ' + Math.round(a * 60 / 5) * 5 + '–' + Math.round(b * 60 / 5) * 5 + nbsp + 'min';
@@ -558,6 +579,22 @@
     return { cls, drv, sel, lines, min, max, tMin, tMax, vehLabel: C.label + ' · ' + DRIVES[drv] };
   }
   let prevKeys = [];
+  // Preisanzeige zählt wie ein Zählwerk zum neuen Wert (unterbrechbar: startet immer beim gerade angezeigten Wert)
+  const PT = { a: null, b: null, raf: 0 };
+  const showPrice = (a, b) => { co.min.textContent = fmtInt(a); co.max.textContent = fmtInt(b); };
+  function tweenPrice(r) {
+    cancelAnimationFrame(PT.raf);
+    if (!r.lines.length) { PT.a = PT.b = null; co.min.textContent = co.max.textContent = '–'; return; }
+    if (!motionOK || PT.a == null) { PT.a = r.min; PT.b = r.max; showPrice(r.min, r.max); return; }
+    const a0 = PT.a, b0 = PT.b, t0 = performance.now(), dur = 450;
+    const step = now => {
+      const p = clamp((now - t0) / dur, 0, 1), e = 1 - Math.pow(1 - p, 4);
+      PT.a = Math.round(a0 + (r.min - a0) * e); PT.b = Math.round(b0 + (r.max - b0) * e);
+      showPrice(PT.a, PT.b);
+      if (p < 1) PT.raf = requestAnimationFrame(step);
+    };
+    PT.raf = requestAnimationFrame(step);
+  }
   function renderCalc() {
     const r = computeCalc();
     lastCalc = r;
@@ -573,13 +610,12 @@
       const li = document.createElement('li');
       if (!prevKeys.includes(l.key)) li.className = 'new';
       const a = document.createElement('span'); a.textContent = l.label;
-      const b = document.createElement('span'); b.className = 'tnum'; b.textContent = l.a.toLocaleString('de-DE') + '–' + euro(l.b);
+      const b = document.createElement('span'); b.className = 'tnum'; b.textContent = fmtInt(l.a) + '–' + euro(l.b);
       li.append(a, b);
       co.lines.appendChild(li);
     });
     prevKeys = r.sel.slice();
-    co.min.textContent = r.lines.length ? r.min.toLocaleString('de-DE') : '–';
-    co.max.textContent = r.lines.length ? r.max.toLocaleString('de-DE') : '–';
+    tweenPrice(r);
     const aPct = clamp(r.min / PRICE_SCALE_MAX, 0, 1) * 100;
     const w = r.lines.length ? Math.max(0.012, clamp((r.max - r.min) / PRICE_SCALE_MAX, 0, 1 - aPct / 100)) : 0;
     co.bar.style.setProperty('--a', aPct.toFixed(2) + '%');
@@ -628,7 +664,7 @@
   $('[data-co-take]').addEventListener('click', () => {
     const r = lastCalc || computeCalc();
     if (!r.lines.length) { co.hint.textContent = 'Bitte zuerst mindestens eine Leistung wählen.'; co.live.textContent = co.hint.textContent; return; }
-    const txt = r.vehLabel + ': ' + r.lines.map(l => l.label).join(', ') + ' – Richtwert ' + r.min.toLocaleString('de-DE') + '–' + euro(r.max) + ', ' + co.time.textContent;
+    const txt = r.vehLabel + ': ' + r.lines.map(l => l.label).join(', ') + ' – Richtwert ' + fmtInt(r.min) + '–' + euro(r.max) + ', ' + co.time.textContent;
     setTakeover('Aus dem Service-Rechner übernommen', txt, { cls: r.cls, services: r.sel, loan: r.tMax > SAME_DAY_MAX_HOURS });
   });
 
@@ -805,30 +841,83 @@
   updateShifter(0);
 
   /* ======================================================================
-     GSAP-Choreografie
+     Ablauf auf dem Handy: Wisch-Karussell mit Gang-Anzeige
+     ====================================================================== */
+  const flowTrack = $('[data-flow-track]');
+  const pager = $('[data-flow-pager]');
+  const fpBtns = $$('button', pager);
+  const fpN = $('[data-fp-n]');
+  const mqMobile = matchMedia('(max-width: 899px)');
+  let fpIdx = -1, fpRaf = 0;
+  function fpUpdate() {
+    fpRaf = 0;
+    const max = flowTrack.scrollWidth - flowTrack.clientWidth;
+    const step = steps[1] ? steps[1].offsetLeft - steps[0].offsetLeft : 1;
+    // am rechten Rand zählt die letzte Karte, auch wenn sie nicht ganz links einrastet
+    const i = flowTrack.scrollLeft >= max - 4 ? steps.length - 1 : clamp(Math.round(flowTrack.scrollLeft / step), 0, steps.length - 1);
+    if (i === fpIdx) return;
+    fpIdx = i;
+    fpN.textContent = i + 1;
+    fpBtns.forEach((b, k) => { if (k === i) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+    steps.forEach((st, k) => st.classList.toggle('on', k === i));
+  }
+  function fpSetup() {
+    const on = mqMobile.matches;
+    pager.hidden = !on;
+    if (on) {
+      flowTrack.tabIndex = 0;
+      flowTrack.setAttribute('aria-label', 'Ablauf in sechs Schritten – seitlich wischen');
+      fpIdx = -1;
+      if (!fpRaf) fpRaf = requestAnimationFrame(fpUpdate);
+    } else {
+      flowTrack.removeAttribute('tabindex');
+      flowTrack.removeAttribute('aria-label');
+      if (!flow.classList.contains('is-h')) steps.forEach(st => st.classList.remove('on'));
+    }
+  }
+  flowTrack.addEventListener('scroll', () => { if (!fpRaf && mqMobile.matches) fpRaf = requestAnimationFrame(fpUpdate); }, { passive: true });
+  fpBtns.forEach((b, k) => b.addEventListener('click', () => {
+    const left = steps[k].offsetLeft - steps[0].offsetLeft;
+    flowTrack.scrollTo({ left, behavior: motionOK ? 'smooth' : 'auto' });
+  }));
+  mqMobile.addEventListener('change', fpSetup);
+  fpSetup();
+
+  /* ======================================================================
+     GSAP-Choreografie – erst nach dem Hero-Intro und in kleinen Häppchen
+     initialisiert, damit der erste Bildschirm ohne lange Tasks aufbaut.
      ====================================================================== */
   if (hasGSAP && motionOK) {
     const mm = gsap.matchMedia();
 
-    // Ablauf: horizontale Strecke mit Pin (nur Desktop)
-    mm.add('(min-width: 900px)', () => {
+    // Ablauf: horizontale Strecke (nur Desktop). Statt GSAP-Pin (position: fixed → Layout-Shifts/CLS)
+    // hält CSS `position: sticky` die Bühne; die Sektion bekommt die nötige Scrollhöhe.
+    const initFlow = () => mm.add('(min-width: 900px)', () => {
       flow.classList.add('is-h');
       const track = $('[data-flow-track]');
       const view = $('.flow-view', flow);
       const dist = () => Math.max(0, track.scrollWidth - view.clientWidth);
+      const setH = () => { flow.style.height = Math.round(innerHeight + dist() * 1.15 + innerHeight * 0.25) + 'px'; };
+      setH();
+      ScrollTrigger.addEventListener('refreshInit', setH);
       const tw = gsap.to(track, {
         x: () => -dist(), ease: 'none',
         scrollTrigger: {
-          trigger: flow, pin: true, start: 'top top', end: () => '+=' + Math.round(dist() * 1.15 + innerHeight * 0.25),
-          scrub: 0.7, invalidateOnRefresh: true, anticipatePin: 1,
+          trigger: flow, start: 'top top', end: 'bottom bottom',
+          scrub: 0.7, invalidateOnRefresh: true,
           onUpdate: self => updateShifter(self.progress)
         }
       });
-      return () => { tw.scrollTrigger && tw.scrollTrigger.kill(); tw.kill(); flow.classList.remove('is-h'); gsap.set(track, { clearProps: 'transform' }); updateShifter(0); };
+      return () => {
+        ScrollTrigger.removeEventListener('refreshInit', setH);
+        tw.scrollTrigger && tw.scrollTrigger.kill(); tw.kill();
+        flow.classList.remove('is-h'); flow.style.height = '';
+        gsap.set(track, { clearProps: 'transform' }); updateShifter(0); fpSetup();
+      };
     });
 
     // Fahrzeug: Explosionszeichnung setzt sich beim Scrollen zusammen
-    mm.add('(min-width: 0px)', () => {
+    const initCar = () => mm.add('(min-width: 0px)', () => {
       const parts = { engine: [0, -120], clima: [-120, -30], 'light-f': [-80, -24], 'light-r': [80, -24], 'wheel-f': [-50, 70], 'wheel-r': [50, 70] };
       carBox.classList.add('exploded');
       const tl = gsap.timeline({
@@ -846,12 +935,31 @@
     });
 
     // Hero: Foto leicht parallax, Tacho bleibt ruhig
-    mm.add('(min-width: 900px)', () => {
+    const initHero = () => mm.add('(min-width: 900px)', () => {
       gsap.to('[data-hero-photo]', { yPercent: -10, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
     });
 
-    addEventListener('load', () => ScrollTrigger.refresh());
-    if (document.fonts) document.fonts.ready.then(() => ScrollTrigger.refresh());
+    const queue = [initFlow, initCar, initHero];
+    const idle = window.requestIdleCallback ? cb => requestIdleCallback(cb, { timeout: 900 }) : cb => setTimeout(cb, 120);
+    const pump = () => {
+      const f = queue.shift();
+      if (f) f();
+      if (queue.length) idle(pump);
+      else if (document.readyState === 'complete') ScrollTrigger.refresh();
+      else addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
+    };
+    // nach dem Großteil des Hero-Intros starten (oder sofort, wenn schon gescrollt/gewischt wird)
+    let started = false;
+    const start = () => {
+      if (started) return;
+      started = true;
+      ['scroll', 'wheel', 'touchstart', 'keydown'].forEach(t => removeEventListener(t, start));
+      initLenis();
+      idle(pump);
+    };
+    ['scroll', 'wheel', 'touchstart', 'keydown'].forEach(t => addEventListener(t, start, { passive: true }));
+    setTimeout(start, scrollY > 0 ? 0 : 700);
+    if (document.fonts) document.fonts.ready.then(() => { if (started && !queue.length && document.readyState === 'complete') ScrollTrigger.refresh(); });
   }
 
   /* ======================================================================
@@ -950,5 +1058,6 @@
     form.elements.name.focus();
   });
 
+  if (!(hasGSAP && motionOK)) initLenis();
   window.__bergerReady = true;
 })();

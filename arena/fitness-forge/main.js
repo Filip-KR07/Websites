@@ -964,17 +964,10 @@
      Hero: Intro, Kinetik, Canvas, Stoppuhr
      ------------------------------------------------------------------ */
   function initHeroIntro() {
-    var go = function () {
-      requestAnimationFrame(function () {
-        doc.classList.add('hero-in');
-        setTimeout(function () { doc.classList.add('hero-done'); }, 1700);
-      });
-    };
-    if (document.fonts && document.fonts.ready && !reduced()) {
-      var fired = false, once = function () { if (!fired) { fired = true; go(); } };
-      document.fonts.ready.then(once);
-      setTimeout(once, 600);
-    } else go();
+    // Die Intro-Choreografie läuft rein in CSS (startet mit dem ersten Frame, unabhängig von main.js).
+    // Die Klassen bleiben als Status-Haken für Tests und eigene Erweiterungen.
+    doc.classList.add('hero-in');
+    setTimeout(function () { doc.classList.add('hero-done'); }, 1700);
   }
 
   function initHeroKinetic() {
@@ -988,13 +981,17 @@
     gsap.to('.hero__photo', { yPercent: -18, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.6 } });
     // Geschwindigkeit → Neigung + Bewegungsunschärfe-Echo
     var skewTo = gsap.quickTo(title, 'skewX', { duration: 0.5, ease: 'power3' });
-    var mb = 0;
+    var mb = 0, lastSkew = 0, lastMb = '0.000', heroVis = true;
+    watchVisible(hero, function (v) { heroVis = v; });
     gsap.ticker.add(function () {
+      if (!heroVis && lastSkew === 0 && lastMb === '0.000') return; // Hero außer Sicht und in Ruhe: nichts tun
       var v = clamp(scrollVel / 2600, -1, 1);
-      skewTo(-v * 9);
+      var sk = Math.round(-v * 9 * 100) / 100;
+      if (sk !== lastSkew) { skewTo(sk); lastSkew = sk; }
       mb = lerp(mb, Math.abs(v), 0.15);
       if (mb < 0.002) mb = 0;
-      title.style.setProperty('--mb', mb.toFixed(3));
+      var m = mb.toFixed(3);
+      if (m !== lastMb) { title.style.setProperty('--mb', m); lastMb = m; }
     });
   }
 
@@ -1088,6 +1085,7 @@
       // statisches Standbild
       for (var k = 0; k < 3; k++) draw(0.02);
     }
+    requestAnimationFrame(function () { cv.classList.add('is-on'); });
     if ('ResizeObserver' in window) new ResizeObserver(function () { resize(); }).observe(hero);
     else window.addEventListener('resize', resize);
     watchVisible(hero, function (v) { visible = v; sync(); });
@@ -1181,14 +1179,19 @@
     var no = qs('[data-disc-no]'), bar = qs('[data-disc-bar]');
     var panels = qsa('.panel', track);
     var mm = gsap.matchMedia();
+    var sec = qs('.disc');
     mm.add('(min-width: 900px)', function () {
       doc.classList.add('has-hscroll');
       var dist = function () { return Math.max(0, track.scrollWidth - window.innerWidth); };
+      // Die Sektion bekommt Strecke + Bildschirmhöhe; .disc__pin klebt per CSS (position: sticky).
+      // Anders als ein GSAP-Pin (position: fixed) erzeugt das keinen Layout-Shift beim Ein-/Ausrasten.
+      var setH = function () { sec.style.setProperty('--disc-h', Math.round(dist() + pin.offsetHeight) + 'px'); };
+      setH();
       var tween = gsap.to(track, {
         x: function () { return -dist(); }, ease: 'none',
         scrollTrigger: {
-          trigger: pin, start: 'top top', end: function () { return '+=' + dist(); },
-          pin: true, scrub: 0.8, invalidateOnRefresh: true, anticipatePin: 1,
+          trigger: sec, start: 'top top', end: 'bottom bottom',
+          scrub: 0.8, invalidateOnRefresh: true, onRefreshInit: setH,
           onUpdate: function (self) {
             bar.style.transform = 'scaleX(' + self.progress.toFixed(4) + ')';
             var c = 0, edge = window.innerWidth * 0.62;
@@ -1205,6 +1208,7 @@
       });
       return function () {
         doc.classList.remove('has-hscroll');
+        sec.style.removeProperty('--disc-h');
         gsap.set(track, { clearProps: 'transform' });
       };
     });
@@ -1226,7 +1230,11 @@
       });
       var imgs = qsa('.frame__img', track);
       var skew = gsap.quickTo(imgs, 'skewX', { duration: 0.6, ease: 'power3' });
-      var fn = function () { skew(clamp(-scrollVel / 260, -6, 6)); };
+      var lastSk = 0;
+      var fn = function () {
+        var sk = Math.round(clamp(-scrollVel / 260, -6, 6) * 100) / 100;
+        if (sk !== lastSk) { skew(sk); lastSk = sk; }
+      };
       gsap.ticker.add(fn);
       return function () {
         gsap.ticker.remove(fn);
@@ -1327,28 +1335,32 @@
   /* ------------------------------------------------------------------
      Start
      ------------------------------------------------------------------ */
-  safe('scroll', initScroll);
-  safe('header', initHeader);
-  safe('menu', initMenu);
-  safe('status', initStatus);
-  safe('plan', initPlan);
-  safe('cfg', initCfg);
-  safe('gen', initGen);
-  safe('coaches', initCoaches);
-  safe('form', initForm);
-  safe('disc', initDisc);
-  safe('day', initDayStrip);
-  safe('laps', initLaps);
-  safe('kinetic', initHeroKinetic);
-  safe('canvas', initHeroCanvas);
-  safe('tilt', initHeroTilt);
-  safe('timer', initTimer);
-  safe('bands', initBands);
-  safe('counters', initCounters);
-  safe('reveal', initReveal);
-  safe('intro', initHeroIntro);
-  if (hasGSAP) {
-    window.addEventListener('load', function () { ScrollTrigger.refresh(); });
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
-  }
+  /* Reihenfolge: erst alles, was im ersten Bildschirm sichtbar ist (Header, Hero, Live-Kurs),
+     dann die Widgets weiter unten in kleinen Paketen mit Pausen dazwischen – so blockiert der
+     Start den Main-Thread nie lange am Stück (Eingaben bleiben reaktionsschnell). */
+  var BOOT_NOW = [
+    ['scroll', initScroll], ['header', initHeader], ['menu', initMenu], ['status', initStatus],
+    ['intro', initHeroIntro], ['tilt', initHeroTilt], ['timer', initTimer], ['plan', initPlan]
+  ];
+  // Alles mit Layout-Messungen (ScrollTrigger, Canvas-Größe) erst nach dem nächsten Frame:
+  // dann ist das Layout schon berechnet und wird nicht mitten im Skript erzwungen.
+  var BOOT_LATER = [
+    ['kinetic', initHeroKinetic], ['canvas', initHeroCanvas], ['bands', initBands], ['cfg', initCfg], ['gen', initGen], ['coaches', initCoaches], ['form', initForm],
+    ['disc', initDisc], ['day', initDayStrip], ['laps', initLaps], ['counters', initCounters], ['reveal', initReveal]
+  ];
+  BOOT_NOW.forEach(function (b) { safe(b[0], b[1]); });
+  var fontsPending = !!(document.fonts && document.fonts.status !== 'loaded');
+  var afterFrame = function (fn) { if (window.requestAnimationFrame && !document.hidden) requestAnimationFrame(function () { setTimeout(fn, 0); }); else setTimeout(fn, 0); };
+  afterFrame(function next() {
+    var t0 = performance.now();
+    while (BOOT_LATER.length) {
+      var b = BOOT_LATER.shift();
+      safe(b[0], b[1]);
+      if (performance.now() - t0 > 24) break;
+    }
+    if (BOOT_LATER.length) { setTimeout(next, 0); return; }
+    // ScrollTrigger aktualisiert sich bei „load“ selbst; nur nachziehen, wenn das schon vorbei ist
+    if (hasGSAP && document.readyState === 'complete') ScrollTrigger.refresh();
+    if (hasGSAP && fontsPending && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
+  });
 })();

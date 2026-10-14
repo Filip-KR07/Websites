@@ -67,12 +67,6 @@ body::before { /* feines Korn */
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .8  0 0 0 0 .65  0 0 0 0 .4  0 0 0 .05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
 main, .site-footer, .site-header { position: relative; z-index: 1; }
-/* Abschnitte unterhalb der Rasur-Szene erst rendern, wenn sie in die Nähe kommen (spart beim Laden gut die Hälfte der Layout-Zeit).
-   Die Schätzwerte (Inhaltshöhe ohne Padding) liegen nahe an den echten Höhen; „auto“ merkt sich danach die tatsächliche Größe.
-   Galerie bleibt außen vor (fixer Zieh-Cursor darin). */
-.prices, .beard, .house, .team, .booking, .voices, .location, .faq, .career { content-visibility: auto; contain-intrinsic-size: auto var(--cis, 800px); }
-.prices { --cis: 1000px; } .beard { --cis: 1040px; } .house { --cis: 600px; } .team { --cis: 860px; } .booking { --cis: 910px; }
-.voices { --cis: 795px; } .location { --cis: 775px; } .faq { --cis: 465px; } .career { --cis: 330px; }
 img, svg, canvas { display: block; max-width: 100%; }
 img { height: auto; }
 a { color: inherit; }
@@ -328,6 +322,17 @@ p { text-wrap: pretty; }
   .service:hover::before { background: rgba(201, 162, 94, .7); }
   .service:hover .service-icon { transform: rotate(-8deg); }
   .service-icon { transition: transform .3s var(--ease-out); }
+}
+
+/* Fortschritt der wischbaren Leistungsreihe (nur mobil sichtbar; scroll-getrieben, wo unterstützt) */
+.svc-scrub { display: none; }
+.svc-scrub-bar { position: relative; flex: 1; height: 1px; background: var(--line); overflow: hidden; }
+.svc-scrub-bar i { position: absolute; inset: 0; background: var(--messing); transform-origin: left; transform: scaleX(.25); }
+.svc-scrub-hint { font-size: .82rem; font-weight: 600; text-transform: uppercase; letter-spacing: .2em; color: var(--bein-3); white-space: nowrap; }
+@supports (animation-timeline: scroll()) {
+  .svc-scrub-bar i { animation: svc-scrub linear both; animation-timeline: --svc; }
+  @keyframes svc-scrub { from { transform: scaleX(.25); } to { transform: scaleX(1); } }
+  html.motion-off .svc-scrub-bar i { animation-duration: auto !important; } /* folgt dem Wischen, ist keine Eigenbewegung */
 }
 
 /* ---------- Ritual (Pin auf Desktop) ---------- */
@@ -910,8 +915,7 @@ html.motion-off *, html.motion-off *::before, html.motion-off *::after { transit
   html.reduced .pole { transform: none !important; }
   /* Bart-Skizze kompakter: Skizze und Stil-Auswahl passen zusammen in einen Bildschirm, das Morphen bleibt sichtbar */
   .face { max-height: 40svh; }
-  .prices { --cis: 1190px; } .beard { --cis: 1535px; } .house { --cis: 970px; } .team { --cis: 1655px; } .booking { --cis: 1265px; }
-  .voices { --cis: 1260px; } .location { --cis: 1180px; } .faq { --cis: 785px; } .career { --cis: 480px; }
+  @media (max-height: 760px) { .face { max-height: 34svh; } }
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 2rem; }
   .ritual-step { grid-template-columns: minmax(0, 1fr); gap: 1.2rem; }
   .ritual-fig { aspect-ratio: 4 / 3; }
@@ -946,13 +950,21 @@ html.motion-off *, html.motion-off *::before, html.motion-off *::after { transit
   .ab-call { border: 1px solid var(--line); color: var(--bein); }
   .ab-book { background: var(--messing); color: var(--tabak); }
 }
-@media (min-width: 641px) and (max-width: 899px) {
-  .beard { --cis: 1380px; } .team { --cis: 960px; } .booking { --cis: 950px; } .voices { --cis: 935px; } .location { --cis: 1385px; } .faq { --cis: 645px; } .career { --cis: 290px; }
-}
 @media (max-width: 640px) {
-  .service-grid { grid-template-columns: minmax(0, 1fr); }
-  .service { min-height: 0; }
+  /* Leistungen mobil: wischbare Reihe mit Einrasten statt vier hoher Karten untereinander */
+  .service-grid {
+    grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 84%; gap: .75rem;
+    overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none;
+    margin-inline: calc(-1 * max(var(--gutter), env(safe-area-inset-left))); padding: 0 max(var(--gutter), env(safe-area-inset-left)) .25rem;
+    scroll-padding-inline: max(var(--gutter), env(safe-area-inset-left)); scroll-timeline: --svc inline;
+  }
+  .service-grid::-webkit-scrollbar { display: none; }
+  .service { min-height: 0; scroll-snap-align: start; }
   .service h3 { margin-top: .5rem; }
+  html.js:not(.motion-off) .service[data-reveal] { transform: none; }
+  html.js:not(.motion-off) .service[data-reveal]:nth-child(n+3) { opacity: 1; } /* liegen anfangs außerhalb – nicht beim Wischen einblenden */
+  .svc-scrub { display: flex; align-items: center; gap: 1rem; margin-top: 1.25rem; }
+  .services .wrap { timeline-scope: --svc; }
   .team-grid { grid-template-columns: minmax(0, 1fr); }
   .barber { grid-template-columns: 72px 1fr; gap: 1.1rem; }
   .medal { width: 72px; }

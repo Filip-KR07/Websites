@@ -32,7 +32,8 @@ Anfrage-Assistent (4 Schritte) · Footer. Auf dem Handy: feste Aktionsleiste „
 2. **Laufband im Dachwinkel** – zwei Bänder treffen sich als Dachfirst (16°); der Text läuft über
    den First weiter und wird beim Scrollen schneller.
 3. **Leistungen als Karten-Stapel** – Desktop: Sticky-Stacking mit Nummern 01–07 und technischen
-   Detailzeichnungen (Inline-SVG, Positionsnummern + Legende). Handy: normale Liste.
+   Detailzeichnungen (Inline-SVG, Positionsnummern + Legende). Handy/Tablet: Wisch-Deck mit
+   Scroll-Snap, Zähler „01 / 07“, Fortschrittsbalken und Pfeil-Buttons (ohne JS: normale Liste).
 4. **Dach-Konfigurator** – 5 Dachformen × 5 Eindeckungen. Das Haus ist ein echtes 3D-Modell
    (isometrisch projiziert), die Punkte werden weich interpoliert; die Eindeckung ist ein SVG-Muster,
    das perspektivisch auf jede Dachfläche gelegt wird. Steckbrief mit Neigung, Lebensdauer, Gewicht,

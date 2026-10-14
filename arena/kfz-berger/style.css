@@ -92,6 +92,7 @@ ul, ol { padding: 0; list-style: none; }
 h1, h2, h3 { text-wrap: balance; }
 p { text-wrap: pretty; }
 .tnum { font-variant-numeric: tabular-nums; }
+.nowrap { white-space: nowrap; }
 .sr { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
 .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 [hidden] { display: none !important; }
@@ -174,7 +175,7 @@ p { text-wrap: pretty; }
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   min-height: 52px; padding: 0 24px;
   border: 0; background: none; color: var(--fg);
-  font: 600 14.5px/1 var(--f-display); letter-spacing: .07em; text-transform: uppercase; text-decoration: none;
+  font: 600 14.5px/1.15 var(--f-display); letter-spacing: .07em; text-transform: uppercase; text-decoration: none; text-align: center; text-wrap: balance;
   transition: transform 160ms var(--ease-out), color 200ms ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -386,6 +387,10 @@ html.motion-ok .mnav.is-open li { opacity: 1; transform: none; }
   box-shadow: 0 40px 80px -20px rgba(0, 0, 0, .85), 0 0 0 1px rgba(255, 255, 255, .04), 0 0 120px -10px rgba(31, 107, 255, .35);
 }
 .tach { position: relative; width: 100%; height: auto; overflow: visible; }
+/* bewegte Teile liegen als eigene Ebenen über dem statischen Zifferblatt */
+.tach-layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.tach-dyn { will-change: transform; }
+.tach-ndl { will-change: transform; transform-origin: 50% 50%; }
 .tach-outer { fill: #0B0C0E; stroke: rgba(255, 255, 255, .06); }
 .tach-track { fill: none; stroke: rgba(139, 146, 153, .16); stroke-width: 5; }
 .tach-prog { fill: none; stroke: var(--blue); stroke-width: 5; stroke-dasharray: 1000; stroke-dashoffset: 894; }
@@ -430,10 +435,17 @@ html.motion-ok .mnav.is-open li { opacity: 1; transform: none; }
 .hf-live { margin-left: auto; color: var(--white); }
 @media (max-width: 899px) {
   .hero { min-height: 0; padding-bottom: 36px; }
-  .hero-vis { max-width: 480px; margin-top: 8px; margin-bottom: 40px; }
+  /* Handy: Headline → Drehzahlmesser → Text. Das Signature-Instrument steht im ersten Bildschirm,
+     die Termin-CTA ist über die Aktionsleiste ohnehin immer sichtbar. */
+  .hero-grid { gap: 0; container-type: inline-size; }
+  .hero-copy { display: contents; }
+  .hero-vis { order: 1; max-width: 480px; margin: 0 auto 52px; }
+  .hero-lead, .hero-cta, .hero-trust { order: 2; }
+  .hero-title { margin-bottom: 22px; }
   .hf-live { margin-left: 0; }
   .hero-facts { margin-top: 24px; }
 }
+@media (max-width: 640px) { .eb-long { display: none; } }
 
 /* Hero-Intro (nur mit Bewegung) */
 html.js.motion-ok .hero [data-hero-line] { transform: translateY(105%); }
@@ -441,7 +453,7 @@ html.js.motion-ok .hero [data-hero-in] { opacity: 0; transform: translateY(16px)
 html.js.motion-ok .hero [data-hero-photo] { clip-path: inset(0 0 100% 0); }
 html.js.motion-ok .hero [data-tach-wrap] { opacity: 0; transform: scale(.94) rotate(-8deg); }
 html.js.motion-ok.hero-go .hero [data-hero-line] { transform: none; transition: transform 1000ms var(--ease-out); transition-delay: calc(120ms + var(--i, 0) * 80ms); }
-html.js.motion-ok.hero-go .hero [data-hero-in] { opacity: 1; transform: none; transition: opacity 800ms var(--ease-out), transform 900ms var(--ease-out); transition-delay: calc(420ms + var(--i, 0) * 70ms); }
+html.js.motion-ok.hero-go .hero [data-hero-in] { opacity: 1; transform: none; transition: opacity 800ms var(--ease-out), transform 900ms var(--ease-out); transition-delay: calc(300ms + var(--i, 0) * 70ms); }
 html.js.motion-ok.hero-go .hero [data-hero-photo] { clip-path: inset(-24px -24px -48px -24px); transition: clip-path 1100ms var(--ease-in-out) 200ms; }
 html.js.motion-ok.hero-go .hero [data-tach-wrap] { opacity: 1; transform: none; transition: opacity 700ms var(--ease-out) 300ms, transform 1100ms var(--ease-out) 300ms; }
 html.reveal-all .hero [data-hero-line], html.reveal-all .hero [data-hero-in], html.reveal-all .hero [data-tach-wrap] { opacity: 1 !important; transform: none !important; }
@@ -469,13 +481,14 @@ html.reveal-all [data-reveal] { opacity: 1 !important; transform: none !importan
   content: ""; position: absolute; top: -1px; left: -1px; width: 18px; height: 18px;
   border-top: 2px solid var(--blue-hi); border-left: 2px solid var(--blue-hi);
 }
-.panel-h { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.panel-h { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 12px; }
+.st-next { margin-top: auto; }
 .panel-h h3 { font: 600 13px/1.2 var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--steel-2); }
 .tag {
   display: inline-flex; align-items: center; gap: 8px; height: 26px; padding: 0 10px; flex: none;
   border: 1px solid var(--line-2); font: 500 11.5px/1 var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--steel-2);
 }
-.tag-blue { color: var(--blue-hi); border-color: rgba(91, 147, 255, .45); text-transform: none; letter-spacing: .03em; white-space: normal; height: auto; min-height: 26px; padding-block: 4px; text-align: right; flex: 0 1 auto; }
+.tag-blue { color: var(--blue-hi); border-color: rgba(91, 147, 255, .45); text-transform: none; letter-spacing: .03em; white-space: nowrap; }
 [data-st-state][data-state="few"] { color: var(--orange); border-color: rgba(255, 163, 26, .5); }
 [data-st-state][data-state="open"] { color: var(--blue-hi); border-color: rgba(91, 147, 255, .45); }
 .st-big { display: flex; align-items: flex-end; gap: 16px; }
@@ -780,7 +793,7 @@ html.motion-ok .co-lines li.new { animation: lineIn 300ms var(--ease-out); }
 .co-hint.warn::before { background: var(--orange); }
 .co-legal { margin-top: 14px; font-size: 12.5px; color: var(--steel); line-height: 1.5; }
 .co-price, .co-meta strong { transition: opacity 150ms ease; }
-.co-sheet.tick .co-price { opacity: .55; }
+.co-sheet.tick .co-meta strong { opacity: .55; }
 
 /* ==========================================================================
    HU-Erinnerung
@@ -881,12 +894,38 @@ html.motion-ok .co-lines li.new { animation: lineIn 300ms var(--ease-out); }
 @media (min-width: 900px) { .flow:not(.is-h) .flow-grid { align-items: start; } .flow:not(.is-h) .flow-side { position: sticky; top: calc(var(--hdr) + 32px); } }
 /* horizontaler Modus (nur Desktop mit Bewegung, per JS gesetzt) */
 .flow.is-h { padding-block: 0; }
-.flow.is-h .flow-pin { height: 100vh; display: flex; align-items: center; padding-top: var(--hdr); }
+.flow.is-h .flow-pin { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; padding-top: var(--hdr); }
 .flow.is-h .flow-view { overflow: visible; min-width: 0; clip-path: inset(-50vh -100vw -50vh 0); }
 .flow.is-h .flow-track { display: flex; gap: 18px; width: max-content; will-change: transform; }
 .flow.is-h .step { width: clamp(300px, 26vw, 400px); min-height: 360px; flex: none; transition: border-color 300ms ease, background-color 300ms ease; }
 .flow.is-h .step.on { border-color: rgba(91, 147, 255, .6); background: #1D2330; }
 .flow.is-h .step.on .step-n { -webkit-text-stroke-color: var(--blue-hi); }
+
+/* Handy/Tablet: Ablauf als Wisch-Karussell mit Gang-Anzeige statt sechs gestapelter Karten */
+.flow-pager { display: none; }
+@media (max-width: 899px) {
+  .flow-view { margin-inline: calc(-1 * var(--gutter)); min-width: 0; }
+  .flow-track {
+    display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: min(80%, 340px); gap: 12px;
+    overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory;
+    padding: 2px var(--gutter) 6px; scroll-padding-inline: var(--gutter); scrollbar-width: none;
+  }
+  .flow-track::-webkit-scrollbar { display: none; }
+  .flow-track:focus-visible { outline-offset: -2px; }
+  .step { scroll-snap-align: start; min-height: 0; transition: border-color 250ms ease, background-color 250ms ease; }
+  .step.on { border-color: rgba(91, 147, 255, .6); background: #1D2330; }
+  .step.on .step-n { -webkit-text-stroke-color: var(--blue-hi); }
+  .flow-pager:not([hidden]) { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px var(--gutter) 0; }
+  .fp-read { font-family: var(--f-display); color: var(--steel-2); display: flex; align-items: baseline; white-space: nowrap; }
+  .fp-read strong { font-size: 34px; line-height: 1; color: var(--white); font-weight: 600; min-width: .7em; }
+  .fp-read span { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+  .fp-btns { display: flex; }
+  .fp-btns button { width: 40px; height: 44px; padding: 0; border: 0; background: none; display: grid; place-items: center; -webkit-tap-highlight-color: transparent; }
+  .fp-btns i { width: 28px; height: 4px; background: var(--graphite-4); transition: background-color 200ms ease, transform 160ms var(--ease-out); }
+  .fp-btns button[aria-current] i { background: var(--blue-hi); }
+  .fp-btns button:active i { transform: scaleX(.85); }
+}
+@media (max-width: 380px) { .fp-btns button { width: 34px; } .fp-btns i { width: 24px; } }
 
 /* ==========================================================================
    Werkstatt / Team
@@ -1158,6 +1197,14 @@ html.motion-ok .done:not([hidden]) { animation: panelIn 420ms var(--ease-out); }
 .legal-note { margin: 0 0 32px; padding: 14px 16px; border: 1px solid var(--orange); color: var(--white) !important; font: 500 14px/1.45 var(--f-display); letter-spacing: .02em; }
 .legal-back { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 24px; color: var(--steel-2); text-decoration: none; font: 500 13px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; }
 .legal-back svg { width: 16px; height: 16px; transform: rotate(180deg); }
+
+/* ==========================================================================
+   Druck-Feedback für die übrigen Bedienelemente (bewusst am Ende: überschreibt die Transitions oben)
+   ========================================================================== */
+.carx-tabs button, .seg-ctl span, .qa summary i, .to-x { transition-property: color, background-color, border-color, transform; transition-duration: 200ms, 200ms, 200ms, 160ms; transition-timing-function: ease, ease, ease, var(--ease-out); }
+.carx-tabs button:active, .seg-ctl label:active span, .to-x:active { transform: scale(0.96); }
+.qa summary:active i { transform: scale(0.92); }
+.hot:active::before, .hot.is-active:active::before { transform: scale(.9); }
 
 /* ==========================================================================
    Reduzierte Bewegung

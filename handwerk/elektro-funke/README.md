@@ -26,21 +26,27 @@ Aktionsleiste unten (Anrufen · Notdienst · Anfrage).
 
 1. **Stromfluss-Canvas im Hero** – generative Leiterbahnen im Raster, Lichtimpulse laufen darüber.
    Der Mauszeiger zieht einen Lichtkegel nach (Lerp), Impulse in der Nähe werden heller und schneller.
-   Auf Touch-Geräten läuft eine ruhige Automatik. Pausiert außerhalb des Sichtbereichs.
+   Auf Touch-Geräten läuft eine ruhige Automatik (30 fps). Pausiert außerhalb des Sichtbereichs.
+   Raster und Bahnen liegen auf einem eigenen, nur bei Größenänderung gezeichneten Canvas; pro Frame
+   werden nur Impulse und Lichtkegel gezeichnet (der weiche Kegel ist ein komponiertes `div`).
    Headline „Strom, der mitdenkt.“ blendet wie eine anlaufende Leuchte ein (kein Flackern).
    Status-Pillen: Notdienst immer erreichbar, Büro geöffnet/geschlossen nach Uhrzeit (Europe/Berlin).
 2. **PV-Rechner** – Dachfläche, Ausrichtung, Verbrauch (mit Haushalts-Vorgaben), Speicher, Strompreis.
    Rollende Ziffern, Monatsdiagramm (SVG) mit Hover-Werten, Ergebnis per Knopf in den Anfrage-Assistenten.
    Alle Richtwerte stehen dokumentiert als Konstanten oben im Abschnitt `PV` in `main.js`.
 3. **Lichtschalter** – großer Schalter (`aria-pressed`), der den Raum per kreisförmigem
-   `clip-path` vom Schalter aus „einschaltet“. Bei reduzierter Bewegung: weicher Crossfade.
+   `clip-path` vom Schalter aus „einschaltet“ – oder von der Stelle, an der man ins Zimmer tippt.
+   Bei reduzierter Bewegung: weicher Crossfade. Messwerte per Container Query 4- oder 2-spaltig.
 4. **Smart-Home-Panel** – Licht + Dimmer, Rollläden, Heizung, Wallbox mit Ladering, drei Szenen.
    Komplett per Tastatur bedienbar, Änderungen werden für Screenreader angesagt.
 5. **Leistungen als Schaltplan** – Raster mit Spotlight-Rand, der dem Zeiger folgt; Linien-Icons
    zeichnen sich beim Einblenden und Hovern. Auf dem Handy eine klare Liste.
 6. **Referenzen-Filter** – Photovoltaik / Smart Home / Sanierung / Gewerbe mit FLIP-Animation (WAAPI).
+   Auf dem Handy eine wischbare Leiste (Scroll-Snap) mit Fortschrittslinie (Scroll-driven Animation,
+   JS-Ersatz für ältere Browser).
 7. Außerdem: gepinnter Ablauf, durch den „Strom fließt“ (Desktop), Zähler, Einzugsgebiets-Karte als SVG,
-   Kurzbewerbung „in 60 Sekunden“, mehrstufiger Assistent mit Validierung und Zusammenfassung.
+   Kurzbewerbung „in 60 Sekunden“, mehrstufiger Assistent mit Validierung und Zusammenfassung,
+   Footer-Schriftzug, der beim Hineinscrollen „einschaltet“ (Scroll-driven Animation).
 
 Animationen abschalten: `?motion=off` an die Adresse hängen (oder System-Einstellung „Bewegung reduzieren“).
 Ohne JavaScript sind alle Inhalte sichtbar.

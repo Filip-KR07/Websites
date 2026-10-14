@@ -154,18 +154,18 @@
 <section class="hero" id="top" aria-labelledby="hero-title">
   <div class="hero-grid wrap">
     <div class="hero-copy">
-      <p class="eyebrow" data-hero-in><span class="eb-bar" aria-hidden="true"></span>Kfz-Meisterwerkstatt · Dortmund-Unionviertel · seit&nbsp;2006</p>
+      <p class="eyebrow" data-hero-in style="--i:0"><span class="eb-bar" aria-hidden="true"></span><span class="eb-long">Kfz-Meisterwerkstatt · </span>Dortmund-Unionviertel · seit&nbsp;2006</p>
       <h1 id="hero-title" class="hero-title">
-        <span class="ln"><span data-hero-line>Erst messen.</span></span>
-        <span class="ln"><span data-hero-line>Dann schrauben.</span></span>
-        <span class="ln ln-blue"><span data-hero-line>Dann erklären.</span></span>
+        <span class="ln"><span data-hero-line style="--i:0">Erst messen.</span></span>
+        <span class="ln"><span data-hero-line style="--i:1">Dann schrauben.</span></span>
+        <span class="ln ln-blue"><span data-hero-line style="--i:2">Dann erklären.</span></span>
       </h1>
-      <p class="hero-lead" data-hero-in>Inspektion nach Herstellervorgaben, Bremsen, Reifen, Klimaservice und HU/AU im Haus – für alle Marken, vom Kleinwagen bis zum E-Transporter. Vor Arbeitsbeginn bekommen Sie einen Festpreis, und wenn es länger dauert, einen Ersatzwagen.</p>
-      <div class="hero-cta" data-hero-in>
+      <p class="hero-lead" data-hero-in style="--i:1">Inspektion nach Herstellervorgaben, Bremsen, Reifen, Klimaservice und HU/AU im Haus – für alle Marken, vom Kleinwagen bis zum <span class="nowrap">E-Transporter</span>. Vor Arbeitsbeginn bekommen Sie einen Festpreis, und wenn es länger dauert, einen Ersatzwagen.</p>
+      <div class="hero-cta" data-hero-in style="--i:2">
         <a class="btn" href="#termin"><svg aria-hidden="true"><use href="#i-cal"/></svg><span>Termin anfragen</span></a>
         <a class="btn btn-ghost" href="#rechner"><span>Preis berechnen</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </div>
-      <ul class="hero-trust" data-hero-in>
+      <ul class="hero-trust" data-hero-in style="--i:3">
         <li><strong class="tnum">4,8<svg class="star" aria-hidden="true"><use href="#i-star"/></svg></strong><span>aus 389 Bewertungen</span></li>
         <li><strong>Meister&shy;betrieb</strong><span>alle Marken &amp; Antriebe</span></li>
         <li><strong>HU/AU</strong><span>Di + Do im Haus</span></li>
@@ -175,7 +175,7 @@
 
     <div class="hero-vis" aria-label="Animierter Drehzahlmesser" role="group">
       <figure class="hero-photo crop" data-hero-photo>
-        <img src="/arena/kfz-berger/assets/img/hero-960.webp" srcset="/arena/kfz-berger/assets/img/hero-480.webp 480w, /arena/kfz-berger/assets/img/hero-960.webp 960w" sizes="(min-width: 900px) 34vw, 80vw" width="960" height="640" fetchpriority="high" decoding="async" alt="Mechaniker liegt in einer Werkstatt unter einem angehobenen Oldtimer, Schwarzweißaufnahme">
+        <img src="/arena/kfz-berger/assets/img/hero-960.webp" srcset="/arena/kfz-berger/assets/img/hero-480.webp 480w, /arena/kfz-berger/assets/img/hero-960.webp 960w" sizes="(min-width: 900px) min(34vw, 430px), min(62vw, 320px)" width="960" height="640" fetchpriority="high" decoding="async" alt="Mechaniker liegt in einer Werkstatt unter einem angehobenen Oldtimer, Schwarzweißaufnahme">
         <figcaption><span>Bühne 2</span><span class="tnum">07:42</span></figcaption>
       </figure>
       <div class="tach-wrap" data-tach-wrap>
@@ -200,7 +200,6 @@
           <circle cx="200" cy="200" r="185" fill="url(#tach-face)"/>
           <path d="M371.9 153.9A178 178 0 0 1 354.2 289" fill="none" stroke="url(#tach-hatch)" stroke-width="9"/>
           <path class="tach-track" d="M78.8 270A140 140 0 1 1 321.2 270"/>
-          <path class="tach-prog" d="M78.8 270A140 140 0 1 1 321.2 270" pathLength="1000" data-tach-prog/>
           <g class="tach-ticks">
             <line class="t-maj" x1="51" y1="286" x2="71.8" y2="274"/>
             <line class="t-min" x1="41.1" y1="265.8" x2="49.4" y2="262.4"/>
@@ -247,6 +246,19 @@
             <text class="t-lab t-lab-red" x="324" y="207">7</text>
             <text class="t-lab t-lab-red" x="307.4" y="269">8</text>
           </g>
+          <text class="tach-unit" x="200" y="146">× 1000 U/min</text>
+          <text class="tach-brand" x="200" y="164">BERGER · DORTMUND</text>
+          <g class="tach-read">
+            <rect x="148" y="236" width="104" height="44" rx="3"/>
+            <text class="tach-rpm-u" x="200" y="295">U/MIN</text>
+          </g>
+          <g class="tach-gear">
+            <rect x="180" y="306" width="40" height="40" rx="3"/>
+          </g>
+        </svg>
+        <!-- Bewegte Teile in eigenen Ebenen: Das Zifferblatt muss beim Scrollen nicht neu gezeichnet werden -->
+        <svg class="tach-layer tach-dyn" viewBox="0 0 400 400" aria-hidden="true" focusable="false">
+          <path class="tach-prog" d="M78.8 270A140 140 0 1 1 321.2 270" pathLength="1000" data-tach-prog/>
           <g class="tach-leds" data-tach-leds>
             <circle class="led" data-led="0" cx="142.4" cy="120.7" r="4.2"/>
             <circle class="led" data-led="1" cx="160.1" cy="110.5" r="4.2"/>
@@ -256,21 +268,12 @@
             <circle class="led led-hot" data-led="5" cx="239.9" cy="110.5" r="4.2"/>
             <circle class="led led-hot" data-led="6" cx="257.6" cy="120.7" r="4.2"/>
           </g>
-          <text class="tach-unit" x="200" y="146">× 1000 U/min</text>
-          <text class="tach-brand" x="200" y="164">BERGER · DORTMUND</text>
-          <g class="tach-read">
-            <rect x="148" y="236" width="104" height="44" rx="3"/>
-            <text class="tach-rpm" x="200" y="268" data-tach-rpm>0850</text>
-            <text class="tach-rpm-u" x="200" y="295">U/MIN</text>
-          </g>
-          <g class="tach-gear">
-            <rect x="180" y="306" width="40" height="40" rx="3"/>
-            <text x="200" y="336" data-tach-gear>N</text>
-          </g>
-          <g class="tach-needle" data-tach-needle transform="rotate(-99 200 200)">
-            <path class="needle-glow" d="M200 34 L206 200 L194 200 Z"/>
-            <path class="needle" d="M200 30 L203.4 214 L196.6 214 Z" fill="url(#tach-needle)"/>
-          </g>
+          <text class="tach-rpm" x="200" y="268" data-tach-rpm>0850</text>
+          <g class="tach-gear"><text x="200" y="336" data-tach-gear>N</text></g>
+        </svg>
+        <svg class="tach-layer tach-ndl" viewBox="0 0 400 400" aria-hidden="true" focusable="false" data-tach-needle style="transform: rotate(-99deg)">
+          <path class="needle-glow" d="M200 34 L206 200 L194 200 Z"/>
+          <path class="needle" d="M200 30 L203.4 214 L196.6 214 Z" fill="url(#tach-needle)"/>
           <circle cx="200" cy="200" r="17" class="tach-hub"/>
           <circle cx="200" cy="200" r="5" class="tach-hub-in"/>
         </svg>
@@ -279,7 +282,7 @@
       <span class="dim dim-h" aria-hidden="true"><i></i><b>Ø 400</b></span>
     </div>
   </div>
-  <div class="hero-facts wrap" data-hero-in>
+  <div class="hero-facts wrap" data-hero-in style="--i:4">
     <p><svg aria-hidden="true"><use href="#i-pin"/></svg>Rheinische Straße&nbsp;140, 44147&nbsp;Dortmund</p>
     <p><svg aria-hidden="true"><use href="#i-clock"/></svg>Mo–Fr 7:30–18&nbsp;Uhr · Sa 8–12&nbsp;Uhr</p>
     <p class="hf-live" data-status-facts><span class="dot" aria-hidden="true"></span><span>Freie Termine heute: kurz anrufen</span></p>
@@ -686,7 +689,7 @@
           <div class="cls-grid">
             <label class="cls"><input type="radio" name="klasse" value="kleinwagen"><svg viewBox="0 0 120 46" aria-hidden="true"><path d="M14 36V28c0-4 4-6 10-7l14-3 12-9c3-2 6-3 12-3h18c6 0 10 3 13 8l7 10c2 3 2 6 2 12M14 36h9M41 36h37M96 36h6"/><circle cx="32" cy="36" r="8"/><circle cx="87" cy="36" r="8"/></svg><span class="cls-t">Kleinwagen</span><span class="cls-s">z.&nbsp;B. Polo, Corsa, Yaris</span></label>
             <label class="cls"><input type="radio" name="klasse" value="kompakt" checked><svg viewBox="0 0 120 46" aria-hidden="true"><path d="M8 36v-9c0-4 4-6 10-7l18-3 14-9c3-2 7-3 14-3h22c6 0 10 3 14 8l8 10c2 3 2 7 2 13M8 36h11M37 36h46M101 36h9"/><circle cx="28" cy="36" r="8"/><circle cx="92" cy="36" r="8"/></svg><span class="cls-t">Kompakt</span><span class="cls-s">z.&nbsp;B. Golf, Astra, Octavia</span></label>
-            <label class="cls"><input type="radio" name="klasse" value="mittel"><svg viewBox="0 0 120 46" aria-hidden="true"><path d="M5 36v-9c0-4 4-6 10-7l16-3 14-9c3-2 7-3 14-3h45c4 0 6 3 7 7l2 12c1 4 1 8 1 12M5 36h12M35 36h52M105 36h9"/><circle cx="26" cy="36" r="8"/><circle cx="96" cy="36" r="8"/></svg><span class="cls-t">Mittelklasse/Kombi</span><span class="cls-s">z.&nbsp;B. Passat, 3er Touring</span></label>
+            <label class="cls"><input type="radio" name="klasse" value="mittel"><svg viewBox="0 0 120 46" aria-hidden="true"><path d="M5 36v-9c0-4 4-6 10-7l16-3 14-9c3-2 7-3 14-3h45c4 0 6 3 7 7l2 12c1 4 1 8 1 12M5 36h12M35 36h52M105 36h9"/><circle cx="26" cy="36" r="8"/><circle cx="96" cy="36" r="8"/></svg><span class="cls-t">Mittelklasse/<wbr>Kombi</span><span class="cls-s">z.&nbsp;B. Passat, 3er Touring</span></label>
             <label class="cls"><input type="radio" name="klasse" value="suv"><svg viewBox="0 0 120 46" aria-hidden="true"><path d="M8 35V24c0-4 4-6 10-7l14-2 12-10c2-2 6-3 12-3h42c5 0 8 3 9 7l3 11c1 6 1 10 1 15M8 35h10M38 35h44M102 35h9"/><circle cx="28" cy="35" r="9"/><circle cx="92" cy="35" r="9"/></svg><span class="cls-t">SUV/Van</span><span class="cls-s">z.&nbsp;B. Tiguan, Touran, Kuga</span></label>
             <label class="cls"><input type="radio" name="klasse" value="transporter"><svg viewBox="0 0 120 46" aria-hidden="true"><path d="M6 36V22c0-4 2-7 6-9l12-9c2-2 5-3 9-3h77c2 0 4 2 4 4v31M6 36h12M34 36h54M104 36h10M28 4v14H6"/><circle cx="26" cy="36" r="8"/><circle cx="96" cy="36" r="8"/></svg><span class="cls-t">Transporter</span><span class="cls-s">bis 3,5&nbsp;t, z.&nbsp;B. Transit</span></label>
           </div>
@@ -837,7 +840,7 @@
           <svg viewBox="0 0 200 240" data-shifter>
             <path class="gate-bg" d="M40 40V200M100 40V200M160 40V200M40 120H160"/>
             <path class="gate" d="M40 40V200M100 40V200M160 40V200M40 120H160"/>
-            <g class="gate-n"><text x="40" y="24">1</text><text x="40" y="228">2</text><text x="100" y="24">3</text><text x="100" y="228">4</text><text x="160" y="24">5</text><text x="160" y="228">6</text></g>
+            <g class="gate-n"><text x="40" y="9">1</text><text x="40" y="244">2</text><text x="100" y="9">3</text><text x="100" y="244">4</text><text x="160" y="9">5</text><text x="160" y="244">6</text></g>
             <circle class="knob-ring" cx="40" cy="40" r="22" data-knob-ring/>
             <circle class="knob" cx="40" cy="40" r="14" data-knob/>
           </svg>
@@ -889,6 +892,17 @@
             <span class="step-meta">Bezahlen: EC, Kreditkarte, bar</span>
           </li>
         </ol>
+        <div class="flow-pager" data-flow-pager hidden>
+          <p class="fp-read" aria-hidden="true"><strong class="tnum" data-fp-n>1</strong><span>. Gang von 6</span></p>
+          <div class="fp-btns" role="group" aria-label="Schritt anzeigen">
+            <button type="button" aria-label="Schritt 1: Termin" aria-current="step"><i></i></button>
+            <button type="button" aria-label="Schritt 2: Dialogannahme"><i></i></button>
+            <button type="button" aria-label="Schritt 3: Diagnose"><i></i></button>
+            <button type="button" aria-label="Schritt 4: Freigabe"><i></i></button>
+            <button type="button" aria-label="Schritt 5: Reparatur"><i></i></button>
+            <button type="button" aria-label="Schritt 6: Übergabe"><i></i></button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1261,6 +1275,21 @@
   <a href="#termin" class="mbar-main"><svg aria-hidden="true"><use href="#i-cal"/></svg><span>Termin anfragen</span></a>
 </nav>
 
+<script>
+  /* Hero-Intro sofort nach dem Parsen starten – nicht erst nach GSAP/Lenis/main.js */
+  (function () {
+    var d = document.documentElement;
+    function go() {
+      if (d.classList.contains('hero-go')) return;
+      window.__heroGoAt = performance.now();
+      d.classList.add('hero-go');
+      document.dispatchEvent(new Event('berger:herogo'));
+    }
+    var fr = document.fonts && document.fonts.ready;
+    (fr ? Promise.race([fr, new Promise(function (r) { setTimeout(r, 700); })]) : Promise.resolve())
+      .then(function () { requestAnimationFrame(go); });
+  })();
+</script>
 <script src="/arena/kfz-berger/assets/vendor/gsap.min.js" defer></script>
 <script src="/arena/kfz-berger/assets/vendor/ScrollTrigger.min.js" defer></script>
 <script src="/arena/kfz-berger/assets/vendor/lenis.min.js" defer></script>

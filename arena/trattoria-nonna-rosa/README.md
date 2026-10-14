@@ -26,7 +26,7 @@ Zusätzlich: `impressum.html`, `datenschutz.html` (Muster, vor Livegang ersetzen
 - **Kreidetafel:** Jede Zeile wird per `stroke-dashoffset` und mitlaufender Clip-Maske „geschrieben“, dazu Kreidestaub (Canvas) und gezeichnete Unterstreichung/Preis-Kreis. Tagwechsel wischt die Tafel und schreibt neu. Heute wird automatisch vorausgewählt (Montag → Dienstag).
 - **Speisekarte:** Tabs mit Pfeiltasten/Home/End, Hervorhebung per `clip-path` (Farbe wechselt nahtlos). Filter „Vegetarisch/Vegan“ und „Ohne Gluten/Ei/Milch/Nüsse/Fisch“ mit Zählern je Tab und Leerzustand.
 - **Wein-Pairing:** Radar (6 Achsen) morpht zwischen Profilen; Werte zusätzlich als Punktliste und `aria-live`-Text.
-- **Wäscheleine:** Desktop: gepinnte horizontale Strecke (GSAP ScrollTrigger), Polaroids werden „aufgehängt“ und pendeln mit der Scrollgeschwindigkeit (Federsimulation). Unter 900 px: vertikale Liste, Polaroids gleiten seitlich herein.
+- **Wäscheleine:** Desktop: horizontale Strecke (CSS `position: sticky` + GSAP-ScrollTrigger-Scrub, kein Pin – dadurch keine Layout-Shifts), Polaroids werden „aufgehängt“ und pendeln mit der Scrollgeschwindigkeit (Federsimulation). Unter 900 px: vertikale Liste, Polaroids gleiten seitlich herein.
 - **Reservierung:** Kalender (Pfeiltasten, Bild↑/↓, Montag Ruhetag), Zeitfenster je Tag mit deterministisch „ausgebuchten“ Zeiten, Personen-Stepper, Anlass (bei Geburtstag: Kerze im Tiramisù), Tischkarte mit Live-Zusammenfassung, Validierung, Bestätigung „Demo – es wurde nichts gesendet“.
 - Ohne JavaScript, bei `prefers-reduced-motion` und mit `?motion=off` ist alles sichtbar und bedienbar.
 

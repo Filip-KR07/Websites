@@ -868,13 +868,31 @@
       setProgress(main.progress > 0 ? mainMap(main.progress) : entry.progress * ENTRY);
       return function () { entry.kill(); main.kill(); };
     };
+    // Im gepinnten Zustand hält die Schrittliste die Höhe des längsten geöffneten Schritts –
+    // sonst verschiebt das Auf- und Zuklappen den vertikal zentrierten Block (Layout-Shift).
+    var lockSteps = function () {
+      stepsEl.style.minHeight = '';
+      var base = 0, tallest = 0;
+      steps.forEach(function (st) {
+        var more = qs('.step-more', st), inner = more && more.firstElementChild;
+        base += st.offsetHeight - (more ? more.offsetHeight : 0);
+        if (inner) tallest = Math.max(tallest, inner.scrollHeight);
+      });
+      stepsEl.style.minHeight = Math.ceil(base + tallest) + 'px';
+    };
     mm.add('(min-width: 900px)', function () {
       section.classList.add('is-pinned');
+      lockSteps();
+      ScrollTrigger.addEventListener('refreshInit', lockSteps);
       var kill = pair(
         { trigger: pin, start: 'top 70%', end: 'top top' },
         { trigger: pin, start: 'top top', end: '+=260%', pin: true, anticipatePin: 1 }
       );
-      return function () { kill(); section.classList.remove('is-pinned'); };
+      return function () {
+        kill(); section.classList.remove('is-pinned');
+        ScrollTrigger.removeEventListener('refreshInit', lockSteps);
+        stepsEl.style.minHeight = '';
+      };
     });
     mm.add('(max-width: 899px)', function () {
       return pair(

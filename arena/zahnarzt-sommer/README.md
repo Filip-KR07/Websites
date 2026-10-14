@@ -34,7 +34,9 @@ Designsprache: hell, ruhig, klinisch-frisch, aber warm – Weiß, Minze, tiefes 
 
 ## Technik
 - GSAP + ScrollTrigger + Lenis (lokal in `assets/vendor/`); Lenis nur ohne reduzierte Bewegung, Instanz als `window.__lenis`.
-- Pins/horizontale Strecke nur ab 900 px (`gsap.matchMedia`), darunter native Layouts.
+- Horizontale Strecke nur ab 900 px (`gsap.matchMedia`), darunter native Layouts. Sie hängt an CSS `position: sticky` (kein GSAP-Pin → keine Layout-Shifts); die Sektionshöhe setzt `main.js` über `--tour-dist`.
+- Hero-Intro startet per kleinem Inline-Skript direkt nach dem Hero (nicht erst nach `main.js`); übrige Module werden in kleinen Häppchen initialisiert. Die Linse bewegt sich nur per `transform` (Compositor), SVG-Werkzeug-Animationen laufen nur, solange sie sichtbar sind.
+- Handy: Die Aktionsleiste fährt ein, sobald die Hero-Buttons aus dem Bild sind (ohne JS immer sichtbar).
 - `?motion=off` oder `prefers-reduced-motion` schalten Bewegung ab; ohne JS ist alles sichtbar (Tabs werden zu Abschnitten, Formular-Schritte untereinander).
 - Alle Pfade absolut mit Präfix `/arena/zahnarzt-sommer/`.
 

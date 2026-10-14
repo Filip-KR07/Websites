@@ -184,7 +184,7 @@
           </ul>
         </div>
         <div class="hero-art">
-          <canvas class="hero-canvas" aria-hidden="true"></canvas>
+          <div class="hero-canvas-wrap" aria-hidden="true"><canvas class="hero-canvas"></canvas></div>
           <figure class="hero-figure">
             <div class="arch" data-ink="blot">
               <img src="/arena/tattoo-schwarzstich/assets/img/hero-960.webp" srcset="/arena/tattoo-schwarzstich/assets/img/hero-480.webp 480w, /arena/tattoo-schwarzstich/assets/img/hero-960.webp 960w" sizes="(min-width: 900px) 34vw, 80vw" width="960" height="640" fetchpriority="high" decoding="async" alt="Ein tätowierter Artist sitzt am Zeichentisch und zieht mit einer feinen Feder die Linien eines Entwurfs nach.">
@@ -602,8 +602,8 @@
       <div class="wrap">
         <header class="sec-head sec-head--split">
           <div>
-            <p class="kicker"><span class="kicker-dot" aria-hidden="true"></span>Anfrage-Assistent · ca. 3 Minuten</p>
-            <h2 class="display" id="anfrage-title" data-ink="wipe">Ihre Idee</h2>
+            <p class="kicker"><span class="kicker-dot" aria-hidden="true"></span>Assistent · 5 Schritte · ca. 3 Minuten</p>
+            <h2 class="display" id="anfrage-title" data-ink="wipe">Anfrage</h2>
           </div>
           <p class="sec-intro">Zeigen Sie uns, wo das Tattoo hinsoll und wie groß es werden darf. Sie bekommen sofort eine grobe Einschätzung der Sitzungsdauer – und wir eine Anfrage, mit der wir wirklich arbeiten können.</p>
         </header>
@@ -734,7 +734,7 @@
             </fieldset>
 
             <fieldset class="wiz-panel" data-panel="4">
-              <legend class="wiz-legend"><span class="num">04</span> Ihre Idee</legend>
+              <legend class="wiz-legend"><span class="num">04</span> Was soll es werden?</legend>
               <div class="field">
                 <label for="f-idea">Beschreiben Sie Motiv und Referenzen</label>
                 <textarea id="f-idea" name="idee" rows="5" minlength="20" required aria-describedby="f-idea-hint" placeholder="z. B. Eine Mondsichel mit Wildblumen, eher zart, schwarz-grau. Referenz: das Wildblumen-Tattoo aus Ihrem Portfolio, aber kleiner."></textarea>
@@ -811,87 +811,91 @@
 
     <!-- ============ PFLEGE ============ -->
     <section class="care" id="pflege" aria-labelledby="pflege-title">
-      <div class="wrap care-head">
-        <div>
-          <p class="kicker"><span class="kicker-dot" aria-hidden="true"></span>Aftercare · Tag für Tag</p>
-          <h2 class="display" id="pflege-title" data-ink="wipe">Pflege</h2>
-        </div>
-        <div class="care-tool">
-          <p class="sec-intro">Ein Tattoo ist in den ersten Wochen eine Wunde. So heilt es sauber – Schritt für Schritt.</p>
-          <div class="field field--range field--care">
-            <label for="care-day">Tage seit dem Stechen</label>
-            <output class="size-out num" id="care-day-out" for="care-day">3</output>
-            <input type="range" id="care-day" min="0" max="45" step="1" value="3" aria-valuetext="3 Tage">
-            <div class="ruler" aria-hidden="true"><span>0</span><span>1 Wo.</span><span>2 Wo.</span><span>3 Wo.</span><span>4 Wo.</span><span>6+ Wo.</span></div>
-          </div>
-          <p class="care-now" id="care-now" aria-live="polite"></p>
-        </div>
-      </div>
       <div class="care-pin">
-        <div class="care-day-big" aria-hidden="true"><span class="care-day-k">Tag</span><span class="care-day-n num" id="care-big">0</span></div>
-        <div class="care-track">
-          <span class="care-line" aria-hidden="true"><span class="care-line-fill"></span></span>
-          <ol class="care-list">
-            <li class="care-card" data-from="0" data-to="0">
-              <p class="care-when">Tag 0 · direkt danach</p>
-              <h3 class="care-title">Folie drauf lassen</h3>
-              <ul>
-                <li>Klarsichtfolie nach 2–4&nbsp;Stunden ab, atmungsaktive Folie nach 3–5&nbsp;Tagen – wir sagen Ihnen, welche Sie tragen.</li>
-                <li>Vor jedem Anfassen Hände waschen.</li>
-                <li>Heute kein Sport, kein Alkohol.</li>
-              </ul>
-            </li>
-            <li class="care-card" data-from="1" data-to="3">
-              <p class="care-when">Tag 1–3</p>
-              <h3 class="care-title">Waschen &amp; dünn pflegen</h3>
-              <ul>
-                <li>2× täglich mit lauwarmem Wasser und parfümfreier Waschlotion abwaschen, trocken tupfen.</li>
-                <li>Hauchdünn Pflegecreme – glänzen darf es, schmieren nicht.</li>
-                <li>Etwas Wundwasser und Wärme sind normal.</li>
-              </ul>
-            </li>
-            <li class="care-card" data-from="4" data-to="7">
-              <p class="care-when">Tag 4–7</p>
-              <h3 class="care-title">Spannen &amp; Jucken</h3>
-              <ul>
-                <li>Die Haut spannt und juckt: nicht kratzen, höchstens leicht klopfen.</li>
-                <li>Locker sitzende Kleidung, keine Vollbäder.</li>
-                <li>Weiter 2–3× täglich dünn eincremen.</li>
-              </ul>
-            </li>
-            <li class="care-card" data-from="8" data-to="14">
-              <p class="care-when">Tag 8–14</p>
-              <h3 class="care-title">Schälphase</h3>
-              <ul>
-                <li>Feine Schuppen lösen sich – nicht abziehen.</li>
-                <li>Das Tattoo wirkt jetzt matt oder milchig. Das ist die „Silberhaut“, kein Farbverlust.</li>
-              </ul>
-            </li>
-            <li class="care-card" data-from="15" data-to="28">
-              <p class="care-when">Woche 3–4</p>
-              <h3 class="care-title">Silberhaut</h3>
-              <ul>
-                <li>Oberfläche ist zu, darunter heilt es weiter.</li>
-                <li>Noch kein Schwimmbad, keine Sauna, kein Solarium – und auch die Förde muss noch warten.</li>
-              </ul>
-            </li>
-            <li class="care-card" data-from="29" data-to="44">
-              <p class="care-when">Ab Woche 5</p>
-              <h3 class="care-title">Ausgeheilt &amp; Nachstechen</h3>
-              <ul>
-                <li>Farbe und Linien wirken wieder klar.</li>
-                <li>Kleine Lücken stechen wir innerhalb von drei Monaten kostenlos nach.</li>
-              </ul>
-            </li>
-            <li class="care-card" data-from="45" data-to="9999">
-              <p class="care-when">Für immer</p>
-              <h3 class="care-title">Sonne meiden, eincremen</h3>
-              <ul>
-                <li>Auf verheilte Tattoos im Sommer Sonnenschutz mit hohem LSF.</li>
-                <li>Gepflegte Haut hält Linien länger scharf.</li>
-              </ul>
-            </li>
-          </ol>
+        <div class="care-stage">
+          <div class="wrap care-head">
+            <div>
+              <p class="kicker"><span class="kicker-dot" aria-hidden="true"></span>Aftercare · Tag für Tag</p>
+              <h2 class="display" id="pflege-title" data-ink="wipe">Pflege</h2>
+            </div>
+            <div class="care-tool">
+              <p class="sec-intro">Ein Tattoo ist in den ersten Wochen eine Wunde. So heilt es sauber – Schritt für Schritt.</p>
+              <div class="field field--range field--care">
+                <label for="care-day">Tage seit dem Stechen</label>
+                <output class="size-out num" id="care-day-out" for="care-day">3</output>
+                <input type="range" id="care-day" min="0" max="45" step="1" value="3" aria-valuetext="3 Tage">
+                <div class="ruler" aria-hidden="true"><span>0</span><span>1 Wo.</span><span>2 Wo.</span><span>3 Wo.</span><span>4 Wo.</span><span>6+ Wo.</span></div>
+              </div>
+              <p class="care-now" id="care-now" aria-live="polite"></p>
+            </div>
+          </div>
+          <div class="care-rail">
+            <div class="care-day-big" aria-hidden="true"><span class="care-day-k">Tag</span><span class="care-day-n num" id="care-big">0</span></div>
+            <div class="care-track">
+              <span class="care-line" aria-hidden="true"><span class="care-line-fill"></span></span>
+              <ol class="care-list">
+                <li class="care-card" data-from="0" data-to="0">
+                  <p class="care-when">Tag 0 · direkt danach</p>
+                  <h3 class="care-title">Folie drauf lassen</h3>
+                  <ul>
+                    <li>Klarsichtfolie nach 2–4&nbsp;Stunden ab, atmungsaktive Folie nach 3–5&nbsp;Tagen – wir sagen Ihnen, welche Sie tragen.</li>
+                    <li>Vor jedem Anfassen Hände waschen.</li>
+                    <li>Heute kein Sport, kein Alkohol.</li>
+                  </ul>
+                </li>
+                <li class="care-card" data-from="1" data-to="3">
+                  <p class="care-when">Tag 1–3</p>
+                  <h3 class="care-title">Waschen &amp; dünn pflegen</h3>
+                  <ul>
+                    <li>2× täglich mit lauwarmem Wasser und parfümfreier Waschlotion abwaschen, trocken tupfen.</li>
+                    <li>Hauchdünn Pflegecreme – glänzen darf es, schmieren nicht.</li>
+                    <li>Etwas Wundwasser und Wärme sind normal.</li>
+                  </ul>
+                </li>
+                <li class="care-card" data-from="4" data-to="7">
+                  <p class="care-when">Tag 4–7</p>
+                  <h3 class="care-title">Spannen &amp; Jucken</h3>
+                  <ul>
+                    <li>Die Haut spannt und juckt: nicht kratzen, höchstens leicht klopfen.</li>
+                    <li>Locker sitzende Kleidung, keine Vollbäder.</li>
+                    <li>Weiter 2–3× täglich dünn eincremen.</li>
+                  </ul>
+                </li>
+                <li class="care-card" data-from="8" data-to="14">
+                  <p class="care-when">Tag 8–14</p>
+                  <h3 class="care-title">Schälphase</h3>
+                  <ul>
+                    <li>Feine Schuppen lösen sich – nicht abziehen.</li>
+                    <li>Das Tattoo wirkt jetzt matt oder milchig. Das ist die „Silberhaut“, kein Farbverlust.</li>
+                  </ul>
+                </li>
+                <li class="care-card" data-from="15" data-to="28">
+                  <p class="care-when">Woche 3–4</p>
+                  <h3 class="care-title">Silberhaut</h3>
+                  <ul>
+                    <li>Oberfläche ist zu, darunter heilt es weiter.</li>
+                    <li>Noch kein Schwimmbad, keine Sauna, kein Solarium – und auch die Förde muss noch warten.</li>
+                  </ul>
+                </li>
+                <li class="care-card" data-from="29" data-to="44">
+                  <p class="care-when">Ab Woche 5</p>
+                  <h3 class="care-title">Ausgeheilt &amp; Nachstechen</h3>
+                  <ul>
+                    <li>Farbe und Linien wirken wieder klar.</li>
+                    <li>Kleine Lücken stechen wir innerhalb von drei Monaten kostenlos nach.</li>
+                  </ul>
+                </li>
+                <li class="care-card" data-from="45" data-to="9999">
+                  <p class="care-when">Für immer</p>
+                  <h3 class="care-title">Sonne meiden, eincremen</h3>
+                  <ul>
+                    <li>Auf verheilte Tattoos im Sommer Sonnenschutz mit hohem LSF.</li>
+                    <li>Gepflegte Haut hält Linien länger scharf.</li>
+                  </ul>
+                </li>
+              </ol>
+            </div>
+          </div>
         </div>
       </div>
       <div class="wrap">
