@@ -11,14 +11,14 @@ grep -o "\[\[" index.html impressum.html datenschutz.html | wc -l
 Muss `0` ergeben. Pro Datei: `grep -o "\[\[" index.html | wc -l` (bzw. `impressum.html`, `datenschutz.html`).
 `grep -c` reicht nicht, es zählt Zeilen – in manchen Zeilen stehen zwei Platzhalter.
 
-Stand dieser Liste: **181 Stellen** – 158 in `index.html`, 9 in `impressum.html`, 14 in `datenschutz.html`. Nach jeder Änderung am HTML neu zählen; die Zahlen pro Abschnitt unten sind eine Momentaufnahme.
+Stand dieser Liste: **164 Stellen** – 141 in `index.html`, 9 in `impressum.html`, 14 in `datenschutz.html`. Nach jeder Änderung am HTML neu zählen; die Zahlen pro Abschnitt unten sind eine Momentaufnahme.
 
 ## Abschnitte in Seitenreihenfolge
 
 | # | Abschnitt | Anker | Offene Stellen |
 |---|---|---|---|
 | – | Menü (Socials) | `.menu` | 2 |
-| 1 | Hero | `#hero` | 4 |
+| 1 | Hero | `#hero` | 3 |
 | 2 | Über mich | `#intro` | 12 |
 | 3 | Die Rechnung | `#wert` | 0 |
 | 4 | Rechner | `#rechner` | 0 (Standardwerte prüfen, siehe unten) |
@@ -27,7 +27,7 @@ Stand dieser Liste: **181 Stellen** – 158 in `index.html`, 9 in `impressum.htm
 | – | Laufband | `.marquee` | 0 |
 | 7 | Fokus (Wort-Tausch) | `#fokus` | 8 |
 | 8 | Der Weg | `#weg` | 14 |
-| 9 | Projekte | `#projekte` | 16 |
+| 9 | Case Studies | `#projekte` | 0 (sechs Karten aus `projekte/projekte.json`, Übersicht `projekte.html`) |
 | 10 | Zahlen | `#zahlen` | 25 |
 | 11 | Haltung | `#statement` | 3 |
 | 12 | Stimmen | `#stimmen` | 12 |
@@ -37,7 +37,7 @@ Stand dieser Liste: **181 Stellen** – 158 in `index.html`, 9 in `impressum.htm
 | 16 | Fragen | `#fragen` | 11 |
 | 17 | Kontakt | `#kontakt` | 3 |
 | – | Footer | `.footer` | 1 |
-| | **Summe `index.html`** | | **158** |
+| | **Summe `index.html`** | | **141** |
 | – | Impressum | `impressum.html` | 9 |
 | – | Datenschutz | `datenschutz.html` | 14 |
 
@@ -69,7 +69,7 @@ sed -n '/id="zahlen"/,/id="statement"/p' index.html | grep -o "\[\[" | wc -l
 
 **Der Weg** – fünf Stationen mit Jahr, Titel und ein bis zwei Sätzen. Die letzte Station heißt „Heute“.
 
-**Projekte** – vier Karten mit Verweis, Kategorie, Name und einem Einzeiler von höchstens 90 Zeichen. Nur echte Projekte, Beispiele als solche kennzeichnen. Bilder siehe unten.
+**Case Studies** – fertig: sechs Karten verweisen auf `projekte/<slug>.html`, die Übersicht ist `projekte.html`. Alle 30 Case Studies entstehen aus `projekte/projekte.json` mit `python3 tools/build-projekte.py` (nach jeder Änderung an der JSON neu ausführen). Vorschaubilder liegen in `assets/projekte/preview/`. Die Live-Demos kommen beim Veröffentlichen aus ihren Branches (`tools/build-site.py`, `.github/workflows/pages.yml`).
 
 **Zahlen** – vier Kennzahlen (z. B. umgesetzte Websites, Jahre Erfahrung, Ø Ladezeit, Projekte pünktlich live). Pro Kachel: Beschriftung; Endwert im Text (statt `[[Zahl]]`) **und** im Attribut `data-to` (nur Ziffern, Dezimalpunkt), bei Kommazahlen `data-decimals="1"`; ein Zusatz wie `+`, `%` oder `s` in `<span class="zahl__suffix">`; `data-points` mit mindestens zwei kommagetrennten echten Werten für die Verlaufslinie (sonst bleibt sie eine neutrale waagerechte Linie); eine Kurznotiz und darunter der Stand mit Quelle. Nur Zahlen, die du belegen kannst.
 
@@ -100,7 +100,6 @@ Die blaue Hinweisbox in beiden Dateien vor der Veröffentlichung löschen. Beide
 | `data-slot` | Abschnitt | Format | Mindestgröße | Hinweis |
 |---|---|---|---|---|
 | `portrait-01` | Über mich | 3:4 | 1200×1600 px | |
-| `venture-01` … `venture-04` | Projekte | 4:5 | 1200×1500 px | Motiv mittig, beim Parallax werden ca. 20 % beschnitten |
 | `gallery-01`, `gallery-06` | Galerie | 4:3 | 1600×1200 px | |
 | `gallery-02`, `gallery-05` | Galerie | 3:4 | 1200×1600 px | |
 | `gallery-03` | Galerie | 1:1 | 1200×1200 px | |

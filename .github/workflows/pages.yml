@@ -1,0 +1,62 @@
+name: GitHub Pages (Website + alle Demos)
+
+# Ein Repo hat nur eine Pages-Seite. Dieser Workflow veroeffentlicht die persoenliche Website
+# an der Wurzel und holt alle Demo-Websites, auf die die Case Studies verweisen, aus ihren Branches:
+#   /                    diese Branch (persoenliche Website mit Case Studies)
+#   /arena/, /handwerk/  claude/zen-bardeen-wy4yel
+#   /tank-treff-hamburg/ claude/peaceful-goldberg-e9in4f
+#   /paledo-hamburg/     claude/paledo-hamburg
+#   /jeffs-cakes/        claude/jeffs-cakes
+#   /koez-firat/         claude/zen-noether-yzkyng
+#   /physio-mk/          claude/compassionate-galileo-x8foz6
+#   /doener/             claude/donerladen-demo-skills-a6i50k
+#   /restaurant/, /restaurant-arena/  claude/nice-noether-t2ji5a
+# Achtung: Laeuft ein Pages-Workflow einer anderen Branch danach, ersetzt er diese Seite.
+# Dann diesen Workflow unter "Actions" per "Run workflow" neu starten.
+
+on:
+  push:
+    branches: [claude/trusting-turing-gqxiqh]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: { ref: claude/zen-bardeen-wy4yel, path: _src/zen-bardeen-wy4yel, sparse-checkout: "arena\nhandwerk" }
+      - uses: actions/checkout@v4
+        with: { ref: claude/peaceful-goldberg-e9in4f, path: _src/peaceful-goldberg-e9in4f, sparse-checkout: tank-treff-hamburg }
+      - uses: actions/checkout@v4
+        with: { ref: claude/paledo-hamburg, path: _src/paledo-hamburg, sparse-checkout: paledo-hamburg }
+      - uses: actions/checkout@v4
+        with: { ref: claude/jeffs-cakes, path: _src/jeffs-cakes, sparse-checkout: jeffs-cakes }
+      - uses: actions/checkout@v4
+        with: { ref: claude/zen-noether-yzkyng, path: _src/zen-noether-yzkyng, sparse-checkout: koez-firat }
+      - uses: actions/checkout@v4
+        with: { ref: claude/compassionate-galileo-x8foz6, path: _src/compassionate-galileo-x8foz6, sparse-checkout: physio-mk }
+      - uses: actions/checkout@v4
+        with: { ref: claude/donerladen-demo-skills-a6i50k, path: _src/donerladen-demo-skills-a6i50k, sparse-checkout: doener }
+      - uses: actions/checkout@v4
+        with: { ref: claude/nice-noether-t2ji5a, path: _src/nice-noether-t2ji5a, sparse-checkout: "restaurant\narena" }
+      - name: Seite zusammenbauen
+        run: python3 tools/build-site.py . _src _site /Websites
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
