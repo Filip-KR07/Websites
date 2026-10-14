@@ -385,6 +385,12 @@ html:not(.js) .hdr,
   overflow: hidden;
 }
 .hero__canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; }
+.hero__glow {
+  position: absolute; left: 0; top: 0; z-index: -2; pointer-events: none;
+  width: 700px; height: 700px; margin: -350px 0 0 -350px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(77, 163, 255, .1), rgba(77, 163, 255, 0));
+  opacity: 0; will-change: transform, opacity;
+}
 .hero::before {
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background:
@@ -427,6 +433,7 @@ html:not(.js) .hdr,
   color: var(--text-2);
   text-wrap: pretty;
 }
+.hero__lead-short { display: none; }
 .hero__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: clamp(26px, 3vw, 38px); }
 
 .trust {
@@ -549,11 +556,11 @@ html:not(.js) .hdr,
 @keyframes drip { 0% { transform: translateY(-10px); } 100% { transform: translateY(24px); } }
 
 /* Einschalt-Animation der Headline („anlaufende Leuchte“, ohne Flackern) */
-.js.motion-ok .lamp--1 { animation: lamp-white 1500ms var(--ease-out) 150ms both; }
-.js.motion-ok .lamp__text { animation: lamp-on 1900ms linear 520ms both; }
-.js.motion-ok .lamp__glow { animation: glow-on 2400ms var(--ease-out) 620ms both; }
+.js.motion-ok .lamp--1 { animation: lamp-white 1100ms var(--ease-out) 60ms both; }
+.js.motion-ok .lamp__text { animation: lamp-on 1500ms linear 320ms both; }
+.js.motion-ok .lamp__glow { animation: glow-on 2000ms var(--ease-out) 420ms both; }
 @keyframes lamp-white {
-  from { opacity: 0; transform: translateY(14px); filter: blur(6px); }
+  from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
   to { opacity: 1; transform: none; filter: blur(0); }
 }
 @keyframes lamp-on {
@@ -570,18 +577,19 @@ html:not(.js) .hdr,
 .js.motion-ok .hero__status,
 .js.motion-ok .hero__lead,
 .js.motion-ok .hero__ctas,
-.js.motion-ok .trust { animation: rise 900ms var(--ease-out) both; }
-.js.motion-ok .hero__status { animation-delay: 60ms; }
-.js.motion-ok .hero__lead { animation-delay: 900ms; }
-.js.motion-ok .hero__ctas { animation-delay: 990ms; }
-.js.motion-ok .trust { animation-delay: 1080ms; }
-.js.motion-ok .hv { animation: fade 700ms ease 250ms both; }
-.js.motion-ok .hv__img { animation: img-in 1500ms var(--ease-out) 300ms both; }
-.js.motion-ok .hv-card { animation: rise 900ms var(--ease-out) 1300ms both; }
-.js.motion-ok .callout { animation: fade 600ms ease both; }
-.js.motion-ok .callout--pe { animation-delay: 1500ms; }
-.js.motion-ok .callout--n { animation-delay: 1620ms; }
-.js.motion-ok .callout--ls { animation-delay: 1740ms; }
+.js.motion-ok .trust { animation: rise 800ms var(--ease-out) both; }
+/* Botschaft + CTA stehen nach gut einer Sekunde – die Leuchte „läuft“ parallel an */
+.js.motion-ok .hero__status { animation-delay: 0ms; }
+.js.motion-ok .hero__lead { animation-delay: 380ms; }
+.js.motion-ok .hero__ctas { animation-delay: 450ms; }
+.js.motion-ok .trust { animation-delay: 540ms; }
+.js.motion-ok .hv { animation: fade 700ms ease 200ms both; }
+.js.motion-ok .hv__img { animation: img-in 1300ms var(--ease-out) 240ms both; }
+.js.motion-ok .hv-card { animation: rise 800ms var(--ease-out) 820ms both; }
+.js.motion-ok .callout { animation: fade 500ms ease both; }
+.js.motion-ok .callout--pe { animation-delay: 1050ms; }
+.js.motion-ok .callout--n { animation-delay: 1130ms; }
+.js.motion-ok .callout--ls { animation-delay: 1210ms; }
 @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes img-in {
@@ -946,6 +954,28 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px var(
   border: 1px solid var(--warm); opacity: 0;
 }
 .wallswitch.is-clicked::after { animation: switch-ring 600ms var(--ease-out); }
+/* Einladung, solange noch nicht geschaltet wurde: ruhiger Lichtring */
+.wallswitch::before {
+  content: ""; position: absolute; inset: -9px; border-radius: 30px; pointer-events: none;
+  border: 1px solid rgba(255, 196, 107, .55); opacity: 0;
+}
+.js.motion-ok .light:not(.was-used) .wallswitch::before { animation: switch-invite 2.6s var(--ease-out) 1.2s infinite; }
+@keyframes switch-invite { 0% { opacity: 0; transform: scale(.92); } 25% { opacity: .9; } 100% { opacity: 0; transform: scale(1.16); } }
+.light__stage { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.light__stage::after {
+  content: "Ins Zimmer tippen oder Schalter drücken"; position: absolute; left: 50%; bottom: 16px; z-index: 2;
+  transform: translateX(-50%); white-space: nowrap;
+  padding: 7px 12px; border-radius: 999px;
+  background: rgba(10, 12, 15, .72); border: 1px solid rgba(255, 196, 107, .35);
+  font-family: var(--f-mono); font-size: .6875rem; letter-spacing: .06em; text-transform: uppercase; color: #F3D7A8;
+  transition: opacity 250ms ease, transform 250ms var(--ease-out);
+}
+.light.was-used .light__stage::after { opacity: 0; transform: translate(-50%, 6px); }
+@media (hover: hover) and (pointer: fine) {
+  .light__stage::after { content: "Ins Zimmer klicken oder Schalter drücken"; }
+  .light:not(.is-lit) .light__stage:hover .light__img--off { filter: brightness(.24) saturate(.4) contrast(1.15) hue-rotate(-12deg); }
+}
+.light__img--off { transition: filter 300ms ease; }
 @keyframes switch-ring { from { opacity: .8; transform: scale(1); } to { opacity: 0; transform: scale(1.35); } }
 .wallswitch__plate {
   position: absolute; inset: 0; border-radius: 22px;
@@ -990,6 +1020,13 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px var(
 .readouts dt { font-size: .6875rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .readouts dd { font-family: var(--f-display); font-size: 1.375rem; font-weight: 600; letter-spacing: -.02em; margin-top: 4px; font-variant-numeric: tabular-nums; }
 .light.is-lit .readouts dd { color: var(--text); }
+/* Messwerte passen sich der eigenen Breite an (Container Query statt Viewport) */
+.light__right { container-type: inline-size; }
+@container (max-width: 560px) {
+  .readouts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .readouts > div:nth-child(3) { border-left: 0; }
+  .readouts > div:nth-child(n+3) { border-top: 1px solid var(--line); }
+}
 
 .light__stage {
   position: relative; overflow: hidden;
@@ -1186,6 +1223,8 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px var(
 @media (hover: hover) and (pointer: fine) { .filter button:hover:not([aria-pressed="true"]) { border-color: var(--line-3); color: var(--text); } }
 
 .ref-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.ref-rail { display: none; }
+@keyframes rail-fill { from { transform: scaleX(.2); } to { transform: scaleX(1); } }
 .ref {
   position: relative;
   border-radius: 16px; overflow: hidden;
@@ -1216,7 +1255,7 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px var(
 }
 .sos__media {
   position: absolute; top: 50%; right: 0; z-index: -1;
-  width: min(960px, 68%); aspect-ratio: 3 / 2;
+  width: min(860px, 64%); aspect-ratio: 3 / 2; /* Quelle 960 px: inkl. Scroll-Zoom nie hochskaliert */
   transform: translateY(-46%);
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, .6) 26%, #000 50%), linear-gradient(180deg, transparent 0%, #000 16%, #000 80%, transparent 100%);
   -webkit-mask-composite: source-in;
@@ -1716,7 +1755,21 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px var(
   -webkit-background-clip: text; background-clip: text;
   text-align: center; user-select: none;
   margin-bottom: .02em;
+  position: relative;
 }
+/* Schriftzug „schaltet ein“, wenn der Footer ins Bild läuft (Scroll-driven Animation, progressiv) */
+.ftr__word::after {
+  content: "FUNKE"; position: absolute; inset: 0;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(232, 255, 71, .5);
+  background: linear-gradient(180deg, rgba(232, 255, 71, .26), rgba(232, 255, 71, 0) 78%);
+  -webkit-background-clip: text; background-clip: text;
+  opacity: 0; pointer-events: none;
+}
+@supports (animation-timeline: view()) {
+  .motion-ok .ftr__word::after { animation: word-on linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
+}
+@keyframes word-on { from { opacity: 0; clip-path: inset(100% 0 0 0); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
 .ftr__bottom {
   position: relative;
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
@@ -1834,6 +1887,8 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px var(
       linear-gradient(180deg, rgba(10, 12, 15, .5) 0%, rgba(10, 12, 15, 0) 20%, rgba(10, 12, 15, 0) 75%, var(--bg) 100%);
   }
   .hero__beam { width: 90vw; right: -20%; }
+  /* Canvas nur über dem sichtbaren Teil (Text) – spart Pixel pro Frame */
+  .hero__canvas { bottom: auto; height: min(100%, 112svh); -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent); mask-image: linear-gradient(180deg, #000 72%, transparent); }
   .hero__visual { justify-self: stretch; max-width: none; padding-right: 26px; }
   .hv__frame { aspect-ratio: 1 / 1; --cut: 22px; }
   .callout--pe { --x: 30%; --y: 24%; }
@@ -1879,9 +1934,6 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px var(
   .light__copy { display: contents; }
   .light__right { order: 4; margin-top: 32px; }
   .light__ctrl { order: 5; margin-top: 24px; }
-  .readouts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .readouts > div:nth-child(3) { border-left: 0; }
-  .readouts > div:nth-child(n+3) { border-top: 1px solid var(--line); }
 
   .ref-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
 
@@ -1919,8 +1971,34 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px var(
 
 @media (max-width: 639px) {
   .logo__sub { display: none; }
+  /* Handy: Headline als Hauptmoment, Lead kürzer – CTA rückt nach oben */
+  .hero__title { font-size: clamp(2.9rem, 15.2vw, 4.25rem); line-height: .9; }
+  .hero__lead { font-size: 1.0625rem; line-height: 1.55; }
+  .hero__lead-long { display: none; }
+  .hero__lead-short { display: inline; }
   .hero__ctas .btn { flex: 1 1 100%; }
-  .ref-grid { grid-template-columns: 1fr; }
+  /* Referenzen als wischbare Leiste statt 9 gestapelter Karten */
+  .refs .wrap { timeline-scope: --refrail; }
+  .ref-grid {
+    grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 84%;
+    gap: 12px; align-items: stretch;
+    margin-inline: calc(-1 * var(--gutter)); padding: 2px var(--gutter) 4px;
+    overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+    scroll-timeline: --refrail x;
+  }
+  .ref-grid::-webkit-scrollbar { display: none; }
+  .ref-grid:focus-visible { outline-offset: -2px; border-radius: 16px; }
+  .ref { scroll-snap-align: start; display: flex; flex-direction: column; }
+  .ref__body { flex: 1; display: flex; flex-direction: column; }
+  .ref__spec { margin-top: auto; }
+  .ref__title { margin-bottom: 14px; }
+  .ref-rail { display: block; position: relative; height: 2px; margin-top: 18px; border-radius: 2px; background: var(--line-2); overflow: hidden; }
+  .ref-rail span { position: absolute; inset: 0; background: linear-gradient(90deg, var(--blue), var(--volt)); transform-origin: 0 50%; transform: scaleX(var(--rail, .2)); }
+  @supports (animation-timeline: scroll()) {
+    .ref-rail span { animation: rail-fill linear both; animation-timeline: --refrail; }
+  }
   .pv__hero-kpis { grid-template-columns: 1fr 1fr; gap: 14px; }
   .pv__kpis .kpi { padding: 14px 12px 12px; }
   .choices, .urg { grid-template-columns: 1fr; }
@@ -1960,7 +2038,6 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px var(
 }
 
 @media (max-width: 389px) {
-  .hero__title { font-size: 2.9rem; }
   .demo-pill--inline { font-size: .625rem; letter-spacing: 0; padding: 8px 12px; }
   .mbar__btn { font-size: .8125rem; gap: 6px; }
   .home { padding: 10px; }

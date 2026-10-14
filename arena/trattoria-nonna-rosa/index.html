@@ -23,6 +23,11 @@
       d.classList.add('js', 'is-loading');
       if (/[?&]motion=off\b/.test(q)) d.classList.add('motion-off');
       else if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('reduced');
+      // Hero-Auftakt startet, sobald die vorgeladenen Schriften da sind – unabhängig von main.js
+      // (GSAP/Lenis werden später geparst; so bremst JS den ersten Eindruck nicht aus).
+      var go = function () { if (go.done) return; go.done = 1; requestAnimationFrame(function () { requestAnimationFrame(function () { d.classList.remove('is-loading'); }); }); };
+      if (document.fonts && document.fonts.load) Promise.all([document.fonts.load('italic 500 1em "Playfair Display"'), document.fonts.load('400 1em Karla')]).then(go, go);
+      setTimeout(go, 700);
       // Sicherheitsnetz: Falls main.js nicht startet, alles sichtbar machen.
       setTimeout(function () { if (!window.__rosaReady) d.classList.remove('js', 'is-loading'); }, 4000);
     })();
@@ -214,21 +219,21 @@
     <section class="hero" id="top" aria-labelledby="hero-title">
       <div class="wrap hero-grid">
         <div class="hero-copy">
-          <p class="hero-eyebrow" data-hero-fade>
+          <p class="hero-eyebrow" data-hero-fade style="--i:0">
             <span class="status" data-status><span class="status-dot" aria-hidden="true"></span><span data-status-text>Di–Sa 12–14:30 &amp; 17:30–22:30&nbsp;Uhr · So 12–21&nbsp;Uhr</span></span>
             <span class="hero-place">Stuttgart-Mitte · seit 1987</span>
           </p>
           <h1 class="hero-title" id="hero-title">
-            <span class="line"><span class="line-in">Pasta, die</span></span>
-            <span class="line"><span class="line-in"><em>heute Morgen</em></span></span>
-            <span class="line"><span class="line-in">noch Mehl war.</span></span>
+            <span class="line"><span class="line-in" style="--i:0">Pasta, die</span></span>
+            <span class="line"><span class="line-in" style="--i:1"><em>heute Morgen</em></span></span>
+            <span class="line"><span class="line-in" style="--i:2">noch Mehl war.</span></span>
           </h1>
-          <p class="hero-lead" data-hero-fade>Marco Esposito rollt den Teig jeden Tag ab sieben Uhr von Hand aus – nach dem Rezeptheft seiner Großmutter Rosa. Mittags und abends landet er auf Ihrem Teller, mit einem Ragù, das seit gestern zieht.</p>
-          <div class="hero-cta" data-hero-fade>
+          <p class="hero-lead" data-hero-fade style="--i:1">Marco Esposito rollt den Teig jeden Tag ab sieben Uhr von Hand aus – nach dem Rezeptheft seiner Großmutter Rosa. Mittags und abends landet er auf Ihrem Teller, mit einem Ragù, das seit gestern zieht.</p>
+          <div class="hero-cta" data-hero-fade style="--i:2">
             <a class="btn btn-primary btn-lg" href="#reservieren">Tisch reservieren<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
             <a class="btn btn-ghost btn-lg" href="#karte">Zur Speisekarte</a>
           </div>
-          <ul class="hero-trust" data-hero-fade>
+          <ul class="hero-trust" data-hero-fade style="--i:3">
             <li><span class="stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span><span><strong>4,8</strong> aus 640&nbsp;Bewertungen</span></li>
             <li><span><strong>6 Pastasorten</strong>, täglich frisch</span></li>
             <li><span>Familie Esposito, <strong>3 Generationen</strong></span></li>
@@ -250,9 +255,9 @@
               <img src="/arena/trattoria-nonna-rosa/assets/img/teller-570.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/teller-285.webp 285w, /arena/trattoria-nonna-rosa/assets/img/teller-570.webp 570w" sizes="(min-width: 900px) 220px, 36vw" width="570" height="570" decoding="async" alt="Teller mit Pappardelle, Pilzen und Salbei">
             </figure>
           </div>
-          <svg class="ill ill-tomato" data-par="1.4" aria-hidden="true"><use href="#i-tomato"/></svg>
-          <svg class="ill ill-olive" data-par="1.15" aria-hidden="true"><use href="#i-olive"/></svg>
-          <svg class="ill ill-basil" data-par="0.9" aria-hidden="true"><use href="#i-basil"/></svg>
+          <svg class="ill ill-tomato" data-par="1.4" aria-hidden="true" style="--delay:.95s"><use href="#i-tomato"/></svg>
+          <svg class="ill ill-olive" data-par="1.15" aria-hidden="true" style="--delay:1.07s"><use href="#i-olive"/></svg>
+          <svg class="ill ill-basil" data-par="0.9" aria-hidden="true" style="--delay:1.19s"><use href="#i-basil"/></svg>
           <a class="hero-note" href="#tagesgericht" data-par="0.8">
             <span class="hero-note-k">heute an der Tafel:</span>
             <span class="hero-note-dish" data-hero-dish>Pappardelle al ragù bianco</span>
@@ -425,11 +430,10 @@
     <section class="section menu" id="karte" aria-labelledby="menu-title">
       <div class="gingham-edge" aria-hidden="true"></div>
       <div class="wrap">
-        <header class="sec-head sec-head--split">
-          <div>
-            <p class="kicker" data-reveal>la carta</p>
-            <h2 class="h2" id="menu-title" data-reveal>Die <em>Speisekarte</em></h2>
-          </div>
+        <header class="sec-head sec-head--carte">
+          <p class="kicker" data-reveal>la carta</p>
+          <h2 class="h2" id="menu-title" data-reveal>Die <em>Speisekarte</em></h2>
+          <span class="carte-rule" data-reveal aria-hidden="true"><svg><use href="#i-basil"/></svg></span>
           <p class="sec-lead" data-reveal>Preise in Euro inklusive Mehrwertsteuer. Allergene stehen als Buchstaben nach der Lebensmittelinformationsverordnung am Gericht – filtern Sie, was Sie nicht essen möchten.</p>
         </header>
 

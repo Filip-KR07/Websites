@@ -1284,3 +1284,54 @@ html:not(.js) .fin-chart { display: none; }
   .map-labels text { font-size: 16px; letter-spacing: .05em; }
   .map-river-label { font-size: 18px; }
 }
+
+/* ==========================================================================
+   Feinschliff 2026 – Handy-Hero, Über-uns-Statement, Live-Rate, Bewertungskarte
+   ========================================================================== */
+/* Hero: auf dem Handy kürzerer Lead, CTA-Zeile statt Stapel, „seit 2009“ ohne hängenden Punkt */
+@media (max-width: 599px) {
+  .eb-sep, .lead-more, .hide-sm { display: none; }
+  .eb-since { display: block; }
+  .hero-ctas { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .6rem; }
+  .hero-ctas .btn { padding-inline: 1.1rem; }
+}
+
+/* Über uns: Haltungssatz als ganzseitiges typografisches Statement */
+.about-head { margin-bottom: clamp(2.75rem, 6vw, 5.5rem); }
+.about-statement { font-size: clamp(2.15rem, .75rem + 4.6vw, 6rem); line-height: 1.02; letter-spacing: -.026em; max-width: 15.5em; }
+.about-statement em { font-weight: 300; }
+.principles li { align-content: start; }
+.about-layout { align-items: start; }
+.about-copy { padding-top: .35rem; }
+
+/* Finanzierung: Live-Rate bleibt beim Schieben sichtbar (einspaltiges Layout) */
+.fin-inputs { --fin-pad: clamp(1.25rem, 3vw, 2.25rem); padding: var(--fin-pad); }
+.fin-peek { display: none; }
+@media (max-width: 1023px) {
+  html.js .fin-peek {
+    position: sticky; top: calc(var(--header-h) + .5rem); z-index: 3;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    margin: calc(var(--fin-pad) * -1) calc(var(--fin-pad) * -1) 1.75rem;
+    padding: .75rem var(--fin-pad); background: var(--night); color: var(--sand);
+    box-shadow: 0 16px 28px -20px rgba(19, 33, 59, .7);
+  }
+}
+.fin-peek-label { display: grid; gap: .2rem; font: 700 .64rem/1.2 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--brass); }
+.fin-peek-sub { font: 500 .78rem/1.2 var(--sans); letter-spacing: 0; text-transform: none; color: var(--sand-dim); font-variant-numeric: tabular-nums; }
+.fin-peek-value { font: 350 clamp(1.7rem, 1.4rem + 1.2vw, 2.1rem)/1 var(--serif); letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Bewertung: Karte begleitet die linke Spalte (Desktop); Versatzrahmen sichtbar, nur außerhalb der Karte */
+.val-card::before { z-index: 0; clip-path: polygon(0 0, 100% 0, 100% 12px, 12px 12px, 12px 100%, 0 100%); }
+@media (min-width: 1024px) and (min-height: 700px) {
+  .val-card { position: sticky; top: calc(var(--header-h) + 1.75rem); }
+}
+
+/* Kundenstimmen: weicher Rand zeigt, dass weitere Stimmen folgen */
+html.js .voices-track {
+  --fade-l: 0px; --fade-r: 0px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
+}
+html.js .voices-track.has-more-l { --fade-l: 2.5rem; }
+html.js .voices-track.has-more-r { --fade-r: clamp(2.5rem, 6vw, 5rem); }
+html.js .voices-track:focus-visible { -webkit-mask-image: none; mask-image: none; }

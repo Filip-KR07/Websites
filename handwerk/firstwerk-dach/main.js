@@ -46,6 +46,9 @@
   }
   if (hasGSAP) {
     gsap.registerPlugin(ScrollTrigger);
+    // Kein Auto-Refresh bei DOMContentLoaded: Die Trigger werden beim Anlegen vermessen,
+    // das load-Event misst alles noch einmal nach (spart eine teure Runde im Start-Task).
+    ScrollTrigger.config({ autoRefreshEvents: 'visibilitychange,load,resize' });
     if (lenis) {
       lenis.on('scroll', ScrollTrigger.update);
       gsap.ticker.add(t => lenis.raf(t * 1000));
@@ -88,7 +91,7 @@
   });
 
   /* ------------------------------------------------------------ Header */
-  const progressBar = $('[data-progress]');
+  const progressBar = (window.CSS && CSS.supports && CSS.supports('animation-timeline: scroll()')) ? null : $('[data-progress]');
   let ticking = false;
   function onScroll() {
     if (ticking) return;
@@ -210,9 +213,9 @@
     if (!hero) return;
     const title = $('.hero__title', hero);
     if (!REDUCE) split(title);
-    const delays = [['.hero__kicker', 0], ['.hero__fig', 160], ['.hero__lead', 420], ['.hero__cta', 500], ['.hero__phone', 580]];
+    const delays = [['.hero__kicker', 0], ['.hero__fig', 140], ['.hero__lead', 260], ['.hero__cta', 360], ['.hero__phone', 420]];
     delays.forEach(([s, t]) => { const el = $(s, hero); if (el) el.style.setProperty('--d', t + 'ms'); });
-    $$('.trust li', hero).forEach((li, i) => li.style.setProperty('--d', 640 + i * 70 + 'ms'));
+    $$('.trust li', hero).forEach((li, i) => li.style.setProperty('--d', 480 + i * 60 + 'ms'));
     requestAnimationFrame(() => requestAnimationFrame(() => { hero.classList.add('is-loaded'); title.classList.add('is-in'); }));
 
     const frame = $('[data-gable]', hero);
@@ -335,12 +338,75 @@
     function start() { if (running || REDUCE || !visible || d.hidden) return; running = true; lastT = 0; requestAnimationFrame(tick); }
     function stop() { running = false; }
 
-    layout();
-    if (d.fonts && d.fonts.ready) d.fonts.ready.then(layout);
-    let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layout, 120); });
+    // Kopien erst erzeugen, wenn das Band in die Nähe kommt (spart Startzeit)
+    let laid = false;
+    const ensure = () => { if (!laid) { laid = true; layout(); } };
+    if (d.fonts && d.fonts.ready) d.fonts.ready.then(() => { if (laid) layout(); });
+    let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (laid) layout(); }, 120); });
+    if (!('IntersectionObserver' in window)) { ensure(); return; }
+    new IntersectionObserver(([en]) => {
+      if (en.isIntersecting) ensure();
+      if (REDUCE) return;
+      visible = en.isIntersecting; visible ? start() : stop();
+    }, { rootMargin: '320px 0px' }).observe(ridge);
     if (REDUCE) return;
-    new IntersectionObserver(([en]) => { visible = en.isIntersecting; visible ? start() : stop(); }).observe(ridge);
     d.addEventListener('visibilitychange', () => { d.hidden ? stop() : start(); });
+  }
+
+  /* ------------------------------------------------------------ Leistungen (Handy): Wisch-Deck */
+  function initDeck(stack, cards) {
+    const N = cards.length;
+    let idx = -1, raf = 0;
+    const pad = n => String(n).padStart(2, '0');
+    const names = cards.map(c => { const h = $('.card__title', c); return h ? h.textContent.trim() : ''; });
+    const deck = d.createElement('div');
+    deck.className = 'deck';
+    const count = d.createElement('p'); count.className = 'deck__count'; count.setAttribute('aria-live', 'polite');
+    const cur = d.createElement('b'), tot = d.createElement('span'), name = d.createElement('span');
+    tot.className = 'deck__total'; tot.textContent = `/ ${pad(N)}`; name.className = 'deck__name';
+    const sr = d.createElement('span'); sr.className = 'sr-only';
+    count.append(sr, cur, tot, name);
+    cur.setAttribute('aria-hidden', 'true'); tot.setAttribute('aria-hidden', 'true'); name.setAttribute('aria-hidden', 'true');
+    const btns = d.createElement('div'); btns.className = 'deck__btns';
+    const mkBtn = (dir, label) => {
+      const b = d.createElement('button'); b.type = 'button'; b.className = `deck__btn deck__btn--${dir < 0 ? 'prev' : 'next'}`;
+      b.setAttribute('aria-label', label);
+      b.innerHTML = '<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg>';
+      b.addEventListener('click', () => go(idx + dir));
+      btns.appendChild(b); return b;
+    };
+    const prev = mkBtn(-1, 'Vorherige Leistung'), next = mkBtn(1, 'Nächste Leistung');
+    const bar = d.createElement('div'); bar.className = 'deck__bar'; bar.setAttribute('aria-hidden', 'true'); bar.style.setProperty('--n', N);
+    const segs = cards.map(() => bar.appendChild(d.createElement('i')));
+    deck.append(count, btns, bar);
+    stack.setAttribute('aria-roledescription', 'Karussell');
+    stack.setAttribute('aria-label', 'Leistungen – seitlich wischen');
+
+    const step = () => (cards[1].offsetLeft - cards[0].offsetLeft) || stack.clientWidth;
+    function set(i) {
+      if (i === idx) return;
+      idx = i;
+      cur.textContent = pad(i + 1);
+      name.textContent = names[i];
+      sr.textContent = `Leistung ${i + 1} von ${N}: ${names[i]}`;
+      segs.forEach((s, k) => { s.classList.toggle('is-on', k <= i); s.classList.toggle('is-cur', k === i); });
+      prev.disabled = i === 0;
+      next.disabled = i === N - 1;
+    }
+    function sync() {
+      raf = 0;
+      if (stack.scrollWidth <= stack.clientWidth + 2) { set(0); return; }
+      const atEnd = stack.scrollLeft + stack.clientWidth >= stack.scrollWidth - 4;
+      set(atEnd ? N - 1 : clamp(Math.round(stack.scrollLeft / step()), 0, N - 1));
+    }
+    function go(i) {
+      i = clamp(i, 0, N - 1);
+      stack.scrollTo({ left: cards[i].offsetLeft - cards[0].offsetLeft, behavior: REDUCE ? 'auto' : 'smooth' });
+    }
+    stack.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(sync); }, { passive: true });
+    window.addEventListener('resize', () => { if (!raf) raf = requestAnimationFrame(sync); });
+    set(0); // vor dem Einhängen, damit die Live-Region beim Laden nichts ansagt
+    stack.parentElement.insertBefore(deck, stack);
   }
 
   /* ------------------------------------------------------------ Leistungen: Karten-Stapel */
@@ -351,6 +417,9 @@
     const mqSticky = matchMedia('(min-width: 900px) and (min-height: 640px)');
     if (stack) stack.addEventListener('focusin', e => {
       if (!mqSticky.matches) return;
+      // Nur Tastaturfokus: Ein Mausklick auf „… anfragen“ fokussiert den Link auch –
+      // das sofortige Zurückscrollen hat dann den Sprung zum Formular abgebrochen.
+      try { if (!e.target.matches(':focus-visible')) return; } catch (_) {}
       const card = e.target.closest('.card');
       const i = cards.indexOf(card);
       if (i < 0) return;
@@ -361,6 +430,7 @@
         if (lenis) lenis.scrollTo(top, { immediate: true }); else window.scrollTo(0, top);
       });
     });
+    if (stack && cards.length > 1) initDeck(stack, cards);
     if (REDUCE || !hasGSAP) return;
     const mm = gsap.matchMedia();
     mm.add('(min-width: 900px)', () => {
@@ -742,7 +812,8 @@
       qs.forEach((q, k) => { q.hidden = k !== i; });
       result.hidden = true; top.hidden = false;
       const q = qs[i];
-      q.classList.remove('is-enter'); void q.offsetWidth; q.classList.add('is-enter');
+      // Eintritts-Animation nur bei Nutzeraktion (spart beim Start ein erzwungenes Layout)
+      if (focus) { q.classList.remove('is-enter'); void q.offsetWidth; q.classList.add('is-enter'); }
       count.textContent = `Frage ${i + 1} von ${N}`;
       bars.forEach((b, k) => b.classList.toggle('is-on', k <= i));
       back.hidden = i === 0;
@@ -939,10 +1010,17 @@
     }
     const start = () => { if (running || REDUCE || !visible || d.hidden) return; running = true; last = 0; requestAnimationFrame(tick); };
     const stop = () => { running = false; };
-    resize();
-    let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(resize, 150); });
+    // Canvas erst kurz vor dem Sichtkontakt anlegen
+    let ready = false;
+    const ensure = () => { if (!ready) { ready = true; resize(); } };
+    let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (ready) resize(); }, 150); });
+    if (!('IntersectionObserver' in window)) { ensure(); return; }
+    new IntersectionObserver(([en]) => {
+      if (en.isIntersecting) ensure();
+      if (REDUCE) return;
+      visible = en.isIntersecting; visible ? start() : stop();
+    }, { rootMargin: '200px 0px' }).observe(sec);
     if (REDUCE) return;
-    new IntersectionObserver(([en]) => { visible = en.isIntersecting; visible ? start() : stop(); }).observe(sec);
     d.addEventListener('visibilitychange', () => { d.hidden ? stop() : start(); });
   }
 
@@ -1052,6 +1130,7 @@
       out.dataset.state = state;
       out.appendChild(b);
       out.appendChild(d.createTextNode(text));
+      out.classList.remove('is-new'); void out.offsetWidth; out.classList.add('is-new');
     });
   }
 
@@ -1208,24 +1287,34 @@
     new IntersectionObserver(([en]) => bar.classList.toggle('is-hidden', en.isIntersecting), { rootMargin: '0px 0px -30% 0px' }).observe(inq);
   }
 
-  /* ------------------------------------------------------------ Start */
-  initHero();
-  initReveal();
-  initRidge();
-  initStack();
-  initConfig();
-  initCompare();
-  initQuiz();
-  initProjects();
-  initRain();
-  initCounters();
-  initProcess();
-  initArea();
-  initWizard();
-  initActionbar();
+  /* ------------------------------------------------------------ Start (in Etappen) */
+  // Erster Bildschirm sofort, der Rest in eigenen kurzen Tasks: Der Haupt-Thread
+  // bleibt beim Laden ansprechbar und das Hero-Intro startet früher (LCP).
+  // ScrollTrigger-Instanzen entstehen weiter in Seitenreihenfolge (Hero → Stapel → Ablauf).
+  const yieldTask = () => new Promise(r => {
+    if (window.scheduler && typeof window.scheduler.yield === 'function') window.scheduler.yield().then(r);
+    else setTimeout(r, 0);
+  });
+  const run = fn => { try { fn(); } catch (err) { console.error(err); } };
+  const stages = [
+    [initHero, initReveal, initCounters, initActionbar],
+    [initStack],
+    [initConfig],
+    [initCompare, initQuiz],
+    [initProjects, initArea, initWizard],
+    [initProcess],
+    [initRidge, initRain]
+  ];
+  (async () => {
+    for (let i = 0; i < stages.length; i++) {
+      if (i) await yieldTask();
+      stages[i].forEach(run);
+    }
+  })();
 
-  if (hasGSAP) {
-    if (d.fonts && d.fonts.ready) d.fonts.ready.then(() => ScrollTrigger.refresh());
-    window.addEventListener('load', () => ScrollTrigger.refresh());
+  // ScrollTrigger aktualisiert sich bei DOMContentLoaded und load selbst –
+  // nur nachladen, falls die Schriften erst nach dem load-Event fertig sind.
+  if (hasGSAP && d.fonts && d.fonts.ready) {
+    d.fonts.ready.then(() => { if (d.readyState === 'complete') ScrollTrigger.refresh(); });
   }
 })();

@@ -201,6 +201,11 @@ html:not(.js) [data-wiz-next], html:not(.js) [data-wiz-back], html:not(.js) .wiz
 .hdr__in { height: 100%; display: flex; align-items: center; gap: 24px; }
 .hdr__progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; pointer-events: none; }
 .hdr__progress span { display: block; height: 100%; background: var(--c-orange); transform-origin: 0 50%; transform: scaleX(0); }
+/* Scroll-Fortschritt direkt an die Scroll-Timeline gebunden (läuft ohne Haupt-Thread); sonst übernimmt main.js */
+@supports (animation-timeline: scroll()) {
+  .hdr__progress span { animation: hdr-progress linear both; animation-timeline: scroll(root block); }
+  @keyframes hdr-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+}
 
 .logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; flex: none; }
 .logo__mark { width: 40px; height: 29px; }
@@ -456,8 +461,9 @@ html:not(.js) [data-wiz-next], html:not(.js) [data-wiz-back], html:not(.js) .wiz
   align-self: flex-start; display: inline-flex; align-items: center; gap: 8px;
   font: 700 .8125rem/1 var(--f-sans); font-stretch: 85%; letter-spacing: .06em; text-transform: uppercase;
   text-decoration: none; padding: 8px 0; border-bottom: 2px solid var(--c-orange);
-  transition: gap 200ms var(--ease-out);
+  transition: transform 160ms var(--ease-out);
 }
+.card__link:active { transform: scale(.97); }
 @media (hover: hover) and (pointer: fine) { .card__link:hover .i { transform: translateX(4px); } .card__link .i { transition: transform 200ms var(--ease-out); } }
 .card__draw {
   border-left: 2px solid var(--c-ink);
@@ -537,6 +543,51 @@ html:not(.js) [data-wiz-next], html:not(.js) [data-wiz-back], html:not(.js) .wiz
   .legend { columns: 1; }
 }
 @media (max-width: 899px) and (min-width: 600px) { .legend { columns: 2; } }
+
+/* Handy/Tablet: Leistungen als Wisch-Deck statt 7 gestapelter Karten (nur mit JS,
+   ohne JS bleibt die normale Liste). Zähler, Fortschritt und Pfeile kommen aus main.js. */
+.deck { display: none; }
+@media (max-width: 899px) {
+  html.js .deck {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px 16px;
+    margin-bottom: 14px;
+  }
+  .deck__count { display: flex; align-items: baseline; gap: 10px; min-width: 0; font: 600 .75rem/1.2 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+  .deck__count b { font: 900 1.75rem/.8 var(--f-sans); font-stretch: 62%; color: var(--c-orange); letter-spacing: 0; }
+  .deck__count b, .deck__total { flex: none; white-space: nowrap; }
+  .deck__total { color: var(--c-mute); }
+  .deck__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .deck__bar { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: repeat(var(--n, 7), minmax(0, 1fr)); gap: 4px; }
+  .deck__bar i { height: 4px; background: rgba(18,18,18,.14); position: relative; overflow: hidden; }
+  .deck__bar i::after { content: ""; position: absolute; inset: 0; background: var(--c-ink); transform: scaleX(0); transform-origin: 0 50%; transition: transform 300ms var(--ease-out), background-color 200ms ease; }
+  .deck__bar i.is-on::after { transform: scaleX(1); }
+  .deck__bar i.is-cur::after { background: var(--c-orange); }
+  .deck__btns { display: flex; gap: 6px; }
+  .deck__btn {
+    display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
+    border: 2px solid var(--c-ink); background: var(--c-paper); color: var(--c-ink);
+    transition: transform 160ms var(--ease-out), opacity 200ms ease, background-color 160ms ease, color 160ms ease;
+  }
+  .deck__btn .i { width: 18px; height: 18px; }
+  .deck__btn--prev .i { transform: scaleX(-1); }
+  .deck__btn:active { transform: scale(.95); }
+  .deck__btn:disabled { opacity: .32; cursor: default; }
+  .deck__btn:disabled:active { transform: none; }
+  @media (hover: hover) and (pointer: fine) { .deck__btn:not(:disabled):hover { background: var(--c-ink); color: var(--c-bg); } }
+
+  html.js .stack {
+    grid-auto-flow: column; grid-auto-columns: min(86%, 30rem); gap: 12px;
+    margin-inline: calc(-1 * max(var(--gut), env(safe-area-inset-left))) calc(-1 * max(var(--gut), env(safe-area-inset-right)));
+    padding: 4px max(var(--gut), env(safe-area-inset-right)) 6px max(var(--gut), env(safe-area-inset-left));
+    scroll-padding-inline: max(var(--gut), env(safe-area-inset-left));
+    overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scrollbar-width: none;
+  }
+  html.js .stack::-webkit-scrollbar { display: none; }
+  html.js .stack > .card { display: grid; scroll-snap-align: start; }
+  html.js .stack .card__in { grid-template-rows: 1fr auto; }
+  html.js .stack .specs { margin-top: auto; }
+}
 
 /* ---------------------------------------------------------------- Konfigurator */
 .config { background: var(--c-bg-2); }
@@ -897,7 +948,7 @@ html.js .quiz__q[hidden] { display: none; }
 .crew__legend { display: grid; gap: 7px; font: 500 .75rem/1.2 var(--f-mono); }
 .crew__legend li { display: flex; align-items: center; gap: 10px; }
 .crew__legend i { width: 14px; height: 14px; flex: none; }
-html.js:not(.reduce) .crew__grid li { transform: scale(.6); opacity: 0; transition: transform 500ms var(--ease-out), opacity 400ms ease; transition-delay: calc(var(--n, 0) * 35ms); }
+html.js:not(.reduce) .crew__grid li { transform: scale(.85); opacity: 0; transition: transform 500ms var(--ease-out), opacity 400ms ease; transition-delay: calc(var(--n, 0) * 35ms); }
 html.js:not(.reduce) .crew.is-in .crew__grid li { transform: none; opacity: 1; }
 
 .gallery { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: clamp(150px, 15vw, 250px); gap: 6px; margin-bottom: clamp(40px, 5vw, 72px); }
@@ -959,6 +1010,10 @@ html.js:not(.reduce) .crew.is-in .crew__grid li { transform: none; opacity: 1; }
 .plz input:focus-visible { outline-offset: 0; }
 .plz .btn { min-height: 52px; }
 .plz__out { min-height: 1.5em; font: 500 .875rem/1.4 var(--f-mono); }
+.plz__out.is-new { animation: plz-in 260ms var(--ease-out) both; }
+@keyframes plz-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+html.reduce .plz__out.is-new { animation-name: fade; }
+@media (prefers-reduced-motion: reduce) { .plz__out.is-new { animation-name: fade; } }
 .plz__out b { padding: 2px 6px; margin-right: 6px; }
 .plz__out[data-state="ok"] b { background: var(--c-ink); color: var(--c-bg); }
 .plz__out[data-state="edge"] b { background: var(--c-orange); }
@@ -1160,6 +1215,12 @@ html.js .wiz__step[hidden] { display: none; }
   .wiz__cols { grid-template-columns: minmax(0, 1fr); }
   .wiz__steps li { font-size: .6875rem; letter-spacing: .04em; }
   .wiz__steps li:not([aria-current]) em { display: none; }
+  /* Der aktive Schritt bekommt Platz für sein Label (sonst läuft „01 Anliegen“ in „02“) */
+  .wiz__steps:has(li:nth-child(1)[aria-current]) { grid-template-columns: 2.4fr 1fr 1fr 1fr; }
+  .wiz__steps:has(li:nth-child(2)[aria-current]) { grid-template-columns: 1fr 2.4fr 1fr 1fr; }
+  .wiz__steps:has(li:nth-child(3)[aria-current]) { grid-template-columns: 1fr 1fr 2.4fr 1fr; }
+  .wiz__steps:has(li:nth-child(4)[aria-current]) { grid-template-columns: 1fr 1fr 1fr 2.4fr; }
+  .wiz__steps li { white-space: nowrap; }
   .wiz__sum div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 }
 @media (max-width: 479px) {
@@ -1237,6 +1298,8 @@ html.js:not(.reduce) .hero__fig, html.js:not(.reduce) .trust li, html.js:not(.re
   opacity: 0; transform: translateY(18px);
   transition: opacity 800ms var(--ease-out), transform 1000ms var(--ease-out); transition-delay: var(--d, 0ms);
 }
+/* Leadtext blendet kürzer ein: früher lesbar (und früherer LCP), Bewegung bleibt gleich */
+html.js:not(.reduce) .hero__lead { transition: opacity 450ms var(--ease-out), transform 1000ms var(--ease-out); transition-delay: var(--d, 0ms); }
 html.js:not(.reduce) .is-loaded .hero__fig, html.js:not(.reduce) .is-loaded .trust li, html.js:not(.reduce) .is-loaded .hero__lead, html.js:not(.reduce) .is-loaded .hero__cta, html.js:not(.reduce) .is-loaded .hero__phone, html.js:not(.reduce) .is-loaded .hero__kicker { opacity: 1; transform: none; }
 html.js:not(.reduce) .hero:not(.is-loaded) :is(.hero__fig, .trust li, .hero__lead, .hero__cta, .hero__phone, .hero__kicker) { animation: failsafe 0s 2.5s forwards; }
 

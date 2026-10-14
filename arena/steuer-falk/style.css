@@ -352,8 +352,8 @@ html.motion-ok .amp--pulse::after { content: ""; position: absolute; inset: -5px
 .odo.is-built > .odo-ph { color: transparent; }
 .odo-roll { position: absolute; inset: 0; display: flex; overflow: hidden; pointer-events: none; }
 .odo-d { position: relative; height: 100%; overflow: hidden; }
-.odo-s { display: flex; flex-direction: column; transition: transform 1.5s var(--ease-out); will-change: transform; }
-.odo-s > span, .odo-c { display: block; height: 1.15em; line-height: 1.15; text-align: center; }
+.odo-s { display: block; white-space: pre; line-height: 1.15; text-align: center; transition: transform 1.5s var(--ease-out); }
+.odo-c { display: block; height: 1.15em; line-height: 1.15; text-align: center; }
 .odo-c { flex: none; }
 
 /* Kennzahlen */
@@ -389,7 +389,7 @@ html.motion-reduce .lst-frame-img img.is-on, html.motion-off .lst-frame-img img.
 @media (max-width: 999px) { .lst-frame { display: none; } }
 
 .ledger { counter-reset: none; container-type: inline-size; container-name: ledger; }
-.ledger-head, .lrow > summary { display: grid; grid-template-columns: 48px minmax(0, 1fr) 170px 96px 28px; gap: 16px; align-items: baseline; }
+.ledger-head, .lrow > summary { display: grid; grid-template-columns: 40px minmax(0, 1fr) minmax(0, 150px) 84px 18px; gap: 14px; align-items: baseline; }
 .ledger-head { padding-bottom: 10px; border-bottom: 2px solid var(--ink); font-family: var(--f-mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
 .lrow { position: relative; border-bottom: 1px solid var(--line-2); }
 .lrow > summary { position: relative; padding: 20px 0; cursor: pointer; list-style: none; -webkit-tap-highlight-color: transparent; }
@@ -404,7 +404,7 @@ html.motion-reduce .lst-frame-img img.is-on, html.motion-off .lst-frame-img img.
 .lr-plus::before, .lr-plus::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1.5px; margin-top: -.75px; background: currentColor; transition: transform .25s var(--ease-out); }
 .lr-plus::after { transform: rotate(90deg); }
 details[open] > summary .lr-plus::after { transform: rotate(0deg); }
-.lr-body { padding: 0 44px 26px 64px; display: grid; gap: 16px; }
+.lr-body { padding: 0 44px 26px 54px; display: grid; gap: 16px; }
 .lr-body p { color: var(--ink-2); max-width: 62ch; }
 .lr-tags, .tags { display: flex; flex-wrap: wrap; gap: 8px; }
 .lr-tags li, .tags li { padding: 4px 10px; border: 1px solid var(--line-2); border-radius: 999px; font-size: .72rem; color: var(--ink-2); }
@@ -416,11 +416,11 @@ html.motion-reduce details[open] > .lr-body, html.motion-reduce details[open] > 
   .lrow > summary:hover::before { transform: scaleY(1); }
 }
 .ledger-sum { position: relative; display: flex; gap: 16px; align-items: baseline; padding: 22px 0 16px; font-family: var(--f-serif); font-size: 1.1rem; }
-.ledger-sum .mono { width: 48px; flex: none; color: var(--green); font-size: 1.1rem; }
+.ledger-sum .mono { width: 40px; flex: none; color: var(--green); font-size: 1.1rem; }
 .ledger-double { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 6px; }
 .ledger-double line { stroke: var(--ink); stroke-width: 1.3; }
 /* Kompakte Zeilen, sobald die Tabelle selbst schmal ist (Handy, aber auch Tablet im Zweispalter) */
-@container ledger (max-width: 760px) {
+@container ledger (max-width: 600px) {
   .ledger-head { display: none; }
   .lrow > summary { grid-template-columns: 30px minmax(0, 1fr) 20px; grid-template-areas: "nr name plus" ". for for" ". turn turn"; gap: 2px 10px; padding: 18px 0; }
   .lrow > summary::before { left: -10px; }
@@ -452,6 +452,12 @@ html.motion-reduce details[open] > .lr-body, html.motion-reduce details[open] > 
 .seg--dark input:focus-visible + span { outline-color: var(--mint); }
 @media (hover: hover) and (pointer: fine) { .seg--dark label:hover input:not(:checked) + span { color: var(--paper); background: rgba(245, 243, 236, .06); } }
 .seg--sm label span { min-height: 36px; padding: 0 12px; font-size: .84rem; }
+/* Touch: Tippflächen mind. 44 px */
+@media (pointer: coarse) {
+  .seg--sm label span { min-height: 44px; }
+  .ftr-grid a { display: inline-flex; align-items: center; min-height: 44px; }
+  .demo-pill--inline { min-height: 44px; }
+}
 
 @media (max-width: 599px) {
   .seg { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
@@ -594,11 +600,12 @@ input:focus-visible + .ck-box { outline: 2px solid var(--mint-d); outline-offset
 .flow-vis { min-width: 0; }
 
 /* gepinnte Variante (Desktop, JS + Bewegung) */
-.flow.is-pinned { height: min(680px, calc(100svh - var(--hdr) - 56px)); }
+.flow.is-pinned { height: min(590px, calc(100svh - var(--hdr) - 56px)); }
 .flow.is-pinned .flow-steps { position: absolute; inset: 0; }
 .flow.is-pinned .flow-step { position: absolute; inset: 0; padding: 0; border: 0; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: center; visibility: hidden; pointer-events: none; }
 .flow.is-pinned .flow-step.is-active { visibility: visible; pointer-events: auto; }
-.flow.is-pinned .flow-text { padding-top: 200px; padding-left: 56px; align-self: start; opacity: 0; transform: translateY(14px); transition: opacity .35s ease, transform .5s var(--ease-out); }
+.flow.is-pinned .flow-n { display: none; } /* steht schon in der Schrittnavigation */
+.flow.is-pinned .flow-text { padding-top: 190px; padding-left: 56px; align-self: start; opacity: 0; transform: translateY(14px); transition: opacity .35s ease, transform .5s var(--ease-out); }
 .flow.is-pinned .flow-step.is-active .flow-text { opacity: 1; transform: none; }
 .flow.is-pinned .flow-vis { opacity: 0; transform: translateY(18px) scale(.98); transition: opacity .35s ease, transform .55s var(--ease-out); }
 .flow.is-pinned .flow-step.is-active .flow-vis { opacity: 1; transform: none; }
@@ -674,8 +681,9 @@ input:focus-visible + .ck-box { outline: 2px solid var(--mint-d); outline-offset
 @container (max-width: 400px) {
   .chk-row { grid-template-columns: 46px minmax(0, 1fr) 64px 22px; font-size: .8rem; }
   .chk-row > span:nth-child(3) { display: none; }
-  .cmp-row { grid-template-columns: minmax(0, 1fr) 54px 46px 50px; font-size: .8rem; }
+  .cmp-row { grid-template-columns: minmax(0, 1fr) 54px 60px 44px; font-size: .8rem; }
   .cmp-row .mono, .chk-row .mono { font-size: .74rem; }
+  .cmp-row--h, .chk-row--h { font-size: .6rem; letter-spacing: .03em; } /* Kopfzeile passt in die schmalen Spalten */
   .form-rows dd { min-width: 88px; }
   .form-rows dt { font-size: .82rem; }
   .up-drop { margin: 14px; padding: 16px 12px; font-size: .82rem; }
@@ -886,6 +894,27 @@ html:not(.js) .fr-top { grid-template-columns: minmax(0, 1fr); }
   position: relative; padding: 22px 22px 34px; background: var(--sheet);
   -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 14px 100%;
   mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 14px 100%;
+}
+/* Handy: Belege als seitlich wischbarer Streifen (Scroll-Snap) statt vier hoher Karten untereinander */
+.receipts-bar { display: none; }
+@media (min-width: 700px) { html.js .stimmen .receipts[data-reveal] { opacity: 1; transform: none; } } /* breit: Karten einzeln */
+@media (max-width: 699px) {
+  .receipts {
+    display: flex; gap: 14px; align-items: stretch; overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scroll-padding-inline: var(--gut); scrollbar-width: none;
+    margin-inline: calc(-1 * var(--gut)); padding: 6px var(--gut) 8px;
+  }
+  .receipts::-webkit-scrollbar { display: none; }
+  .receipt { flex: 0 0 min(84%, 340px); scroll-snap-align: start; }
+  html.js .receipts .receipt[data-reveal] { opacity: 1; transform: none; } /* der Streifen blendet als Ganzes ein */
+  /* Fortschritt des Streifens – scroll-getriebene Animation, wo unterstützt */
+  @supports (animation-timeline: scroll()) {
+    .stimmen .wrap { timeline-scope: --rcpt; }
+    .receipts { scroll-timeline: --rcpt x; }
+    .receipts-bar { display: block; height: 2px; margin-top: 18px; background: var(--line-2); overflow: hidden; }
+    .receipts-bar i { display: block; height: 100%; background: var(--green); transform-origin: left; animation: rcptBar linear both; animation-timeline: --rcpt; }
+    @keyframes rcptBar { from { transform: scaleX(.25); } to { transform: scaleX(1); } }
+  }
 }
 .receipt-h { display: flex; justify-content: space-between; gap: 10px; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px dashed var(--line-2); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
 .receipt blockquote p { font-family: var(--f-serif); font-size: 1.08rem; line-height: 1.5; }
@@ -1152,14 +1181,15 @@ html.js.motion-ok .ledger-sum.is-in .ledger-double line { stroke-dashoffset: 0; 
 html.js.motion-ok .ledger-sum.is-in .ledger-double line + line { transition-delay: .5s; }
 
 /* Hero-Intro */
-html.js.motion-ok .hero:not(.is-go) [data-hero-line] { transform: translateY(105%); }
-html.js.motion-ok [data-hero-line] { transition: transform 1.1s var(--ease-out); }
-html.js.motion-ok .h1-line:nth-child(2) [data-hero-line] { transition-delay: .09s; }
-html.js.motion-ok .hero:not(.is-go) [data-hero-in] { opacity: 0; transform: translateY(16px); }
-html.js.motion-ok [data-hero-in] { transition: opacity .8s var(--ease-out), transform .9s var(--ease-out); }
-html.js.motion-ok .hero-lead[data-hero-in] { transition-delay: .25s; }
-html.js.motion-ok .hero-cta[data-hero-in] { transition-delay: .35s; }
-html.js.motion-ok .hero-trust[data-hero-in] { transition-delay: .45s; }
+/* Hero-Text: startet mit dem ersten Paint per CSS (wartet nicht auf main.js) – gut für LCP */
+@keyframes heroLine { from { transform: translateY(105%); } to { transform: none; } }
+@keyframes heroIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+html.js.motion-ok [data-hero-line] { animation: heroLine 1.1s var(--ease-out) .08s both; }
+html.js.motion-ok .h1-line:nth-child(2) [data-hero-line] { animation-delay: .17s; }
+html.js.motion-ok [data-hero-in] { animation: heroIn .8s var(--ease-out) both; }
+html.js.motion-ok .hero-lead[data-hero-in] { animation-delay: .22s; }
+html.js.motion-ok .hero-cta[data-hero-in] { animation-delay: .3s; }
+html.js.motion-ok .hero-trust[data-hero-in] { animation-delay: .38s; }
 html.js.motion-ok .hero:not(.is-go) .hero-photo { clip-path: inset(0 0 100% 0); }
 html.js.motion-ok .hero-photo { transition: clip-path 1.2s var(--ease-in-out) .15s; }
 html.js.motion-ok .hero:not(.is-go) .sheet { opacity: 0; transform: translateY(34px); }
@@ -1190,8 +1220,9 @@ html.js.motion-ok .spark-dots circle:nth-child(5), html.js.motion-ok .spark-val 
 html.js.motion-ok .hero:not(.is-go) .hero-chip { opacity: 0; transform: translateY(14px); }
 html.js.motion-ok .hero-chip { transition: opacity .5s var(--ease-out) 2.9s, transform .6s var(--ease-out) 2.9s; }
 html.js.motion-ok .hero.is-settled .hero-chip { transition: transform .16s var(--ease-out); }
-html.js.motion-reduce .hero:not(.is-go) .hero-vis, html.js.motion-reduce .hero:not(.is-go) .hero-copy { opacity: 0; }
-html.js.motion-reduce .hero-vis, html.js.motion-reduce .hero-copy { transition: opacity .6s ease; }
+html.js.motion-reduce .hero:not(.is-go) .hero-vis { opacity: 0; }
+html.js.motion-reduce .hero-vis { transition: opacity .6s ease; }
+html.js.motion-reduce .hero-copy { animation: fadeIn .5s ease both; }
 
 html.reveal-all [data-reveal], html.reveal-all [data-hero-in], html.reveal-all [data-hero-line], html.reveal-all .sheet, html.reveal-all .hero-photo,
 html.reveal-all .hero-chip, html.reveal-all .stamp, html.reveal-all .t-h, html.reveal-all [data-t-row] { opacity: 1 !important; transform: none !important; clip-path: none !important; }

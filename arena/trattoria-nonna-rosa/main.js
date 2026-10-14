@@ -98,10 +98,12 @@
   }
 
   /** Aktuelles Datum/Uhrzeit in Berlin – unabhängig von der Zeitzone des Geräts */
+  var berlinFmt = null;
   function berlinNow() {
     var d = new Date(), o = {};
     try {
-      var parts = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false, weekday: 'short' }).formatToParts(d);
+      if (!berlinFmt) berlinFmt = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false, weekday: 'short' });
+      var parts = berlinFmt.formatToParts(d);
       parts.forEach(function (p) { o[p.type] = p.value; });
       var wd = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[o.weekday];
       var h = +o.hour % 24;
@@ -337,25 +339,31 @@
     var art = qs('[data-hero-art]');
     if (!art) return;
     var items = qsa('[data-par]', art).map(function (el) { return { el: el, d: parseFloat(el.getAttribute('data-par')) || 1 }; });
-    var mx = 0, my = 0, cx = 0, cy = 0, active = false, raf = null;
+    var mx = 0, my = 0, cx = 0, cy = 0, lastSy = -1, active = false, raf = null;
+    var kick = function () { if (active && !raf) raf = requestAnimationFrame(frame); };
     if (finePointer) {
       window.addEventListener('pointermove', function (e) {
         mx = (e.clientX / window.innerWidth) * 2 - 1;
         my = (e.clientY / window.innerHeight) * 2 - 1;
+        kick();
       }, { passive: true });
     }
+    window.addEventListener('scroll', kick, { passive: true });
+    // Läuft nur, solange sich etwas bewegt (Maus nachziehen oder Scrollen) – im Ruhezustand kein Dauer-rAF
     function frame() {
       raf = null;
       if (!active) return;
       cx = lerp(cx, mx, 0.07); cy = lerp(cy, my, 0.07);
       var sy = Math.min(window.scrollY, window.innerHeight * 1.2);
+      var settled = Math.abs(mx - cx) < 0.002 && Math.abs(my - cy) < 0.002 && sy === lastSy;
+      lastSy = sy;
       items.forEach(function (it) {
         var x = cx * 10 * it.d, y = cy * 8 * it.d - sy * 0.06 * (it.d - 0.6);
         it.el.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0)';
       });
-      raf = requestAnimationFrame(frame);
+      if (!settled) raf = requestAnimationFrame(frame);
     }
-    visibilityGate(art, function (on) { active = on; if (on && !raf) raf = requestAnimationFrame(frame); }, '0px');
+    visibilityGate(art, function (on) { active = on; kick(); }, '0px');
   }
 
   /* ------------------------------------------------------------------
@@ -834,11 +842,8 @@
         var W = rail.scrollWidth, P = Math.max(520, window.innerWidth * 0.42), SAG = Math.min(56, window.innerHeight * 0.06);
         var yOf = function (x) { var u = ((x % P) + P) % P / P; return 30 + SAG * 4 * u * (1 - u); };
         var railLeft = rail.getBoundingClientRect().left;
-        items.forEach(function (it) {
-          var pin = qs('.pol-clip', it).getBoundingClientRect();
-          var x = pin.left + pin.width / 2 - railLeft;
-          it.style.marginTop = (yOf(x) - 30) + 'px';
-        });
+        var xs = items.map(function (it) { var pin = qs('.pol-clip', it).getBoundingClientRect(); return pin.left + pin.width / 2 - railLeft; });
+        items.forEach(function (it, i) { it.style.marginTop = (yOf(xs[i]) - 30) + 'px'; });
         var d = 'M0 ' + yOf(0).toFixed(1);
         for (var x = 16; x <= W; x += 16) d += 'L' + x + ' ' + yOf(x).toFixed(1);
         linePath.setAttribute('d', d);
@@ -847,11 +852,17 @@
       }
       layoutLine();
 
+      // Die Strecke steht per CSS (position: sticky) – der Abschnitt bekommt die Höhe Bildschirm + Laufweg.
+      // Anders als ein GSAP-Pin schaltet sticky nie auf position:fixed um: keine Layout-Shifts (CLS), kein Ruckeln.
+      var section = tl.parentElement;
       var dist = function () { return Math.max(0, track.scrollWidth - window.innerWidth); };
+      var sizeSection = function () { section.style.height = (tl.offsetHeight + dist()) + 'px'; };
+      sizeSection();
+      ScrollTrigger.addEventListener('refreshInit', sizeSection);
       var move = gsap.to(track, {
         x: function () { return -dist(); }, ease: 'none',
         scrollTrigger: {
-          trigger: tl, start: 'top top', end: function () { return '+=' + dist(); }, pin: true, scrub: 0.6, anticipatePin: 1, invalidateOnRefresh: true,
+          trigger: section, start: 'top top', end: function () { return '+=' + dist(); }, scrub: 0.6, invalidateOnRefresh: true,
           onRefreshInit: function () { gsap.set(track, { x: 0 }); },
           onRefresh: layoutLine,
           onToggle: function (self) { running = self.isActive; if (running) { gsap.ticker.remove(tick); gsap.ticker.add(tick); } }
@@ -875,7 +886,7 @@
         });
       });
       if (startVisible.length) {
-        var intro = gsap.timeline({ scrollTrigger: { trigger: tl, start: 'top 82%', end: 'top 12%', scrub: 0.6 } });
+        var intro = gsap.timeline({ scrollTrigger: { trigger: section, start: 'top 82%', end: 'top 12%', scrub: 0.6 } });
         startVisible.forEach(function (s, i) {
           intro.fromTo(s.drop, { yPercent: -125, rotation: 14 * s.dir, autoAlpha: 0 }, { yPercent: 0, rotation: 0, autoAlpha: 1, ease: 'power2.out', duration: 1 }, i * 0.25);
           intro.fromTo(s.text, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.8 }, i * 0.25 + 0.3);
@@ -903,6 +914,8 @@
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
       return function () {
         doc.classList.remove('tl-h');
+        ScrollTrigger.removeEventListener('refreshInit', sizeSection);
+        section.style.height = '';
         gsap.ticker.remove(tick);
         items.forEach(function (it) { it.style.marginTop = ''; });
         swings.forEach(function (s) { s.el.style.transform = ''; });
@@ -1172,18 +1185,24 @@
      ------------------------------------------------------------------ */
   function start() {
     window.__rosaReady = true;
+    // Sofort: alles, was den ersten Bildschirm betrifft
     safe('scroll', initScroll);
     safe('header', initHeader);
     safe('status', initStatus);
     safe('hero', initHero);
     safe('reveals', initReveals);
-    safe('map', initMap);
-    safe('offer', initOffer);
-    safe('board', initBoard);
-    safe('menu', initMenu);
-    safe('pairing', initPairing);
-    safe('timeline', initTimeline);
-    safe('reservation', initReservation);
+    // Danach je Modul ein eigener Task, damit der Main-Thread zwischendurch frei wird (Eingaben, Hero-Auftakt)
+    var queue = [['map', initMap], ['offer', initOffer], ['board', initBoard], ['menu', initMenu], ['pairing', initPairing], ['timeline', initTimeline], ['reservation', initReservation]];
+    var yieldTask = function (fn) {
+      if (window.scheduler && typeof window.scheduler.postTask === 'function') window.scheduler.postTask(fn, { priority: 'user-visible' });
+      else setTimeout(fn, 0);
+    };
+    (function next() {
+      var job = queue.shift();
+      if (!job) return;
+      safe(job[0], job[1]);
+      yieldTask(next);
+    })();
 
     var reveal = function () {
       requestAnimationFrame(function () { requestAnimationFrame(function () { doc.classList.remove('is-loading'); }); });

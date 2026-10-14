@@ -173,11 +173,11 @@
      6 · Uhrzeit Europe/Berlin: Bürostatus + Uhren
      --------------------------------------------------------------------- */
   const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const berlinFmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Berlin', year: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   function berlin() {
-    const f = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Berlin', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
     const p = {};
-    f.formatToParts(new Date()).forEach((x) => { p[x.type] = x.value; });
-    return { day: DAYS.indexOf(p.weekday), h: +p.hour, m: +p.minute, year: +new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Berlin', year: 'numeric' }).format(new Date()) };
+    berlinFmt.formatToParts(new Date()).forEach((x) => { p[x.type] = x.value; });
+    return { day: DAYS.indexOf(p.weekday), h: +p.hour, m: +p.minute, year: +p.year };
   }
   const OPEN_MIN = 7 * 60;
   const CLOSE_MIN = 17 * 60;
@@ -214,11 +214,24 @@
     const hero = canvas.parentElement;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    // Statische Ebene (Raster, gedimmte Bahnen, Lötaugen) liegt auf eigenem Canvas
+    // und wird nur bei Größenänderung gezeichnet – pro Frame nur Impulse + Lichtkegel.
+    const base = d.createElement('canvas');
+    base.className = 'hero__canvas hero__canvas--base';
+    base.setAttribute('aria-hidden', 'true');
+    canvas.before(base);
+    const bctx = base.getContext('2d');
+    // weicher Kegel als komponierte Ebene (kein Vollflächen-Verlauf pro Frame)
+    const glow = d.createElement('div');
+    glow.className = 'hero__glow';
+    glow.setAttribute('aria-hidden', 'true');
+    canvas.before(glow);
     const SPOT = 250;               // Radius Lichtkegel (CSS-px)
     let W = 0, H = 0, DPR = 1, CELL = 28, OX = 0, OY = 0;
     let traces = [], pulses = [], pads = [];
-    let dotPattern = null;
     let running = false, inView = true, rafId = 0, last = 0;
+    // Kleine Bildschirme / Touch: 30 fps genügen für die Hintergrund-Animation
+    const FRAME_MS = () => (W < 900 || !FINE ? 33 : 0);
     const ptr = { tx: 0, ty: 0, x: 0, y: 0, active: false, power: 0 };
 
     function mulberry32(a) {
@@ -272,12 +285,12 @@
     }
 
     function build() {
-      const r = hero.getBoundingClientRect();
+      const r = canvas.getBoundingClientRect();
       W = Math.max(1, Math.round(r.width));
       H = Math.max(1, Math.round(r.height));
       DPR = Math.min(2, w.devicePixelRatio || 1);
-      canvas.width = Math.round(W * DPR);
-      canvas.height = Math.round(H * DPR);
+      canvas.width = base.width = Math.round(W * DPR);
+      canvas.height = base.height = Math.round(H * DPR);
       CELL = W < 640 ? 24 : 28;
       const cols = Math.floor(W / CELL) + 2;
       const rows = Math.floor(H / CELL) + 2;
@@ -311,13 +324,7 @@
         traces.push(t);
         pads.push(t.pts[0], t.pts[t.pts.length - 1]);
       }
-      // Punkt-Raster als Pattern
-      const tile = d.createElement('canvas');
-      tile.width = tile.height = Math.round(CELL * DPR);
-      const tc = tile.getContext('2d');
-      tc.fillStyle = 'rgba(255,255,255,.06)';
-      tc.fillRect(0, 0, Math.max(1, DPR), Math.max(1, DPR));
-      dotPattern = ctx.createPattern(tile, 'repeat');
+      drawBase();
       // Impulse
       const n = Math.min(W < 640 ? 26 : 64, Math.round(traces.length * 0.75));
       pulses = [];
@@ -348,13 +355,45 @@
       return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * k, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * k];
     }
 
-    function tracePath(list) {
-      ctx.beginPath();
+    function tracePath(list, c = ctx) {
+      c.beginPath();
       for (const t of list) {
         const p = t.pts;
-        ctx.moveTo(p[0][0], p[0][1]);
-        for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]);
+        c.moveTo(p[0][0], p[0][1]);
+        for (let i = 1; i < p.length; i++) c.lineTo(p[i][0], p[i][1]);
       }
+    }
+
+    function drawBase() {
+      const c = bctx;
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      c.clearRect(0, 0, base.width, base.height);
+      // Punkt-Raster
+      const tile = d.createElement('canvas');
+      tile.width = tile.height = Math.round(CELL * DPR);
+      const tc = tile.getContext('2d');
+      tc.fillStyle = 'rgba(255,255,255,.06)';
+      tc.fillRect(0, 0, Math.max(1, DPR), Math.max(1, DPR));
+      c.save();
+      c.translate((OX % CELL) * DPR, (OY % CELL) * DPR);
+      c.fillStyle = c.createPattern(tile, 'repeat');
+      c.fillRect(-CELL * DPR, -CELL * DPR, (W + CELL * 2) * DPR, (H + CELL * 2) * DPR);
+      c.restore();
+      c.setTransform(DPR, 0, 0, DPR, 0, 0);
+      // Leiterbahnen (gedimmt)
+      c.lineWidth = 1;
+      c.lineJoin = 'round';
+      c.lineCap = 'round';
+      c.strokeStyle = 'rgba(150,170,200,.12)';
+      tracePath(traces, c);
+      c.stroke();
+      // Pads (Lötaugen)
+      c.fillStyle = '#0A0C0F';
+      c.strokeStyle = 'rgba(150,170,200,.22)';
+      c.beginPath();
+      for (const p of pads) { c.moveTo(p[0] + 2.4, p[1]); c.arc(p[0], p[1], 2.4, 0, Math.PI * 2); }
+      c.fill();
+      c.stroke();
     }
 
     function draw(dt, now) {
@@ -372,22 +411,8 @@
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-
-      // Raster
-      ctx.save();
-      ctx.translate(OX % CELL, OY % CELL);
-      ctx.scale(1 / DPR, 1 / DPR);
-      ctx.fillStyle = dotPattern;
-      ctx.fillRect(-CELL * DPR, -CELL * DPR, (W + CELL * 2) * DPR, (H + CELL * 2) * DPR);
-      ctx.restore();
-
-      // Leiterbahnen (gedimmt)
-      ctx.lineWidth = 1;
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
-      ctx.strokeStyle = 'rgba(150,170,200,.12)';
-      tracePath(traces);
-      ctx.stroke();
 
       // Lichtkegel: Bahnen in Zeigernähe aufhellen
       const R = SPOT * (0.75 + ptr.power * 0.25);
@@ -402,20 +427,9 @@
         tracePath(near);
         ctx.stroke();
       }
-      // Pads (Lötaugen)
-      ctx.lineWidth = 1;
-      ctx.fillStyle = '#0A0C0F';
-      ctx.strokeStyle = 'rgba(150,170,200,.22)';
-      ctx.beginPath();
-      for (const p of pads) { ctx.moveTo(p[0] + 2.4, p[1]); ctx.arc(p[0], p[1], 2.4, 0, Math.PI * 2); }
-      ctx.fill();
-      ctx.stroke();
-      // weicher Kegel
-      const amb = ctx.createRadialGradient(ptr.x, ptr.y, 0, ptr.x, ptr.y, R * 1.4);
-      amb.addColorStop(0, `rgba(77,163,255,${0.1 * ptr.power})`);
-      amb.addColorStop(1, 'rgba(77,163,255,0)');
-      ctx.fillStyle = amb;
-      ctx.fillRect(ptr.x - R * 1.4, ptr.y - R * 1.4, R * 2.8, R * 2.8);
+      // weicher Kegel: nur Transform/Opacity auf einer eigenen Ebene
+      glow.style.transform = `translate3d(${ptr.x.toFixed(1)}px, ${ptr.y.toFixed(1)}px, 0) scale(${(R / SPOT).toFixed(3)})`;
+      glow.style.opacity = ptr.power.toFixed(3);
 
       // Impulse
       for (const p of pulses) {
@@ -455,7 +469,9 @@
     function loop(now) {
       rafId = 0;
       if (!running) return;
-      const dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
+      const cap = FRAME_MS();
+      if (cap && last && now - last < cap - 2) { rafId = raf(loop); return; }
+      const dt = last ? Math.min(0.066, (now - last) / 1000) : 0.016;
       last = now;
       draw(dt, now);
       rafId = raf(loop);
@@ -472,45 +488,52 @@
       rafId = 0;
     }
     function sync() {
-      if (inView && !d.hidden) start(); else stop();
+      if (ready && inView && !d.hidden) start(); else stop();
     }
 
-    build();
-    if (MOTION) {
-      sync();
-    } else {
-      ptr.power = 0.8;
-      draw(0, 0);
-    }
+    // Aufbau erst nach dem ersten Bild: Text + CTA malen zuerst, das Netz blendet danach weich ein
+    let ready = false;
+    const boot = () => {
+      build();
+      ready = true;
+      if (MOTION) {
+        sync();
+        if (typeof canvas.animate === 'function') [base, canvas].forEach((c) => c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 900, easing: 'ease-out' }));
+      } else {
+        ptr.power = 0.8;
+        draw(0, 0);
+      }
 
-    if (MOTION && FINE) {
-      hero.addEventListener('pointermove', (e) => {
-        if (e.pointerType === 'touch') return;
-        const r = hero.getBoundingClientRect();
-        ptr.tx = e.clientX - r.left;
-        ptr.ty = e.clientY - r.top;
-        ptr.active = true;
-      }, { passive: true });
-      hero.addEventListener('pointerleave', () => { ptr.active = false; });
-    }
-    if ('IntersectionObserver' in w) {
-      new IntersectionObserver((en) => { inView = en[0].isIntersecting; sync(); }).observe(hero);
-    }
-    d.addEventListener('visibilitychange', sync);
+      if (MOTION && FINE) {
+        hero.addEventListener('pointermove', (e) => {
+          if (e.pointerType === 'touch') return;
+          const r = hero.getBoundingClientRect();
+          ptr.tx = e.clientX - r.left;
+          ptr.ty = e.clientY - r.top;
+          ptr.active = true;
+        }, { passive: true });
+        hero.addEventListener('pointerleave', () => { ptr.active = false; });
+      }
+      if ('IntersectionObserver' in w) {
+        new IntersectionObserver((en) => { inView = en[0].isIntersecting; sync(); }).observe(hero);
+      }
+      d.addEventListener('visibilitychange', sync);
 
-    let lastW = W, lastH = H, rt = 0;
-    const onResize = () => {
-      clearTimeout(rt);
-      rt = setTimeout(() => {
-        const r = hero.getBoundingClientRect();
-        if (Math.abs(r.width - lastW) < 2 && Math.abs(r.height - lastH) < 120) return;
-        lastW = r.width; lastH = r.height;
-        build();
-        if (!MOTION) draw(0, 0);
-      }, 180);
+      let lastW = W, lastH = H, rt = 0;
+      const onResize = () => {
+        clearTimeout(rt);
+        rt = setTimeout(() => {
+          const r = canvas.getBoundingClientRect();
+          if (Math.abs(r.width - lastW) < 2 && Math.abs(r.height - lastH) < 120) return;
+          lastW = r.width; lastH = r.height;
+          build();
+          if (!MOTION) draw(0, 0);
+        }, 180);
+      };
+      if ('ResizeObserver' in w) new ResizeObserver(onResize).observe(hero);
+      else w.addEventListener('resize', onResize);
     };
-    if ('ResizeObserver' in w) new ResizeObserver(onResize).observe(hero);
-    else w.addEventListener('resize', onResize);
+    raf(() => setTimeout(boot, 0));
   }
   const flowCanvas = $('[data-flow]');
   if (flowCanvas) initFlow(flowCanvas);
@@ -879,16 +902,19 @@
     const alt = $('[data-light-alt]', lightSec);
     const luxEl = $('[data-lux]', lightSec);
     const wattEl = $('[data-watt]', lightSec);
+    const hintEl = $('#light-hint');
     let tw = 0;
-    const setOrigin = () => {
-      const a = sw.getBoundingClientRect();
-      const b = stage.getBoundingClientRect();
-      const cx = a.left + a.width / 2 - b.left;
-      const cy = a.top + a.height / 2 - b.top;
+    let tapAt = null; // Klick ins Zimmer: Licht breitet sich von dort aus
+    const setOriginAt = (cx, cy, b) => {
       const far = Math.max(...[[0, 0], [b.width, 0], [0, b.height], [b.width, b.height]].map(([x, y]) => Math.hypot(x - cx, y - cy)));
       stage.style.setProperty('--cx', `${cx.toFixed(0)}px`);
       stage.style.setProperty('--cy', `${cy.toFixed(0)}px`);
       stage.style.setProperty('--r', `${Math.ceil(far + 24)}px`);
+    };
+    const setOrigin = () => {
+      const a = sw.getBoundingClientRect();
+      const b = stage.getBoundingClientRect();
+      setOriginAt(a.left + a.width / 2 - b.left, a.top + a.height / 2 - b.top, b);
     };
     const tweenNum = (from, to, set) => {
       cancelAnimationFrame(tw);
@@ -905,11 +931,13 @@
     w.addEventListener('resize', setOrigin, { passive: true });
     sw.addEventListener('pointerdown', setOrigin);
     sw.addEventListener('click', () => {
-      setOrigin();
+      if (tapAt) { setOriginAt(tapAt[0], tapAt[1], stage.getBoundingClientRect()); tapAt = null; } else setOrigin();
+      lightSec.classList.add('was-used');
       const on = sw.getAttribute('aria-pressed') !== 'true';
       sw.setAttribute('aria-pressed', String(on));
       lightSec.classList.toggle('is-lit', on);
       stateEl.textContent = on ? 'An' : 'Aus';
+      if (hintEl) hintEl.textContent = on ? 'Noch einmal drücken – Licht aus.' : 'Drücken Sie den Schalter.';
       tag.textContent = on ? 'Licht an · 2.700 K' : 'Licht aus';
       alt.textContent = `Hotelzimmer mit Holzverkleidung, indirekter LED-Beleuchtung an Decke und Boden und hellem Vorhang. Das Licht ist ${on ? 'eingeschaltet' : 'ausgeschaltet'}.`;
       const l0 = Number(luxEl.textContent) || 0;
@@ -924,7 +952,13 @@
         sw.classList.add('is-clicked');
       }
     });
-    sw.addEventListener('animationend', () => sw.classList.remove('is-clicked'));
+    sw.addEventListener('animationend', (e) => { if (e.animationName === 'switch-ring') sw.classList.remove('is-clicked'); });
+    // Großes Ziel: Tippen/Klicken ins Zimmer schaltet ebenfalls (Tastatur bleibt beim Schalter)
+    stage.addEventListener('click', (e) => {
+      const b = stage.getBoundingClientRect();
+      tapAt = [e.clientX - b.left, e.clientY - b.top];
+      sw.click();
+    });
   }
 
   /* ---------------------------------------------------------------------
@@ -979,7 +1013,21 @@
       } else el.evTxt.textContent = S.ev.pct >= 100 ? 'Akku voll' : 'Fahrzeug verbunden';
       // Verbrauch
       const kw = 0.32 + (S.light.on ? (S.light.level / 100) * 0.14 : 0) + (mode === 'heat' ? 1.45 : mode === 'hold' ? 0.38 : 0.12) + (S.ev.charging ? 11 : 0);
-      el.power.textContent = t1(kw);
+      tweenPower(kw);
+    }
+    // Verbrauchsanzeige zählt weich zum neuen Wert (unterbrechbar)
+    let powNow = null, powAnim = 0;
+    function tweenPower(to) {
+      cancelAnimationFrame(powAnim);
+      if (powNow === null || !MOTION || Math.abs(to - powNow) < 0.05) { powNow = to; el.power.textContent = t1(to); return; }
+      const from = powNow, t0 = performance.now();
+      const tick = (now) => {
+        const p = easeOutCubic(clamp((now - t0) / 420, 0, 1));
+        powNow = from + (to - from) * p;
+        el.power.textContent = t1(powNow);
+        if (p < 1) powAnim = raf(tick);
+      };
+      powAnim = raf(tick);
     }
     const clearScene = () => el.scenes.forEach((b) => b.classList.remove('is-active'));
 
@@ -1049,11 +1097,26 @@
   const fbar = $('[data-filter-bar]');
   if (fbar) {
     const btns = $$('button', fbar);
-    const items = $$('#ref-list .ref');
+    const list = $('#ref-list');
+    const items = $$('.ref', list);
     const live = $('[data-filter-live]');
     let current = 'all', busy = false, queued = null;
     const match = (el, f) => f === 'all' || el.dataset.cat.split(' ').includes(f);
     const canAnim = MOTION && typeof Element.prototype.animate === 'function';
+
+    // Handy: wischbare Leiste – per Tastatur erreichbar, Fortschritt ohne Scroll-Timeline per JS
+    const railMq = w.matchMedia('(max-width: 639px)');
+    const railBar = $('.ref-rail span');
+    const isRail = () => railMq.matches;
+    const syncRail = () => { if (isRail()) list.setAttribute('tabindex', '0'); else list.removeAttribute('tabindex'); };
+    syncRail();
+    if (railMq.addEventListener) railMq.addEventListener('change', syncRail);
+    if (railBar && !(w.CSS && CSS.supports && CSS.supports('animation-timeline', 'scroll()'))) {
+      let rt = 0;
+      const upd = () => { rt = 0; const max = list.scrollWidth - list.clientWidth; railBar.style.setProperty('--rail', String(0.2 + 0.8 * (max > 0 ? list.scrollLeft / max : 1))); };
+      list.addEventListener('scroll', () => { if (!rt) rt = raf(upd); }, { passive: true });
+      upd();
+    }
 
     function apply(f) {
       if (busy) { queued = f; return; }
@@ -1063,7 +1126,7 @@
       const n = items.filter((el) => match(el, f)).length;
       const label = (btns.find((b) => b.dataset.filter === f).firstChild.textContent || '').trim();
       live.textContent = `${n} Projekte${f === 'all' ? '' : ` in ${label}`} angezeigt`;
-      if (!canAnim) { items.forEach((el) => { el.hidden = !match(el, f); }); refreshST(); return; }
+      if (!canAnim) { items.forEach((el) => { el.hidden = !match(el, f); }); if (isRail()) list.scrollLeft = 0; refreshST(); return; }
       busy = true;
       const first = new Map();
       items.forEach((el) => { if (!el.hidden) first.set(el, el.getBoundingClientRect()); });
@@ -1075,6 +1138,7 @@
       Promise.all(outs).then(() => {
         leaving.forEach((el) => { el.hidden = true; el.getAnimations().forEach((a) => a.cancel()); });
         items.forEach((el) => { if (match(el, f)) el.hidden = false; });
+        if (isRail()) list.scrollLeft = 0;
         let k = 0;
         const anims = [];
         items.forEach((el) => {
@@ -1144,7 +1208,7 @@
     mm.add('(min-width: 900px)', () => {
       gsap.to('[data-hero-copy]', { yPercent: -10, opacity: 0.25, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
       gsap.to('[data-hero-visual]', { y: -70, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
-      gsap.to('[data-flow]', { opacity: 0.25, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+      gsap.to('.hero__canvas', { opacity: 0.25, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
     });
 
     // Ablauf: Desktop mit Pin (Strom fließt durch die Schritte), sonst ohne Pin
@@ -1188,7 +1252,7 @@
       gsap.fromTo(img, { yPercent: amt }, { yPercent: -amt, ease: 'none', scrollTrigger: { trigger: img.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } });
     });
     const sosImg = $('[data-sos-img]');
-    if (sosImg) gsap.fromTo(sosImg, { scale: 1.12 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: '.sos', start: 'top bottom', end: 'bottom top', scrub: true } });
+    if (sosImg) gsap.fromTo(sosImg, { scale: 1.1 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: '.sos', start: 'top bottom', end: 'bottom top', scrub: true } });
 
     if (d.fonts && d.fonts.ready) d.fonts.ready.then(refreshST);
     w.addEventListener('load', refreshST);

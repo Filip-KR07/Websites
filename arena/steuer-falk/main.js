@@ -72,19 +72,21 @@
   function restart(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
 
   /* Datum „heute“ in Hannover (als UTC-Mitternacht, damit Tagesdifferenzen exakt sind) */
+  var berlinFmt = null; /* Formatter einmal anlegen – der Konstruktor ist teuer */
   function berlinParts(d) {
     var out = {};
     try {
-      new Intl.DateTimeFormat('en-GB', { timeZone: TZ, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hourCycle: 'h23', weekday: 'short' })
-        .formatToParts(d).forEach(function (p) { out[p.type] = p.value; });
+      berlinFmt = berlinFmt || new Intl.DateTimeFormat('en-GB', { timeZone: TZ, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hourCycle: 'h23', weekday: 'short' });
+      berlinFmt.formatToParts(d).forEach(function (p) { out[p.type] = p.value; });
       var wd = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
       return { y: +out.year, m: +out.month, d: +out.day, h: +out.hour, min: +out.minute, wd: wd[out.weekday] };
     } catch (e) {
       return { y: d.getFullYear(), m: d.getMonth() + 1, d: d.getDate(), h: d.getHours(), min: d.getMinutes(), wd: d.getDay() };
     }
   }
-  var NOW = berlinParts(new Date());
-  var TODAY = Date.UTC(NOW.y, NOW.m - 1, NOW.d);
+  /* „heute“ wird erst beim Aufbau des Fristenkalenders bestimmt (Intl mit Zeitzone ist beim ersten Aufruf teuer) */
+  var NOW = null, TODAY = 0;
+  function initToday() { if (!NOW) { NOW = berlinParts(new Date()); TODAY = Date.UTC(NOW.y, NOW.m - 1, NOW.d); } }
   var DAY = 864e5;
   function utc(y, m, d) { return Date.UTC(y, m - 1, d); }
   function fmtDate(t, withYear) { var d = new Date(t); return pad2(d.getUTCDate()) + '.' + pad2(d.getUTCMonth() + 1) + '.' + (withYear === false ? '' : d.getUTCFullYear()); }
@@ -214,6 +216,8 @@
      Zahlenrollen (Odometer)
      ------------------------------------------------------------------ */
   var REEL = 20; // zwei Ziffernkränze 0–9, damit jede Stelle sichtbar rollt
+  /* ein Textknoten je Rolle („0⏎1⏎…⏎9⏎0⏎…⏎9“) statt 20 Elementen – spart rund 1.500 DOM-Knoten */
+  var REEL_TEXT = (function () { var s = []; for (var k = 0; k < REEL; k++) s.push(k % 10); return s.join('\n'); })();
   function Odo(el) {
     this.el = el;
     this.text = el.textContent;
@@ -233,8 +237,7 @@
       var ch = text.charAt(i);
       if (/\d/.test(ch)) {
         var d = document.createElement('span'); d.className = 'odo-d';
-        var s = document.createElement('span'); s.className = 'odo-s';
-        for (var k = 0; k < REEL; k++) { var n = document.createElement('span'); n.textContent = String(k % 10); s.appendChild(n); }
+        var s = document.createElement('span'); s.className = 'odo-s'; s.textContent = REEL_TEXT;
         d.appendChild(s); roll.appendChild(d);
         this.reels.push({ strip: s, digit: +ch, pos: 0 });
       } else {
@@ -307,6 +310,9 @@
       if (kpi) odos.push({ el: kpi, delay: 2.0 });
       odos.forEach(function (o) { o.odo = o.el.__odo = new Odo(o.el); });
     }
+    /* Der Textblock blendet per CSS sofort ein (unabhängig von main.js → schneller LCP).
+       Die Bilanz baut sich erst auf, wenn sie im Bild ist – auf dem Handy liegt sie unter dem
+       ersten Bildschirm und würde sonst unbemerkt fertig animieren. */
     var go = function () {
       requestAnimationFrame(function () {
         hero.classList.add('is-go');
@@ -318,11 +324,20 @@
         }
       });
     };
+    var fontsOk = false, inView = false, started = false;
+    var start = function () { if (!started && fontsOk && inView) { started = true; go(); } };
     /* auf Schriften warten (max. 450 ms), damit nichts springt */
-    var started = false;
-    var start = function () { if (!started) { started = true; go(); } };
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(start);
-    setTimeout(start, 450);
+    var fontsDone = function () { fontsOk = true; start(); };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fontsDone);
+    setTimeout(fontsDone, 450);
+    var vis = qs('[data-hero-vis]', hero);
+    if (vis && motionOk && 'IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (en) {
+        if (!en[0].isIntersecting) return;
+        io.disconnect(); inView = true; start();
+      }, { rootMargin: '0px 0px -22% 0px' });
+      io.observe(vis);
+    } else { inView = true; start(); }
   }
 
   /* Hero-Parallaxe (nur Desktop, Bewegung erlaubt) */
@@ -346,8 +361,12 @@
     var io = new IntersectionObserver(function (entries) {
       var n = 0;
       entries.forEach(function (en) {
-        if (!en.isIntersecting) return;
         var el = en.target;
+        if (!en.isIntersecting) {
+          /* bereits oberhalb des Viewports (z. B. nach Neuladen weiter unten): sofort sichtbar */
+          if (en.boundingClientRect.bottom < 0) { el.classList.add('is-in'); io.unobserve(el); }
+          return;
+        }
         el.style.setProperty('--rd', Math.min(n, 6) * 70 + 'ms');
         n++;
         el.classList.add('is-in');
@@ -355,10 +374,7 @@
         setTimeout(function () { el.style.removeProperty('--rd'); }, 1400);
       });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0 });
-    els.forEach(function (el) {
-      /* bereits oberhalb des Viewports (z. B. nach Neuladen weiter unten): sofort sichtbar */
-      if (el.getBoundingClientRect().bottom < 0) el.classList.add('is-in'); else io.observe(el);
-    });
+    els.forEach(function (el) { io.observe(el); }); /* Lage liefert der Observer asynchron – kein erzwungenes Layout */
 
     /* Kennzahlen rollen beim Einblenden */
     var stats = qsa('[data-odo-scroll]');
@@ -567,7 +583,8 @@
       };
       var st = ScrollTrigger.create({
         trigger: flow,
-        start: function () { return 'top ' + (headerOffset() + 28) + 'px'; },
+        /* Bühne mittig im freien Bereich unter dem Header – keine leere Fläche am unteren Rand */
+        start: function () { var hh = headerOffset(); return 'top ' + Math.round(hh + Math.max(28, (window.innerHeight - hh - flow.offsetHeight) / 2)) + 'px'; },
         end: function () { return '+=' + Math.round(window.innerHeight * 0.75 * steps.length); },
         pin: true,
         anticipatePin: 1,
@@ -700,6 +717,7 @@
   function initFristen() {
     var root = qs('[data-fr]');
     if (!root) return;
+    initToday();
     var Y = NOW.y;
     var yearStart = utc(Y, 1, 1), yearLen = (utc(Y + 1, 1, 1) - yearStart) / DAY;
     var pos = function (t) { return clamp((t - yearStart) / DAY + 0.5, 0, yearLen) / yearLen; };
@@ -849,7 +867,7 @@
         sel = cands[0] || null;
       }
       if (!sel) sel = events.filter(function (e) { return relevant(e) && e.days >= 0; })[0] || events.filter(relevant)[0];
-      choose(sel, false, !first && prevSel && sel && prevSel.lane === sel.lane && prevSel.title === sel.title && prevSel.sub === sel.sub);
+      choose(sel, false, !first && prevSel && sel && prevSel.lane === sel.lane && prevSel.title === sel.title && prevSel.sub === sel.sub, first);
 
       /* Tabelle */
       tbody.textContent = '';
@@ -865,7 +883,7 @@
       });
     }
 
-    function choose(e, focus, quiet) {
+    function choose(e, focus, quiet, noAnim) {
       if (!e) return;
       events.forEach(function (x) { if (x.btn) { x.btn.setAttribute('aria-pressed', x === e ? 'true' : 'false'); x.btn.tabIndex = x === e ? 0 : -1; } });
       selected = e;
@@ -882,7 +900,7 @@
       if (e.date !== e.orig) note = 'Regulär ' + fmtDate(e.orig, false) + ' (' + DAY_NAMES[wday(e.orig)] + ') – verschoben auf den nächsten Werktag. ' + note;
       D.note.textContent = note;
       D.who.textContent = 'Betrifft: ' + e.laneObj.who.map(function (w) { return WHO[w]; }).join(', ') + (e.lane === 'gew' ? ' (Grundsteuer: Eigentümer)' : '');
-      if (motionOk) restart(detail, 'is-swap');
+      if (motionOk && !noAnim) restart(detail, 'is-swap'); /* beim Aufbau kein erzwungenes Layout */
     }
 
     /* Klick + Tastatur auf der Zeitleiste */
@@ -1095,30 +1113,38 @@
   /* ------------------------------------------------------------------
      Start
      ------------------------------------------------------------------ */
+  /* Sofort: alles, was den ersten Bildschirm betrifft */
   safe('scroll', initScroll);
   safe('header', initHeader);
   safe('menu', initMenu);
   safe('hero', initHero);
   safe('reveal', initReveal);
-  safe('ledger', initLedger);
-  safe('wegweiser', initWegweiser);
-  safe('checklist', initChecklist);
-  safe('flow', initFlow);
-  safe('fristen', initFristen);
-  safe('parallax', initParallax);
-  safe('open', initOpenStatus);
-  safe('form', initForm);
-  safe('map', initMap);
+  safe('wegweiser', initWegweiser); /* günstig; blendet sofort die drei inaktiven Tafeln aus */
   safe('actionbar', initActionbar);
+
+  /* Danach in kleinen Häppchen (je max. ~40 ms), damit der Hauptthread nicht lange blockiert.
+     Fristen zuerst – sie füllen den Fristen-Chip im Hero. */
+  var later = [['fristen', initFristen], ['parallax', initParallax], ['flow', initFlow], ['ledger', initLedger],
+    ['checklist', initChecklist], ['open', initOpenStatus], ['form', initForm], ['map', initMap]];
+  var laterDone = false, loaded = document.readyState === 'complete', afterBoot = [];
+  var whenBooted = function (fn) { if (laterDone && loaded) fn(); else afterBoot.push(fn); };
+  var flushBoot = function () { if (laterDone && loaded) { var q = afterBoot; afterBoot = []; q.forEach(function (fn) { fn(); }); } };
+  var step = function () {
+    var t0 = Date.now();
+    while (later.length && Date.now() - t0 < 40) { var job = later.shift(); safe(job[0], job[1]); }
+    if (later.length) setTimeout(step, 0); else { laterDone = true; flushBoot(); }
+  };
+  setTimeout(step, 0);
+  window.addEventListener('load', function () { loaded = true; flushBoot(); });
 
   if (hasGSAP) {
     var refresh = function () { ScrollTrigger.refresh(); };
-    window.addEventListener('load', refresh);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh);
+    whenBooted(refresh);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (laterDone && loaded) refresh(); });
   }
   /* bei Rücknavigation an Anker: Position nach Aufbau korrigieren */
   if (location.hash && location.hash.length > 1) {
     var t = document.getElementById(decodeURIComponent(location.hash.slice(1)));
-    if (t) window.addEventListener('load', function () { setTimeout(function () { scrollToTarget(t, { focusEl: t }); }, 60); });
+    if (t) whenBooted(function () { setTimeout(function () { scrollToTarget(t, { focusEl: t }); }, 60); });
   }
 })();

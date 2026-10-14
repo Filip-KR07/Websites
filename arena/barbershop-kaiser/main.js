@@ -105,13 +105,23 @@
       if (!f.hasAttribute('tabindex') && !/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(f.tagName)) f.setAttribute('tabindex', '-1');
       f.focus({ preventScroll: true });
     };
+    var dest = function () { return isTop ? 0 : target.getBoundingClientRect().top + window.scrollY - headerOffset() + 1; };
+    // Abschnitte weiter unten werden erst beim Näherkommen gerendert (content-visibility: auto).
+    // Ändert sich dabei ihre Höhe, landet der erste Sprung leicht daneben → kurz nachführen.
+    var settle = function (again) {
+      var off = dest() - window.scrollY;
+      if (Math.abs(off) > 3 && again) {
+        if (lenis) lenis.scrollTo(dest(), { duration: 0.45, easing: easeInOut, onComplete: function () { settle(false); } });
+        else { window.scrollTo({ top: dest(), behavior: 'auto' }); focus(); }
+        return;
+      }
+      focus();
+    };
     if (lenis) {
-      var ty = isTop ? 0 : target.getBoundingClientRect().top + window.scrollY - headerOffset() + 1;
-      lenis.scrollTo(ty, { duration: 1.3, easing: easeInOut, onComplete: focus });
+      lenis.scrollTo(dest(), { duration: 1.3, easing: easeInOut, onComplete: function () { settle(true); } });
     } else {
-      var y = isTop ? 0 : target.getBoundingClientRect().top + window.scrollY - headerOffset() + 1;
-      window.scrollTo({ top: y, behavior: reduced() ? 'auto' : 'smooth' });
-      setTimeout(focus, reduced() ? 0 : 650);
+      window.scrollTo({ top: dest(), behavior: reduced() ? 'auto' : 'smooth' });
+      setTimeout(function () { settle(true); }, reduced() ? 30 : 700);
     }
   }
 
@@ -129,7 +139,7 @@
       if (bar) bar.style.transform = 'scaleX(' + clamp(y / max, 0, 1).toFixed(4) + ')';
     };
     window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
-    update();
+    ticking = true; requestAnimationFrame(update); // erst im nächsten Frame messen (kein erzwungenes Layout beim Start)
 
     var links = qsa('.main-nav a'), map = {};
     links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
@@ -215,6 +225,7 @@
     var SCROLL_GAIN = 0.035; // Zusatz pro px Scroll-Geschwindigkeit
     var W = 0, H = 0, dpr = 1, pitch = 60, period = 80;
     var phase = 0, boost = 0, running = false, raf = 0, last = 0, lastY = window.scrollY;
+    var tile = null, shade = null;
 
     function resize() {
       var r = canvas.getBoundingClientRect();
@@ -224,30 +235,43 @@
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
       pitch = W * 2.4;          // Steigung der Helix (px pro Umdrehung)
       period = W * 1.25;        // Höhe einer Farbfolge
+      renderTile();
       draw();
     }
-    function draw() {
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, W, H);
+    /* Die Helix ist vertikal periodisch: Phase p = Bild bei Phase 0, um p·period nach oben verschoben.
+       Deshalb einmal eine Kachel (Höhe H + period) zeichnen und pro Frame nur verschoben einblenden. */
+    function renderTile() {
+      tile = tile || document.createElement('canvas');
+      var TH = H + Math.ceil(period) + 2;
+      tile.width = Math.round(W * dpr); tile.height = Math.round(TH * dpr);
+      var t = tile.getContext('2d');
+      t.setTransform(dpr, 0, 0, dpr, 0, 0);
       var slices = Math.max(24, Math.round(W / 1.25)), sw = W / slices;
       for (var s = 0; s < slices; s++) {
         var cx = (s + 0.5) * sw;
         var theta = Math.asin(clamp((cx / W) * 2 - 1, -1, 1));
-        var off = (theta / (2 * Math.PI)) * pitch + phase * period;
-        var k0 = Math.floor((off - period) / period), k1 = Math.ceil((H + off) / period);
+        var off = (theta / (2 * Math.PI)) * pitch;
+        var k0 = Math.floor((off - period) / period), k1 = Math.ceil((TH + off) / period);
         for (var k = k0; k <= k1; k++) {
           var y = k * period - off;
           for (var b = 0; b < BANDS.length; b++) {
             var hgt = BANDS[b][1] * period;
-            if (y + hgt > 0 && y < H) { ctx.fillStyle = BANDS[b][0]; ctx.fillRect(s * sw, y, sw + 0.6, hgt + 0.6); }
+            if (y + hgt > 0 && y < TH) { t.fillStyle = BANDS[b][0]; t.fillRect(s * sw, y, sw + 0.6, hgt + 0.6); }
             y += hgt;
           }
         }
       }
       // Schatten unter den Kappen
-      var g = ctx.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, 'rgba(0,0,0,.55)'); g.addColorStop(0.06, 'rgba(0,0,0,0)'); g.addColorStop(0.94, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.5)');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      shade = ctx.createLinearGradient(0, 0, 0, H);
+      shade.addColorStop(0, 'rgba(0,0,0,.55)'); shade.addColorStop(0.06, 'rgba(0,0,0,0)'); shade.addColorStop(0.94, 'rgba(0,0,0,0)'); shade.addColorStop(1, 'rgba(0,0,0,.5)');
+    }
+    function draw() {
+      var m = ((phase * period) % period + period) % period;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(tile, 0, -m * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = shade; ctx.fillRect(0, 0, W, H);
     }
     function velocity() {
       if (lenis) return lenis.velocity || 0;
@@ -259,6 +283,7 @@
       var target = clamp(velocity() * SCROLL_GAIN, -2.4, 3.2);
       boost = lerp(boost, target, 1 - Math.pow(0.9, dt * 60));
       phase += dt * (BASE_SPEED + boost);
+      phase -= Math.floor(phase); // eine Periode genügt
       draw();
       raf = requestAnimationFrame(tick);
     }
@@ -313,22 +338,24 @@
   function initRitual() {
     var section = qs('[data-ritual]');
     if (!section || !hasGSAP || reduced()) return;
-    var stage = qs('.ritual-stage', section);
     var figs = qsa('.ritual-fig', section), texts = qsa('.ritual-text', section), ticks = qsa('.ritual-ticks li', section);
     var imgs = figs.map(function (f) { return qs('img', f); });
     var mm = gsap.matchMedia();
     mm.add('(min-width: 900px) and (min-height: 560px)', function () {
+      // Bühne per CSS „position: sticky“ (statt GSAP-Pin mit position: fixed):
+      // kein Umschalten der Positionierung beim Scrollen → keine Layout-Verschiebung (CLS), kein Pin-Spacer.
       section.classList.add('is-pinned');
       figs.forEach(function (f, i) { f.style.zIndex = i + 1; });
       gsap.set(figs.slice(1), { clipPath: 'inset(100% 0% 0% 0%)' });
       gsap.set(imgs.slice(1), { scale: 1.18 });
       gsap.set(texts.slice(1), { autoAlpha: 0, y: 40 });
-      var setTick = function (idx) { ticks.forEach(function (t, i) { t.classList.toggle('is-active', i === idx); }); };
+      var lastTick = -1;
+      var setTick = function (idx) { if (idx === lastTick) return; lastTick = idx; ticks.forEach(function (t, i) { t.classList.toggle('is-active', i === idx); }); };
       var tl = gsap.timeline({
         defaults: { ease: 'none' },
         scrollTrigger: {
-          trigger: section, start: 'top top', end: function () { return '+=' + Math.round(window.innerHeight * 2.6); },
-          pin: stage, scrub: 0.6, anticipatePin: 1, invalidateOnRefresh: true,
+          trigger: section, start: 'top top', end: 'bottom bottom',
+          scrub: 0.6, invalidateOnRefresh: true,
           onUpdate: function (self) { var t = self.progress * tl.duration(); setTick(clamp(Math.floor(t - 0.65) + 1, 0, 3)); }
         }
       });
@@ -345,7 +372,7 @@
         section.classList.remove('is-pinned');
         gsap.set(figs.concat(texts, imgs), { clearProps: 'all' });
         figs.forEach(function (f) { f.style.zIndex = ''; });
-        setTick(0);
+        lastTick = -1; setTick(0);
       };
     });
   }
@@ -651,18 +678,19 @@
     }
 
     var onResize = function () { bounds(); x = clamp(x, min, max); lastIdx = -1; render(); };
-    if ('ResizeObserver' in window) new ResizeObserver(onResize).observe(vp); else window.addEventListener('resize', onResize);
-    bounds(); render();
+    // ResizeObserver meldet die Startgröße selbst (nach dem Layout) – kein erzwungenes Layout beim Init
+    if ('ResizeObserver' in window) new ResizeObserver(onResize).observe(vp); else { window.addEventListener('resize', onResize); onResize(); }
   }
 
   /* ------------------------------------------------------------------
      Datum/Zeit in Köln
      ------------------------------------------------------------------ */
+  var berlinFmt = null; // Intl-Formatter ist teuer im Aufbau → einmal erzeugen
   function berlinNow() {
     var parts = {};
     try {
-      new Intl.DateTimeFormat('en-GB', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
-        .formatToParts(new Date()).forEach(function (p) { parts[p.type] = p.value; });
+      berlinFmt = berlinFmt || new Intl.DateTimeFormat('en-GB', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+      berlinFmt.formatToParts(new Date()).forEach(function (p) { parts[p.type] = p.value; });
     } catch (e) {
       var d = new Date(); parts = { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate(), hour: d.getHours(), minute: d.getMinutes() };
     }
@@ -1111,24 +1139,40 @@
   /* ------------------------------------------------------------------
      Start
      ------------------------------------------------------------------ */
+  /* Eigener Task pro Schritt: hält den Main-Thread frei, damit der Hero-Auftakt
+     nicht hinter einem langen Init-Block hängt (scheduler.postTask, sonst MessageChannel). */
+  var nextTask = (function () {
+    if (window.scheduler && typeof window.scheduler.postTask === 'function') return function (fn) { window.scheduler.postTask(fn, { priority: 'user-visible' }); };
+    if (typeof MessageChannel === 'function') {
+      var ch = new MessageChannel(), q = [];
+      ch.port1.onmessage = function () { var f = q.shift(); if (f) f(); };
+      return function (fn) { q.push(fn); ch.port2.postMessage(0); };
+    }
+    return function (fn) { setTimeout(fn, 0); };
+  })();
+
   function start() {
+    // sofort: alles, was im ersten Bildschirm sichtbar ist oder Eingaben annimmt
     safe('scroll', initScroll);
     safe('header', initHeader);
     safe('menu', initMenu);
     safe('hero', initHero);
     safe('pole', initPole);
-    safe('reveal', initReveal);
-    safe('statement', initStatement);
-    safe('ritual', initRitual);
-    safe('prices', initPrices);
-    safe('beard', initBeard);
-    safe('gallery', initGallery);
-    safe('status', initOpenStatus);
-    safe('booking', initBooking);
-    safe('deeplinks', initDeepLinks);
-    if (hasGSAP) {
-      window.addEventListener('load', function () { ScrollTrigger.refresh(); });
-      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
+    // danach in kleinen Häppchen
+    var queue = [
+      ['reveal', initReveal], ['status', initOpenStatus], ['statement', initStatement], ['ritual', initRitual],
+      ['prices', initPrices], ['beard', initBeard], ['gallery', initGallery], ['booking', initBooking], ['deeplinks', initDeepLinks]
+    ];
+    var run = function () {
+      var job = queue.shift();
+      if (!job) return;
+      safe(job[0], job[1]);
+      nextTask(run);
+    };
+    nextTask(run);
+    if (hasGSAP && document.fonts && document.fonts.ready) {
+      // ScrollTrigger aktualisiert sich bei DOMContentLoaded/load selbst; nur nachziehen, wenn Schriften später fertig werden
+      document.fonts.ready.then(function () { if (document.readyState === 'complete') ScrollTrigger.refresh(); });
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();

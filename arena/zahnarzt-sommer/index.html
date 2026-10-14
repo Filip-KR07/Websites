@@ -190,7 +190,8 @@
       </div>
       <p class="hero__urgent" data-hero-in><span class="hero__pulse" aria-hidden="true"></span>Akute Schmerzen? Bitte direkt anrufen – wir halten täglich Akutzeiten frei.</p>
       <ul class="trust" data-hero-in>
-        <li><strong>4,9&nbsp;<span class="trust__star" aria-hidden="true">★</span></strong><span>aus 268 Bewertungen</span></li>
+        <li class="trust__rating"><strong>4,9&nbsp;<span class="trust__star" aria-hidden="true">★</span></strong><span>aus 268 Bewertungen</span></li>
+        <li class="trust__ubahn"><strong>U3 · U6</strong><span>2&nbsp;Min. zu Fuß</span></li>
         <li><strong>Alle Kassen</strong><span>und privat</span></li>
         <li><strong>Bis 19&nbsp;Uhr</strong><span>Mo, Di, Do</span></li>
         <li><strong>DE · EN · TR</strong><span>im Team</span></li>
@@ -202,7 +203,7 @@
       <svg class="hero__rings" viewBox="0 0 600 600" aria-hidden="true"><circle cx="300" cy="300" r="296"/><circle cx="300" cy="300" r="236"/><circle cx="300" cy="300" r="176"/></svg>
       <figure class="lens" data-lens>
         <img class="lens__base" src="/arena/zahnarzt-sommer/assets/img/raum-960.webp" srcset="/arena/zahnarzt-sommer/assets/img/raum-480.webp 480w, /arena/zahnarzt-sommer/assets/img/raum-960.webp 960w" sizes="(min-width: 900px) 640px, 100vw" width="960" height="640" alt="" aria-hidden="true" decoding="async" fetchpriority="high">
-        <img class="lens__clear" src="/arena/zahnarzt-sommer/assets/img/raum-960.webp" srcset="/arena/zahnarzt-sommer/assets/img/raum-480.webp 480w, /arena/zahnarzt-sommer/assets/img/raum-960.webp 960w" sizes="(min-width: 900px) 640px, 100vw" width="960" height="640" alt="Heller Behandlungsraum mit Behandlungsstuhl, Lampe und weißen Schränken" decoding="async" fetchpriority="high">
+        <span class="lens__win"><img class="lens__clear" src="/arena/zahnarzt-sommer/assets/img/raum-960.webp" srcset="/arena/zahnarzt-sommer/assets/img/raum-480.webp 480w, /arena/zahnarzt-sommer/assets/img/raum-960.webp 960w" sizes="(min-width: 900px) 640px, 100vw" width="960" height="640" alt="Heller Behandlungsraum mit Behandlungsstuhl, Lampe und weißen Schränken" decoding="async" fetchpriority="high"></span>
         <span class="lens__ring" aria-hidden="true"><span class="lens__tag">klar</span></span>
         <figcaption class="sr-only">Behandlungsraum der Praxis</figcaption>
       </figure>
@@ -220,6 +221,19 @@
     </div>
   </div>
 </section>
+<script>
+  /* Hero-Intro sofort starten, sobald die Schrift da ist (max. 300 ms) – nicht erst nach main.js */
+  (function (d) {
+    if (!d.classList.contains('motion-ok')) return;
+    var done = false;
+    var go = function () {
+      if (done) return; done = true;
+      requestAnimationFrame(function () { requestAnimationFrame(function () { d.classList.add('is-ready'); }); });
+    };
+    try { document.fonts.load('650 1em Figtree').then(go, go); } catch (e) { go(); }
+    setTimeout(go, 300);
+  })(document.documentElement);
+</script>
 
 <!-- ============ PRINZIP ============ -->
 <section class="intro" aria-labelledby="intro-title">
@@ -275,15 +289,15 @@
   </div>
   <div class="svc-preview" aria-hidden="true" data-svc-preview>
     <div class="svc-preview__frame">
-      <img data-key="untersuchung" src="/arena/zahnarzt-sommer/assets/img/untersuchung-480.webp" width="480" height="318" alt="" loading="lazy" decoding="async">
-      <img data-key="buerste" src="/arena/zahnarzt-sommer/assets/img/buerste-480.webp" width="480" height="320" alt="" loading="lazy" decoding="async">
-      <img data-key="fuellung" src="/arena/zahnarzt-sommer/assets/img/fuellung-480.webp" width="480" height="318" alt="" loading="lazy" decoding="async">
-      <img data-key="einheit" src="/arena/zahnarzt-sommer/assets/img/einheit-480.webp" width="480" height="320" alt="" loading="lazy" decoding="async">
-      <img data-key="stuhl" src="/arena/zahnarzt-sommer/assets/img/stuhl-480.webp" width="480" height="320" alt="" loading="lazy" decoding="async">
-      <img data-key="raum" src="/arena/zahnarzt-sommer/assets/img/raum-480.webp" width="480" height="320" alt="" loading="lazy" decoding="async">
-      <img data-key="kind" src="/arena/zahnarzt-sommer/assets/img/kind-480.webp" width="480" height="318" alt="" loading="lazy" decoding="async">
-      <img data-key="fenster" src="/arena/zahnarzt-sommer/assets/img/fenster-480.webp" width="480" height="320" alt="" loading="lazy" decoding="async">
-      <img data-key="zuhause" src="/arena/zahnarzt-sommer/assets/img/zuhause-480.webp" width="480" height="320" alt="" loading="lazy" decoding="async">
+      <img data-key="untersuchung" src="/arena/zahnarzt-sommer/assets/img/untersuchung-480.webp" srcset="/arena/zahnarzt-sommer/assets/img/untersuchung-480.webp 480w, /arena/zahnarzt-sommer/assets/img/untersuchung-960.webp 960w" sizes="300px" width="480" height="318" alt="" loading="lazy" decoding="async">
+      <img data-key="buerste" src="/arena/zahnarzt-sommer/assets/img/buerste-480.webp" srcset="/arena/zahnarzt-sommer/assets/img/buerste-480.webp 480w, /arena/zahnarzt-sommer/assets/img/buerste-960.webp 960w" sizes="300px" width="480" height="320" alt="" loading="lazy" decoding="async">
+      <img data-key="fuellung" src="/arena/zahnarzt-sommer/assets/img/fuellung-480.webp" srcset="/arena/zahnarzt-sommer/assets/img/fuellung-480.webp 480w, /arena/zahnarzt-sommer/assets/img/fuellung-960.webp 960w" sizes="300px" width="480" height="318" alt="" loading="lazy" decoding="async">
+      <img data-key="einheit" src="/arena/zahnarzt-sommer/assets/img/einheit-480.webp" srcset="/arena/zahnarzt-sommer/assets/img/einheit-480.webp 480w, /arena/zahnarzt-sommer/assets/img/einheit-960.webp 960w" sizes="300px" width="480" height="320" alt="" loading="lazy" decoding="async">
+      <img data-key="stuhl" src="/arena/zahnarzt-sommer/assets/img/stuhl-480.webp" srcset="/arena/zahnarzt-sommer/assets/img/stuhl-480.webp 480w, /arena/zahnarzt-sommer/assets/img/stuhl-960.webp 960w" sizes="300px" width="480" height="320" alt="" loading="lazy" decoding="async">
+      <img data-key="raum" src="/arena/zahnarzt-sommer/assets/img/raum-480.webp" srcset="/arena/zahnarzt-sommer/assets/img/raum-480.webp 480w, /arena/zahnarzt-sommer/assets/img/raum-960.webp 960w" sizes="300px" width="480" height="320" alt="" loading="lazy" decoding="async">
+      <img data-key="kind" src="/arena/zahnarzt-sommer/assets/img/kind-480.webp" srcset="/arena/zahnarzt-sommer/assets/img/kind-480.webp 480w, /arena/zahnarzt-sommer/assets/img/kind-960.webp 960w" sizes="300px" width="480" height="318" alt="" loading="lazy" decoding="async">
+      <img data-key="fenster" src="/arena/zahnarzt-sommer/assets/img/fenster-480.webp" srcset="/arena/zahnarzt-sommer/assets/img/fenster-480.webp 480w, /arena/zahnarzt-sommer/assets/img/fenster-960.webp 960w" sizes="300px" width="480" height="320" alt="" loading="lazy" decoding="async">
+      <img data-key="zuhause" src="/arena/zahnarzt-sommer/assets/img/zuhause-480.webp" srcset="/arena/zahnarzt-sommer/assets/img/zuhause-480.webp 480w, /arena/zahnarzt-sommer/assets/img/zuhause-960.webp 960w" sizes="300px" width="480" height="320" alt="" loading="lazy" decoding="async">
     </div>
   </div>
 </section>
@@ -291,7 +305,7 @@
 <!-- ============ ZAHNSCHEMA ============ -->
 <section class="chart" id="zahnschema" aria-labelledby="chart-title">
   <div class="wrap">
-    <header class="sec-head sec-head--split">
+    <header class="sec-head sec-head--center">
       <div>
         <p class="eyebrow"><span class="eyebrow__n">02</span>Zahnschema</p>
         <h2 class="sec-title" id="chart-title">Zeigen Sie uns, wo es zwickt.</h2>

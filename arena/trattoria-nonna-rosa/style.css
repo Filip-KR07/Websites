@@ -112,10 +112,10 @@ html.js .nojs-only { display: none !important; }
 /* ---------- Typo-Bausteine ---------- */
 .kicker {
   font-family: var(--f-hand); font-size: clamp(1.45rem, 2.2vw, 1.85rem); line-height: 1; color: var(--tomato);
-  display: inline-block; position: relative; padding-bottom: .5rem; margin-bottom: .9rem; font-weight: 600;
+  display: inline-block; position: relative; padding: 0 .22em .5rem 0; margin-bottom: .9rem; font-weight: 600;
 }
 .kicker::after {
-  content: ""; position: absolute; left: 0; right: -6%; bottom: 0; height: 8px;
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 8px;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 8' preserveAspectRatio='none'%3E%3Cpath d='M2 5c14-4 26-4 40-1s26 3 40-1 24-3 36 0' fill='none' stroke='%23C8321E' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
 }
 .kicker--light { color: var(--lemon); }
@@ -128,6 +128,13 @@ html.js .nojs-only { display: none !important; }
 }
 .h2 em { font-style: italic; color: var(--tomato); font-weight: 500; }
 .sec-head { margin-bottom: clamp(2.5rem, 5vw, 4.5rem); }
+.sec-head--carte { display: grid; justify-items: center; text-align: center; max-width: 46rem; margin-inline: auto; }
+.sec-head--carte .h2 { font-size: clamp(2.6rem, 7vw, 6rem); }
+.sec-head--carte .sec-lead { margin-inline: auto; max-width: 36em; }
+.carte-rule { display: flex; align-items: center; gap: 1rem; width: min(22rem, 70%); margin: clamp(1.1rem, 2.4vw, 1.6rem) 0 clamp(1rem, 2vw, 1.4rem); color: var(--tomato); }
+.carte-rule::before, .carte-rule::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--line-2) 30%, var(--line-2)); }
+.carte-rule::after { transform: scaleX(-1); }
+.carte-rule svg { width: 30px; height: 30px; flex: none; rotate: -32deg; }
 .sec-head--split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.5rem clamp(2rem, 6vw, 6rem); align-items: end; }
 .sec-lead { color: var(--ink-2); font-size: clamp(1.02rem, 1.2vw, 1.15rem); max-width: 34em; }
 .hand-note { font-family: var(--f-hand); font-size: 1.35rem; color: var(--tomato); font-weight: 500; font-style: normal; letter-spacing: 0; }
@@ -502,6 +509,7 @@ html.reduced .dish.is-flash, html.reduced .panel.is-entering { animation: fade-i
 .pair-opt:has(input:checked) .pair-course { color: var(--tomato); }
 .pair-opt:has(input:focus-visible) { outline: 2.5px solid var(--lemon); outline-offset: 3px; }
 @media (hover: hover) and (pointer: fine) { .pair-opt:not(:has(input:checked)):hover { background: rgba(250, 246, 238, .07); } }
+@media (min-width: 1024px) { .pair-card { position: sticky; top: calc(var(--header-h) + 1.5rem); } }
 .pair-card { background: var(--olive-2); border-radius: 28px; padding: clamp(1.25rem, 3vw, 2.4rem); box-shadow: inset 0 0 0 1px rgba(250, 246, 238, .08); }
 .pair-card-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(1.25rem, 3vw, 2.5rem); align-items: center; }
 .radar { width: 100%; height: auto; overflow: visible; }
@@ -565,8 +573,10 @@ html.reduced .tl-item .pol-drop, html.reduced .tl-item .tl-text { transition: op
 html.reduced .tl-item:not(.is-in) .pol-drop, html.reduced .tl-item:not(.is-in) .tl-text { opacity: 0; }
 
 /* Desktop: horizontale Wäscheleine (per JS aktiviert) */
-html.tl-h .tl { height: 100vh; height: 100svh; overflow: hidden; }
+/* Horizontale Strecke per CSS-sticky statt GSAP-Pin: kein Umschalten auf position:fixed, daher keine Layout-Shifts und kein Ruckeln */
+html.tl-h .tl { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
 html.tl-h .tl-track { display: flex; align-items: stretch; width: max-content; max-width: none; height: 100%; padding: calc(var(--header-h) + 1rem) 0 2rem max(var(--gutter), calc((100vw - var(--maxw)) / 2)); margin: 0; will-change: transform; }
+html.tl-h .tl-intro .kicker { align-self: flex-start; }
 html.tl-h .tl-intro .h2 { font-size: clamp(2.3rem, 3.7vw, 3.7rem); }
 html.tl-h .tl-intro { width: clamp(22rem, 34vw, 36rem); flex: none; display: flex; flex-direction: column; justify-content: center; margin: 0; padding-right: clamp(2rem, 5vw, 5rem); }
 html.tl-h .tl-hint { display: inline-flex; align-items: center; gap: .6rem; margin-top: 2rem; font-family: var(--f-hand); font-size: 1.5rem; color: var(--tomato); }
@@ -581,6 +591,8 @@ html.tl-h .tl-item { display: flex; flex-direction: column; width: clamp(230px, 
 html.tl-h .tl-item:nth-child(even) .pol-drop { order: 0; }
 html.tl-h .tl-item:nth-child(even) { padding-top: 2.2rem; }
 html.tl-h .pol-drop { width: 100%; }
+/* Pendeln/Hereingleiten auf eigener Ebene: die lange Strecke muss dafür nicht neu gemalt werden */
+html.tl-h .pol-drop, html.tl-h .pol-swing { will-change: transform; }
 html.tl-h .tl-text { margin-top: clamp(1rem, 2.6vh, 1.8rem); }
 html.tl-h .tl-text p:last-child { font-size: .94rem; }
 @media (max-height: 760px) {
@@ -623,12 +635,16 @@ html.tl-h .tl-text p:last-child { font-size: .94rem; }
 .score .stars { color: var(--lemon); }
 .score-text { margin-top: .4rem; font-size: .95rem; }
 .voice-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(1rem, 2vw, 1.75rem); align-items: start; }
+/* Zettel: Papier + Zackenkante als Pseudo-Element, damit der Schatten außerhalb der Maske sichtbar bleibt */
 .voice {
-  position: relative; background: var(--paper); color: var(--olive); padding: 1.6rem 1.4rem 2.2rem; rotate: var(--r, 0deg);
+  position: relative; color: var(--olive); padding: 1.6rem 1.4rem 2.2rem; rotate: var(--r, 0deg); isolation: isolate;
+  filter: drop-shadow(0 14px 16px rgba(20, 30, 18, .3));
+}
+.voice::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; background: var(--paper);
   --zz: 12px;
   -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--zz) 100%;
   mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--zz) 100%;
-  filter: drop-shadow(0 18px 22px rgba(20, 30, 18, .28));
 }
 .voice:nth-child(even) { margin-top: 2.2rem; }
 .voice blockquote p { font-family: var(--f-display); font-style: italic; font-size: 1.14rem; line-height: 1.45; }
@@ -797,6 +813,11 @@ html.js:not(.motion-off):not(.reduced) .map:not(.is-in) .map-pin { opacity: 0; t
 .qa-body { padding: 0 3.5rem 1.4rem 0; color: var(--ink-2); }
 html.js:not(.motion-off):not(.reduced) .qa[open] .qa-body { animation: qa-in .32s var(--ease-out); }
 @keyframes qa-in { from { opacity: 0; transform: translateY(-6px); } }
+@supports selector(::details-content) {
+  html.js:not(.motion-off):not(.reduced) .qa { interpolate-size: allow-keywords; }
+  html.js:not(.motion-off):not(.reduced) .qa::details-content { height: 0; overflow: clip; transition: height .22s var(--ease-out), content-visibility .22s allow-discrete; }
+  html.js:not(.motion-off):not(.reduced) .qa[open]::details-content { height: auto; transition-duration: .34s; }
+}
 @media (hover: hover) and (pointer: fine) { .qa summary:hover { color: var(--tomato); } }
 
 /* ---------- Footer ---------- */
@@ -902,9 +923,16 @@ html.js:not(.motion-off):not(.reduced) .board-wrap[data-reveal].is-in { transfor
   .header-actions .btn-sm { display: none; }
   .header-phone { display: none; }
   .hero { min-height: 0; padding-top: calc(var(--header-h) + 1.6rem); }
-  .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 2.4rem; }
-  .hero-title { font-size: clamp(2.9rem, 15.6cqi, 5.6rem); }
-  .hero-art { justify-self: center; max-width: 480px; }
+  /* Handy/Tablet: Collage direkt unter die Headline – der erste Bildschirm zeigt Botschaft + Bild,
+     die Aktionsleiste unten trägt die CTA; Einleitung und Buttons folgen darunter. */
+  .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 0; container-type: inline-size; }
+  .hero-copy { display: contents; }
+  .hero-eyebrow { order: 0; }
+  .hero-title { order: 1; font-size: clamp(2.9rem, 15.6cqi, 5.6rem); }
+  .hero-art { order: 2; justify-self: center; max-width: 480px; margin-top: clamp(1.4rem, 5cqi, 2.4rem); }
+  .hero-lead { order: 3; }
+  .hero-cta { order: 4; }
+  .hero-trust { order: 5; }
   .hero-note { left: 0; }
   .hero-trust { gap: .6rem 1.2rem; }
   .sec-head--split { grid-template-columns: minmax(0, 1fr); align-items: start; }

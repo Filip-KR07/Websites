@@ -543,13 +543,14 @@
       var box = img.parentElement;
       gsap.fromTo(img, { yPercent: -6 }, {
         yPercent: 6, ease: 'none',
-        scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: 0.6 }
+        // refreshPriority -1: nach dem gepinnten Verkaufsprozess berechnen, sonst liegt die Parallaxe darunter falsch
+        scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: 0.6, refreshPriority: -1 }
       });
     });
     // Konstruktionslinien im Hero driften minimal mit
     var frame = qs('.hero-frame');
     if (frame) {
-      gsap.to(qsa('.door, .hero-north', frame), { y: -18, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.6 } });
+      gsap.to(qsa('.door, .hero-north', frame), { y: -18, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.6, refreshPriority: -1 } });
     }
   }
 
@@ -1563,6 +1564,7 @@
     var out = {}; qsa('[data-fin-out]', root).forEach(function (n) { out[n.getAttribute('data-fin-out')] = n; });
     var fact = {}; qsa('[data-fin-fact]', root).forEach(function (n) { fact[n.getAttribute('data-fin-fact')] = n; });
     var rateEl = qs('[data-fin-rate]', root), subEl = qs('[data-fin-sub]', root), quote = qs('[data-fin-ekquote]', root);
+    var peekEl = qs('[data-fin-peek]', root), peekSub = qs('[data-fin-peek-sub]', root);
     var svg = qs('[data-fin-svg]', root), grid = qs('[data-fc-grid]', root), area = qs('[data-fc-area]', root), line = qs('[data-fc-line]', root);
     var bindLine = qs('[data-fc-bind]', root), bindLabel = qs('[data-fc-bind-label]', root);
     var ax = qs('[data-fc-axis-x]', root), ay = qs('[data-fc-axis-y]', root);
@@ -1596,6 +1598,8 @@
       ['preis', 'ek', 'zins', 'tilg'].forEach(function (k) { setRangeFill(inp[k]); });
       quote.textContent = 'entspricht ' + Math.round(v.ek / v.preis * 100) + ' % des Kaufpreises' + (v.nk ? '' : ' – Nebenkosten (' + eur(nkSum) + ') zusätzlich aus Eigenmitteln');
       rateEl.textContent = fmt(sim.rate);
+      if (peekEl) peekEl.textContent = fmt(sim.rate);
+      if (peekSub) peekSub.textContent = D > 0 ? 'Darlehen ' + eur(D) : 'kein Darlehen nötig';
       subEl.textContent = D > 0 ? 'bei einem Darlehen von ' + eur(D) : 'Ihr Eigenkapital deckt den Kaufpreis – kein Darlehen nötig';
       fact.nk.textContent = eur(nkSum);
       fact.darlehen.textContent = eur(D);
@@ -1716,6 +1720,8 @@
       var max = track.scrollWidth - track.clientWidth - 2;
       prev.disabled = track.scrollLeft <= 2;
       next.disabled = track.scrollLeft >= max;
+      track.classList.toggle('has-more-l', !prev.disabled);
+      track.classList.toggle('has-more-r', !next.disabled);
     }
     prev.addEventListener('click', function () { track.scrollBy({ left: -step(), behavior: reduced ? 'auto' : 'smooth' }); });
     next.addEventListener('click', function () { track.scrollBy({ left: step(), behavior: reduced ? 'auto' : 'smooth' }); });
@@ -1773,25 +1779,23 @@
   /* ------------------------------------------------------------------
      Start
      ------------------------------------------------------------------ */
-  safe('scroll', initScroll);
-  safe('reveals', initReveals);
-  safe('hero', initHero);
-  safe('clicks', initClicks);
-  safe('header', initHeader);
-  safe('menu', initMenu);
-  safe('parallax', initParallax);
-  safe('services', initServicePreview);
-  safe('objects', initObjects);
-  safe('expose', initExpose);
-  safe('valuation', initValuation);
-  safe('process', initProcess);
-  safe('finance', initFinance);
-  safe('voices', initVoices);
-  safe('contact', initContact);
-  doc.classList.remove('is-loading');
-
-  if (hasGSAP) {
-    window.addEventListener('load', function () { window.ScrollTrigger.refresh(); });
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { window.ScrollTrigger.refresh(); });
+  // In drei Paketen starten, damit kein einzelner langer Task den Hauptthread blockiert:
+  // zuerst alles, was im ersten Bildschirm sichtbar oder sofort bedienbar sein muss, danach der Rest.
+  var GROUPS = [
+    [['scroll', initScroll], ['reveals', initReveals], ['hero', initHero], ['clicks', initClicks], ['header', initHeader], ['menu', initMenu], ['expose', initExpose]],
+    [['parallax', initParallax], ['services', initServicePreview], ['objects', initObjects], ['valuation', initValuation]],
+    [['process', initProcess], ['finance', initFinance], ['voices', initVoices], ['contact', initContact]]
+  ];
+  function runGroup(i) {
+    GROUPS[i].forEach(function (g) { safe(g[0], g[1]); });
+    if (i === 0) doc.classList.remove('is-loading');
+    if (i + 1 < GROUPS.length) { setTimeout(function () { runGroup(i + 1); }, 0); return; }
+    if (!hasGSAP) return;
+    // Alle ScrollTrigger stehen jetzt – einmal neu vermessen, wenn Seite und Schriften geladen sind
+    var loaded = new Promise(function (res) {
+      if (document.readyState === 'complete') res(); else window.addEventListener('load', function () { res(); });
+    });
+    Promise.all([loaded, document.fonts && document.fonts.ready]).then(function () { window.ScrollTrigger.refresh(); });
   }
+  runGroup(0);
 })();

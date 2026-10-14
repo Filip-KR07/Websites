@@ -80,6 +80,18 @@
     $$('main section[id]').forEach((s) => io.observe(s));
   }
 
+  /* ---------- Handy-Aktionsleiste: fährt ein, sobald die Hero-Buttons aus dem Bild sind ---------- */
+  function initMobileBar() {
+    const bar = $('.mbar');
+    const anchor = $('.hero__actions');
+    if (!bar) return;
+    if (!anchor || !('IntersectionObserver' in window)) { bar.classList.add('is-shown'); return; }
+    new IntersectionObserver(([en]) => {
+      bar.classList.toggle('is-shown', !en.isIntersecting);
+      bar.inert = en.isIntersecting; // eingefahren = nicht per Tab erreichbar
+    }).observe(anchor);
+  }
+
   /* ---------- Menü (Dialog) ---------- */
   const menu = $('#menu');
   const menuBtn = $('[data-menu-open]');
@@ -143,7 +155,9 @@
     const fig = $('[data-lens]');
     if (!fig || !MOTION) return;
     const clear = $('.lens__clear', fig);
+    const win = $('.lens__win', fig);
     const ring = $('.lens__ring', fig);
+    if (!clear || !win || !ring) return;
     let w = 0, h = 0, base = 100, r = 0, x = 0, y = 0, tx = 0, ty = 0;
     let hover = false, visible = true, grow = false, raf = 0;
     const t0 = performance.now();
@@ -152,8 +166,12 @@
       w = b.width; h = b.height;
       base = Math.max(70, w * LINSE.radius);
       ring.style.width = ring.style.height = `${(base * 2).toFixed(1)}px`;
+      fig.style.setProperty('--lens-d', `${(base * 2).toFixed(1)}px`);
+      fig.style.setProperty('--lens-w', `${w.toFixed(1)}px`);
+      fig.style.setProperty('--lens-h', `${h.toFixed(1)}px`);
     };
     measure();
+    fig.classList.add('is-live');
     x = tx = w * 0.42; y = ty = h * 0.55;
     if (window.ResizeObserver) new ResizeObserver(measure).observe(fig);
 
@@ -179,7 +197,11 @@
       y += (ty - y) * LINSE.lerp;
       const target = grow ? base * (hover ? 1.12 : 1) : 0;
       r += (target - r) * 0.07;
-      clear.style.clipPath = `circle(${r.toFixed(1)}px at ${x.toFixed(1)}px ${y.toFixed(1)}px)`;
+      // Fenster: Kreis mit Radius r um (x, y); Bild gegenläufig, damit es deckungsgleich mit der Basis bleibt
+      const s = Math.max(r / base, 0.02), k = 1 / s;
+      win.style.transform = `matrix(${s.toFixed(4)}, 0, 0, ${s.toFixed(4)}, ${(x - s * base).toFixed(2)}, ${(y - s * base).toFixed(2)})`;
+      clear.style.transform = `matrix(${k.toFixed(4)}, 0, 0, ${k.toFixed(4)}, ${(base - x * k).toFixed(2)}, ${(base - y * k).toFixed(2)})`;
+      win.style.opacity = r > 2 ? '1' : '0';
       ring.style.transform = `translate(${(x - base).toFixed(1)}px, ${(y - base).toFixed(1)}px) scale(${(r / base).toFixed(4)})`;
       ring.style.opacity = r > 10 ? '1' : '0';
       raf = requestAnimationFrame(frame);
@@ -230,6 +252,7 @@
     if (map) {
       const io2 = new IntersectionObserver(([en]) => { if (en.isIntersecting) { map.classList.add('is-in'); io2.disconnect(); } }, { threshold: 0.35 });
       io2.observe(map);
+      new IntersectionObserver(([en]) => map.classList.toggle('is-vis', en.isIntersecting)).observe(map);
       const svg = $('[data-map-svg]');
       const mq = window.matchMedia('(max-width: 640px)');
       const setVB = () => svg.setAttribute('viewBox', mq.matches ? '138 84 390 362' : '0 0 640 480');
@@ -593,6 +616,8 @@
       entries.forEach((en) => { if (en.isIntersecting) set(steps.indexOf(en.target)); });
     }, { rootMargin: '-48% 0px -48% 0px' });
     steps.forEach((s) => io.observe(s));
+    // Werkzeug-Animationen (SVG) nur laufen lassen, solange die Grafik im Bild ist
+    new IntersectionObserver(([en]) => pv.classList.toggle('is-vis', en.isIntersecting)).observe(pv);
 
     if (MOTION && hasGSAP) {
       gsap.to('.pv__orbit', {
@@ -775,22 +800,30 @@
     const sec = $('[data-tour]');
     if (!sec || !hasGSAP || !MOTION) return;
     const track = $('[data-tour-track]', sec);
-    const pin = $('.tour__pin', sec);
     const mm = gsap.matchMedia();
     mm.add('(min-width: 900px)', () => {
+      // Statt GSAP-Pin (position: fixed + Pin-Spacer → Layout-Shifts) hält CSS sticky die Bühne;
+      // die Sektion bekommt so viel zusätzliche Höhe, wie die Strecke breit ist.
       sec.classList.add('is-h');
       const dist = () => Math.max(0, track.scrollWidth - window.innerWidth);
+      const setDist = () => sec.style.setProperty('--tour-dist', `${dist()}px`);
+      setDist();
+      ScrollTrigger.addEventListener('refreshInit', setDist);
       const tween = gsap.to(track, {
         x: () => -dist(), ease: 'none',
-        scrollTrigger: { trigger: pin, start: 'top top', end: () => `+=${dist()}`, pin: true, scrub: 0.8, invalidateOnRefresh: true, anticipatePin: 1 }
+        scrollTrigger: { trigger: sec, start: 'top top', end: 'bottom bottom', scrub: 0.8, invalidateOnRefresh: true }
       });
       $$('.tcard__frame img', track).forEach((img) => {
-        gsap.fromTo(img, { xPercent: -5 }, {
-          xPercent: 5, ease: 'none',
+        gsap.fromTo(img, { xPercent: -3 }, {
+          xPercent: 3, ease: 'none',
           scrollTrigger: { trigger: img.closest('.tcard'), containerAnimation: tween, start: 'left right', end: 'right left', scrub: true }
         });
       });
-      return () => { sec.classList.remove('is-h'); };
+      return () => {
+        ScrollTrigger.removeEventListener('refreshInit', setDist);
+        sec.classList.remove('is-h');
+        sec.style.removeProperty('--tour-dist');
+      };
     });
   }
 
@@ -799,10 +832,12 @@
     const DAYS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
     const DAYS_S = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
     const fmt = (m) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
+    let dtf = null; // einmal anlegen – Intl-Formatter sind teuer
+    try { dtf = new Intl.DateTimeFormat('en-GB', { timeZone: ZEITZONE, weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }); } catch (err) { dtf = null; }
     const run = () => {
       let day, mins;
       try {
-        const parts = new Intl.DateTimeFormat('en-GB', { timeZone: ZEITZONE, weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
+        const parts = dtf.formatToParts(new Date());
         const get = (t) => (parts.find((p) => p.type === t) || {}).value;
         day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(get('weekday'));
         mins = (+get('hour') % 24) * 60 + +get('minute');
@@ -859,7 +894,27 @@
     const showErr = (k) => { const e = errEl(k); e.hidden = false; e.setAttribute('role', 'alert'); };
     const clearErr = (k) => { const e = errEl(k); if (e) { e.hidden = true; e.removeAttribute('role'); } };
 
+    // Karte gleitet auf die neue Höhe statt zu springen (nur bei Nutzeraktionen)
+    const morph = (change) => {
+      if (!MOTION || !card.animate) { change(); return; }
+      const h0 = card.offsetHeight;
+      change();
+      const h1 = card.offsetHeight;
+      if (Math.abs(h1 - h0) < 2) return;
+      card.style.overflow = 'clip';
+      const a = card.animate([{ height: `${h0}px` }, { height: `${h1}px` }], { duration: 340, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' });
+      const end = () => { card.style.overflow = ''; };
+      a.onfinish = end; a.oncancel = end;
+    };
+
     function show(i, focus = true) {
+      if (focus) { morph(() => showStep(i)); focusStep(i); } else showStep(i);
+    }
+    function focusStep(i) {
+      $('.bstep__legend', steps[i]).focus({ preventScroll: true });
+      if (card.getBoundingClientRect().top < hdrH()) scrollToEl(card);
+    }
+    function showStep(i) {
       steps.forEach((s, j) => { s.hidden = j !== i; });
       inds.forEach((li, j) => {
         li.classList.toggle('is-current', j === i);
@@ -869,10 +924,6 @@
       line.style.transform = `scaleX(${i / (steps.length - 1)})`;
       cur = i;
       fade(steps[i], {}, 300);
-      if (focus) {
-        $('.bstep__legend', steps[i]).focus({ preventScroll: true });
-        if (card.getBoundingClientRect().top < hdrH()) scrollToEl(card);
-      }
     }
 
     function toggleSos(on) {
@@ -985,9 +1036,7 @@
       });
       const first = String(fd.get('name')).trim().split(/\s+/)[0];
       $('[data-done-title]', done).textContent = first ? `Danke, ${first}! Ihre Anfrage ist notiert.` : 'Danke! Ihre Anfrage ist notiert.';
-      form.hidden = true;
-      ind.hidden = true;
-      done.hidden = false;
+      morph(() => { form.hidden = true; ind.hidden = true; done.hidden = false; });
       fade(done, { transform: 'translateY(12px) scale(.98)' }, 420);
       done.focus({ preventScroll: true });
       if (card.getBoundingClientRect().top < hdrH()) scrollToEl(card);
@@ -1000,8 +1049,8 @@
       counter.textContent = '0';
       toggleSos(false);
       updateSum();
-      done.hidden = true; form.hidden = false; ind.hidden = false;
-      show(0);
+      morph(() => { done.hidden = true; form.hidden = false; ind.hidden = false; showStep(0); });
+      focusStep(0);
     });
 
     show(0, false);
@@ -1019,22 +1068,27 @@
   }
 
   /* ---------- Start ---------- */
+  // Sofort: alles, was im ersten Bildschirm sichtbar ist oder Klicks abfängt.
   initHeader();
   initMenu();
   initBooking();
   initAnchors();
   initHero();
-  initStatement();
   initReveals();
-  initServices();
-  initChart();
-  initChartCrop();
-  initProphy();
-  initCost();
-  initBreath();
-  initTeam();
-  initTour();
-  initOpenStatus();
+  initMobileBar();
+
+  // Danach in kleinen Häppchen (je eigener Task), damit der Main-Thread nie lange blockiert.
+  const pause = (window.scheduler && typeof window.scheduler.yield === 'function')
+    ? () => window.scheduler.yield()
+    : () => new Promise((r) => setTimeout(r, 0));
+  const later = [initOpenStatus, initStatement, initServices, initChart, initChartCrop, initProphy, initCost, initBreath, initTeam, initTour];
+  (async () => {
+    for (const fn of later) {
+      await pause();
+      try { fn(); } catch (err) { console.warn(fn.name, err); }
+    }
+    if (hasGSAP) ScrollTrigger.refresh();
+  })();
 
   if (hasGSAP) {
     window.addEventListener('load', () => ScrollTrigger.refresh());

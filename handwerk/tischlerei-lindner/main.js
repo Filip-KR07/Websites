@@ -195,7 +195,11 @@
      ------------------------------------------------------------------ */
   function initHeroTitle() {
     var h = qs('[data-hero-title]');
-    var reveal = function () { doc.classList.remove('is-loading'); doc.classList.add('hero-in'); };
+    var reveal = function () {
+      if (doc.classList.contains('hero-in')) return;
+      doc.classList.remove('is-loading'); doc.classList.add('hero-in');
+      doc.dispatchEvent(new Event('lindner:hero'));
+    };
     if (!h || reduced()) { reveal(); return; }
     h.setAttribute('aria-label', h.textContent.replace(/\s+/g, ' ').trim());
     var idx = 0;
@@ -239,10 +243,18 @@
     if (!canvas || !canvas.getContext) return;
     var ctx = canvas.getContext('2d');
     var n1 = makeNoise(11), n2 = makeNoise(29), n3 = makeNoise(53);
-    var W = 0, H = 0, dpr = 1, cell = 6, nx = 0, ny = 0, field = null;
+    var W = 0, H = 0, dpr = 1, fine = null, coarse = null;
     var st = { cx: 0, cy: 0, tcx: 0, tcy: 0, intro: reduced() ? 1 : 0 };
-    var active = false, raf = 0, introStart = 0, dirty = true;
+    var active = false, raf = 0, introStart = 0, dirty = true, rough = false;
     var mobile = !mqDesktop.matches;
+    var INTRO_MS = 2200;
+
+    // Zwei Raster: fein für das ruhende Bild, grob (≈ halb so viele Zellen) während Bewegung –
+    // so bleibt jedes Animationsbild billig, das Standbild wird danach einmal scharf nachgezeichnet.
+    var grid = function (c) {
+      var gx = Math.ceil(W / c) + 1, gy = Math.ceil(H / c) + 1;
+      return { c: c, nx: gx, ny: gy, f: new Float32Array(gx * gy) };
+    };
 
     function resize() {
       var r = canvas.getBoundingClientRect();
@@ -251,25 +263,24 @@
       W = w; H = hh; dpr = dprMax();
       mobile = !mqDesktop.matches;
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-      cell = W < 520 ? 5 : 6;
-      nx = Math.ceil(W / cell) + 1; ny = Math.ceil(H / cell) + 1;
-      field = new Float32Array(nx * ny);
+      fine = grid(W < 520 ? 5 : 6);
+      coarse = grid(W < 520 ? 8 : 9);
       dirty = true;
-      draw();
+      draw(true);
     }
 
-    function compute() {
+    function compute(g) {
       var e = easeOut(st.intro);
       var pithX = W * (mobile ? 0.62 : 0.54) + st.cx;
       var spacing = mobile ? 8 : 10.5;
       var k = (mobile ? 0.16 : 0.1) * (0.55 + 0.45 * e);
       var lift = (1 - e) * H * 0.35 + st.cy;
-      var i, j, x, y, dx, d, r, idx = 0;
-      for (j = 0; j < ny; j++) {
+      var i, j, x, y, dx, d, r, idx = 0, cell = g.c, field = g.f;
+      for (j = 0; j < g.ny; j++) {
         y = j * cell;
         var wob = n1(y * 0.0018, 0.37) * 22 + n1(y * 0.007, 4.1) * 4;
         d = Math.max(0, H + lift - y) * k + 12;
-        for (i = 0; i < nx; i++) {
+        for (i = 0; i < g.nx; i++) {
           x = i * cell;
           dx = x - pithX + wob;
           r = Math.sqrt(dx * dx * 1.04 + d * d);
@@ -279,39 +290,46 @@
       }
     }
 
-    function contour(levelMod, wantMod) {
-      var i, j, a, b, c, d2, mn, mx, L, x0, y0, xa, ya, xb, yb, cnt, s = cell;
-      for (j = 0; j < ny - 1; j++) {
+    // Ein Durchgang über alle Zellen (Marching Squares), Linien landen je nach Höhenlinie
+    // in einem hellen oder dunklen Pfad.
+    function contour(g, light, dark) {
+      var i, j, a, b, c, d2, mn, mx, L, x0, y0, xa, ya, xb, yb, cnt, s = g.c, nx = g.nx, field = g.f, path;
+      for (j = 0; j < g.ny - 1; j++) {
         for (i = 0; i < nx - 1; i++) {
           a = field[j * nx + i]; b = field[j * nx + i + 1]; c = field[(j + 1) * nx + i + 1]; d2 = field[(j + 1) * nx + i];
           mn = Math.min(a, b, c, d2); mx = Math.max(a, b, c, d2);
           for (L = Math.ceil(mn); L <= mx; L++) {
-            if (((L % levelMod) + levelMod) % levelMod !== wantMod) continue;
             x0 = i * s; y0 = j * s; cnt = 0; xa = ya = xb = yb = 0;
             if ((a < L) !== (b < L)) { xa = x0 + s * (L - a) / (b - a); ya = y0; cnt = 1; }
             if ((b < L) !== (c < L)) { var px = x0 + s, py = y0 + s * (L - b) / (c - b); if (cnt) { xb = px; yb = py; cnt = 2; } else { xa = px; ya = py; cnt = 1; } }
             if (cnt < 2 && (d2 < L) !== (c < L)) { var qx = x0 + s * (L - d2) / (c - d2), qy = y0 + s; if (cnt) { xb = qx; yb = qy; cnt = 2; } else { xa = qx; ya = qy; cnt = 1; } }
             if (cnt < 2 && (a < L) !== (d2 < L)) { xb = x0; yb = y0 + s * (L - a) / (d2 - a); cnt = 2; }
-            if (cnt === 2) { ctx.moveTo(xa, ya); ctx.lineTo(xb, yb); }
+            if (cnt === 2) { path = (L & 3) === 0 ? dark : light; path.moveTo(xa, ya); path.lineTo(xb, yb); }
           }
         }
       }
     }
 
-    function draw() {
-      if (!field) return;
-      compute();
+    function draw(sharp) {
+      if (!fine) return;
+      var fade = smooth(0, 0.6, st.intro);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
-      var fade = smooth(0, 0.6, st.intro);
-      ctx.lineCap = 'round';
+      dirty = false;
+      rough = !sharp;
+      if (fade <= 0) return;
+      var g = sharp ? fine : coarse;
+      compute(g);
+      var light = new Path2D(), dark = new Path2D();
+      contour(g, light, dark);
+      // Runde Linienenden nur fürs Standbild – bei tausenden Teilstücken kosten sie im Lauf zu viel.
+      ctx.lineCap = sharp ? 'round' : 'butt';
       ctx.lineWidth = 1;
       ctx.strokeStyle = 'rgba(185,130,74,' + (0.62 * fade).toFixed(3) + ')';
-      ctx.beginPath(); contour(4, 1); contour(4, 2); contour(4, 3); ctx.stroke();
+      ctx.stroke(light);
       ctx.lineWidth = 1.25;
       ctx.strokeStyle = 'rgba(43,29,20,' + (0.3 * fade).toFixed(3) + ')';
-      ctx.beginPath(); contour(4, 0); ctx.stroke();
-      dirty = false;
+      ctx.stroke(dark);
     }
 
     function loop(t) {
@@ -320,16 +338,16 @@
       var moving = false;
       if (st.intro < 1) {
         if (!introStart) introStart = t;
-        st.intro = clamp((t - introStart) / 2600, 0, 1);
-        moving = true;
+        st.intro = clamp((t - introStart) / INTRO_MS, 0, 1);
+        moving = st.intro < 1;
       }
       var ex = st.tcx - st.cx, ey = st.tcy - st.cy;
       if (Math.abs(ex) > 0.05 || Math.abs(ey) > 0.05) {
         st.cx += ex * 0.06; st.cy += ey * 0.06;
         moving = true;
       }
-      if (moving || dirty) draw();
-      if (moving) raf = requestAnimationFrame(loop);
+      if (moving) { draw(false); raf = requestAnimationFrame(loop); }
+      else if (dirty || rough) draw(true);
     }
     function kick() { if (active && !raf) raf = requestAnimationFrame(loop); }
 
@@ -347,7 +365,7 @@
     resize();
     visibilityGate(canvas, function (v) {
       active = v;
-      if (v) { if (reduced()) { st.intro = 1; draw(); } else kick(); }
+      if (v) { if (reduced()) { st.intro = 1; draw(true); } else kick(); }
     });
     if (!reduced()) {
       // Intro erst starten, wenn die Überschrift läuft
@@ -452,7 +470,7 @@
 
   /* Rendert eine verleimte Platte. Koordinaten in „Design-Pixeln“ (CSS-px);
      scale = Design-Pixel pro Canvas-Pixel (< 1 bei hoher Pixeldichte, > 1 für kleine Muster). */
-  function renderWood(target, w, h, key, opts) {
+  function woodJob(target, w, h, key, opts) {
     opts = opts || {};
     var wd = WOODS[key];
     var ctx = target.getContext('2d');
@@ -482,8 +500,11 @@
     }
     var fix = Hd / acc; lams.forEach(function (l) { l.top *= fix; l.h *= fix; });
     var E = wd.early, Lt = wd.late, sp = wd.sp;
-    var y, x, li = 0, o = 0;
-    for (y = 0; y < h; y++) {
+    var y = 0, x, li = 0, o = 0;
+    // In Zeilenblöcken rechnen: step(deadline) gibt nach Ablauf der Frist ab und macht beim nächsten Aufruf weiter.
+    var step = function (until) {
+    for (; y < h; y++) {
+      if ((y & 7) === 0 && y && performance.now() > until) return false;
       var v = y * sc;
       while (li < lams.length - 1 && v >= lams[li].top + lams[li].h) li++;
       var L = lams[li];
@@ -515,7 +536,14 @@
       }
     }
     ctx.putImageData(img, 0, 0);
+    return true;
+    };
+    return { step: step };
   }
+  function renderWood(target, w, h, key, opts) { woodJob(target, w, h, key, opts).step(Infinity); }
+  var idleTask = window.requestIdleCallback
+    ? function (fn) { requestIdleCallback(function (dl) { fn(performance.now() + Math.max(6, Math.min(14, dl.timeRemaining()))); }, { timeout: 500 }); }
+    : function (fn) { setTimeout(function () { fn(performance.now() + 10); }, 16); };
 
   function renderEdge(target, w, h, key) {
     var wd = WOODS[key], ctx = target.getContext('2d');
@@ -542,19 +570,37 @@
     var edge = qs('[data-edge]', lib), glint = qs('[data-glint]', lib), sheen = qs('[data-sheen]', lib);
     var out = qs('[data-board-current]', lib);
     var top = qs('.board-top', lib);
-    var cache = {}, size = { w: 0, h: 0 }, wood = 'eiche', finish = 'natur', anim = null, glintAnim = null;
+    var cache = {}, pending = {}, gen = 0, size = { w: 0, h: 0 }, wood = 'eiche', finish = 'natur', anim = null, glintAnim = null;
     var getChecked = function (name) { var el = qs('input[name="' + name + '"]:checked', lib); return el ? el.value : null; };
     wood = getChecked('holz') || 'eiche';
     finish = getChecked('oberflaeche') || 'natur';
     board.setAttribute('data-finish', finish);
 
-    var texture = function (key) {
-      if (cache[key]) return cache[key];
+    var newJob = function (key) {
       var c = document.createElement('canvas');
       c.width = size.w; c.height = size.h;
-      renderWood(c, size.w, size.h, key, { seed: 7, scale: size.q ? 1 / size.q : 1 });
-      cache[key] = c;
-      return c;
+      return { c: c, job: woodJob(c, size.w, size.h, key, { seed: 7, scale: size.q ? 1 / size.q : 1 }) };
+    };
+    // Synchron (bei einem Klick auf ein noch nicht vorbereitetes Holz) …
+    var texture = function (key) {
+      if (cache[key]) return cache[key];
+      var t = pending[key] || newJob(key);
+      t.job.step(Infinity);
+      delete pending[key];
+      cache[key] = t.c;
+      return t.c;
+    };
+    // … sonst in Leerlauf-Häppchen, damit beim Scrollen keine langen Tasks entstehen.
+    var textureAsync = function (key, done) {
+      if (cache[key]) { done(); return; }
+      var g = gen, t = pending[key] || (pending[key] = newJob(key));
+      var tick = function (until) {
+        if (g !== gen) return;
+        if (cache[key]) { done(); return; }
+        if (t.job.step(until)) { delete pending[key]; cache[key] = t.c; done(); }
+        else idleTask(tick);
+      };
+      idleTask(tick);
     };
     var paint = function (canvas, key) {
       var t = texture(key), ctx = canvas.getContext('2d');
@@ -573,22 +619,24 @@
       var w = Math.round(r.width * q), h = Math.round(r.height * q);
       if (!w || !h) return false;
       if (Math.abs(w - size.w) < 24 && size.w) return false;
-      size.w = w; size.h = h; size.q = q; cache = {};
+      size.w = w; size.h = h; size.q = q; cache = {}; pending = {}; gen++;
       return true;
     };
     var full = function () {
       if (!measure()) return;
-      paint(canA, wood);
       canB.style.clipPath = 'inset(0 100% 0 0)';
       paintEdge();
-      lib.classList.add('has-canvas');
-      prewarm();
+      var first = wood;
+      textureAsync(first, function () {
+        if (!anim) paint(canA, wood);
+        lib.classList.add('has-canvas');
+        prewarm();
+      });
     };
     var prewarm = function () {
       var keys = Object.keys(WOODS).filter(function (k) { return !cache[k]; });
-      var idle = window.requestIdleCallback || function (fn) { return setTimeout(fn, 120); };
-      var next = function () { var k = keys.shift(); if (!k) return; texture(k); idle(next); };
-      idle(next);
+      var next = function () { var k = keys.shift(); if (k) textureAsync(k, next); };
+      next();
     };
 
     var setWood = function (key) {
@@ -637,10 +685,17 @@
       if (t.name === 'oberflaeche') setFinish(t.value);
     });
 
-    // Swatches
-    qsa('[data-swatch]', lib).forEach(function (c) {
-      renderWood(c, c.width, c.height, c.getAttribute('data-swatch'), { scale: 1.6, lamellae: 1, seed: 3 });
-    });
+    // Swatches (erst, wenn der Abschnitt in die Nähe kommt – siehe startOnce)
+    var paintSwatches = function () {
+      var list = qsa('[data-swatch]', lib);
+      var next = function () {
+        var c = list.shift(); if (!c) return;
+        var job = woodJob(c, c.width, c.height, c.getAttribute('data-swatch'), { scale: 1.6, lamellae: 1, seed: 3 });
+        var tick = function (until) { if (job.step(until)) next(); else idleTask(tick); };
+        idleTask(tick);
+      };
+      next();
+    };
 
     // Licht folgt der Maus (Feder) + leichte Neigung
     if (finePointer && !reduced()) {
@@ -671,7 +726,7 @@
 
     // Erst rendern, wenn der Abschnitt in die Nähe kommt
     var started = false;
-    var startOnce = function () { if (started) return; started = true; full(); };
+    var startOnce = function () { if (started) return; started = true; paintSwatches(); full(); };
     if ('IntersectionObserver' in window) {
       var io = new IntersectionObserver(function (en) { if (en[0].isIntersecting) { startOnce(); io.disconnect(); } }, { rootMargin: '600px 0px' });
       io.observe(lib);
@@ -767,8 +822,11 @@
       });
       if (stepLabel) stepLabel.textContent = String(k);
     };
-    var setProgress = function (p) {
-      var sp = clamp(p, 0, 1) * 5;
+    // sp: 0…5 (eine Einheit je Blatt). Blatt 1 (Notizen, Daumenskizzen) entsteht schon beim Hereinscrollen,
+    // damit das Papier beim Ankommen nie leer ist; der gepinnte Teil zeichnet dann Blatt 2–5.
+    var ENTRY = 0.92;
+    var setProgress = function (sp) {
+      sp = clamp(sp, 0, 5);
       groups.forEach(function (g, gi) {
         var local = clamp(sp - gi, 0, 1);
         var m = g.paths.length;
@@ -792,21 +850,37 @@
     stepsEl.classList.add('is-live');
     setProgress(0);
     var mm = gsap.matchMedia();
-    var section = qs('#ablauf');
+    var section = qs('#ablauf'), sketch = qs('.process-sketch');
+    // Zwei aneinandergrenzende Strecken: Eingang (Blatt 1) und Hauptteil (Blatt 2–5).
+    // Hauptteil: erstes Fünftel = Schritt 1 (Blatt 1 wird fertig), danach je Fünftel ein Blatt.
+    var mainMap = function (p) { return p < 0.2 ? ENTRY + (1 - ENTRY) * (p / 0.2) : 1 + (p - 0.2) * 5; };
+    var pair = function (entryCfg, mainCfg) {
+      var main = null, entry = null;
+      main = ScrollTrigger.create(Object.assign(mainCfg, {
+        onUpdate: function (self) {
+          if (self.progress <= 0 && entry && entry.progress < 1) { setProgress(entry.progress * ENTRY); return; }
+          setProgress(mainMap(self.progress));
+        }
+      }));
+      entry = ScrollTrigger.create(Object.assign(entryCfg, {
+        onUpdate: function (self) { if (!main || main.progress <= 0) setProgress(self.progress * ENTRY); }
+      }));
+      setProgress(main.progress > 0 ? mainMap(main.progress) : entry.progress * ENTRY);
+      return function () { entry.kill(); main.kill(); };
+    };
     mm.add('(min-width: 900px)', function () {
       section.classList.add('is-pinned');
-      var st = ScrollTrigger.create({
-        trigger: pin, start: 'top top', end: '+=260%', pin: true, scrub: 0.5, anticipatePin: 1,
-        onUpdate: function (self) { setProgress(self.progress); }
-      });
-      return function () { st.kill(); section.classList.remove('is-pinned'); };
+      var kill = pair(
+        { trigger: pin, start: 'top 70%', end: 'top top' },
+        { trigger: pin, start: 'top top', end: '+=260%', pin: true, anticipatePin: 1 }
+      );
+      return function () { kill(); section.classList.remove('is-pinned'); };
     });
     mm.add('(max-width: 899px)', function () {
-      var st = ScrollTrigger.create({
-        trigger: stepsEl, start: 'top 72%', end: 'bottom 55%', scrub: 0.4,
-        onUpdate: function (self) { setProgress(self.progress); }
-      });
-      return function () { st.kill(); };
+      return pair(
+        { trigger: sketch || stepsEl, start: 'top 92%', end: 'top 30%' },
+        { trigger: stepsEl, start: 'top 60%', end: 'bottom 55%' }
+      );
     });
   }
 
@@ -965,7 +1039,10 @@
     nav.hidden = false;
     var show = function (k) {
       i = (k + n) % n;
-      quotes.forEach(function (q, j) { q.classList.toggle('is-active', j === i); });
+      quotes.forEach(function (q, j) {
+        q.classList.toggle('is-active', j === i);
+        if (j === i) q.removeAttribute('aria-hidden'); else q.setAttribute('aria-hidden', 'true');
+      });
       if (cur) cur.textContent = String(i + 1).padStart(2, '0');
       if (bar) bar.style.transform = 'scaleX(' + ((i + 1) / n).toFixed(3) + ')';
     };
@@ -1190,27 +1267,44 @@
      Start
      ------------------------------------------------------------------ */
   function boot() {
+    // Sofort: nur, was der erste Bildschirm braucht – damit die Hero-Sequenz ohne Wartezeit startet.
     safe('scroll', initScroll);
     safe('header', initHeader);
     safe('menu', initMenu);
     safe('heroTitle', initHeroTitle);
-    safe('grain', initGrain);
     safe('reveals', initReveals);
     safe('services', initServices);
-    safe('library', initLibrary);
-    safe('projects', initProjects);
-    safe('process', initProcess);
-    safe('rings', initRings);
-    safe('counters', initCounters);
-    safe('quotes', initQuotes);
-    safe('map', initMap);
-    safe('wizard', initWizard);
     window.__lindnerReady = true;
-    if (hasGSAP) {
+
+    // Danach in kleinen Häppchen (je Aufgabe ein eigener Task), Reihenfolge = Reihenfolge der Pins.
+    var queue = [
+      ['grain', initGrain], ['library', initLibrary], ['projects', initProjects], ['process', initProcess],
+      ['rings', initRings], ['counters', initCounters], ['quotes', initQuotes], ['map', initMap], ['wizard', initWizard]
+    ];
+    var idle = window.requestIdleCallback ? function (fn) { requestIdleCallback(fn, { timeout: 300 }); } : function (fn) { setTimeout(fn, 16); };
+    var finish = function () {
+      if (!hasGSAP) return;
       var refresh = function () { ScrollTrigger.refresh(); };
+      refresh();
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh);
-      window.addEventListener('load', refresh);
-    }
+      if (document.readyState !== 'complete') window.addEventListener('load', refresh);
+      // Direkt aufgerufene Anker (#ablauf …) nach dem Anlegen der Pins neu anfahren
+      var target = location.hash.length > 1 ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+      if (target && target.id !== 'top') {
+        var y = target.getBoundingClientRect().top + window.scrollY - headerOffset() + 1;
+        if (lenis) lenis.scrollTo(y, { immediate: true, force: true }); else window.scrollTo(0, y);
+      }
+    };
+    var run = function () {
+      var job = queue.shift();
+      if (!job) { finish(); return; }
+      safe(job[0], job[1]);
+      idle(run);
+    };
+    var started = false;
+    var kickoff = function () { if (started) return; started = true; requestAnimationFrame(function () { setTimeout(run, 0); }); };
+    if (doc.classList.contains('hero-in')) kickoff();
+    else { doc.addEventListener('lindner:hero', kickoff, { once: true }); setTimeout(kickoff, 1600); }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
