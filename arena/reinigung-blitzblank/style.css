@@ -125,6 +125,7 @@ figure, blockquote { margin: 0; }
   color: var(--aqua-ink);
 }
 .eyebrow svg { width: 14px; height: 14px; color: var(--aqua); flex: none; }
+.eyebrow__pre { margin-right: -4px; }
 .eyebrow--on-dark { color: var(--aqua); }
 .h2 {
   font-size: clamp(2rem, 1.25rem + 3vw, 3.75rem);
@@ -351,9 +352,9 @@ figure, blockquote { margin: 0; }
 }
 .hero__line { display: block; overflow: hidden; padding-bottom: .06em; margin-bottom: -.06em; }
 .hero__line > span { display: inline-block; }
-.w-heavy { font-weight: 800; position: relative; }
+.w-heavy { font-weight: 800; position: relative; padding-right: .2em; }
 .w-heavy::after { /* Glanzpunkt auf dem Komma */
-  content: ""; position: absolute; right: -.18em; top: .08em; width: .2em; height: .2em;
+  content: ""; position: absolute; right: .02em; top: .08em; width: .2em; height: .2em;
   background: var(--aqua);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 0c.8 6.4 5.6 11.2 12 12-6.4.8-11.2 5.6-12 12-.8-6.4-5.6-11.2-12-12C6.4 11.2 11.2 6.4 12 0Z'/%3E%3C/svg%3E") center / contain no-repeat;
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 0c.8 6.4 5.6 11.2 12 12-6.4.8-11.2 5.6-12 12-.8-6.4-5.6-11.2-12-12C6.4 11.2 11.2 6.4 12 0Z'/%3E%3C/svg%3E") center / contain no-repeat;
@@ -574,9 +575,30 @@ html.js.motion-ok .wipe.is-in::after { animation: squeegee-edge 1.15s var(--ease
   .svc:not(.svc--cta):hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
 }
 
+/* Handy/Tablet: Leistungen als Wisch-Schiene statt fünf gestapelter Großkarten */
+@media (max-width: 899px) {
+  .services__head { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+  .services__head .eyebrow { grid-column: 1 / -1; }
+  .services__progress { display: block; width: 72px; height: 3px; margin-bottom: 12px; border-radius: 3px; background: var(--mist-2); overflow: hidden; }
+  .services__progress span { display: block; height: 100%; background: var(--aqua); transform: scaleX(0); transform-origin: left; }
+  .services__viewport { width: 100%; }
+  .services__track {
+    display: flex; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter);
+    padding: 4px var(--gutter) 18px; scrollbar-width: none;
+  }
+  .services__track::-webkit-scrollbar { display: none; }
+  .svc { flex: 0 0 min(84%, 380px); scroll-snap-align: start; }
+  .svc__media { aspect-ratio: 16 / 10; }
+  .svc__body { gap: 12px; }
+  .svc__cta { min-height: 100%; }
+  html:not(.js) .services__progress { display: none; }
+}
+
 /* Horizontale Strecke (nur Desktop + Bewegung, Klasse setzt main.js) */
 .services--h { padding-block: 0; }
 .services--h .services__pin {
+  position: sticky; top: 0;
   height: 100svh; min-height: 640px;
   display: flex; flex-direction: column; justify-content: center;
   padding-top: calc(var(--header-h) + 8px); padding-bottom: 28px;
@@ -1312,6 +1334,28 @@ details > .is-animating { overflow: hidden; }
   .site-footer .demo-pill:hover { color: var(--marine); background: var(--white); border-color: var(--aqua); }
 }
 
+/* ---------- Rechner: Mini-Preis (Handy/Tablet) ---------- */
+.calc-peek { display: none; }
+@media (max-width: 899px) {
+  html.js .calc-peek:not([hidden]) {
+    position: sticky; bottom: calc(84px + var(--safe-b)); z-index: 6;
+    display: flex; align-items: center; gap: 10px; margin-top: 4px;
+    padding: 8px 8px 8px 18px; border-radius: 999px;
+    background: rgba(11, 37, 69, .94); color: var(--white);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    box-shadow: 0 14px 34px -12px rgba(11, 37, 69, .55);
+  }
+  .calc-peek__label { font-size: .75rem; font-weight: 700; letter-spacing: .02em; color: rgba(255, 255, 255, .7); line-height: 1.2; max-width: 9ch; }
+  .calc-peek__price { margin-right: auto; font-size: 1.25rem; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .calc-peek__go {
+    display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; border-radius: 999px;
+    background: var(--aqua); color: var(--marine); font-size: .875rem; font-weight: 800; text-decoration: none;
+    transition: transform 160ms var(--ease-out);
+  }
+  .calc-peek__go svg { width: 16px; height: 16px; transform: rotate(90deg); }
+  .calc-peek__go:active { transform: scale(.97); }
+}
+
 /* ---------- Aktionsleiste (Handy) ---------- */
 .action-bar { display: none; }
 @media (max-width: 899px) {
@@ -1406,6 +1450,16 @@ html.motion-off .timer__fg { transition: none; }
   .hero__trust { margin-top: 20px; gap: 6px 16px; font-size: .875rem; }
   .pane__tag { left: 14px; top: 14px; }
   .pane__frame { aspect-ratio: 5 / 4.6; }
+  /* Signature zuerst: Headline → Scheibe → Text/CTA (Text-Reihenfolge im DOM bleibt) */
+  .hero__grid { container-type: inline-size; row-gap: 0; }
+  .hero__copy { display: contents; }
+  .hero__copy > .eyebrow { order: 1; }
+  .hero__title { order: 2; }
+  .pane { order: 3; margin-bottom: 26px; }
+  .hero__lead { order: 4; }
+  .hero__ctas { order: 5; }
+  .hero__trust { order: 6; }
+  .eyebrow__pre { display: none; }
 }
 
 /* Ohne JavaScript: nur Bedienelemente ausblenden, die ohne Skript nichts tun – Inhalte bleiben sichtbar */

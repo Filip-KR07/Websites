@@ -107,7 +107,8 @@
   var enhanced = hasGSAP && !reduced();
   var hasIO = 'IntersectionObserver' in window;
   var lenis = null;
-  var fmt = function (n, d) { return Number(n).toLocaleString('de-DE', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); };
+  var NF = {}; // Intl-Formatter je Nachkommastellen cachen (toLocaleString legt bei jedem Aufruf einen neuen an)
+  var fmt = function (n, d) { d = d || 0; var f = NF[d] || (NF[d] = new Intl.NumberFormat('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d })); return f.format(Number(n)); };
   var easeOutCubic = function (t) { return 1 - Math.pow(1 - t, 3); };
   var easeInOut = function (t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
   var headerH = function () { var h = qs('[data-header]'); return h ? h.offsetHeight : 72; };
@@ -639,31 +640,55 @@
   /* ------------------------------------------------------------------
      Leistungen: horizontale Strecke (Desktop) – sonst natives Raster
      ------------------------------------------------------------------ */
-  var services = { st: null, shift: 0 };
+  var services = { st: null, shift: 0, rail: null };
   (function initServices() {
     var section = qs('[data-services]');
-    if (!section || !enhanced) return;
+    if (!section) return;
     var pin = qs('[data-services-pin]', section), track = qs('[data-services-track]', section), bar = qs('[data-svc-progress]', section);
+
+    // Handy/Tablet: Karten als Wisch-Schiene (CSS scroll-snap) – Fortschrittsbalken folgt der Schiene
+    if (bar) {
+      var railTick = false;
+      track.addEventListener('scroll', function () {
+        if (railTick || services.st) return; railTick = true;
+        requestAnimationFrame(function () {
+          railTick = false;
+          var max = track.scrollWidth - track.clientWidth;
+          bar.style.transform = 'scaleX(' + (max > 0 ? clamp(track.scrollLeft / max, 0, 1) : 0).toFixed(3) + ')';
+        });
+      }, { passive: true });
+    }
+    services.rail = track;
+
+    if (!enhanced) return;
     var mm = gsap.matchMedia();
     mm.add('(min-width: 900px) and (min-height: 600px)', function () {
+      // Desktop: horizontale Strecke. Statt ScrollTrigger-Pin (Pin-Spacer + position:fixed erzeugen Layout-Shifts)
+      // klebt der Innenteil per CSS sticky; die Sektion bekommt die Höhe Bildschirm + Verschiebeweg.
       section.classList.add('services--h');
       var viewport = qs('.services__viewport', section);
       var getShift = function () { return Math.max(0, track.scrollWidth - viewport.clientWidth); };
+      var setHeight = function () { section.style.height = (pin.offsetHeight + getShift()) + 'px'; };
+      setHeight();
+      ST.addEventListener('refreshInit', setHeight);
       var tween = gsap.to(track, {
         x: function () { return -getShift(); },
         ease: 'none',
         scrollTrigger: {
-          trigger: pin, start: 'top top', end: function () { return '+=' + getShift(); },
-          pin: true, scrub: 0.6, invalidateOnRefresh: true, anticipatePin: 1,
+          trigger: section, start: 'top top', end: function () { return '+=' + getShift(); },
+          scrub: 0.6, invalidateOnRefresh: true,
           onUpdate: function (self) { if (bar) bar.style.transform = 'scaleX(' + self.progress.toFixed(3) + ')'; },
           onRefresh: function (self) { services.shift = getShift(); services.st = self; }
         }
       });
       services.st = tween.scrollTrigger; services.shift = getShift(); services.track = track;
       return function () {
+        ST.removeEventListener('refreshInit', setHeight);
         section.classList.remove('services--h');
+        section.style.height = '';
         services.st = null;
         gsap.set(track, { clearProps: 'transform' });
+        if (bar) bar.style.transform = '';
       };
     });
   })();
@@ -704,6 +729,10 @@
     e.preventDefault();
     var tab = a.getAttribute('data-open-tab');
     if (tab && tabsApi) tabsApi.activate(tab);
+    if (!services.st && services.rail && services.rail.contains(t) && services.rail.scrollWidth > services.rail.clientWidth) {
+      var card = t.closest('.svc') || t;
+      services.rail.scrollTo({ left: card.offsetLeft - services.rail.firstElementChild.offsetLeft, behavior: reduced() ? 'auto' : 'smooth' });
+    }
     scrollToEl(t, function () { if (a.classList.contains('skip-link') || id === 'main') focusTarget(t); });
     if (!a.classList.contains('skip-link')) focusTarget(t);
     if (history.replaceState) history.replaceState(null, '', '#' + id);
@@ -721,8 +750,10 @@
     var R = {
       receipt: qs('[data-receipt]', form), label: qs('[data-r-label]', form), low: qs('[data-r-low]', form), high: qs('[data-r-high]', form),
       live: qs('[data-r-live]', form), week: qsa('[data-week] span', form), weekWrap: qs('[data-week]', form), once: qs('[data-r-once]', form),
-      visits: qs('[data-r-visits]', form), hours: qs('[data-r-hours]', form), team: qs('[data-r-team]', form), scope: qs('[data-r-scope]', form)
+      visits: qs('[data-r-visits]', form), hours: qs('[data-r-hours]', form), team: qs('[data-r-team]', form), scope: qs('[data-r-scope]', form),
+      peek: qs('[data-calc-peek]', form), peekLow: qs('[data-peek-low]', form), peekHigh: qs('[data-peek-high]', form), peekLabel: qs('[data-peek-label]', form)
     };
+    if (R.peek) R.peek.hidden = false; // Mini-Preis (Handy): folgt beim Einstellen unten mit
     var MIN = +range.min, MAX = +range.max;
     var shown = { low: parseInt(R.low.textContent.replace(/\D/g, ''), 10) || 0, high: parseInt(R.high.textContent.replace(/\D/g, ''), 10) || 0 };
     var liveTimer, anim;
@@ -772,7 +803,10 @@
       parts.push('Richtwert ' + fmt(r.low) + '–' + fmt(r.high) + ' €' + (r.once ? ' einmalig' : ' / Monat') + ' netto');
       return parts.join(' · ');
     }
-    function setPrice(lo, hi) { R.low.textContent = fmt(lo); R.high.textContent = fmt(hi); }
+    function setPrice(lo, hi) {
+      R.low.textContent = fmt(lo); R.high.textContent = fmt(hi);
+      if (R.peek) { R.peekLow.textContent = R.low.textContent; R.peekHigh.textContent = R.high.textContent; }
+    }
     function tweenPrice(lo, hi, instant) {
       cancelAnimationFrame(anim);
       if (instant || reduced()) { shown.low = lo; shown.high = hi; setPrice(lo, hi); return; }
@@ -797,6 +831,7 @@
       });
       var s = read(), r = compute(s), T = CALC.TYPES[s.typ];
       R.label.textContent = r.once ? 'Richtwert einmalig (netto)' : 'Richtwert pro Monat (netto)';
+      if (R.peek) R.peekLabel.textContent = r.once ? 'Richtwert einmalig' : 'Richtwert / Monat';
       R.weekWrap.hidden = r.once; R.once.hidden = !r.once;
       var dts = qsa('.receipt__facts dt', form);
       if (r.once) {
@@ -813,7 +848,7 @@
           d.classList.toggle('is-half', on && s.interval === '0.5');
         });
       }
-      R.team.textContent = r.team + (r.team === 1 ? ' Reinigungskraft' : ' Reinigungskräfte');
+      R.team.textContent = r.team + (r.team === 1 ? ' Reinigungs\u00ADkraft' : ' Reinigungs\u00ADkräfte'); // weiches Trennzeichen für schmale Spalten
       // Leistungsumfang
       R.scope.textContent = '';
       r.scope.forEach(function (t) { R.scope.appendChild(el('li', null, t)); });
@@ -1271,8 +1306,7 @@
     mm2.add('(min-width: 900px)', function () {
       gsap.to('.career__glow', { yPercent: 30, ease: 'none', scrollTrigger: { trigger: '.career', start: 'top bottom', end: 'bottom top', scrub: true } });
     });
-    var refresh = function () { ST.refresh(); };
-    window.addEventListener('load', refresh);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh);
+    // ScrollTrigger refresht bei 'load' selbst – nur nachziehen, falls die Schriften erst danach fertig sind
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (document.readyState === 'complete') ST.refresh(); });
   }
 })();

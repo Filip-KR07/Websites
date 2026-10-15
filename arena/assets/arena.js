@@ -4,11 +4,19 @@
 
   /* ---------- Kopfzeile ---------- */
   const top = document.querySelector('.top');
-  const onScroll = () => top.classList.toggle('is-scrolled', window.scrollY > 8);
+  const bar = document.querySelector('[data-filterbar]');
+  const topH = () => top.offsetHeight;
+  let stuck = false;
+  const onScroll = () => {
+    top.classList.toggle('is-scrolled', window.scrollY > 8);
+    const now = bar.getBoundingClientRect().top <= topH() + 0.5 && window.scrollY > 8;
+    if (now !== stuck) { stuck = now; bar.classList.toggle('is-stuck', now); top.classList.toggle('has-bar', now); }
+  };
   onScroll();
   window.addEventListener('scroll', onScroll, { passive: true });
 
   /* ---------- Filter und Suche ---------- */
+  const grid = document.querySelector('[data-grid]');
   const cards = [...document.querySelectorAll('.card')];
   const chips = [...document.querySelectorAll('.chip')];
   const input = document.querySelector('[data-search-input]');
@@ -27,6 +35,7 @@
       card.hidden = !visible;
       if (visible) {
         shown++;
+        card.classList.remove('is-pending');
         if (wasHidden) {
           card.classList.remove('is-entering');
           void card.offsetWidth; // Animation neu starten
@@ -38,13 +47,22 @@
     status.textContent = shown === 1 ? '1 Modell' : `${shown} Modelle`;
     empty.hidden = shown > 0;
   };
+  // Liegt die Leiste oben an, springt die Ansicht zum Anfang der Ergebnisse statt mitten in eine leere Fläche
+  const toResults = () => {
+    if (!stuck) return;
+    const y = grid.getBoundingClientRect().top + window.scrollY - topH() - bar.offsetHeight - 16;
+    window.scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' });
+  };
 
   chips.forEach(chip => chip.addEventListener('click', () => {
     group = chip.dataset.filter;
     chips.forEach(c => c.setAttribute('aria-pressed', String(c === chip)));
     apply();
+    toResults();
+    chip.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
   }));
   input.addEventListener('input', apply);
+  input.addEventListener('keydown', e => { if (e.key === 'Escape' && input.value) { input.value = ''; apply(); } });
   document.querySelector('[data-reset]').addEventListener('click', () => {
     input.value = '';
     group = 'all';
@@ -53,6 +71,25 @@
     input.focus();
   });
   cards.forEach(card => card.addEventListener('animationend', () => card.classList.remove('is-entering')));
+
+  /* ---------- Karten beim Scrollen einblenden (reihenweise leicht versetzt) ---------- */
+  if ('IntersectionObserver' in window) {
+    const below = cards.filter(c => c.getBoundingClientRect().top > window.innerHeight);
+    below.forEach(c => c.classList.add('is-pending'));
+    const io = new IntersectionObserver(entries => {
+      const hits = entries.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top || a.boundingClientRect.left - b.boundingClientRect.left);
+      hits.forEach((e, i) => {
+        const c = e.target;
+        c.style.setProperty('--rd', `${Math.min(i, 3) * 70}ms`);
+        c.classList.add('is-shown');
+        requestAnimationFrame(() => c.classList.remove('is-pending'));
+        const done = ev => { if (ev.propertyName !== 'opacity' && ev.propertyName !== 'translate') return; if (ev.propertyName === 'translate' || reduce) { c.classList.remove('is-shown'); c.style.removeProperty('--rd'); c.removeEventListener('transitionend', done); } };
+        c.addEventListener('transitionend', done);
+        io.unobserve(c);
+      });
+    }, { rootMargin: '0px 0px -6% 0px' });
+    below.forEach(c => io.observe(c));
+  }
 
   /* ---------- Arena-Feld: Ränge eines Amphitheaters von oben, Punkte wandern auf den Ringen ---------- */
   const canvas = document.querySelector('[data-field]');
@@ -81,7 +118,7 @@
     ctx.clearRect(0, 0, w, h);
     const wide = w > 900;
     const cx = w * (wide ? 0.68 : 0.5) + pointer.x * 24;
-    const cy = h * (wide ? 0.46 : 0.34) + pointer.y * 16;
+    const cy = h * (wide ? 0.46 : 0.25) + pointer.y * 16;
     const outer = Math.max(w, h) * (wide ? 0.46 : 0.62);
     const inner = outer * 0.24, tilt = 0.44 + pointer.y * 0.03;
     const rOf = i => inner + (outer - inner) * (i / (RINGS - 1));
