@@ -65,3 +65,12 @@ Animationen zum Testen abschalten: `?motion=off` an die Adresse einer Demo häng
 `../assets/fonts/`). `assets/preview/<ordner>-desktop.webp` (960×600, aus 1440×900) und `-mobile.webp`
 (300 px breit, aus 390×844 bei 2-facher Pixeldichte) sind Screenshots der jeweiligen Startseite – nach
 größeren Änderungen an einer Demo neu aufnehmen.
+
+## Modernitäts-Prüfung (Oktober 2026)
+
+Alle 23 Demos und beide Übersichten wurden mit den Skills design-critique, emil-design-eng und
+improve-animations geprüft und nachgebessert. Die Gesamtnote stieg von 7,0–8,0 auf 8,0–8,6 (Skala 10).
+Schwerpunkte: Layout-Sprünge durch GSAP-Pins beseitigt (CSS `sticky` statt `position: fixed`),
+schnellerer erster Bildschirm (Start in Etappen, kürzere Hero-Intros), Wisch-Schienen statt langer
+Kartenstapel auf dem Handy, Press-/Hover-Feedback und einheitliche Easing-Tokens. Das Prüfskript meldet
+danach bei allen Demos 0 Befunde (1440/1920/1024/390/360 px, `?motion=off`, ohne JS).
