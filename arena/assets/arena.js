@@ -59,7 +59,8 @@
     chips.forEach(c => c.setAttribute('aria-pressed', String(c === chip)));
     apply();
     toResults();
-    chip.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+    const row = chip.parentElement; // gewählten Chip in der Wischleiste mittig holen, ohne die Seite zu bewegen
+    if (row.scrollWidth > row.clientWidth) row.scrollTo({ left: chip.offsetLeft - (row.clientWidth - chip.offsetWidth) / 2, behavior: reduce ? 'auto' : 'smooth' });
   }));
   input.addEventListener('input', apply);
   input.addEventListener('keydown', e => { if (e.key === 'Escape' && input.value) { input.value = ''; apply(); } });

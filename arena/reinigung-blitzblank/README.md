@@ -5,7 +5,7 @@ Demo-Website für einen **fiktiven** Gebäudereinigungsbetrieb in Mannheim (Blit
 Designsprache: hell, frisch, sehr klar – Weiß, Aqua `#19C3D1`, Marine `#0B2545`, sparsam Seifenblasen-Lila `#B9B3FF`, Hellgrau `#F2F6F8`. Eine Schrift (Plus Jakarta Sans, variabel 200–800) mit starken Gewichtskontrasten. Glanzlichter, Wisch-Effekte und Blasen als Mikroanimationen.
 
 ## Abschnitte
-Header mit Scroll-Fortschritt · Hero mit Wisch-Scheibe und Kennzahlen · Leistungen (fünf Reinigungsarten, auf dem Desktop als horizontale Strecke) · Angebotsrechner · Leistungs-Checklisten · Ablauf mit Beispiel-Protokoll · Über uns & Team (Monogramme) · Kundenstimmen · Einsatzgebiet mit PLZ-Check und SVG-Karte · Karriere mit Schichtmodellen und Kurzbewerbung · FAQ · Kontakt/Begehung anfragen · Footer. Dazu `impressum.html` und `datenschutz.html` (Muster).
+Header mit Scroll-Fortschritt · Hero mit Wisch-Scheibe und Kennzahlen · Leistungen (fünf Reinigungsarten, auf dem Desktop als horizontale Strecke mit CSS-sticky, auf dem Handy als Wisch-Schiene) · Angebotsrechner (auf dem Handy mit mitlaufendem Mini-Preis) · Leistungs-Checklisten · Ablauf mit Beispiel-Protokoll · Über uns & Team (Monogramme) · Kundenstimmen · Einsatzgebiet mit PLZ-Check und SVG-Karte · Karriere mit Schichtmodellen und Kurzbewerbung · FAQ · Kontakt/Begehung anfragen · Footer. Dazu `impressum.html` und `datenschutz.html` (Muster).
 
 ## Spezial-Features
 1. **Wisch-Reveal im Hero** – beschlagene Scheibe (Canvas: weichgezeichnetes Foto, Mikrotröpfchen, Laufspuren). Mit Maus oder Finger freiwischen, ein Abzieher folgt federnd. Ab 60 % freier Fläche wird fertig gewischt, Funkeln und „Blitzblank.“. Knopf „Automatisch wischen“ (Schlangenlinien-Technik) für Tastatur; bei reduzierter Bewegung sanftes Ausblenden.
@@ -14,7 +14,7 @@ Header mit Scroll-Fortschritt · Hero mit Wisch-Scheibe und Kennzahlen · Leistu
 4. **Einsatzgebiet-Check** – PLZ eingeben oder Schnellwahl → Pin fliegt auf die SVG-Karte Rhein-Neckar, Zone (12/25/40 km) und Entfernung werden hervorgehoben.
 5. **Karriere** – Schichtmodelle als Schalter (`role="switch"`), Tageszeitleiste, gefilterte Stellen, „Bewerbung in 60 Sekunden“ mit Countdown-Ring.
 
-Ohne JavaScript, mit `prefers-reduced-motion` oder `?motion=off` sind alle Inhalte sichtbar und bedienbar (Leistungen als Raster, alle Checklisten untereinander).
+Ohne JavaScript, mit `prefers-reduced-motion` oder `?motion=off` sind alle Inhalte sichtbar und bedienbar (Leistungen auf dem Desktop als Raster, auf dem Handy als Wisch-Schiene; alle Checklisten untereinander).
 
 ## Anpassen
 - **Name, Adresse, Telefon, E-Mail**: in `index.html`, `impressum.html`, `datenschutz.html` suchen/ersetzen (`Blitzblank`, `0621 555 70 80`, `+496215557080`, `angebot@blitzblank-reinigung.de`). JSON-LD im `<head>` von `index.html` mitpflegen.
