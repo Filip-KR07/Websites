@@ -361,7 +361,12 @@
     var c = qs('[data-glow]');
     if (!c || !c.getContext) return null;
     var ctx = c.getContext('2d');
-    var w = 0, h = 0, raf = 0, running = false, visible = true;
+    // Die Lichtflecken sind sehr weich und bewegen sich langsam: kleine Leinwand (wird per CSS
+    // gestreckt) und ~15 Bilder/s reichen optisch völlig – spart auf Handys den Großteil der
+    // Hauptthread-Zeit. Die Schleife startet erst nach dem Hero-Einstieg (armed).
+    var SCALE = 0.32, FRAME_MS = 66;
+    // clock: eigene Zeitachse ab dem Standbild (9000), damit der Start nahtlos anschließt
+    var w = 0, h = 0, raf = 0, running = false, visible = true, armed = false, last = 0, prev = 0, clock = 9000;
     var BLOBS = [
       { x: .82, y: .3, r: .5, c: '232,106,80', a: .17, sx: .00011, sy: .00008, ph: 0 },
       { x: .1, y: .86, r: .45, c: '157,181,160', a: .26, sx: .00009, sy: .00012, ph: 2 },
@@ -369,10 +374,12 @@
       { x: .98, y: .95, r: .32, c: '30,58,95', a: .06, sx: .00012, sy: .00006, ph: 1 }
     ];
     function resize() {
-      var dpr = Math.min(2, window.devicePixelRatio || 1) * .5; // weich: halbe Auflösung reicht
-      w = Math.max(1, Math.round(c.clientWidth * dpr));
-      h = Math.max(1, Math.round(c.clientHeight * dpr));
+      var nw = Math.max(1, Math.round(c.clientWidth * SCALE));
+      var nh = Math.max(1, Math.round(c.clientHeight * SCALE));
+      if (nw === w && nh === h) return false;
+      w = nw; h = nh;
       c.width = w; c.height = h;
+      return true;
     }
     function draw(t) {
       ctx.clearRect(0, 0, w, h);
@@ -390,22 +397,34 @@
         ctx.fillRect(0, 0, w, h);
       }
     }
-    function loop(t) { draw(t); raf = requestAnimationFrame(loop); }
-    function sync() {
-      var should = running && visible && !document.hidden && motionFull();
-      if (should && !raf) raf = requestAnimationFrame(loop);
-      if (!should && raf) { cancelAnimationFrame(raf); raf = 0; }
+    function loop(t) {
+      if (prev) clock += Math.min(t - prev, 100);
+      prev = t;
+      if (t - last >= FRAME_MS) { last = t; draw(clock); }
+      raf = requestAnimationFrame(loop);
     }
-    resize(); draw(9000);
-    window.addEventListener('resize', function () { resize(); draw(performance.now()); });
+    function sync() {
+      var should = armed && running && visible && !document.hidden && motionFull();
+      if (should && !raf) raf = requestAnimationFrame(loop);
+      if (!should && raf) { cancelAnimationFrame(raf); raf = 0; prev = 0; }
+    }
+    resize(); draw(clock);
+    var rt = 0;
+    window.addEventListener('resize', function () {
+      clearTimeout(rt);
+      rt = setTimeout(function () { if (resize()) draw(clock); }, 150);
+    });
     document.addEventListener('visibilitychange', sync);
+    // erst nach dem Laden + Hero-Einstieg bewegen, damit der erste Bildschirm nicht konkurriert
+    var arm = function () { setTimeout(function () { armed = true; sync(); }, 1600); };
+    if (document.readyState === 'complete') arm(); else window.addEventListener('load', arm, { once: true });
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(function (en) { visible = en[0].isIntersecting; sync(); }).observe(c);
     }
     return {
       start: function () { running = true; sync(); },
-      stop: function () { running = false; sync(); draw(9000); },
-      paint: function () { draw(performance.now()); }
+      stop: function () { running = false; sync(); draw(clock); },
+      paint: function () { draw(clock); }
     };
   }
 

@@ -236,7 +236,7 @@
     var done = false;
     var once = function () { if (!done) { done = true; go(); } };
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(once);
-    setTimeout(once, 700);
+    setTimeout(once, 450);
   }
 
   /* ------------------------------------------------------------------
@@ -340,8 +340,14 @@
         ctx.stroke();
       }
     }
+    // Bewegung nur, solange jemand mit der Maus im Hero ist (plus kurzes Ausklingen).
+    // Ein Bild kostet auf Mittelklasse-Handys ~100 ms Hauptthread – darum dort nur ein statisches Bild,
+    // und auch am Desktop kein Dauerlauf im Leerlauf.
+    var animate = finePointer.matches && !reduced(), visible = false, lastActive = 0, IDLE = 2600;
     function frame(now) {
       if (!running) return;
+      var settled = Math.abs(m.ta - m.a) < 0.02 && Math.abs(m.tx - m.x) < 0.5 && Math.abs(m.ty - m.y) < 0.5;
+      if (!visible || (now - lastActive > IDLE && settled)) { running = false; return; }
       requestAnimationFrame(frame);
       if (now - last < 40) return;
       last = now;
@@ -349,23 +355,29 @@
       m.x += (m.tx - m.x) * 0.08; m.y += (m.ty - m.y) * 0.08; m.a += (m.ta - m.a) * 0.05;
       draw();
     }
-    function start() { if (running || reduced()) return; running = true; requestAnimationFrame(frame); }
-    function stop() { running = false; }
-    if (finePointer.matches && !reduced()) {
+    function wake() {
+      lastActive = performance.now();
+      if (running || !animate || !visible) return;
+      running = true; requestAnimationFrame(frame);
+    }
+    if (animate) {
       hero.addEventListener('pointermove', function (e) {
         var r = canvas.getBoundingClientRect();
         m.tx = e.clientX - r.left; m.ty = e.clientY - r.top; m.ta = 1;
         if (!m.seen) { m.x = m.tx; m.y = m.ty; m.seen = true; }
+        wake();
       });
-      hero.addEventListener('pointerleave', function () { m.ta = 0; });
+      hero.addEventListener('pointerleave', function () { m.ta = 0; lastActive = performance.now(); });
     }
     var rt = 0;
     window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(resize, 150); });
-    contours.readColor();
-    resize();
+    // Erstes Bild nicht im Start-Task berechnen (Canvas blendet ohnehin erst mit dem Intro ein)
+    var first = function () { contours.readColor(); resize(); };
+    if ('requestIdleCallback' in window) requestIdleCallback(first, { timeout: 900 }); else setTimeout(first, 120);
     visibilityGate(hero, function (on) {
       hero.classList.toggle('is-paused', !on);
-      if (on) start(); else stop();
+      visible = on;
+      if (!on) running = false;
     });
   }
 
@@ -818,20 +830,24 @@
      Projekte: horizontale Strecke (Desktop gepinnt, mobil nativ)
      ------------------------------------------------------------------ */
   function initProjects() {
-    var pin = qs('[data-pj]'), track = qs('[data-pj-track]'), vp = qs('.pj-viewport');
-    if (!pin || !track || !vp || !hasGSAP || reduced()) return;
+    var pin = qs('[data-pj]'), scroller = qs('[data-pj-scroll]'), track = qs('[data-pj-track]'), vp = qs('.pj-viewport');
+    if (!pin || !scroller || !track || !vp || !hasGSAP || reduced()) return;
     var st = null;
     function pad() { return parseFloat(getComputedStyle(vp).paddingLeft) || 0; }
     function dist() { return Math.max(0, track.scrollWidth - (vp.clientWidth - 2 * pad())); }
+    // Statt GSAP-Pin (position: fixed + Pin-Spacer → Layout-Sprünge/CLS) hält CSS-sticky die Strecke fest;
+    // der Container bekommt die Scrollstrecke als Höhe, ScrollTrigger scrubbt nur noch die Verschiebung.
+    function setLen() { scroller.style.setProperty('--pj-dist', Math.round(dist()) + 'px'); }
     var mm = gsap.matchMedia();
     mm.add('(min-width: 900px)', function () {
       doc.classList.add('pj-pinned');
+      setLen();
       var tween = gsap.to(track, {
         x: function () { return -dist(); }, ease: 'none',
-        scrollTrigger: { trigger: pin, start: 'top top', end: function () { return '+=' + dist(); }, pin: true, scrub: 0.6, invalidateOnRefresh: true, anticipatePin: 1 }
+        scrollTrigger: { trigger: scroller, start: 'top top', end: 'bottom bottom', scrub: 0.6, invalidateOnRefresh: true, onRefreshInit: setLen }
       });
       st = tween.scrollTrigger;
-      return function () { doc.classList.remove('pj-pinned'); st = null; gsap.set(track, { clearProps: 'transform' }); };
+      return function () { doc.classList.remove('pj-pinned'); scroller.style.removeProperty('--pj-dist'); st = null; gsap.set(track, { clearProps: 'transform' }); };
     });
     // Tastatur: fokussierte Karte in den sichtbaren Bereich scrollen
     track.addEventListener('focusin', function (e) {
@@ -1059,21 +1075,25 @@
      Start
      ------------------------------------------------------------------ */
   function init() {
+    // Sofort: alles, was den ersten Bildschirm betrifft
     safe('scroll', initScroll);
     safe('header', initHeader);
     safe('menu', initMenu);
     safe('seasons', initSeasons);
-    safe('contours', initContours);
     safe('intro', initIntro);
+    safe('contours', initContours);
     safe('reveal', initReveal);
-    safe('services', initServices);
-    safe('form', initForm);
-    safe('planner', initPlanner);
-    safe('soil', initSoil);
-    safe('beforeAfter', initBeforeAfter);
-    safe('projects', initProjects);
-    safe('plants', initPlants);
-    safe('map', initMap);
+    // Danach in eigenen kurzen Tasks (kein langer Start-Task, Intro und Eingaben bleiben flüssig)
+    var queue = [
+      ['services', initServices], ['form', initForm], ['planner', initPlanner], ['soil', initSoil],
+      ['beforeAfter', initBeforeAfter], ['projects', initProjects], ['plants', initPlants], ['map', initMap]
+    ];
+    (function next() {
+      var job = queue.shift();
+      if (!job) { if (hasGSAP) ScrollTrigger.refresh(); return; }
+      safe(job[0], job[1]);
+      setTimeout(next, 0);
+    })();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

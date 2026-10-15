@@ -107,10 +107,13 @@
     var f = function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
     return 0.2126 * f(rgb[0]) + 0.7152 * f(rgb[1]) + 0.0722 * f(rgb[2]);
   }
+  // Nur geänderte Variablen schreiben: jede Änderung einer vererbten Variable kostet eine Style-Neuberechnung
+  // für die ganze Szene (mehrere hundert SVG-Knoten).
   function applyPalette(el, pal) {
-    var s = el.style;
-    COLOR_KEYS.forEach(function (c) { var v = pal[c]; s.setProperty('--' + c, 'rgb(' + v[0] + ' ' + v[1] + ' ' + v[2] + ')'); });
-    NUM_KEYS.forEach(function (c) { s.setProperty('--' + c, pal[c].toFixed(3)); });
+    var s = el.style, last = el.__pal || (el.__pal = {});
+    var put = function (k, v) { if (last[k] !== v) { last[k] = v; s.setProperty('--' + k, v); } };
+    COLOR_KEYS.forEach(function (c) { var v = pal[c]; put(c, 'rgb(' + v[0] + ' ' + v[1] + ' ' + v[2] + ')'); });
+    NUM_KEYS.forEach(function (c) { put(c, pal[c].toFixed(2)); });
   }
   // Text auf dem Himmel: hell oder dunkel? (Mischung aus oberem und mittlerem Himmel)
   function skyIsDark(pal) {
@@ -477,10 +480,13 @@
       cur = (i + imgs.length) % imgs.length;
       imgs.forEach(function (im, k) {
         im.classList.toggle('is-active', k === cur);
+        // ausgeblendete Bilder auch für Screenreader verbergen (nur das sichtbare Bild zählt)
+        if (k === cur) im.removeAttribute('aria-hidden'); else im.setAttribute('aria-hidden', 'true');
         if (k === cur && im.loading === 'lazy') im.loading = 'eager';
       });
       if (curEl) curEl.textContent = cur + 1;
     }
+    imgs.forEach(function (im, k) { if (k !== cur) im.setAttribute('aria-hidden', 'true'); });
     var prev = qs('[data-prev]', g), next = qs('[data-next]', g);
     if (prev) prev.addEventListener('click', function () { show(cur - 1); });
     if (next) next.addEventListener('click', function () { show(cur + 1); });
@@ -573,8 +579,8 @@
       if (clock) clock.textContent = hhmm(Math.round(h * 6) / 6);
     }
     function setCap(h) {
-      // Bildunterschrift passend zur angezeigten Uhrzeit (06:40 · 10:00 · 14:00 · 19:30)
-      var i = h < 8.6 ? 0 : h < 12.2 ? 1 : h < 17 ? 2 : 3;
+      // Bildunterschrift passend zum Licht der Szene (Paletten-Stützstellen: 6:40 Morgenrot, 9:00 Tag, 19:20 Abendrot)
+      var i = h < 8 ? 0 : h < 12 ? 1 : h < 18.2 ? 2 : 3;
       i = clamp(i, 0, caps.length - 1);
       if (i === lastCap) return false;
       lastCap = i;
@@ -598,7 +604,23 @@
         p.g.style.opacity = clamp((x - copyRight - 30) / 110, 0, 1).toFixed(2);
       });
     }
-    function update(p) { var h = 6.4 + p * (20.2 - 6.4); setHour(h); if (setCap(h)) measureCopy(); }
+    // Scroll-Fortschritt → Uhrzeit: Morgen- und Abendrot bekommen mehr Scrollweg als der helle Mittag.
+    var STOPS = [[0, 6.4], [0.24, 8], [0.46, 12], [0.7, 18.2], [1, 20.2]];
+    function hourAt(p) {
+      p = clamp(p, 0, 1);
+      for (var k = 1; k < STOPS.length; k++) {
+        if (p <= STOPS[k][0]) { var a = STOPS[k - 1], b = STOPS[k]; return lerp(a[1], b[1], (p - a[0]) / (b[0] - a[0])); }
+      }
+      return STOPS[STOPS.length - 1][1];
+    }
+    var lastH = -1;
+    function update(p) {
+      // auf Minuten runden: Scrub-Nachlauf ohne sichtbare Änderung kostet so keine Neuberechnung
+      var h = Math.round(hourAt(p) * 60) / 60;
+      if (h === lastH) return;
+      lastH = h;
+      setHour(h); if (setCap(h)) measureCopy();
+    }
     window.addEventListener('resize', measureCopy);
 
     if (!enhanced) { setHour(6.8); return; }
@@ -606,11 +628,12 @@
     var mm = gsap.matchMedia();
     var travel = function (el, f) { return function () { return -Math.max(0, el.offsetWidth - pin.clientWidth) * f; }; };
     mm.add('(min-width: 900px)', function () {
+      // Die Bühne klebt per CSS (position: sticky, Höhe in style.css) – kein GSAP-Pin, daher kein Layout-Sprung.
       var tl = gsap.timeline({
         defaults: { ease: 'none' },
         scrollTrigger: {
-          trigger: pin, start: 'top top', end: function () { return '+=' + Math.round(window.innerHeight * 2.2); },
-          pin: true, scrub: 0.6, invalidateOnRefresh: true,
+          trigger: pano, start: 'top top', end: 'bottom bottom',
+          scrub: 0.6, invalidateOnRefresh: true,
           onUpdate: function (self) { update(self.progress); }
         }
       });
@@ -633,7 +656,7 @@
         .fromTo(near, { x: travel(near, 0.08) }, { x: travel(near, 0.6) }, 0);
       update(0);
     });
-    ST.addEventListener('refreshInit', function () { lastCap = -1; });
+    ST.addEventListener('refreshInit', function () { lastCap = -1; lastH = -1; });
     ST.addEventListener('refresh', function () { measureCopy(); fadePeaks(); });
     measureCopy(); fadePeaks();
   }
@@ -1280,8 +1303,12 @@
     if (!root) return;
     var items = qsa('.q', root), dots = qsa('.q-dots span', root);
     var pauseBtn = qs('[data-q-pause]', root);
-    var cur = 0, timer = 0, paused = reduced(), hover = false;
+    var cur = 0, timer = 0, paused = reduced(), hover = false, inView = false;
     root.classList.add('is-enhanced');
+    // Nur wechseln, solange die Stimmen im Bild sind – wer hinscrollt, beginnt beim ersten Zitat.
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (en) { inView = en[0].isIntersecting; schedule(); }, { threshold: 0.3 }).observe(root);
+    } else inView = true;
     function show(i) {
       cur = (i + items.length) % items.length;
       items.forEach(function (q, k) { q.classList.toggle('is-active', k === cur); q.setAttribute('aria-hidden', String(k !== cur)); });
@@ -1289,7 +1316,7 @@
     }
     function schedule() {
       clearTimeout(timer);
-      if (paused || hover || document.hidden) return;
+      if (paused || hover || !inView || document.hidden) return;
       timer = setTimeout(function () { show(cur + 1); schedule(); }, 7500);
     }
     function setPaused(p) {
@@ -1346,21 +1373,29 @@
   /* ------------------------------------------------------------------
      Start
      ------------------------------------------------------------------ */
+  // Sofort: alles, was im ersten Bildschirm sichtbar oder bedienbar ist.
   safe('scroll', initScroll);
   safe('hero', initHero);
   safe('header', initHeader);
   safe('menu', initMenu);
   safe('reveals', initReveals);
-  safe('rooms', initRooms);
-  safe('planner', initPlanner);
-  safe('booking', initBooking);
-  safe('inquiry', initInquiry);
-  safe('quotes', initQuotes);
-  safe('map', initMap);
-  safe('pano', initPano);
-  safe('heroScroll', initHeroScroll);
+  // Danach in eigenen kleinen Tasks (nach dem ersten Frame), damit der Start keinen langen Block erzeugt.
+  var later = [['heroScroll', initHeroScroll], ['rooms', initRooms], ['pano', initPano], ['planner', initPlanner],
+    ['booking', initBooking], ['inquiry', initInquiry], ['quotes', initQuotes], ['map', initMap]];
+  var settled = false;
+  function refreshST() { if (hasGSAP && settled) window.ScrollTrigger.refresh(); }
+  function runLater() {
+    var job = later.shift();
+    if (!job) { settled = true; refreshST(); return; }
+    safe(job[0], job[1]);
+    setTimeout(runLater, 0);
+  }
+  var started = false;
+  function startLater() { if (started) return; started = true; runLater(); }
+  requestAnimationFrame(function () { setTimeout(startLater, 0); });
+  setTimeout(startLater, 1200); // Fallback, falls kein Frame kommt (z. B. Hintergrund-Tab)
   if (hasGSAP) {
-    window.addEventListener('load', function () { window.ScrollTrigger.refresh(); });
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { window.ScrollTrigger.refresh(); });
+    window.addEventListener('load', refreshST);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshST);
   }
 })();

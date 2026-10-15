@@ -241,6 +241,29 @@
     var print = $('.hero-print');
     if (!frame || !img) return;
 
+    // Fettstift-Markierung: Pfad in echten Pixeln aufbauen, damit Strichstärke und
+    // Zeichen-Animation (stroke-dashoffset) bei jedem Seitenverhältnis stimmen.
+    var mark = $('.hero-mark'), markPath = mark && $('path', mark);
+    var MK = [[7, 8.5], [31, 1.5, 72, 2.5, 97.5, 5.5], [99.6, 30, 99.2, 72, 96.8, 95.5], [72, 99.6, 28, 98.8, 3.8, 95.8], [1, 72, .4, 32, 3.2, 6.5], [5, 2.2, 13, .6, 24, 2.8]];
+    var fitMark = function () {
+      if (!markPath) return;
+      var w = mark.clientWidth || mark.getBoundingClientRect().width, h = mark.clientHeight || mark.getBoundingClientRect().height;
+      if (!w || !h) return;
+      var d = MK.map(function (seg, i) {
+        return (i ? 'C' : 'M') + seg.map(function (v, k) { return (k % 2 ? v * h / 100 : v * w / 100).toFixed(1); }).join(' ');
+      }).join('');
+      mark.setAttribute('viewBox', '0 0 ' + w.toFixed(1) + ' ' + h.toFixed(1));
+      markPath.removeAttribute('vector-effect');
+      markPath.removeAttribute('pathLength');
+      markPath.setAttribute('d', d);
+      var len = Math.ceil(markPath.getTotalLength()) + 2;
+      markPath.style.strokeDasharray = len;
+      markPath.style.setProperty('--len', len);
+      mark.classList.add('is-fit');
+    };
+    fitMark();
+    if (mark && 'ResizeObserver' in window) new ResizeObserver(fitMark).observe(mark.parentNode);
+
     // Text-Einstieg
     $$('[data-hero-in]').forEach(function (n, i) { n.style.setProperty('--d', (i * 90) + 'ms'); });
     var ready = function () { hero.classList.add('is-ready'); };
@@ -262,6 +285,10 @@
       if (replay) replay.disabled = p < 1;
       if (print) print.classList.toggle('is-developed', p >= 1);
     };
+
+    // Ohne Bewegung (reduced motion / ?motion=off) bleibt das fertige Foto mit CSS-Korn stehen –
+    // kein WebGL-Kontext, keine Shader-Kompilierung.
+    if (!MOTION) { setStepUI(1); return; }
 
     // --- WebGL ---
     var gl = null, prog = null, U = {}, texReady = false;

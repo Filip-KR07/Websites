@@ -306,7 +306,7 @@ html.menu-open .actionbar { transform: translateY(110%); }
   gap: clamp(28px, 5vw, 96px); align-items: center;
 }
 .hero__copy { position: relative; z-index: 3; container-type: inline-size; }
-.eyebrow { font-size: .78rem; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--green-3); margin-bottom: clamp(18px, 3vh, 32px); }
+.eyebrow { font-size: .78rem; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--green-3); margin-bottom: clamp(18px, 3vh, 32px); text-wrap: balance; }
 .hero__title {
   font-size: min(clamp(3rem, 1.2rem + 5.6vw, 7.6rem), 15.2cqi);
   line-height: .9; letter-spacing: -0.03em; font-weight: 360;
@@ -367,8 +367,27 @@ html.anim .hero__scroll i { transform-origin: 50% 0; animation: drip 2.4s var(--
 @keyframes drip { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); transform-origin: 50% 0; } 51% { transform-origin: 50% 100%; } 100% { transform: scaleY(0); transform-origin: 50% 100%; } }
 
 @media (max-width: 899px) {
-  .hero__grid { grid-template-columns: minmax(0, 1fr); }
-  .hero__visual { width: min(100%, 440px); max-height: none; margin-top: 8px; }
+  /* Handy/Tablet: Bild gehört in den ersten Bildschirm – zwischen Headline und Text.
+     .hero__copy löst sich auf (display: contents), die Reihenfolge regelt order. */
+  .hero__grid { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
+  .hero__copy { display: contents; }
+  .hero__copy > * { position: relative; z-index: 3; }
+  .hero__title { order: 1; font-size: clamp(2.9rem, 1.5rem + 6.2vw, 4.6rem); margin-bottom: clamp(14px, 2.4vh, 22px); }
+  .hero__visual { order: 2; width: 100%; max-width: 560px; aspect-ratio: 6 / 5; max-height: none; margin: 0 0 clamp(36px, 5vh, 48px); justify-self: center; }
+  .hero__lede { order: 3; }
+  .hero__cta { order: 4; }
+  .trust { order: 5; }
+  .hero__visual::before { inset: -10px 6% 2% 12%; }
+  .arch { inset: 0 10% 5% 8%; }
+  .arch img { object-position: 58% 40%; }
+  .seal { width: 27%; left: -1%; bottom: 2%; }
+  .specimen { width: min(47%, 210px); right: -1%; bottom: -3%; padding: 10px 12px 9px; }
+  .specimen__no { letter-spacing: .12em; font-size: .6rem; }
+  .specimen__nr { display: block; }
+  .specimen__dot { display: none; }
+  .specimen__name { font-size: 1rem; }
+  .press--fern { width: 22%; top: -9%; right: -3%; }
+  .press--cosmos { width: 17%; top: 4%; left: 1%; }
   .hero__scroll { display: none; }
   .hero__title .ln:nth-child(2) { padding-left: .5em; }
 }
@@ -389,9 +408,9 @@ html.anim .is-in .hero__title .ln > span { transform: none; transition: transfor
 html.anim .is-in .hero__title .ln:nth-child(2) > span { transition-delay: 80ms; }
 html.anim .is-in .hero__title .ln:nth-child(3) > span { transition-delay: 160ms; }
 html.anim .is-in [data-intro] { opacity: 1; transform: none; transition: opacity 800ms ease, transform 900ms var(--ease-out); }
-html.anim .is-in .hero__lede[data-intro] { transition-delay: 300ms; }
-html.anim .is-in .hero__cta[data-intro] { transition-delay: 380ms; }
-html.anim .is-in .trust[data-intro] { transition-delay: 460ms; }
+html.anim .is-in .hero__lede[data-intro] { transition-delay: 160ms; }
+html.anim .is-in .hero__cta[data-intro] { transition-delay: 220ms; }
+html.anim .is-in .trust[data-intro] { transition-delay: 280ms; }
 html.anim .is-in [data-intro-arch] { clip-path: inset(0 0 0 0); transition: clip-path 1300ms var(--ease-in-out) 120ms; }
 html.anim .is-in [data-intro-arch] img { transform: scale(1.04); transition: transform 1800ms var(--ease-out) 120ms; }
 html.anim .is-in [data-intro-pop] { opacity: 1; transform: none; transition: opacity 600ms ease 900ms, transform 800ms var(--ease-out) 900ms; }
@@ -760,7 +779,10 @@ html:not(.js) .seg__opt input:checked + span { background: var(--green); }
   .wp:nth-child(even) { margin-top: 9vh; }
   .wedding__track { padding-left: max(var(--gut), (100% - var(--max)) / 2); }
 }
-.wedding__pin.is-pinned { height: 100vh; height: 100svh; display: flex; align-items: center; overflow: hidden; padding-top: var(--hdr); }
+/* Horizontale Strecke: CSS-sticky statt GSAP-Pin (kein position:fixed-Wechsel → kein Layout-Shift).
+   Die Höhe der Laufbahn (.wedding__pin) setzt main.js = Viewporthöhe + Spurbreite. */
+.wedding__pin.is-pinned { position: relative; }
+.wedding__pin.is-pinned .wedding__stick { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; align-items: center; overflow: hidden; padding-top: var(--hdr); }
 .wedding:has(.is-pinned) { padding-bottom: 0; }
 .wedding__pin.is-pinned .wedding__track { overflow: visible; scroll-snap-type: none; padding-right: 10vw; will-change: transform; }
 .wedding__pin.is-pinned .wp { width: clamp(300px, 27vw, 420px); }

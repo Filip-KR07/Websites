@@ -8,7 +8,7 @@ Hero mit Tageslicht-Szene · Das Haus · I Zimmer & Suiten · II Panorama vom St
 ## Spezial-Features
 - **Tag/Nacht-Hero:** SVG-Seelandschaft (Berge, Spiegelung, Hotel, Steg mit Seesauna). Schieberegler, Schnellwahl Morgen/Mittag/Abend/Nacht und „Jetzt“ (Uhrzeit in Gmund). Farben werden stufenlos zwischen Tageslicht-Paletten überblendet (`KEYS` in `main.js`).
 - **Zimmer-Explorer:** Tabs (Pfeiltasten), Galerie mit Überblendung und Wischgeste, Ausstattungs-Icons, Grundriss-Andeutung (SVG; Maus über Ausstattung hebt die Zone hervor).
-- **Panorama-Streifen:** Drei Ebenen (Berge mit Gipfelnamen, Ufer, Steg/Bootshaus) mit Parallaxe; auf dem Desktop gepinnt, die Tageszeit läuft beim Scrollen von Morgenrot bis Abendrot mit. Auf dem Handy ohne Pin.
+- **Panorama-Streifen:** Drei Ebenen (Berge mit Gipfelnamen, Ufer, Steg/Bootshaus) mit Parallaxe; auf dem Desktop per CSS `position: sticky` festgehalten (kein GSAP-Pin, daher kein Layout-Sprung), die Tageszeit läuft beim Scrollen von Morgenrot bis Abendrot mit – Morgen- und Abendlicht bekommen dabei mehr Scrollweg (`STOPS` in `initPano`). Auf dem Handy ohne Festhalten.
 - **„Ihr Aufenthalt“-Planer:** Interessen (Spa, Wandern, Kulinarik, Rad) und Tempo → Tagesvorschlag als Zeitleiste; lässt sich ins Anfrageformular übernehmen.
 - **Buchungs-Widget:** eigener Kalender mit Bereichsauswahl (Tastatur: Pfeile, Pos1/Ende, Bild auf/ab), Preis pro Nacht im Kalender, Gäste-Stepper, Kategorien mit Kapazitätsprüfung, Verfügbarkeit (Demo) und Beispielrechnung; Alternativen bei „ausgebucht“.
 - Anfrageformular nur clientseitig (Validierung, Zusammenfassung, „Demo – es wurde nichts gesendet“).

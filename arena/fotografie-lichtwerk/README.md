@@ -8,10 +8,10 @@ Designsprache: Galerie zuerst, filmisch und still – Papierweiß, Silbergrau, S
 Hero („Entwicklungsbad“) · Haltung · Galerie (4 Kapitel + Lightbox) · Love Story (Bildstrecke) · Pakete & Preise (Konfigurator) · Verfügbarkeit · Über uns & Ablauf · Stimmen · Atelier & Region (SVG-Karte) · FAQ · Anfrage · Footer. Dazu `impressum.html` und `datenschutz.html` (Muster).
 
 ## Spezial-Features
-- **Entwicklungsbad-Hero:** WebGL-Shader lässt das Foto aus Schwarz über ein orangefarbenes Negativ zum Positiv entstehen (Entwicklerwelle, Rotlicht, Filmkorn); Anzeige Entwickler/Stoppbad/Fixierer, „Noch einmal entwickeln“. Ohne WebGL: CSS-Filter-Animation; ohne JS bzw. bei reduzierter Bewegung: ruhiges Standbild.
+- **Entwicklungsbad-Hero:** WebGL-Shader lässt das Foto aus Schwarz über ein orangefarbenes Negativ zum Positiv entstehen (Entwicklerwelle, Rotlicht, Filmkorn); Anzeige Entwickler/Stoppbad/Fixierer, „Noch einmal entwickeln“; ist das Bild fixiert, zieht ein Fettstift-Kringel die Auswahl wie auf einem Kontaktbogen. Ohne WebGL: CSS-Filter-Animation; ohne JS bzw. bei reduzierter Bewegung: ruhiges Standbild.
 - **Galerie:** Kapitel-Tabs (Pfeiltasten, Home/End), justierte Reihen wie ein Kontaktbogen, Lightbox als `<dialog>` mit Tastatur (←/→/Esc), Wischen und Kontaktabzug-Leiste mit Fettstift-Markierung.
 - **Paket-Konfigurator:** Stunden-Slider, Second Shooter, Verlobungsshooting, Album → Preis live auf einem „Laborauftrag“; Übernahme ins Anfrageformular.
-- **Verfügbarkeits-Check:** Kalender mit Demo-Status frei/angefragt/belegt, Tastaturbedienung, freie Ausweichtermine, Datum wird ins Formular übernommen.
+- **Verfügbarkeits-Check:** Kalender mit Demo-Status frei/angefragt/belegt, Tastaturbedienung, freie Ausweichtermine, im leeren Zustand die nächsten freien Samstage als Abkürzung, Datum wird ins Formular übernommen.
 - **Love Story:** Ab 900 px gepinnte, horizontale Bildstrecke (GSAP ScrollTrigger), Bilder „entwickeln“ sich beim Durchlaufen; darunter vertikale Zeitleiste.
 
 ## Anpassen

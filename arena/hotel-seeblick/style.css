@@ -405,8 +405,8 @@ body.menu-open .site-header::before { opacity: 0; }
 }
 html:not(.js) .daylight { display: none; }
 
-.hero-trust { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .9rem; align-items: center; }
-.hero-trust li { display: grid; gap: .15rem; line-height: 1.25; }
+.hero-trust { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .9rem; align-items: start; align-content: center; }
+.hero-trust li { display: grid; gap: .15rem; line-height: 1.25; align-content: start; }
 .hero-trust strong { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.25rem, 1rem + .8vw, 1.7rem); display: inline-flex; align-items: center; gap: .3rem; white-space: nowrap; }
 .hero-trust strong .ico { width: .8em; height: .8em; color: var(--laerche); }
 .hero[data-tone="light"] .hero-trust strong .ico { color: var(--morgenrot); }
@@ -438,15 +438,16 @@ html.js:not(.reduced):not(.motion-off) .steam path:nth-child(3) { animation-dela
 .scene .steam path, .pano .steam path { transform-box: fill-box; }
 
 /* Hero-Einblendung */
-html.js:not(.reduced):not(.motion-off) .hero-title .line > span { transform: translateY(105%); }
-html.js:not(.reduced):not(.motion-off) [data-hero-reveal] { opacity: 0; transform: translateY(16px); }
-html.js.reduced [data-hero-reveal] { opacity: 0; }
-html.js .hero.is-in .hero-title .line > span { transform: none; transition: transform 1100ms var(--ease-out); }
-html.js .hero.is-in .hero-title .line:nth-child(2) > span { transition-delay: 90ms; }
-html.js .hero.is-in [data-hero-reveal] { opacity: 1; transform: none; transition: opacity 1000ms ease, transform 1000ms var(--ease-out); }
-html.js .hero.is-in .hero-lead { transition-delay: 250ms; }
-html.js .hero.is-in .hero-ctas { transition-delay: 350ms; }
-html.js .hero.is-in .hero-bar { transition-delay: 520ms; }
+@keyframes heroLine { from { transform: translateY(105%); } to { transform: none; } }
+@keyframes heroRise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes heroFade { from { opacity: 0; } to { opacity: 1; } }
+html.js:not(.reduced):not(.motion-off) .hero-title .line > span { animation: heroLine 1100ms var(--ease-out) 120ms both; }
+html.js:not(.reduced):not(.motion-off) .hero-title .line:nth-child(2) > span { animation-delay: 200ms; }
+html.js:not(.reduced):not(.motion-off) [data-hero-reveal] { animation: heroRise 1000ms var(--ease-out) 380ms both; }
+html.js:not(.reduced):not(.motion-off) .hero-eyebrow { animation-delay: 40ms; }
+html.js:not(.reduced):not(.motion-off) .hero-ctas { animation-delay: 460ms; }
+html.js:not(.reduced):not(.motion-off) .hero-bar { animation-delay: 620ms; }
+html.js.reduced [data-hero-reveal] { animation: heroFade 700ms ease 150ms both; }
 
 /* ==========================================================================
    Allgemeine Abschnitts-Rhythmen
@@ -530,7 +531,8 @@ html:not(.js) .gallery-ui { display: none; }
 .plan { margin-top: 1.5rem; padding: 1rem 1rem .7rem; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
 .plan svg { width: 100%; height: auto; max-height: 220px; }
 .plan text { font-family: var(--font-text); font-size: 9.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; fill: var(--muted); text-anchor: middle; }
-.plan .pl-dir { fill: var(--laerche-deep); font-size: 9px; }
+.plan .pl-dir { fill: var(--laerche-deep); font-size: 9px; text-anchor: start; }
+.plan .pl-dir[text-anchor="end"] { text-anchor: end; }
 .plan .pl-m { fill: var(--ink); font-size: 9px; }
 .plan .pl-wall { fill: none; stroke: var(--see); stroke-width: 3; }
 .plan .pl-wall-in { fill: none; stroke: var(--see); stroke-width: 2; }
@@ -549,9 +551,14 @@ html:not(.js) .gallery-ui { display: none; }
 .pano {
   --s1: #3D5878; --s2: #B88F9A; --s3: #F3B394; --sun: #FFF1DF; --glow: #F2A88C; --glowA: .75;
   --far: #7A7F99; --snow: #F5D6CC; --mid: #4A5868; --near: #26332F; --l1: #E1A995; --l2: #3C4D60; --lights: .55;
-  background: var(--s1); color: var(--pano-ink); overflow: hidden;
+  background: var(--s1); color: var(--pano-ink); overflow: clip;
 }
 .pano-pin { position: relative; height: max(600px, 100svh); overflow: hidden; }
+/* Desktop: Die Bühne klebt per CSS (sticky) statt per GSAP-Pin – kein Layout-Sprung beim Ein-/Ausrasten. */
+@media (min-width: 900px) {
+  html.js.enhanced .pano { height: calc(max(600px, 100svh) + 220vh); }
+  html.js.enhanced .pano-pin { position: sticky; top: 0; }
+}
 .pano-sky { position: absolute; inset: 0 0 32.86% 0; overflow: hidden; background: linear-gradient(180deg, var(--s1) 0%, var(--s2) 62%, var(--s3) 100%); }
 .pano-sun {
   position: absolute; left: 0; top: 0; width: 160px; height: 160px; margin: -80px 0 0 -80px; border-radius: 50%;
@@ -596,7 +603,12 @@ html:not(.enhanced) .pano-captions li { grid-area: auto; }
 html:not(.enhanced) .pano-clock { display: none; }
 html:not(.enhanced) .pano-layer { transform: translateX(-18%); }
 html:not(.enhanced) .pano-far { transform: translateX(-12%); }
-.pano-copy .wrap { text-shadow: 0 1px 18px color-mix(in srgb, var(--s1) 45%, transparent); }
+.pano-copy .wrap { position: relative; text-shadow: 0 1px 18px color-mix(in srgb, var(--s1) 45%, transparent); }
+.pano-copy::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 58% 62% at 14% 30%, color-mix(in srgb, var(--s1) 62%, transparent) 0%, color-mix(in srgb, var(--s1) 30%, transparent) 45%, transparent 75%);
+}
+html.js.enhanced .pano-captions .cap-time { display: none; }
 
 /* ==========================================================================
    SPA

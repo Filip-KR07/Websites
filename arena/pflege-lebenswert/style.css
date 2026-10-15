@@ -580,6 +580,17 @@ html[data-contrast="high"] .hero__card { border: 2px solid #000; }
 html.js:not(.motion-off):not(.reduced) .status.is-open .status__dot::after { animation: ping 2.6s var(--ease-out) infinite; }
 @keyframes ping { 0% { transform: scale(1); opacity: .55; } 80%, 100% { transform: scale(2.6); opacity: 0; } }
 
+/* Handy: Botschaft → Bild → Erklärung. Das warme Motiv gehört in den ersten Bildschirm;
+   die beiden Hauptaktionen stehen dort ohnehin in der festen Aktionsleiste. */
+@media (max-width: 899px) {
+  .hero__inner { gap: 0; container-type: inline-size; }
+  .hero__copy { display: contents; }
+  .hero__inner > .hero__visual { order: 2; width: min(100%, 20.5rem); margin: .35rem auto 2.4rem; }
+  .hero__lead { order: 3; }
+  .hero__ctas { order: 4; }
+  .trust { order: 5; }
+  .hero__title { margin-bottom: 1.25rem; }
+}
 @media (max-width: 899px) {
   .hero__card { font-size: .8rem; max-width: 13rem; padding: .7rem .85rem; }
   .hero__card-sub { display: none; }
@@ -898,10 +909,12 @@ html[data-contrast="high"] .res__money > div { border: 1.5px solid #000; }
 .res__moneynote { margin-top: .6rem; font-size: .84rem; color: var(--muted); }
 .res__h { font-size: 1.2rem; margin: 1.75rem 0 .75rem; }
 .res__steps { padding: 0; list-style: none; counter-reset: step; display: grid; gap: .65rem; }
-.res__steps li { counter-increment: step; display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: .8rem; }
+/* Block statt Grid: <strong> und Fließtext bleiben eine Zeile (Grid machte daraus getrennte Zellen) */
+.res__steps li { counter-increment: step; position: relative; min-height: 2rem; padding: .15rem 0 0 2.8rem; }
 .res__steps li::before {
-  content: counter(step); width: 2rem; height: 2rem; border-radius: 50%; display: grid; place-items: center;
-  background: var(--peach); color: var(--accent); font-weight: 800; font-size: .9rem;
+  content: counter(step); position: absolute; left: 0; top: 0;
+  width: 2rem; height: 2rem; border-radius: 50%; display: grid; place-items: center;
+  background: var(--peach); color: var(--accent); font-weight: 800; font-size: .9rem; font-variant-numeric: tabular-nums;
 }
 html[data-contrast="high"] .res__steps li::before { border: 1.5px solid #000; }
 .res__ctas { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.75rem; }
@@ -1125,7 +1138,14 @@ html[data-contrast="high"] .voice { border: 2px solid #000; }
   background: var(--surface); box-shadow: var(--shadow);
 }
 html[data-contrast="high"] .map { border: 2px solid #000; }
-.map__stage { position: relative; aspect-ratio: 400 / 420; }
+/* eigener Container: Ortsnamen-Etiketten richten sich nach der tatsächlichen Kartengröße */
+.map__stage { position: relative; aspect-ratio: 400 / 420; container-type: inline-size; }
+/* Desktop: Karte bleibt neben der langen Ortsliste stehen (sonst ~900 px leere Spalte).
+   Breite an die Fensterhöhe gekoppelt, damit die ganze Karte samt Legende hineinpasst. */
+@media (min-width: 900px) and (min-height: 680px) {
+  .map { position: sticky; top: 6.25rem; }
+  .map__stage { width: min(100%, calc((100svh - 13.5rem) * .952)); margin-inline: auto; }
+}
 .map__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .map__land { fill: #FCF6EE; }
 .map__dotfill { fill: rgba(30, 58, 95, .1); }
@@ -1210,8 +1230,10 @@ html.js:not(.motion-off):not(.reduced) .map__office-ring { animation: ring 2.8s 
 html[data-contrast="high"] .check { border: 2px solid #000; }
 .check__label { display: block; font-weight: 800; color: var(--heading); margin-bottom: .6rem; }
 .check__row { display: flex; gap: .5rem; flex-wrap: wrap; }
-.check__row .input { flex: 1 1 12rem; min-width: 0; }
-.check__row .btn { flex: 0 0 auto; }
+/* Eingabe nimmt den Platz; wird es zu eng (Handy), rutscht „Prüfen“ in eine eigene, volle Zeile
+   statt den Platzhalter abzuschneiden */
+.check__row .input { flex: 999 1 14rem; min-width: 0; }
+.check__row .btn { flex: 1 0 auto; }
 .check__result { margin-top: .8rem; font-weight: 600; line-height: 1.45; }
 .check__result:empty { display: none; }
 .check__result.is-yes { color: var(--ok); }
@@ -1223,7 +1245,11 @@ html[data-contrast="high"] .check { border: 2px solid #000; }
 .places__zone--2 { background: rgba(157, 181, 160, .35); color: #2F5236; }
 html[data-contrast="high"] .places__zone { background: #fff; color: #000; border: 1.5px solid #000; }
 .places__sub { font-size: .88rem; color: var(--muted); margin: .25rem 0 .75rem; }
-.places__list { list-style: none; padding: 0; display: grid; gap: .4rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 11.5rem), 1fr)); }
+.places__list { list-style: none; padding: 0; display: grid; gap: .4rem; grid-template-columns: minmax(0, 1fr); }
+/* Zwei Spalten, sobald der Platz reicht (in rem: bei A++ bleibt es auf dem Handy einspaltig) –
+   halbiert die Ortsliste auf dem Handy, statt 29 Karten untereinander zu stapeln. */
+@container (min-width: 19.5rem) { .places__list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (min-width: 40rem) { .places__list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .place {
   width: 100%; height: 100%; display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
   min-height: 3.1rem; padding: .45rem .8rem; text-align: left;
@@ -1232,7 +1258,7 @@ html[data-contrast="high"] .places__zone { background: #fff; color: #000; border
   -webkit-tap-highlight-color: transparent;
 }
 .place:active { transform: scale(.98); }
-.place__name { font-weight: 700; color: var(--heading); font-size: .95rem; line-height: 1.25; overflow-wrap: anywhere; }
+.place__name { font-weight: 700; color: var(--heading); font-size: .95rem; line-height: 1.25; hyphens: auto; overflow-wrap: anywhere; }
 .place__meta { font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .place[aria-pressed="true"] { border-color: var(--btn-bg); background: var(--peach-soft); box-shadow: inset 0 0 0 1px var(--btn-bg); }
 @media (hover: hover) and (pointer: fine) { .place:hover { border-color: var(--line-strong); } }
@@ -1499,6 +1525,8 @@ html[data-contrast="high"] .done__demo { border: 2px solid #000; }
 .faq__grid { display: grid; gap: 2.5rem; }
 @media (min-width: 900px) { .faq__grid { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(3rem, 6vw, 5.5rem); align-items: start; } .faq__intro { position: sticky; top: 7rem; } }
 .faq__intro .btn { margin-top: 1.75rem; }
+/* schmale Spalte: etwas kleiner, damit die Zeile nicht als „uns am“ allein steht */
+.faq__intro h2 { font-size: clamp(2rem, 1.3rem + 1.6vw, 2.85rem); }
 .faq__list { display: grid; gap: .7rem; }
 .qa { background: var(--surface); border-radius: var(--r); border: 1.5px solid transparent; transition: border-color 200ms ease, box-shadow 200ms ease; }
 .qa[open] { border-color: var(--line); box-shadow: var(--shadow-sm); }

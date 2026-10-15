@@ -387,7 +387,7 @@
       var node = qs('[data-plz="' + v + '"]', map);
       if (node) node.classList.add('is-hit');
       var when = dayWord(nd.date, now);
-      render(hit[0], (hit[0] === 'stadt' ? 'Ja, wir liefern nach ' : 'Ja, auch nach ') + hit[1] + '.', [
+      render(hit[0], (hit[0] === 'stadt' ? (/^die /.test(hit[1]) ? 'Ja, wir liefern in ' : 'Ja, wir liefern nach ') : 'Ja, auch nach ') + hit[1] + '.', [
         ['Lieferung ', when + ' zwischen ' + win[0] + ' und ' + win[1] + NBSP + 'Uhr', nd.today ? '' : ' (' + dateLong(nd.date) + ')'],
         [z.label + ', ' + z.how + ' · Gebühr ', eur(z.fee), ''],
         nd.today ? 'Noch ' + leftText(nd.left) + ' bis zum Bestellschluss um 12' + NBSP + 'Uhr.' : 'Bestellschluss für heute ist vorbei – bis 12' + NBSP + 'Uhr bestellt, kommt der Strauß am selben Tag.'
@@ -420,7 +420,8 @@
     if (document.fonts && document.fonts.ready) {
       var done = false, fire = function () { if (!done) { done = true; go(); } };
       document.fonts.ready.then(fire);
-      setTimeout(fire, 700);
+      // Schriften sind vorgeladen; länger als 260 ms warten wir nicht (sonst verzögert sich LCP auf langsamen Handys).
+      setTimeout(fire, 260);
     } else go();
 
     var now = berlinNow();
@@ -631,8 +632,36 @@
       var cols = window.innerWidth < 700 ? 6 : 12, idx = cur - 1;
       ink.style.transform = 'translate(' + ((idx % cols) * 100) + '%, ' + (Math.floor(idx / cols) * 100) + '%)';
     }
+    // Saisonware zuerst: Karten nach „in Saison“ sortieren (stabil, sonst Jahreslauf).
+    // Mit Bewegung gleiten die Karten per FLIP (nur transform, WAAPI, unterbrechbar) an ihren neuen Platz.
+    var FLIP_EASE = 'cubic-bezier(0.23, 1, 0.32, 1)';
+    function reorder(mo, animate) {
+      var first = null;
+      if (animate) {
+        first = seasonData.map(function (f) { return f.el.getBoundingClientRect(); });
+        seasonData.forEach(function (f) { if (f.flip) { f.flip.cancel(); f.flip = null; } });
+      }
+      var order = seasonData.map(function (f, i) { return { f: f, i: i, s: f.m.has(mo) ? 0 : 1 }; })
+        .sort(function (a, b) { return a.s - b.s || a.f.idx - b.f.idx; });
+      var frag = document.createDocumentFragment();
+      order.forEach(function (o) { frag.appendChild(o.f.el); });
+      grid.appendChild(frag);
+      if (!animate || !first[0].width) return;
+      var vh = window.innerHeight;
+      seasonData.forEach(function (f, i) {
+        var a = first[i], b = f.el.getBoundingClientRect();
+        var dx = a.left - b.left, dy = a.top - b.top;
+        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+        if ((a.bottom < -40 && b.bottom < -40) || (a.top > vh + 40 && b.top > vh + 40)) return; // außerhalb des Bildschirms: nicht animieren
+        f.flip = f.el.animate([{ transform: 'translate(' + dx + 'px,' + dy + 'px)' }, { transform: 'none' }], { duration: 460, easing: FLIP_EASE });
+      });
+    }
+    seasonData.forEach(function (f, i) { f.idx = i; });
+
     function setMonth(mo, focus, initial) {
       cur = mo;
+      var canFlip = anim && !initial && !grid.classList.contains('only-in') && typeof grid.animate === 'function';
+      var firstRects = null;
       tabs.forEach(function (t, i) {
         var on = i === mo - 1;
         t.setAttribute('aria-selected', String(on));
@@ -656,6 +685,7 @@
           f.el.classList.add('is-pop');
         }
       });
+      reorder(mo, canFlip);
       status.textContent = '';
       status.appendChild(document.createTextNode('Im '));
       status.appendChild(mk('strong', '', MON[mo - 1]));
@@ -1265,15 +1295,21 @@
       var pin = qs('[data-wed-pin]'), track = qs('[data-wed-track]');
       if (!pin || !track) return;
       pin.classList.add('is-pinned');
+      // Statt pin:true (position:fixed-Wechsel = Layout-Shift) eine CSS-sticky-Bühne:
+      // Die Laufbahn ist so hoch wie Viewport + Spurbreite, die Spur wird nur per transform verschoben.
+      var stick = qs('.wedding__stick', pin);
       var dist = function () { return Math.max(0, track.scrollWidth - window.innerWidth); };
+      var setRunway = function () { pin.style.height = ((stick ? stick.offsetHeight : window.innerHeight) + dist()) + 'px'; };
+      setRunway();
+      ST.addEventListener('refreshInit', setRunway);
       var tween = gsap.to(track, {
         x: function () { return -dist(); }, ease: 'none',
-        scrollTrigger: { trigger: pin, start: 'top top', end: function () { return '+=' + dist(); }, pin: true, scrub: 0.6, invalidateOnRefresh: true, anticipatePin: 1 }
+        scrollTrigger: { trigger: pin, start: 'top top', end: 'bottom bottom', scrub: 0.6, invalidateOnRefresh: true }
       });
       qsa('.wp__fig img', track).forEach(function (img) {
         gsap.fromTo(img, { xPercent: -6 }, { xPercent: 6, ease: 'none', scrollTrigger: { trigger: img.parentElement, containerAnimation: tween, start: 'left right', end: 'right left', scrub: true } });
       });
-      return function () { pin.classList.remove('is-pinned'); gsap.set(track, { clearProps: 'transform' }); };
+      return function () { ST.removeEventListener('refreshInit', setRunway); pin.classList.remove('is-pinned'); pin.style.height = ''; gsap.set(track, { clearProps: 'transform' }); };
     });
     window.addEventListener('load', function () { ST.refresh(); });
   }

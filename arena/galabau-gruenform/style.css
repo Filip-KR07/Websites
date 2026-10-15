@@ -309,8 +309,8 @@ html.menu-open .progress { opacity: 0; }
 html.js:not(.is-loaded) .hero-contours { opacity: 0; }
 .hero-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr); align-items: center; gap: clamp(2rem, 5vw, 5.5rem); }
 .hero-copy { container-type: inline-size; min-width: 0; }
-.hero-eyebrow { margin-bottom: 0; }
-.hero-eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent); transition: background-color .9s ease, box-shadow .9s ease; }
+.hero-eyebrow { margin-bottom: 0; flex-wrap: nowrap; align-items: flex-start; }
+.hero-eyebrow .dot { flex: none; margin-top: .3em; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent); transition: background-color .9s ease, box-shadow .9s ease; }
 .hero-title {
   font-family: var(--f-display); font-weight: 650; font-size: clamp(2.7rem, 15.2cqi, 7.1rem); line-height: .98;
   letter-spacing: -.028em; margin: 1.35rem 0 1.6rem; font-optical-sizing: auto;
@@ -397,17 +397,16 @@ html.js .hero-title .ln > span { transform: translateY(112%); transition: transf
 html.js .hero-title .ln:nth-child(2) > span { transition-delay: 70ms; }
 html.js .hero-title .ln:nth-child(3) > span { transition-delay: 140ms; }
 html.js.is-loaded .hero-title .ln > span { transform: none; }
-html.js .hero-eyebrow, html.js .hero-lead, html.js .hero-ctas, html.js .hero-trust, html.js .hero-scene, html.js .hero-stage .season-switch, html.js .hero-tip, html.js .hero-photo {
+/* Kennzeile und Einleitungstext stehen ab dem ersten Bild (größtes Textelement → schnelles LCP); nur Titel, Aktionen und Szene laufen ein. */
+html.js .hero-ctas, html.js .hero-trust, html.js .hero-scene, html.js .hero-stage .season-switch, html.js .hero-tip, html.js .hero-photo {
   opacity: 0; transition: opacity .9s var(--ease-out), transform 1s var(--ease-out);
 }
-html.js .hero-lead, html.js .hero-ctas, html.js .hero-trust { transform: translateY(14px); }
+html.js .hero-ctas, html.js .hero-trust { transform: translateY(14px); }
 html.js .hero-scene { transform: translateY(20px) scale(.985); }
 html.js .hero-tip { transform: translateX(-12px); }
 html.js .hero-photo { transform: rotate(3deg) translateY(16px); }
-html.js.is-loaded .hero-eyebrow { opacity: 1; }
-html.js.is-loaded .hero-lead { opacity: 1; transform: none; transition-delay: .25s; }
-html.js.is-loaded .hero-ctas { opacity: 1; transform: none; transition-delay: .33s; }
-html.js.is-loaded .hero-trust { opacity: 1; transform: none; transition-delay: .41s; }
+html.js.is-loaded .hero-ctas { opacity: 1; transform: none; transition-delay: .25s; }
+html.js.is-loaded .hero-trust { opacity: 1; transform: none; transition-delay: .33s; }
 html.js.is-loaded .hero-scene { opacity: 1; transform: none; transition-delay: .1s; }
 html.js.is-loaded .hero-stage .season-switch { opacity: 1; transition-delay: .55s; }
 html.js.is-loaded .hero-tip { opacity: 1; transform: none; transition-delay: .7s; }
@@ -692,7 +691,7 @@ html.js .soil-meter span { transform: scaleX(0); }
 html.js .soil-step { opacity: .32; transition: opacity .45s ease; }
 html.js .soil-step.is-active { opacity: 1; }
 .soil-step-n { font-size: .78rem; font-weight: 700; letter-spacing: .14em; color: var(--accent-light); }
-.soil-step h3 { margin-top: .5rem; font-family: var(--f-display); font-size: clamp(1.6rem, 1.25rem + 1.2vw, 2.4rem); line-height: 1.1; }
+.soil-step h3 { margin-top: .5rem; font-family: var(--f-display); font-size: clamp(1.6rem, 1.1rem + 1.2vw, 2.3rem); line-height: 1.1; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; text-wrap: balance; }
 .soil-step > p:not(.soil-step-n) { margin-top: .9rem; color: rgba(244, 241, 232, .8); }
 .soil-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1.3rem; padding-top: 1rem; border-top: 1px solid rgba(244, 241, 232, .15); }
 .soil-facts dt { font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(244, 241, 232, .55); }
@@ -807,7 +806,9 @@ html:not(.js) .ba-handle { display: none; }
 .pj-cta-k { font-family: var(--f-display); font-weight: 600; font-size: clamp(1.5rem, 1.2rem + 1vw, 2.1rem); line-height: 1.1; }
 .pj-cta-t { color: rgba(244, 241, 232, .8); font-size: .95rem; }
 .pj-cta .btn { align-self: flex-start; }
-html.pj-pinned .pj-pin { height: 100vh; display: flex; flex-direction: column; justify-content: center; padding-top: var(--header-h); overflow: hidden; }
+html.pj-pinned .pj-scroll { height: calc(100vh + var(--pj-dist, 0px)); }
+html.pj-pinned .pj-pin { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; justify-content: center; padding-top: var(--header-h); overflow: hidden; }
+html.pj-pinned .projects { padding-bottom: 0; }
 html.pj-pinned .pj-viewport { overflow: visible; scroll-snap-type: none; }
 html.pj-pinned .pj-card { width: clamp(340px, 33vw, 520px); }
 html.pj-pinned .pj-hint-desk { display: inline; }
@@ -1203,12 +1204,20 @@ html.js .quote[data-reveal]:nth-child(2), html.js .quote[data-reveal]:nth-child(
   .brand-word { font-size: 1.25rem; }
   .section-head--split { grid-template-columns: minmax(0, 1fr); }
 
-  .hero { min-height: auto; padding-top: calc(var(--header-h) + 1.5rem); }
-  .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 2.6rem; }
-  .hero-stage { padding-bottom: .5rem; }
-  .hero-scene { width: min(100%, 460px); }
+  .hero { min-height: auto; padding-top: calc(var(--header-h) + 1.25rem); }
+  /* Handy/Tablet: Titel → Illustration mit Jahreszeiten-Umschalter → Text. Der Signature-Moment steht so im ersten Bildschirm;
+     die Szene wird so groß, dass sie samt Umschalter über der Aktionsleiste endet. */
+  .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .hero-copy { display: contents; }
+  .hero-eyebrow { order: 1; }
+  .hero-title { order: 2; font-size: clamp(2.6rem, 13.2vw, 4.75rem); margin: 1rem 0 1.3rem; }
+  .hero-stage { order: 3; --sw: clamp(240px, calc((100svh - 27rem) * .8333), min(100vw - 2 * var(--gutter), 440px)); padding-bottom: .5rem; }
+  .hero-scene { width: var(--sw); }
   .hero-tip { position: relative; left: auto; top: auto; bottom: auto; width: min(100%, 460px); margin-top: 1rem; }
-  .hero-photo { --pw: clamp(104px, 28vw, 132px); right: max(0px, calc(50% - 246px)); bottom: auto; top: calc(min(100vw - 2 * var(--gutter), 460px) * 1.2 - 40px - var(--pw) * 1.3333); width: var(--pw); padding-bottom: 6px; }
+  .hero-photo { --pw: clamp(92px, calc(var(--sw) * .3), 128px); right: max(0px, calc(50% - var(--sw) / 2 - 14px)); bottom: auto; top: calc(var(--sw) * 1.2 - 40px - var(--pw) * 1.3333); width: var(--pw); padding-bottom: 6px; }
+  .hero-lead { order: 4; margin-top: 2.2rem; }
+  .hero-ctas { order: 5; }
+  .hero-trust { order: 6; }
   .hero-photo figcaption { display: none; }
   .hero-scroll { display: none; }
 
