@@ -419,7 +419,8 @@ html:not(.js) .breath-chip { display: none; }
   .hero-trust li { font-size: .8rem; }
   .hero-trust strong { font-size: .95rem; }
   .hero-photo { width: min(68%, 330px); }
-  .hero-card { left: 0; bottom: 4%; max-width: 210px; padding: 11px 14px; }
+  .hero-card { left: 0; bottom: 2%; max-width: 232px; padding: 10px 14px; }
+  .hero-card strong { font-size: .94rem; text-wrap: balance; }
   .breath-chip { right: 0; top: 6%; }
   .hero-scroll { display: none; }
 }
@@ -493,9 +494,11 @@ html:not(.js) .breath-chip { display: none; }
 .meter[data-v="3"] i:nth-child(-n+3) { background: var(--sage-deep); }
 
 /* horizontale Strecke (nur Desktop, per JS aktiviert) */
-/* Sticky statt ScrollTrigger-Pin: Die Sektion ist um die Strecke (--hs-dist, per JS) höher,
-   die Bühne klebt oben – keine fixe Positionierung, kein Pin-Spacer, keine Layout-Shifts. */
-.is-hscroll .styles { --hs-pad: clamp(80px, 8vw, 120px); padding-top: 0; padding-bottom: var(--hs-pad); height: calc(100vh + var(--hs-dist, 0px) + var(--hs-pad)); }
+/* Sticky statt ScrollTrigger-Pin: Die Bühne (.styles-stage) ist um die Strecke (--hs-dist,
+   per JS) höher, die Tafel-Reihe klebt darin oben – keine fixe Positionierung, kein Pin-Spacer,
+   keine Layout-Shifts. „Besondere Formate“ folgen erst nach der Bühne. */
+.is-hscroll .styles { padding-bottom: clamp(80px, 8vw, 120px); padding-top: 0; }
+.is-hscroll .styles-stage { height: calc(100vh + var(--hs-dist, 0px)); }
 .is-hscroll .styles-pin { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; justify-content: center; overflow: hidden; padding-top: calc(var(--header-h) + 8px); }
 .is-hscroll .styles-progress { display: inline-flex; }
 .is-hscroll .styles-head { margin-bottom: clamp(24px, 3.5vh, 48px); }
