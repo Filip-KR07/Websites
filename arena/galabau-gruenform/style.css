@@ -809,6 +809,8 @@ html:not(.js) .ba-handle { display: none; }
 html.pj-pinned .pj-scroll { height: calc(100vh + var(--pj-dist, 0px)); }
 html.pj-pinned .pj-pin { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; justify-content: center; padding-top: var(--header-h); overflow: hidden; }
 html.pj-pinned .projects { padding-bottom: 0; }
+/* Die gepinnte Strecke bringt eigenen Leerraum mit – der folgende Abschnitt rückt nach, statt ein Loch zu lassen */
+html.pj-pinned .projects + .plants { padding-top: clamp(2.5rem, 4vw, 4.5rem); }
 html.pj-pinned .pj-viewport { overflow: visible; scroll-snap-type: none; }
 html.pj-pinned .pj-card { width: clamp(340px, 33vw, 520px); }
 html.pj-pinned .pj-hint-desk { display: inline; }
