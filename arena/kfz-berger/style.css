@@ -901,9 +901,16 @@ html.motion-ok .co-lines li.new { animation: lineIn 300ms var(--ease-out); }
 /* horizontaler Modus (nur Desktop mit Bewegung, per JS gesetzt) */
 .flow.is-h { padding-block: 0; }
 .flow.is-h .flow-pin { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; padding-top: var(--hdr); }
-.flow.is-h .flow-view { position: relative; overflow: visible; min-width: 0; clip-path: inset(-50vh -100vw -50vh -56px); }
-/* weiche Kante links: Karten laufen in der Spalten-Lücke aus, statt hart abgeschnitten neben der Überschrift zu stehen */
-.flow.is-h .flow-view::before { content: ""; position: absolute; z-index: 2; top: -40px; bottom: -40px; left: -56px; width: 56px; background: linear-gradient(90deg, var(--graphite-0) 25%, transparent); pointer-events: none; }
+.flow.is-h .flow-view { overflow: visible; min-width: 0; margin-left: -56px; padding-left: 56px; clip-path: inset(-50vh -100vw -50vh 56px); }
+/* weiche Kante links: Die Karten laufen in der Spalten-Lücke (56 px Innenabstand) aus, statt hart neben der Überschrift abzureißen */
+@supports (mask-clip: no-clip) {
+  .flow.is-h .flow-view {
+    clip-path: inset(-50vh -100vw -50vh 0);
+    mask-image: linear-gradient(90deg, transparent, #000 56px); mask-repeat: no-repeat; mask-clip: no-clip;
+    mask-size: calc(100% + 100vw) calc(100% + 100vh); mask-position: 0 -50vh;
+  }
+}
+
 .flow.is-h .flow-track { display: flex; gap: 18px; width: max-content; will-change: transform; }
 .flow.is-h .step { width: clamp(300px, 26vw, 400px); min-height: 360px; flex: none; transition: border-color 300ms ease, background-color 300ms ease; }
 .flow.is-h .step.on { border-color: rgba(91, 147, 255, .6); background: #1D2330; }

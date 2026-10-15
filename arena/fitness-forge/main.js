@@ -904,6 +904,20 @@
       });
       card.addEventListener('keydown', function (e) { if (e.key === 'Escape' && card.classList.contains('is-flipped')) set(false, true); });
     });
+    // Fortschrittsleiste des Karussells: CSS (scroll-driven animation) – hier nur der Ersatz für Browser ohne
+    var list = qs('[data-coaches]'), bar = qs('.coaches__bar i');
+    if (list && bar && !(window.CSS && CSS.supports && CSS.supports('animation-timeline: scroll()'))) {
+      var ticking = false;
+      list.addEventListener('scroll', function () {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(function () {
+          ticking = false;
+          var max = list.scrollWidth - list.clientWidth, p = max > 0 ? list.scrollLeft / max : 1;
+          bar.style.setProperty('--p', (0.16 + 0.84 * p).toFixed(3));
+        });
+      }, { passive: true });
+    }
   }
 
   /* ------------------------------------------------------------------
@@ -963,6 +977,8 @@
         if (n.closest('.hero') || n.classList.contains('rv') || n.classList.contains('rv-clip')) return;
         n.classList.add(g[1]);
         var target = g[1] === 'rv-clip' ? n.parentElement : n;
+        // Wisch-Karussell (Coaches auf dem Handy): seitlich verdeckte Karten würden nie „sichtbar“ → die Liste beobachten
+        if (n.classList.contains('coach') && getComputedStyle(n.parentElement).overflowX !== 'visible') target = n.parentElement;
         while (target !== n && target.parentElement && getComputedStyle(target).display === 'contents') target = target.parentElement;
         target.__rv = (target.__rv || []).concat(n);
         io.observe(target);

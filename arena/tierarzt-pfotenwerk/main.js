@@ -159,7 +159,7 @@
   }
   function pawSVG(cls) {
     var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    s.setAttribute('viewBox', '-9 -10.5 18 19');
+    s.setAttribute('viewBox', '0 0 18 19'); /* Symbol bringt eigene viewBox mit – Außen-SVG ab 0,0, sonst nur ein Ausschnitt der Pfote */
     s.setAttribute('class', cls);
     s.setAttribute('aria-hidden', 'true');
     var u = document.createElementNS('http://www.w3.org/2000/svg', 'use');
@@ -468,7 +468,9 @@
       return;
     }
     var tl = gsap.timeline({ defaults: { ease: 'expo.out' }, delay: 0.1, onComplete: parallaxOn });
-    tl.fromTo('.hero__arch', { clipPath: 'inset(100% 0% 0% 0% round 999px 999px 40px 40px)' }, { clipPath: 'inset(0% 0% 0% 0% round 999px 999px 40px 40px)', duration: 1.3, ease: 'expo.inOut' }, 0)
+    tl.fromTo('.hero__arch', { clipPath: 'inset(100% 0% 0% 0% round 999px 999px 40px 40px)' }, { clipPath: 'inset(0% 0% 0% 0% round 999px 999px 40px 40px)', duration: 1.3, ease: 'expo.inOut',
+        /* danach Clip lösen: sonst schneidet er den Schatten und die Ecken des Bogens ab */
+        onComplete: function () { var a = qs('.hero__arch'); if (a) a.style.clipPath = 'none'; } }, 0)
       .fromTo('.hero__arch img', { scale: 1.18 }, { scale: 1, duration: 1.6, ease: 'expo.out' }, 0.25)
       .fromTo('.hero__sun', { opacity: 0, scale: 0.82 }, { opacity: 1, scale: 1, duration: 1.2 }, 0.35)
       .fromTo('.hero__blob', { opacity: 0, scale: 0.82, rotation: -12 }, { opacity: 1, scale: 1, rotation: 0, duration: 1.3 }, 0.45)
@@ -850,7 +852,8 @@
     }
     function setProgress(p) { prog = clamp(p, 0, 1); render(); }
 
-    build();
+    /* Erster Aufbau über den ResizeObserver (feuert beim Beobachten) – kein erzwungenes Layout beim Start */
+    if (!('ResizeObserver' in window)) build();
     if ('ResizeObserver' in window) {
       var lastW = 0;
       new ResizeObserver(debounce(function () {
@@ -1455,27 +1458,72 @@
   /* ------------------------------------------------------------------
      Start
      ------------------------------------------------------------------ */
-  safe('scroll', initScroll);
-  safe('header', initHeader);
-  safe('menu', initMenu);
-  safe('status', initStatus);
-  safe('trails', initTrails);
-  safe('reveal', initReveal);
-  safe('hero', initHeroIntro);
-  safe('walk', initWalk);
-  safe('wiggle', initWiggle);
-  safe('triage', initTriage);
-  safe('visit', initVisit);
-  safe('vacc', initVacc);
-  safe('counts', initCounts);
-  safe('stories', initStories);
-  safe('signup', initSignup);
-  safe('map', initMap);
-  safe('faq', initFaq);
+  /* ------------------------------------------------------------------
+     Handy/Tablet: Mini-Patientenkarte, solange das Formular im Blick und die
+     große Karte darüber schon weggescrollt ist – die Live-Vorschau bleibt sichtbar.
+     Spiegelt nur die Texte der großen Karte (textContent), dekorativ (aria-hidden).
+     ------------------------------------------------------------------ */
+  function initMiniCard() {
+    var card = qs('[data-pcard]'), form = qs('[data-signup]');
+    if (!card || !form || !('IntersectionObserver' in window) || !window.MutationObserver) return;
+    var mq = window.matchMedia('(max-width: 1099px)');
+    var mini = el('div', 'pmini');
+    mini.setAttribute('aria-hidden', 'true');
+    var pic = el('span', 'pmini__pic');
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    var use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    svg.appendChild(use); pic.appendChild(svg);
+    var txt = el('span', 'pmini__txt'), nm = el('span', 'pmini__name'), ln = el('span', 'pmini__line');
+    txt.appendChild(nm); txt.appendChild(ln);
+    mini.appendChild(pic); mini.appendChild(txt); mini.appendChild(el('span', 'pmini__k', 'Vorschau'));
+    document.body.appendChild(mini);
+    var get = function (sel) { var n = qs(sel, card); return n ? n.textContent.trim() : ''; };
+    function sync() {
+      nm.textContent = get('[data-pc-name]');
+      ln.textContent = [get('[data-pc-line]'), get('[data-pc-age]'), get('[data-pc-weight]')].filter(function (t) { return t && t !== '–'; }).join(' · ');
+      var on = qs('.pcard__sil.is-on use', card);
+      if (on) use.setAttribute('href', on.getAttribute('href'));
+      svg.setAttribute('class', on && on.getAttribute('href') === '#paw' ? 'is-paw' : '');
+    }
+    sync();
+    new MutationObserver(sync).observe(card, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class'] });
+    var formIn = false, cardIn = true;
+    function show() { mini.classList.toggle('is-on', mq.matches && formIn && !cardIn); }
+    new IntersectionObserver(function (es) { formIn = es[es.length - 1].isIntersecting; show(); }, { rootMargin: '-120px 0px -35% 0px' }).observe(form);
+    /* Maßgeblich ist der Kopf der Karte (Bild + Name): ist er unter dem Header verschwunden, übernimmt die Mini-Karte */
+    new IntersectionObserver(function (es) { cardIn = es[es.length - 1].isIntersecting; show(); }, { rootMargin: '-72px 0px 0px 0px' }).observe(qs('.pcard__main', card) || card);
+    if (mq.addEventListener) mq.addEventListener('change', show);
+  }
 
-  if (hasGSAP) {
-    var refresh = debounce(function () { ScrollTrigger.refresh(); }, 120);
+  /* Start in Etappen: Sichtbares (Header, Hero, Status) sofort, die Widgets weiter unten
+     in eigenen Tasks – so blockiert kein einzelner langer Task den Hauptthread.
+     Reihenfolge bleibt die der Seite (wichtig für ScrollTrigger-Pins). */
+  var BOOT = [
+    [['scroll', initScroll], ['header', initHeader], ['menu', initMenu], ['status', initStatus],
+     ['reveal', initReveal], ['hero', initHeroIntro]],
+    [['trails', initTrails], ['walk', initWalk]],
+    [['wiggle', initWiggle], ['triage', initTriage]],
+    [['visit', initVisit]],
+    [['vacc', initVacc], ['counts', initCounts]],
+    [['stories', initStories]],
+    [['signup', initSignup], ['minicard', initMiniCard], ['map', initMap], ['faq', initFaq]]
+  ];
+  var refresh = hasGSAP ? debounce(function () { ScrollTrigger.refresh(); }, 120) : function () {};
+  function bootDone() {
+    if (!hasGSAP) return;
+    refresh();
+    /* Direktaufruf mit Anker (#anmeldung …): nach dem Anlegen der Pins Position korrigieren */
+    var t = location.hash.length > 1 && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (t && window.scrollY > 0) {
+      var y = Math.max(0, t.getBoundingClientRect().top + window.scrollY - hdrH() - 14);
+      if (lenis) lenis.scrollTo(y, { immediate: true }); else window.scrollTo(0, y);
+    }
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh);
     window.addEventListener('load', refresh);
   }
+  (function run(i) {
+    BOOT[i].forEach(function (b) { safe(b[0], b[1]); });
+    if (i + 1 < BOOT.length) setTimeout(function () { run(i + 1); }, 0);
+    else bootDone();
+  })(0);
 })();

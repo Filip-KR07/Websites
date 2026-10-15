@@ -79,6 +79,19 @@
   function safe(name, fn) {
     try { fn(); } catch (err) { if (window.console) console.warn('[Klarsicht] ' + name + ':', err); }
   }
+  // Start in Etappen: Kopfzeile und Hero sofort, alles unterhalb des ersten
+  // Bildschirms danach in kurzen Häppchen – so bleibt der Main-Thread frei.
+  var jobs = [];
+  function later(name, fn) { jobs.push([name, fn]); }
+  function drain() {
+    var t = performance.now();
+    while (jobs.length) {
+      var j = jobs.shift();
+      safe(j[0], j[1]);
+      if (jobs.length && performance.now() - t > 24) { setTimeout(drain, 0); return; }
+    }
+    if (anim && window.ScrollTrigger && document.readyState === 'complete') window.ScrollTrigger.refresh();
+  }
   function el(tag, attrs, parent) {
     var n = document.createElementNS(SVGNS, tag);
     if (attrs) Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); });
@@ -268,7 +281,11 @@
     var s = status();
     qsa('[data-open-status]').forEach(function (n) {
       var inHero = !!n.closest('.hero-eyebrow');
-      n.textContent = (inHero ? 'Augenoptik & Hörakustik · ' : '') + s.text;
+      if (inHero) {
+        clear(n);
+        h('span', 'eb-pre', 'Augenoptik & Hörakustik · ', n);
+        n.appendChild(document.createTextNode(s.text));
+      } else n.textContent = s.text;
       var host = n.closest('.hero-eyebrow, .open-now, .menu-meta');
       if (host) host.classList.toggle('is-open', s.open);
     });
@@ -514,7 +531,7 @@
      Brillen-Anprobe
      ------------------------------------------------------------------ */
   var tryon = null;
-  safe('tryon', function () {
+  later('tryon', function () {
     var root = qs('#anprobe');
     if (!root) return;
     var svg = qs('.to-svg', root);
@@ -697,7 +714,7 @@
   /* ------------------------------------------------------------------
      Team: Monogramme mit Brille
      ------------------------------------------------------------------ */
-  safe('team', function () {
+  later('team', function () {
     qsa('.mono[data-frame]').forEach(function (m) {
       var shape = m.getAttribute('data-frame'), color = m.getAttribute('data-color') || 'schwarz';
       if (!MODELS[shape]) return;
@@ -711,7 +728,7 @@
   /* ------------------------------------------------------------------
      Gesichtsform-Finder (Quiz)
      ------------------------------------------------------------------ */
-  safe('finder', function () {
+  later('finder', function () {
     var quiz = qs('[data-quiz]');
     if (!quiz) return;
     var form = qs('.quiz-form', quiz);
@@ -840,7 +857,7 @@
   /* ------------------------------------------------------------------
      Glas-Explorer
      ------------------------------------------------------------------ */
-  safe('glass', function () {
+  later('glass', function () {
     var root = qs('.gx');
     if (!root) return;
     var tabs = qsa('.gx-tab', root);
@@ -969,7 +986,7 @@
   /* ------------------------------------------------------------------
      Sehtafel-Spiel (Landolt-Ringe) – Spielerei, kein Sehtest
      ------------------------------------------------------------------ */
-  safe('eyegame', function () {
+  later('eyegame', function () {
     var card = qs('[data-eyegame]');
     if (!card) return;
     var ring = qs('.eg-ring', card), ringP = qs('.eg-ring-p', card);
@@ -1065,7 +1082,7 @@
   /* ------------------------------------------------------------------
      Anfahrt-Karte
      ------------------------------------------------------------------ */
-  safe('route', function () {
+  later('route', function () {
     var TEXT = {
       fuss: 'Vom Hauptbahnhof über den Vorplatz in die Poststraße, nach 160 m auf der rechten Seite. Etwa zwei Minuten.',
       bahn: 'Regionalzüge, Stadtbahn und Busse halten am Hauptbahnhof. Vom Ausgang Poststraße sind es zwei Minuten zu Fuß.',
@@ -1090,7 +1107,7 @@
   /* ------------------------------------------------------------------
      Terminanfrage
      ------------------------------------------------------------------ */
-  safe('booking', function () {
+  later('booking', function () {
     var form = qs('.book-form');
     if (!form) return;
     var daysBox = qs('.bf-days', form), timesBox = qs('.bf-times', form);
@@ -1243,14 +1260,24 @@
   safe('focus-hero', function () {
     var hero = qs('.hero');
     var veil = qs('.focus-veil'), lens = qs('.focus-lens'), read = qs('.fl-read');
+    var hint = qs('.hero-hint'), hintDpt = hint && qs('.hh-dpt', hint);
     if (!hero || !veil || !doc.classList.contains('focus-pending')) return;
     var useLens = finePointer && !reduced && window.innerWidth >= 900;
-    var BLUR = reduced ? 8 : (useLens ? 14 : 10);
+    var BLUR = reduced ? 6 : (useLens ? 12 : 9);
+    // Automatisches Scharfstellen (ms): Wer nichts tut, sieht nach gut zwei Sekunden alles scharf.
+    // Bewegt jemand die Linse, wartet der Autofokus, bis die Maus kurz ruht (spätestens AUTO_MAX).
+    var AUTO_DELAY = reduced ? 300 : 900, AUTO_IDLE = 1400, AUTO_MAX = 4500, AUTO_DUR = reduced ? 1000 : 1400;
     var R = 100, MAG = 1.12, D0 = -1.75;
-    var F = { p: 0, scrollP: 0, moveP: 0, autoP: 0, x: 0, y: 0, tx: 0, ty: 0, r: 0, tr: 0, lastMove: performance.now(), done: false, readTxt: '' };
+    var t0 = performance.now(), autoStart = 0;
+    var F = { p: 0, scrollP: 0, moveP: 0, autoP: 0, autoFrom: 0, x: 0, y: 0, tx: 0, ty: 0, r: 0, tr: 0, lastMove: 0, done: false, readTxt: '', hintTxt: '', hintP: -1 };
     var grid = qs('.hero-grid', hero), glass = null, mag = null, gridOff = { x: 0, y: 0, w: 0 };
 
-    if (useLens) {
+    function measure() {
+      gridOff.x = grid.offsetLeft; gridOff.y = grid.offsetTop; gridOff.w = grid.offsetWidth;
+      if (mag) mag.style.width = gridOff.w + 'px';
+    }
+    // Lupe erst bei der ersten Mausbewegung bauen (spart Arbeit beim Laden)
+    function buildLens() {
       glass = document.createElement('span');
       glass.className = 'fl-glass';
       mag = grid.cloneNode(true);
@@ -1270,17 +1297,14 @@
       glass.appendChild(mag);
       lens.insertBefore(glass, lens.firstChild);
       lens.classList.add('is-on');
+      measure();
+      window.addEventListener('resize', measure);
     }
-    function measure() {
-      gridOff.x = grid.offsetLeft; gridOff.y = grid.offsetTop; gridOff.w = grid.offsetWidth;
-      if (mag) mag.style.width = gridOff.w + 'px';
-    }
-    measure();
-    window.addEventListener('resize', measure);
 
     if (useLens) {
       hero.addEventListener('pointermove', function (e) {
         if (e.pointerType !== 'mouse' || F.done) return;
+        if (!glass) buildLens();
         var r = hero.getBoundingClientRect();
         var nx = e.clientX - r.left, ny = e.clientY - r.top;
         if (F.tr > 0) F.moveP = Math.min(1, F.moveP + Math.hypot(nx - F.tx, ny - F.ty) / 5200);
@@ -1298,34 +1322,44 @@
     onScroll();
 
     function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+    function dptText(p) {
+      var dpt = Math.round(D0 * (1 - p) * 4) / 4;
+      return dpt === 0 ? '±0,00 dpt' : '−' + fmtDe(Math.abs(dpt), 2) + ' dpt';
+    }
     function finish() {
       F.done = true;
       F.tr = 0;
+      if (hint) hint.classList.add('is-sharp');
       doc.classList.add('focus-done');
       setTimeout(function () {
         doc.classList.remove('focus-pending');
         window.removeEventListener('scroll', onScroll);
         window.removeEventListener('resize', measure);
         if (glass && glass.parentNode) glass.parentNode.removeChild(glass);
-      }, 450);
+      }, 1400);
     }
-    var autoStart = 0;
-    function startAuto(delay, dur) {
-      autoStart = performance.now() + delay;
-      F.autoDur = dur;
-    }
-    // Touch / reduzierte Bewegung: sanft scharfstellen. Desktop: nach längerer Ruhe ebenfalls.
-    if (!useLens) startAuto(reduced ? 350 : (anim ? 1500 : 600), reduced ? 1300 : 1800);
 
     function frame(now) {
       if (F.done && F.r < 0.5) return;
-      if (useLens && !autoStart && now - F.lastMove > 7000 && F.p < 1) startAuto(0, 2200);
-      if (autoStart && now > autoStart) F.autoP = clamp((now - autoStart) / F.autoDur, 0, 1);
+      if (!autoStart && !F.done) {
+        var since = now - t0;
+        if (since > AUTO_MAX || (since > AUTO_DELAY && (!F.lastMove || now - F.lastMove > AUTO_IDLE))) {
+          autoStart = now;
+          F.autoFrom = F.p;
+        }
+      }
+      // Wird die Linse gerade bewegt, hält der Autofokus kurz an (nicht länger als AUTO_MAX)
+      if (autoStart && F.lastMove && now - F.lastMove < AUTO_IDLE && now - t0 < AUTO_MAX && F.autoP < 0.85) autoStart += now - (F.prev || now);
+      F.prev = now;
+      if (autoStart) F.autoP = F.autoFrom + (1 - F.autoFrom) * clamp((now - autoStart) / AUTO_DUR, 0, 1);
       var p = Math.max(F.scrollP, F.moveP, F.autoP);
       F.p = p;
       var blur = BLUR * (1 - easeOut(p));
       veil.style.setProperty('--fb', blur.toFixed(2) + 'px');
-      if (useLens) {
+      var dTxt = dptText(p);
+      if (hintDpt && dTxt !== F.hintTxt) { hintDpt.textContent = dTxt; F.hintTxt = dTxt; }
+      if (hint && Math.abs(p - F.hintP) > 0.004) { hint.style.setProperty('--fp', p.toFixed(3)); F.hintP = p; }
+      if (useLens && glass) {
         F.x += (F.tx - F.x) * 0.2;
         F.y += (F.ty - F.y) * 0.2;
         F.r += (F.tr - F.r) * 0.16;
@@ -1336,13 +1370,10 @@
         var k = F.r / R;
         lens.style.opacity = k.toFixed(3);
         lens.style.transform = 'translate3d(' + (F.x - R).toFixed(1) + 'px,' + (F.y - R).toFixed(1) + 'px,0) scale(' + (0.86 + 0.14 * k).toFixed(3) + ')';
-        if (mag) {
-          var ox = F.x - gridOff.x, oy = F.y - gridOff.y;
-          mag.style.transformOrigin = ox.toFixed(1) + 'px ' + oy.toFixed(1) + 'px';
-          mag.style.transform = 'translate3d(' + (gridOff.x - F.x + R).toFixed(1) + 'px,' + (gridOff.y - F.y + R).toFixed(1) + 'px,0) scale(' + MAG + ')';
-        }
-        var dpt = Math.round(D0 * (1 - p) * 4) / 4;
-        var txt = dpt === 0 ? '±0,00 dpt · scharf' : '−' + fmtDe(Math.abs(dpt), 2) + ' dpt';
+        var ox = F.x - gridOff.x, oy = F.y - gridOff.y;
+        mag.style.transformOrigin = ox.toFixed(1) + 'px ' + oy.toFixed(1) + 'px';
+        mag.style.transform = 'translate3d(' + (gridOff.x - F.x + R).toFixed(1) + 'px,' + (gridOff.y - F.y + R).toFixed(1) + 'px,0) scale(' + MAG + ')';
+        var txt = dTxt + (p >= 1 ? ' · scharf' : '');
         if (txt !== F.readTxt) { read.textContent = txt; F.readTxt = txt; }
       }
       if (p >= 1 && !F.done) finish();
@@ -1354,6 +1385,7 @@
   /* ------------------------------------------------------------------
      Bewegung: Intro, Reveals, Statement, Zähler, Pfad (nur mit GSAP)
      ------------------------------------------------------------------ */
+  setTimeout(drain, 0);
   if (!anim) return;
   var ST = window.ScrollTrigger;
 
@@ -1369,7 +1401,7 @@
     gsap.to('.hv-disc', { yPercent: -6, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
   });
 
-  safe('reveals', function () {
+  later('reveals', function () {
     qsa('.reveal-focus').forEach(function (n) {
       gsap.fromTo(n, { opacity: 0, filter: 'blur(12px)', y: 10 }, {
         opacity: 1, filter: 'blur(0px)', y: 0, duration: 1.05, ease: 'power3.out', clearProps: 'filter,transform',
@@ -1393,7 +1425,7 @@
     });
   });
 
-  safe('statement', function () {
+  later('statement', function () {
     var p = qs('[data-focus-words]');
     if (!p) return;
     var words = p.textContent.trim().split(/\s+/);
@@ -1409,7 +1441,7 @@
     });
   });
 
-  safe('counters', function () {
+  later('counters', function () {
     qsa('.fact-n[data-count]').forEach(function (n) {
       var to = parseFloat(n.getAttribute('data-count'));
       var dec = parseInt(n.getAttribute('data-decimals') || '0', 10);
@@ -1423,7 +1455,7 @@
     });
   });
 
-  safe('audiogram', function () {
+  later('audiogram', function () {
     var card = qs('.audio-card');
     if (!card) return;
     var tl = gsap.timeline({ scrollTrigger: { trigger: card, start: 'top 85%', once: true } });
@@ -1432,20 +1464,26 @@
       .fromTo('.ag-pts circle', { opacity: 0, scale: 0.4, transformOrigin: '50% 50%' }, { opacity: 1, scale: 1, duration: 0.4, stagger: 0.12, ease: 'back.out(2)' }, 0.1);
   });
 
-  safe('path', function () {
+  later('path', function () {
     var section = qs('.path'), track = qs('.path-track');
     if (!section || !track) return;
     var cut = qs('.edge-cut');
     var ppFill = qs('.pp-fill'), ppNow = qs('.pp-now');
     var mm = gsap.matchMedia();
     mm.add('(min-width: 900px)', function () {
+      // Statt GSAP-Pin: CSS position: sticky (.path-pin) in einer Sektion, die so hoch ist
+      // wie Bildschirm + horizontale Strecke. Kein Umschalten auf position: fixed, kein Layout-Sprung.
+      var pin = qs('.path-pin', section);
       function dist() { return Math.max(0, track.scrollWidth - window.innerWidth); }
+      function size() { section.style.height = (pin.offsetHeight + dist()) + 'px'; }
+      size();
+      ST.addEventListener('refreshInit', size);
       var tween = gsap.to(track, {
         x: function () { return -dist(); },
         ease: 'none',
         scrollTrigger: {
-          trigger: section, start: 'top top', end: function () { return '+=' + dist(); },
-          pin: true, scrub: 0.6, invalidateOnRefresh: true, anticipatePin: 1,
+          trigger: section, start: 'top top', end: 'bottom bottom',
+          scrub: 0.6, invalidateOnRefresh: true,
           onUpdate: function (self) {
             if (ppFill) ppFill.style.setProperty('--pp', self.progress.toFixed(3));
             if (ppNow) ppNow.textContent = '0' + (Math.min(4, Math.round(self.progress * 4)) + 1);
@@ -1456,6 +1494,7 @@
       qsa('.station .st-media img').forEach(function (img) {
         gsap.fromTo(img, { scale: 1.12 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: img, containerAnimation: tween, start: 'left right', end: 'right left', scrub: true } });
       });
+      return function () { ST.removeEventListener('refreshInit', size); section.style.height = ''; };
     });
     mm.add('(max-width: 899px)', function () {
       gsap.set(qsa('.station'), { opacity: 0, y: 24 });

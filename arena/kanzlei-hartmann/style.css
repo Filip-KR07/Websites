@@ -101,7 +101,7 @@ main:focus, section[tabindex="-1"]:focus, .wz-done:focus { outline: none; }
 /* ---------- Typografie ---------- */
 .display {
   font-family: var(--font-display); font-weight: 300;
-  font-size: clamp(3.05rem, 1rem + 4.9vw, 5.7rem);
+  font-size: clamp(3.4rem, 1rem + 4.9vw, 5.7rem); /* Handy: 54 px statt 49 px – der Satz trägt den ersten Bildschirm */
   line-height: .98; letter-spacing: -.022em;
   margin: 0 0 1.35rem;
 }
@@ -982,6 +982,13 @@ html.anim .wz-done .done-seal { animation: seal-in 520ms var(--ease-out) both; }
   .dl-date-row { max-width: none; }
   .cal { padding: .6rem; }
   .cal-d { font-size: .75rem; aspect-ratio: 1.1; }
+  /* Karte: Ausschnitt Hauptbahnhof → Kanzlei (viewBox setzt main.js), damit die Beschriftung lesbar bleibt */
+  .map.is-crop .map-mark text, .map.is-crop .map-gate text { font-size: 17px; }
+  .map.is-crop .map-station > text { font-size: 14px; }
+  .map.is-crop .ml-sub { font-size: 13px; }
+  .map.is-crop .map-walk { font-size: 14px; }
+  .map.is-crop .map-hm { display: none; }
+  .map.is-crop .map-north { transform: translate(452px, 190px); }
 }
 @media (max-width: 379.98px) {
   .brand-sub { letter-spacing: .16em; }

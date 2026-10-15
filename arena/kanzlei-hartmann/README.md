@@ -30,7 +30,7 @@ Hero · § 1 Grundsatz · § 2 Rechtsgebiete · § 3 Fristen · § 4 Ablauf eine
 5. **FAQ mit Live-Suche:** 16 Fragen, Filterung während der Eingabe (tolerant bei Umlauten: „kuendigung“ findet „Kündigung“), Treffer werden markiert, Hinweis bei Treffern nur in der Antwort, Themenfilter, Leerzustand mit Vorschlägen. Taste `/` springt in die Suche, `Esc` leert sie.
 6. **Erstberatung anfragen:** Vier Schritte (Rechtsgebiet → Fallschilderung mit Zeichenzähler und Gegenseite für die Konfliktprüfung → Dringlichkeit mit optionalem Fristdatum, Rechtsschutz, Gesprächsform → Kontakt). Validierung pro Schritt, Hinweis „Durch diese Anfrage entsteht kein Mandat“ plus Pflicht-Bestätigung, Zusammenfassung mit „Demo – es wurde nichts gesendet“. Eingaben werden nur per `textContent` ausgegeben.
 
-Außerdem: lebender Kolumnentitel im Header (zeigt den aktuellen §), Lesebändchen am rechten Rand als Scroll-Fortschritt, Inhaltsübersicht mit Punktleitern als Menü (`<dialog>`), Grundsatz-Text, der sich beim Scrollen Wort für Wort „setzt“ (Desktop gepinnt), Siegel-Monogramme für das Team, eigener Lageplan der Altstadt (SVG) mit gezeichnetem Fußweg, Einzugsgebiet mit verknüpfter Liste, „Jetzt erreichbar“-Anzeige nach Berliner Zeit.
+Außerdem: lebender Kolumnentitel im Header (zeigt den aktuellen §), Lesebändchen am rechten Rand als Scroll-Fortschritt, Inhaltsübersicht mit Punktleitern als Menü (`<dialog>`), Grundsatz-Text, der sich beim Scrollen Wort für Wort „setzt“ (Desktop gepinnt), Siegel-Monogramme für das Team, eigener Lageplan der Altstadt (SVG) mit gezeichnetem Fußweg (auf dem Handy als lesbarer Ausschnitt Hauptbahnhof → Kanzlei), Einzugsgebiet mit verknüpfter Liste, „Jetzt erreichbar“-Anzeige nach Berliner Zeit.
 
 ## Anpassen
 

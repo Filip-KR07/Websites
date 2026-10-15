@@ -665,6 +665,13 @@ select {
 .day-short { display: none; }
 .day-today { font-family: var(--font-text); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: var(--forest); color: var(--sand); }
 .slots { display: grid; gap: 8px; align-content: start; }
+/* 7 Spalten: „Heute“ als Marke auf der Spaltenkante statt in der Zeile –
+   sonst schiebt sie „Donnerstag“ in die Nachbarspalte. */
+@media (min-width: 1180px) {
+  .day { position: relative; }
+  .day-head { font-size: clamp(1.12rem, 1.3vw, 1.3rem); }
+  .day-today { position: absolute; top: -9px; right: 14px; }
+}
 .slot-btn {
   position: relative; width: 100%; display: grid; gap: 3px; text-align: left;
   padding: 12px 12px 12px 14px; border-radius: 18px; border: 1px solid transparent;

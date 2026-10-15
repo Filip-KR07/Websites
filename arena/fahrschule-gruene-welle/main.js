@@ -767,7 +767,8 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
         const dow = (dt.getDay() + 6) % 7;
         if (!prevIn || dow === 0) bar.classList.add('is-first');
         if (!nextIn || dow === 6) bar.classList.add('is-last');
-        if (c.end < today) bar.classList.add('is-past');
+        // bereits begonnene Kurse sind nicht mehr buchbar und stehen nicht in der Liste – kein toter Klick
+        if (c.start <= today) { bar.classList.add('is-past'); bar.disabled = true; bar.title = c.end < today ? 'Kurs beendet' : 'Kurs läuft bereits'; }
         if (kalSel === c.uid) bar.classList.add('is-sel');
         bar.dataset.uid = c.uid;
         if (!prevIn || dow === 0) { const tag = d.createElement('span'); tag.className = 'kal__bartag'; tag.textContent = c.kurz; cell.append(tag); }
@@ -989,15 +990,22 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
      --------------------------------------------------------------------- */
   const revealEls = $$('[data-reveal]');
   if (MOTION && 'IntersectionObserver' in w) {
-    const groups = new Map();
+    const groups = new Map(), groupOf = new Map();
     revealEls.forEach((el) => {
       const p = el.parentElement.closest('ul, ol, .sec__head, .team__intro, .where__grid, .faq__head') || el.parentElement;
       const list = groups.get(p) || [];
-      list.push(el); groups.set(p, list);
+      list.push(el); groups.set(p, list); groupOf.set(el, p);
       el.style.setProperty('--rd', Math.min(list.length - 1, 5) * 70);
     });
+    // In Wisch-Schienen (Handy: Team, Stimmen) liegen Karten seitlich außerhalb des Viewports –
+    // sie würden erst beim Wischen leer einblenden. Daher die ganze Schiene gemeinsam aufdecken.
+    const isRail = (p) => p && p.scrollWidth > p.clientWidth + 8 && getComputedStyle(p).overflowX !== 'visible';
     const rio = new IntersectionObserver((entries) => {
-      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); rio.unobserve(e.target); } });
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const p = groupOf.get(e.target);
+        (isRail(p) ? groups.get(p) : [e.target]).forEach((el) => { el.classList.add('is-in'); rio.unobserve(el); });
+      });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
     revealEls.forEach((el) => rio.observe(el));
   } else {

@@ -250,7 +250,7 @@
     } else ready();
 
     var progress = MOTION ? 0 : 1;
-    var playing = false, startT = 0, raf = 0, visible = true, lastGrain = 0;
+    var playing = false, startT = 0, raf = 0, visible = true;
     var setStepUI = function (p) {
       var idx = p >= 1 ? 3 : p < 0.5 ? 0 : p < 0.74 ? 1 : 2;
       steps.forEach(function (li, i) {
@@ -260,6 +260,7 @@
       if (timeEl) { var s = Math.round(p * 150); timeEl.textContent = pad(Math.floor(s / 60)) + ':' + pad(s % 60); }
       if (glow) glow.style.opacity = (0.95 - 0.6 * p).toFixed(3);
       if (replay) replay.disabled = p < 1;
+      if (print) print.classList.toggle('is-developed', p >= 1);
     };
 
     // --- WebGL ---
@@ -290,8 +291,38 @@
     var loc = gl.getAttribLocation(prog, 'p');
     gl.enableVertexAttribArray(loc);
     gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-    ['uTex', 'uP', 'uT', 'uScale', 'uRes'].forEach(function (k) { U[k] = gl.getUniformLocation(prog, k); });
+    ['uTex', 'uNoise', 'uP', 'uT', 'uScale', 'uRes'].forEach(function (k) { U[k] = gl.getUniformLocation(prog, k); });
     var tex = gl.createTexture();
+
+    // Entwicklerwelle: fbm-Rauschen einmalig als kleine Textur (Einheit 1) statt 64 Hash-Aufrufen je Pixel und Bild
+    (function noiseTex() {
+      var N = 128, L = 16, lat = new Float32Array(L * L), seed = 7;
+      for (var i = 0; i < lat.length; i++) { seed = (seed * 16807) % 2147483647; lat[i] = seed / 2147483647; }
+      var vn = function (x, y) {
+        var xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi;
+        var ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
+        var g = function (a, b) { return lat[((b % L + L) % L) * L + ((a % L + L) % L)]; };
+        var a = g(xi, yi), b = g(xi + 1, yi), c = g(xi, yi + 1), d = g(xi + 1, yi + 1);
+        return (a + (b - a) * ux) + ((c + (d - c) * ux) - (a + (b - a) * ux)) * uy;
+      };
+      var data = new Uint8Array(N * N);
+      for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) {
+        var qx = x / N * 3.2, qy = y / N * 2.4, s = 0, amp = 0.5;
+        for (var o = 0; o < 4; o++) { s += amp * vn(qx, qy); qx *= 2.03; qy *= 2.03; amp *= 0.5; }
+        data[y * N + x] = Math.round(clamp(s, 0, 1) * 255);
+      }
+      var nt = gl.createTexture();
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, nt);
+      gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, N, N, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, data);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.uniform1i(U.uNoise, 1);
+      gl.activeTexture(gl.TEXTURE0);
+    })();
     var imgAR = 1.5;
 
     function size() {
@@ -326,11 +357,8 @@
         raf = requestAnimationFrame(loop);
         return;
       }
-      if (MOTION) {
-        // ruhiges, ruckelndes Filmkorn (~12 Bilder/s)
-        if (now - lastGrain > 83) { lastGrain = now; draw(now); }
-        raf = requestAnimationFrame(loop);
-      }
+      // Nach der Entwicklung steht das Bild still: Das lebendige Korn liefert die
+      // CSS-Ebene (.grain--live, nur Compositor) – kein Dauer-Neuzeichnen per WebGL.
     }
     function kick() { if (!raf && visible && !document.hidden) raf = requestAnimationFrame(loop); }
 
@@ -1040,6 +1068,27 @@
     next.addEventListener('click', function () { goMonth(1); });
     sel.addEventListener('change', function () { var p = sel.value.split('-'); view = new Date(+p[0], +p[1], 1); focusDate = null; render(false); });
     render(false);
+
+    // Leerer Zustand mit Abkürzung: die nächsten freien Samstage direkt antippbar
+    (function emptyState() {
+      var sats = [];
+      for (var k = 0, c; k < 500 && sats.length < 3; k++) {
+        c = new Date(today.getFullYear(), today.getMonth(), today.getDate() + k);
+        if (!inRange(c)) break;
+        if (c.getDay() === 6 && status(c) === 'frei') sats.push(c);
+      }
+      if (!sats.length) return;
+      var box = el('div', 'res-actions res-actions--empty');
+      box.appendChild(el('span', 'res-alt-label', 'Oder gleich einer der nächsten freien Samstage:'));
+      sats.forEach(function (a) {
+        var c = el('button', 'chip', fmtShort.format(a));
+        c.type = 'button';
+        c.setAttribute('aria-label', fmtLong.format(a) + ' auswählen');
+        c.addEventListener('click', function () { choose(a, true); });
+        box.appendChild(c);
+      });
+      result.appendChild(box);
+    })();
   }
 
   /* ------------------------------------------------------------------
@@ -1145,20 +1194,22 @@
     try { initScroll(); } catch (e) { /* weiter ohne Smooth Scroll */ }
     initHeader();
     initMenu();
-    initHero();
-    initStatement();
-    initGallery();
-    initConfigurator();
-    initAvailability();
-    initQuotes();
-    initForm();
-    initReveal();
-    initStory();
-    window.__lichtwerkReady = true;
-    if (hasGSAP) {
-      window.addEventListener('load', function () { ScrollTrigger.refresh(); });
-      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
-    }
+    // Der Rest läuft in einzelnen Häppchen: zwischen den Schritten darf der Browser
+    // zeichnen und auf Eingaben reagieren (statt eines langen Start-Tasks).
+    var queue = [initHero, initStatement, initGallery, initConfigurator, initAvailability, initQuotes, initForm, initReveal, initStory, function () {
+      window.__lichtwerkReady = true;
+      if (hasGSAP) {
+        ScrollTrigger.refresh();
+        if (document.readyState !== 'complete') window.addEventListener('load', function () { ScrollTrigger.refresh(); });
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
+      }
+    }];
+    (function next() {
+      var fn = queue.shift();
+      if (!fn) return;
+      try { fn(); } catch (e) { if (window.console) console.error(e); }
+      if (queue.length) setTimeout(next, 0);
+    })();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();

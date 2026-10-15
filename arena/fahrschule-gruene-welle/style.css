@@ -976,7 +976,7 @@ html.motion-ok .kal-in-next { animation: kalNext 240ms var(--ease-out) both; }
 html.motion-ok .kal-in-prev { animation: kalPrev 240ms var(--ease-out) both; }
 html.motion-ok .kal__list.kal-in-next, html.motion-ok .kal__list.kal-in-prev { animation-delay: 40ms; }
 html.motion-off .kal-in-next, html.motion-off .kal-in-prev { animation: fadeIn 160ms ease both; }
-.kal__bar.is-past { opacity: .35; }
+.kal__bar.is-past { opacity: .35; cursor: default; pointer-events: none; }
 .kal__bartag { position: absolute; left: 6px; right: 0; bottom: 18px; font-size: .62rem; font-weight: 800; letter-spacing: .02em; color: var(--asphalt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
 @media (max-width: 639px) { .kal__bartag { display: none; } .kal__cell { padding: 5px 4px 16px; font-size: .78rem; } .kal__cell.is-theory::after { right: 4px; top: 7px; width: 6px; height: 6px; } }
 .kal__legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 16px; font-size: .82rem; color: var(--muted); }
@@ -1031,6 +1031,8 @@ html.motion-off .dlg[open] { animation: fadeIn 160ms ease; }
 /* ---------- TEAM ---------- */
 .team__intro { display: grid; gap: clamp(28px, 5vw, 64px); align-items: center; margin-bottom: clamp(48px, 7vw, 88px); }
 @media (min-width: 980px) { .team__intro { grid-template-columns: minmax(0, 1fr) minmax(0, .9fr); } }
+/* schmale Desktops: „Ein Kennzeichen:“ ist eine untrennbare Zeile – Textspalte bekommt mehr Raum */
+@media (min-width: 980px) and (max-width: 1199px) { .team__intro { grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); } }
 .team__copy .sec__lede { margin-top: 20px; }
 .team__stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 30px; }
 .team__stats li { padding: 16px; border-radius: 16px; background: var(--asphalt-2); border: 1px solid var(--line-light); display: grid; gap: 4px; align-content: start; }
@@ -1056,6 +1058,31 @@ html.motion-off .dlg[open] { animation: fadeIn 160ms ease; }
   .pcard:hover { transform: translateY(-4px); border-color: rgba(255,255,255,.24); }
   .pcard:hover .plate { transform: rotate(-2deg); }
 }
+/* Handy: Team als Wisch-Schiene statt acht gestapelter Karten (gleiches Muster wie die Stimmen) */
+@media (max-width: 639px) {
+  .plates {
+    grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 80%; gap: 12px;
+    overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none;
+    margin-inline: calc(-1 * var(--gutter)); padding: 4px var(--gutter) 6px; scroll-padding-inline: var(--gutter);
+  }
+  .plates::-webkit-scrollbar { display: none; }
+  .pcard { scroll-snap-align: start; }
+}
+/* Fortschritt der Wisch-Schienen – scroll-getriebene Animation als Ergänzung, ohne Unterstützung unsichtbar */
+.rail-meter { display: none; }
+@supports (animation-timeline: scroll()) {
+  .team, .voices { timeline-scope: --rail-plates, --rail-quotes; }
+  .plates { scroll-timeline: --rail-plates x; }
+  .quotes { scroll-timeline: --rail-quotes x; }
+  .rail-meter { width: 96px; height: 3px; margin-top: 14px; border-radius: 3px; background: var(--line); overflow: hidden; }
+  .rail-meter--light { background: var(--line-light); }
+  .rail-meter i { display: block; height: 100%; border-radius: inherit; background: var(--green); transform-origin: left; animation: railMeter linear both; }
+  .rail-meter[data-rail="plates"] i { animation-timeline: --rail-plates; }
+  .rail-meter[data-rail="quotes"] i { animation-timeline: --rail-quotes; }
+  @media (max-width: 639px) { .rail-meter[data-rail="plates"] { display: block; } }
+  @media (max-width: 759px) { .rail-meter[data-rail="quotes"] { display: block; } }
+}
+@keyframes railMeter { from { transform: scaleX(.18); } to { transform: scaleX(1); } }
 .plate {
   display: inline-flex; align-items: stretch; height: 46px;
   background: var(--white); color: var(--asphalt);
@@ -1304,6 +1331,14 @@ html.motion-ok .qa[open] .qa__a { animation: infoIn 300ms var(--ease-out); }
 html.js.motion-ok:not(.reveal-all) [data-reveal]:not(.is-in) { opacity: 0; transform: translateY(26px); }
 html.js.motion-ok [data-reveal] { transition: opacity 800ms var(--ease-out), transform 800ms var(--ease-out); transition-delay: calc(var(--rd, 0) * 1ms); }
 html.js.motion-ok .pcard[data-reveal].is-in, html.js.motion-ok .wegweiser[data-reveal].is-in { transition: opacity 800ms var(--ease-out), transform 260ms var(--ease-out), border-color 200ms ease; transition-delay: calc(var(--rd, 0) * 1ms), 0ms, 0ms; }
+/* In den Wisch-Schienen fahren die Karten von rechts ein – zeigt die Wischrichtung und vermeidet vertikalen Überlauf in der Schiene */
+@media (max-width: 639px) {
+  html.js.motion-ok:not(.reveal-all) .plates > [data-reveal]:not(.is-in) { transform: translateX(40px); }
+  html.js.motion-ok .plates > .pcard[data-reveal].is-in { transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out); transition-delay: calc(var(--rd, 0) * 1ms); }
+}
+@media (max-width: 759px) {
+  html.js.motion-ok:not(.reveal-all) .quotes > [data-reveal]:not(.is-in) { transform: translateX(40px); }
+}
 
 /* ---------- Rechtstexte ---------- */
 .legal-hdr { background: var(--asphalt); color: var(--white); }

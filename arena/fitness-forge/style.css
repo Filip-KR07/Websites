@@ -1109,7 +1109,7 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(
 .coach__inner {
   position: relative; display: grid; height: 100%; min-height: 360px;
   transform-style: preserve-3d;
-  transition: transform 600ms var(--ease-in-out);
+  transition: transform 520ms var(--ease-in-out);
 }
 .coach__face {
   grid-area: 1 / 1; position: relative; display: flex; flex-direction: column; min-width: 0;
@@ -1643,3 +1643,46 @@ html.has-hscroll .disc__intro .h2 { font-size: clamp(3rem, 5.2vw, 6rem); }
 }
 .kurs.is-live .kurs__live { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: .4rem; row-gap: .4rem; }
 .kurs.is-live .kurs__live i { grid-column: 1 / -1; display: block; height: 3px; }
+
+/* ==========================================================================
+   Coaches auf dem Handy: Wisch-Karussell statt vier Reihen hoher Karten.
+   Die nächste Karte lugt rechts hervor, Einrasten per scroll-snap, Fortschritt
+   als Leiste (scroll-driven animation, sonst per JS). Ab 700 px bleibt das Raster.
+   ========================================================================== */
+.hint-touch { display: none; }
+@media (hover: none) { .hint-fine { display: none; } .hint-touch { display: inline; } }
+.coaches__bar { display: none; }
+@media (max-width: 699px) {
+  .coaches {
+    grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: min(80%, 20rem); gap: .6rem;
+    margin: -1.25rem calc(var(--gut) * -1); padding: 1.25rem var(--gut);
+    overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scroll-padding-inline: var(--gut); scrollbar-width: none;
+  }
+  .coaches::-webkit-scrollbar { display: none; }
+  .coach { scroll-snap-align: start; perspective: 1600px; }
+  .coach__inner { min-height: 340px; }
+  .coach__face { padding: 1.1rem 1.1rem 1.2rem; }
+  .coach__tag { right: 1rem; top: 1.05rem; font-size: .6rem; letter-spacing: .14em; }
+  .coach__mono { margin-top: .9rem; font-size: clamp(6rem, 54cqi, 9rem); -webkit-text-stroke-width: 2px; }
+  .coach__name { font-size: 1.7rem; margin-top: 1rem; padding-right: 3.2rem; overflow-wrap: normal; }
+  .coach__role { font-size: .86rem; padding-right: 3.2rem; }
+  .coach__flip { width: 44px; height: 44px; right: .8rem; bottom: .9rem; }
+  .coach__spec { font-size: 1.5rem; }
+  .coach__list { font-size: .84rem; gap: .3rem; }
+  .coach__list li { padding-left: 1rem; }
+  .coach__quote { font-size: .88rem; }
+  .coach__label { font-size: .64rem; }
+  .coach__back .coach__flip-back { width: 44px; height: 44px; right: .6rem; top: .6rem; }
+  .coaches__bar { display: block; position: relative; height: 2px; margin-top: 1.1rem; background: var(--line); overflow: hidden; }
+  .coaches__bar i { position: absolute; inset: 0; background: var(--glut); transform-origin: 0 50%; transform: scaleX(var(--p, .16)); }
+}
+@supports (animation-timeline: scroll()) {
+  @media (max-width: 699px) {
+    #coaches .wrap { timeline-scope: --coachx; }
+    .coaches { scroll-timeline: --coachx x; }
+    .coaches__bar i { animation: coachBar linear both; animation-timeline: --coachx; }
+  }
+}
+@keyframes coachBar { from { transform: scaleX(.16); } to { transform: scaleX(1); } }
+html:not(.js) .coaches__bar { display: none; }

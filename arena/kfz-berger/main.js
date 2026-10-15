@@ -903,7 +903,8 @@
       flow.classList.add('is-h');
       const track = $('[data-flow-track]');
       const view = $('.flow-view', flow);
-      const dist = () => Math.max(0, track.scrollWidth - view.clientWidth);
+      const padL = () => parseFloat(getComputedStyle(view).paddingLeft) || 0; // Auslaufzone links gehört nicht zur Strecke
+      const dist = () => Math.max(0, track.scrollWidth - (view.clientWidth - padL()));
       const setH = () => { flow.style.height = Math.round(innerHeight + dist() * 1.15 + innerHeight * 0.25) + 'px'; };
       setH();
       ScrollTrigger.addEventListener('refreshInit', setH);

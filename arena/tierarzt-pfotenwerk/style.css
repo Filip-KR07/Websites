@@ -119,6 +119,14 @@ table { border-collapse: collapse; }
   letter-spacing: -.012em; text-wrap: balance; color: var(--ink);
 }
 .sec-head { display: grid; gap: 18px; max-width: 760px; }
+/* Geteilter Kopf: Überschrift links, Einleitung rechts auf der Grundlinie – bricht das „alles links“-Muster */
+@media (min-width: 1100px) {
+  .sec-head--split { max-width: none; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); column-gap: clamp(48px, 5vw, 96px); align-items: end; }
+  .sec-head--split > .eyebrow { grid-column: 1; grid-row: 1; justify-self: start; }
+  .sec-head--split > .h2 { grid-column: 1; grid-row: 2; }
+  .sec-head--split > .sec-lead { grid-column: 2; grid-row: 1 / span 2; align-self: end; margin-bottom: .35em; padding-left: 22px; border-left: 2px solid var(--sun); }
+}
+.nobr { white-space: nowrap; }
 .sec-lead { font-size: clamp(1.0625rem, 1rem + .25vw, 1.1875rem); line-height: 1.6; color: var(--ink-2); text-wrap: pretty; max-width: 62ch; }
 .note { font-size: .875rem; line-height: 1.55; color: var(--ink-3); }
 .opt { font-weight: 400; color: var(--ink-3); }
@@ -382,6 +390,8 @@ html.menu-open { overflow: hidden; }
   .hero__scroll { display: none; }
   .hero-chip--rabbit { right: 0; }
   .hero__trust { gap: 14px 22px; }
+  /* Unter 900 px übernimmt die feste Aktionsleiste „Notfall / Termin“ – keine doppelten Buttons im ersten Bildschirm */
+  .hero__ctas { display: none; }
 }
 @media (max-width: 519px) {
   .hero__art { width: calc(100% - 8px); }
@@ -394,6 +404,25 @@ html.menu-open { overflow: hidden; }
   .hero-chip--rabbit { top: 50%; }
   .trust__big { font-size: 1.5rem; }
   .hero__ctas .btn { width: 100%; }
+}
+/* Handy: Bild zuerst, als kompakte Bühne (Bogen + Sonne + Live-Status) – Foto, Botschaft und Aktionen im ersten Bildschirm */
+@media (max-width: 599px) {
+  .hero { padding-block: 18px 52px; }
+  .hero__in { gap: 26px; }
+  .hero__copy { gap: 20px; }
+  .hero .eyebrow > span:last-child { text-wrap: balance; }
+  .hero__art { order: -1; width: 100%; max-width: none; aspect-ratio: auto; height: clamp(212px, 62vw, 268px); }
+  .hero__arch { left: 0; top: 0; width: 58%; height: 100%; border-radius: 999px 999px 26px 26px; box-shadow: var(--shadow); }
+  .hero__sun { width: 40%; right: 3%; top: 2%; }
+  .hero__blob { width: 26%; left: 44%; bottom: 6%; }
+  .hero-status { left: auto; right: 0; bottom: 0; width: 54%; padding: 12px 12px 10px; border-radius: 18px; }
+  .hero-status__k { font-size: .625rem; }
+  .hero-status__v { font-size: .78125rem; gap: 7px; margin-top: 4px; }
+  .hero-status__v .status-dot { margin-top: 5px; }
+  .hero-status__cat { width: 52px; height: 52px; top: -46px; right: 8px; }
+  .daybar { margin-top: 10px; }
+  .daybar__scale { font-size: .625rem; }
+  .hero-chip { display: none; }
 }
 
 /* ---------- Abschnitte allgemein ---------- */
@@ -459,11 +488,16 @@ section { position: relative; }
 
 @media (max-width: 1099px) { .svc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 639px) {
-  .svc-grid { grid-template-columns: 1fr; }
-  .svc { padding: 22px 20px 20px; }
-  .svc__art { height: 140px; }
-  .svc__spot { width: 118px; height: 118px; }
-  .sil { width: 134px; height: 134px; }
+  .svc-grid { grid-template-columns: 1fr; gap: 14px; }
+  /* Kompakte Karte: Silhouette neben dem Titel statt 140 px Bühne darüber */
+  .svc { display: grid; grid-template-columns: 80px minmax(0, 1fr); column-gap: 16px; row-gap: 12px; align-items: center; padding: 18px 20px 16px; }
+  .svc > :not(.svc__art):not(.svc__title) { grid-column: 1 / -1; }
+  .svc__art { height: 80px; margin: 0; place-items: end center; }
+  .svc__spot { width: 70px; height: 70px; left: 5px; bottom: 3px; }
+  .sil { width: 80px; height: 80px; }
+  .svc__title { font-size: 1.375rem; }
+  .svc__for { margin-top: 0; padding-top: 0; }
+  .svc__link { justify-self: start; margin-top: 0; }
 }
 
 /* ---------- Notfall-Wegweiser ---------- */
@@ -842,6 +876,7 @@ section { position: relative; }
   background: var(--white); color: var(--ink); scroll-snap-align: start; scroll-margin-inline: var(--gutter);
 }
 .story__img { border-radius: 20px; overflow: hidden; aspect-ratio: 4 / 3; background: var(--sky); }
+.story__img img[src*="/katze-"] { object-position: 78% 40%; }
 .story__img img { width: 100%; height: 100%; object-fit: cover; transition: transform 700ms var(--ease-out); }
 @media (hover: hover) and (pointer: fine) { .story:hover .story__img img { transform: scale(1.04); } }
 .story__tag { display: flex; flex-wrap: wrap; gap: 6px; padding-inline: 8px; }
@@ -996,6 +1031,27 @@ input[type="range"]:focus-visible { outline: 3px solid var(--focus); outline-off
   .signup__grid { grid-template-columns: 1fr; }
   .pcard-wrap { position: relative; top: 0; max-width: 520px; }
 }
+/* Mini-Patientenkarte (nur < 1100 px, per JS eingefügt): bleibt beim Ausfüllen oben sichtbar */
+.pmini { display: none; }
+@media (max-width: 1099px) {
+  .pmini {
+    position: fixed; z-index: 45; left: 50%; top: calc(var(--hdr-h) + 10px);
+    display: flex; align-items: center; gap: 12px; width: min(440px, calc(100% - 32px)); padding: 7px 16px 7px 7px; border-radius: 999px;
+    background: linear-gradient(150deg, #178080 0%, var(--petrol) 50%, var(--petrol-dd) 100%); color: var(--white);
+    box-shadow: 0 10px 30px -12px rgba(20, 32, 38, .45), inset 0 0 0 1px rgba(255, 255, 255, .12);
+    opacity: 0; visibility: hidden; pointer-events: none; transform: translate(-50%, -10px) scale(.97);
+    transition: transform 200ms var(--ease-out), opacity 160ms ease, visibility 0s linear 200ms;
+  }
+  .pmini.is-on { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition: transform 260ms var(--ease-out), opacity 200ms ease, visibility 0s; }
+}
+.pmini__pic { position: relative; flex: none; width: 42px; height: 42px; border-radius: 50%; background: var(--sun); overflow: hidden; }
+.pmini__pic svg { position: absolute; left: 4px; top: 3px; width: 36px; height: 36px; color: var(--petrol-dd); --sil-shade: #0A3536; --sil-acc: #FF9D6E; --sil-eye: #FFE7A8; --sil-dark: #142026; --sil-light: #fff; }
+.pmini__pic svg.is-paw { left: 11px; top: 10px; width: 20px; height: 22px; }
+.pmini__txt { display: grid; gap: 1px; min-width: 0; flex: 1; }
+.pmini__name { font: 400 1.0625rem/1.15 var(--f-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pmini__line { font-size: .75rem; line-height: 1.3; color: rgba(255, 255, 255, .82); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.pmini__k { flex: none; font-size: .625rem; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--sun); }
+@media (prefers-reduced-motion: reduce) { .pmini, .pmini.is-on { transform: translate(-50%, 0); } }
 @media (max-width: 639px) {
   .art-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .field-row { grid-template-columns: 1fr; }
@@ -1196,7 +1252,7 @@ html.reveal-all [data-reveal], html.reveal-all [data-hero-in], html.reveal-all [
 /* ---------- Unterseiten (Impressum / Datenschutz) ---------- */
 .legal { padding-block: clamp(48px, 8vw, 110px); }
 .legal__in { max-width: 820px; }
-.legal__back { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: var(--petrol-d); text-decoration: none; margin-bottom: 26px; }
+.legal__back { display: flex; width: fit-content; align-items: center; gap: 8px; font-weight: 600; color: var(--petrol-d); text-decoration: none; margin-bottom: 26px; }
 .legal__back svg { width: 18px; height: 18px; transform: scaleX(-1); }
 .legal h1 { font: 400 clamp(2.4rem, 1.6rem + 3vw, 4rem)/1.05 var(--f-display); letter-spacing: -.015em; }
 .legal__note { margin-top: 22px; padding: 14px 18px; border-radius: 16px; background: var(--sun-l); font-weight: 500; font-size: .9375rem; }

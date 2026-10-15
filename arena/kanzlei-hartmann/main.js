@@ -647,6 +647,23 @@
     });
   })();
 
+  /* ===== Karte: Ausschnitt auf schmalen Bildschirmen ==================== */
+  // Die ganze Altstadt wäre auf ~350 px Breite unlesbar (Schrift ≈ 5 px) – dort zeigt die Karte
+  // nur den Weg vom Hauptbahnhof zur Kanzlei. Ohne JavaScript bleibt der vollständige Plan stehen.
+  (function mapCrop() {
+    var map = $('[data-map]');
+    if (!map || !window.matchMedia) return;
+    var mq = window.matchMedia('(max-width: 599.98px)');
+    var full = map.getAttribute('viewBox');
+    function apply() {
+      map.setAttribute('viewBox', mq.matches ? '424 150 476 352' : full);
+      map.classList.toggle('is-crop', mq.matches);
+    }
+    apply();
+    if (mq.addEventListener) mq.addEventListener('change', apply);
+    else if (mq.addListener) mq.addListener(apply);
+  })();
+
   /* ===== Karte: Fußweg zeichnen ========================================= */
   (function mapRoute() {
     var map = $('[data-map]');
