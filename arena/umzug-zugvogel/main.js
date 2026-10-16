@@ -130,10 +130,10 @@ const CL_KEY = 'zugvogel-checkliste-v1';
   function runQueue() {
     const t0 = performance.now();
     while (queue.length && performance.now() - t0 < 18) {
-      try { queue.shift()(); } catch (err) { console.warn(err); }
+      const fn = queue.shift();
+      try { performance.mark('zv:' + fn.name); fn(); } catch (err) { console.warn(err); }
     }
     if (queue.length) schedule(runQueue);
-    else if (window.ScrollTrigger) ScrollTrigger.refresh();
   }
   const schedule = fn => ('requestIdleCallback' in window) ? requestIdleCallback(fn, { timeout: 120 }) : setTimeout(fn, 16);
 
@@ -154,17 +154,7 @@ const CL_KEY = 'zugvogel-checkliste-v1';
   });
 
   /* ---------- Lenis + GSAP ---------- */
-  later(function initMotion() {
-    if (!window.gsap || !window.ScrollTrigger) return;
-    gsap.registerPlugin(ScrollTrigger);
-    if (!RM && window.Lenis) {
-      lenis = new Lenis({ lerp: 0.12, smoothWheel: true });
-      window.__lenis = lenis;
-      lenis.on('scroll', ScrollTrigger.update);
-      lenis.on('scroll', onScroll);
-      gsap.ticker.add(t => lenis.raf(t * 1000));
-      gsap.ticker.lagSmoothing(0);
-    }
+  later(function initAnchors() {
     d.addEventListener('click', e => {
       const a = e.target.closest('a[href^="#"]'); if (!a) return;
       const id = a.getAttribute('href'); if (id.length < 2) return;
@@ -177,6 +167,19 @@ const CL_KEY = 'zugvogel-checkliste-v1';
       if (id === '#inhalt') { t.setAttribute('tabindex', '-1'); t.focus({ preventScroll: true }); }
     });
   });
+
+  function initMotion() {
+    if (!window.gsap || !window.ScrollTrigger) return;
+    gsap.registerPlugin(ScrollTrigger);
+    if (!RM && window.Lenis) {
+      lenis = new Lenis({ lerp: 0.12, smoothWheel: true });
+      window.__lenis = lenis;
+      lenis.on('scroll', ScrollTrigger.update);
+      lenis.on('scroll', onScroll);
+      gsap.ticker.add(t => lenis.raf(t * 1000));
+      gsap.ticker.lagSmoothing(0);
+    }
+  }
 
   /* ---------- Aktiver Navigationspunkt ---------- */
   later(function initNavSpy() {
@@ -416,7 +419,7 @@ const CL_KEY = 'zugvogel-checkliste-v1';
   });
 
   /* ---------- Etappen: horizontale Strecke (sticky + Scrub) ---------- */
-  later(function initStages() {
+  function initStages() {
     const sec = $('#ablauf'); if (!sec || RM || !window.gsap || !window.ScrollTrigger) return;
     const sticky = $('.etappen__sticky', sec), track = $('.etappen__track', sec);
     const fillEl = $('.etappen__line-fill', sec), van = $('.etappen__van', sec), stops = $$('.etappen__stop', sec), route = $('.etappen__route', sec);
@@ -452,7 +455,7 @@ const CL_KEY = 'zugvogel-checkliste-v1';
         sec.classList.remove('is-h'); sec.style.height = ''; gsap.set(track, { clearProps: 'transform' });
       };
     });
-  });
+  }
 
   /* ---------- Checkliste ---------- */
   later(function initChecklist() {
@@ -536,6 +539,35 @@ const CL_KEY = 'zugvogel-checkliste-v1';
       form.hidden = true; ok.hidden = false; ok.focus();
     });
     $('#ok-back').addEventListener('click', () => { ok.hidden = true; form.hidden = false; form.reset(); $$('[aria-invalid]', form).forEach(f => f.removeAttribute('aria-invalid')); form.elements.name.focus(); });
+  });
+
+  /* ---------- Abschnitte schrittweise rendern, danach GSAP, ScrollTrigger, Lenis nachladen ---------- */
+  const VENDOR = ['gsap.min.js', 'ScrollTrigger.min.js', 'lenis.min.js'];
+  function loadVendors() {
+    if (RM) return; // ohne Bewegung: keine Scroll-Choreografie nötig
+    let k = 0;
+    const next = () => {
+      if (k >= VENDOR.length) {
+        setTimeout(() => { initMotion(); setTimeout(() => { initStages(); setTimeout(() => window.ScrollTrigger && ScrollTrigger.refresh(), 30); }, 30); }, 30);
+        return;
+      }
+      const sc = d.createElement('script');
+      sc.src = '/arena/umzug-zugvogel/assets/vendor/' + VENDOR[k++];
+      sc.onload = () => setTimeout(next, 20);
+      sc.onerror = () => setTimeout(next, 20);
+      d.head.appendChild(sc);
+    };
+    next();
+  }
+  later(function releaseDeferred() {
+    const cv = $$('[data-cv]');
+    const step = () => {
+      const el = cv.shift();
+      if (!el) { loadVendors(); return; }
+      el.removeAttribute('data-cv'); void el.offsetHeight; // ein Abschnitt pro Task
+      setTimeout(() => schedule(step), 16);
+    };
+    setTimeout(() => schedule(step), 60);
   });
 
   function boot() { schedule(runQueue); }

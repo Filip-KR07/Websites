@@ -661,3 +661,9 @@ html.js:not(.motion-off):not(.reduced) .faq details[open] p { animation: fadeUp 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; }
 }
+
+/* Sauerteig ohne Bewegung auf großen Bildschirmen: Raster statt langer Liste */
+@media (min-width: 900px) {
+  .sour:not(.sour--h) .sour__track { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); padding-left: 0; }
+  .sour:not(.sour--h) .sour__track::before, .sour:not(.sour--h) .step::before { display: none; }
+}

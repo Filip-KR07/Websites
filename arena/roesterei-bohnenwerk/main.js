@@ -1,0 +1,748 @@
+/* Bohnenwerk Kaffeerösterei – Modell „Röstgrad“
+   Aufbau: Sofort (Header, Menü, Hero-Bohnen) → Warteschlange in kleinen Häppchen (alles darunter). */
+(function () {
+  'use strict';
+
+  /* ======================================================================
+     Werte zum Anpassen (alle Preise in Euro, Beispielwerte)
+     ====================================================================== */
+  // Preise je 250-g-Tüte ohne Abo-Rabatt
+  var PRICE_PER_250G = { guji: 14.90, konga: 13.90, huila: 12.90, cerrado: 10.90, espresso: 11.90, dunkel: 10.50 };
+  var ABO_DISCOUNT = 0.10;          // Abo-Rabatt auf jede Tüte
+  var KILO_EXTRA_DISCOUNT = 0.05;   // zusätzlicher Rabatt bei 1 kg je Lieferung
+  var SHIPPING = 3.90;              // Versand je Lieferung …
+  var FREE_SHIPPING_FROM = 25;      // … entfällt ab diesem Warenwert (nach Rabatt)
+  var DELIVERIES_PER_MONTH = { woche: 52 / 12, zweiwochen: 26 / 12, monat: 1 };
+  var RHYTHM_LABEL = { woche: 'wöchentlich', zweiwochen: 'alle 2 Wochen', monat: 'monatlich' };
+  var ROAST_DAYS = [2, 5];          // Dienstag, Freitag
+
+  var COFFEES = {
+    guji:     { name: 'Guji Hambela',       origin: 'Äthiopien · Natural',          aromas: ['beeren', 'jasmin', 'steinobst', 'honig'] },
+    konga:    { name: 'Yirgacheffe Konga',  origin: 'Äthiopien · Gewaschen',        aromas: ['zitrus', 'schwarztee', 'jasmin', 'honig'] },
+    huila:    { name: 'Huila La Esperanza', origin: 'Kolumbien · Gewaschen',        aromas: ['beeren', 'zitrus', 'rohrzucker', 'karamell'] },
+    cerrado:  { name: 'Cerrado Boa Vista',  origin: 'Brasilien · Natural',          aromas: ['haselnuss', 'schokolade', 'karamell', 'mandel'] },
+    espresso: { name: 'Neustadt Espresso',  origin: 'Blend · Brasilien, Kolumbien', aromas: ['kakao', 'karamell', 'mandel', 'schokolade'] },
+    dunkel:   { name: 'Elbhang Dunkel',     origin: 'Blend · Brasilien, Äthiopien', aromas: ['zartbitter', 'zimt', 'tabak', 'kakao'] }
+  };
+  var AROMA_LABEL = { beeren: 'Beeren', zitrus: 'Zitrus', steinobst: 'Steinobst', jasmin: 'Jasmin', schwarztee: 'Schwarztee', honig: 'Honig', rohrzucker: 'Rohrzucker', karamell: 'Karamell', mandel: 'Mandel', haselnuss: 'Haselnuss', schokolade: 'Schokolade', kakao: 'Kakao', zartbitter: 'Zartbitter', zimt: 'Zimt', tabak: 'Tabak' };
+
+  // Röstprofile: Zeiten in Minuten, Temperaturen in °C (Bohnentemperatur)
+  var PROFILES = {
+    guji:     { charge: 200, tp: [1.5, 92], dry: [4.6, 153], fc: [8 + 10 / 60, 196], drop: [9 + 25 / 60, 204], note: 'Kurz entwickelt, damit Blaubeere und Jasmin nicht unter Röstaromen verschwinden.' },
+    konga:    { charge: 198, tp: [1.45, 93], dry: [4.5, 154], fc: [8.0, 196], drop: [9 + 10 / 60, 202], note: 'Die hellste Röstung im Sortiment: knackige Säure, teeartiger Körper.' },
+    huila:    { charge: 205, tp: [1.4, 95], dry: [4.4, 155], fc: [8.5, 197], drop: [10.0, 208], note: 'Etwas mehr Entwicklung rundet die Johannisbeere mit Rohrzucker ab.' },
+    cerrado:  { charge: 208, tp: [1.4, 96], dry: [4.7, 154], fc: [8 + 50 / 60, 197], drop: [10 + 50 / 60, 214], note: 'Langsam durch die Maillard-Phase – dafür Nuss, Karamell und viel Körper.' },
+    espresso: { charge: 210, tp: [1.35, 97], dry: [4.6, 155], fc: [8 + 40 / 60, 196], drop: [11.0, 218], note: 'Für Siebträger und Milch: lange Entwicklung, wenig Säure, dichte Crema.' },
+    dunkel:   { charge: 212, tp: [1.35, 98], dry: [4.5, 156], fc: [8.5, 197], drop: [11.5, 224], note: 'Bis kurz vor den Second Crack: Zartbitter, Gewürz, kaum Säure.' }
+  };
+
+  // Brew-Guide: Verhältnis = Wasser je Gramm Kaffee, Zeiten in Sekunden
+  var METHODS = {
+    v60: { grind: 'mittelfein', temp: '93 °C', total: 180, ratio: 16, rmin: 14, rmax: 18, rstep: 0.5, coffee: 15, cmin: 8, cmax: 40, unit: 'ml', waterLabel: 'Wasser', cup: 125, cupWord: ['Tasse', 'Tassen'],
+      img: 'dripper', alt: 'Handfilter aus Porzellan auf einer Kanne vor einem hellen Fenster',
+      steps: [[0, 'Filter ausspülen, {c} g Kaffee einfüllen, {w15} ml zum Vorbrühen aufgießen.'], [45, 'In kleinen Kreisen auf {w60} ml aufgießen.'], [75, 'Langsam bis {w} ml auffüllen.'], [105, 'Einmal sanft schwenken, durchlaufen lassen.'], [180, 'Fertig – Filter abnehmen, kurz umrühren.']] },
+    fp: { grind: 'grob', temp: '95 °C', total: 300, ratio: 15, rmin: 12, rmax: 17, rstep: 0.5, coffee: 30, cmin: 10, cmax: 60, unit: 'ml', waterLabel: 'Wasser', cup: 150, cupWord: ['Tasse', 'Tassen'],
+      img: 'frenchpress', alt: 'Kaffeebereiter mit Stempel neben zwei Gläsern Kaffee und Bohnen',
+      steps: [[0, '{c} g Kaffee einfüllen, alle {w} ml Wasser auf einmal aufgießen.'], [30, 'Deckel auflegen, nicht umrühren.'], [240, 'Kruste mit zwei Löffeln abschöpfen.'], [270, 'Stempel langsam bis knapp über den Satz drücken.'], [300, 'Sofort ausschenken, damit nichts nachzieht.']] },
+    es: { grind: 'fein', temp: '93 °C', total: 30, ratio: 2, rmin: 1.5, rmax: 3, rstep: 0.1, coffee: 18, cmin: 14, cmax: 22, unit: 'g', waterLabel: 'In der Tasse', cup: 36, cupWord: ['doppelter Espresso', 'doppelte Espressi'],
+      img: 'siebtraeger', alt: 'Siebträger mit frisch gemahlenem Kaffee auf dunklem Untergrund',
+      steps: [[0, '{c} g im Sieb verteilen, gerade tampern, Bezug starten.'], [6, 'Erste Tropfen – dunkel und dickflüssig.'], [20, 'Die Farbe wird heller, die Crema dichter.'], [28, 'Bei {w} g in der Tasse stoppen.'], [30, 'Probieren: sauer → feiner mahlen, bitter → gröber.']] },
+    ap: { grind: 'mittelfein', temp: '85 °C', total: 120, ratio: 14, rmin: 11, rmax: 17, rstep: 0.5, coffee: 15, cmin: 11, cmax: 20, unit: 'ml', waterLabel: 'Wasser', cup: 200, cupWord: ['Becher', 'Becher'],
+      img: 'aeropress', alt: 'Frisch gebrühter Kaffee wird in ein Glas gegossen, daneben Bohnen',
+      steps: [[0, '{c} g Kaffee einfüllen, {w} ml Wasser aufgießen.'], [10, 'Zehnmal zügig umrühren.'], [30, 'Stempel aufsetzen, ziehen lassen.'], [90, 'Gleichmäßig in 30 Sekunden herunterdrücken.'], [120, 'Fertig – nach Geschmack mit Wasser verlängern.']] }
+  };
+
+  /* ====================================================================== */
+  var d = document.documentElement;
+  var motionOff = d.classList.contains('motion-off');
+  var reduced = d.classList.contains('reduced');
+  var animate = !motionOff && !reduced;
+  var IMG = '/arena/roesterei-bohnenwerk/assets/img/';
+  var $ = function (s, c) { return (c || document).querySelector(s); };
+  var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+  var clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+  var lerp = function (a, b, t) { return a + (b - a) * t; };
+  var eur = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+  var num1 = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 });
+  var mmss = function (sec) { sec = Math.max(0, Math.round(sec)); var m = Math.floor(sec / 60), s = sec % 60; return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; };
+  var mss = function (sec) { sec = Math.max(0, Math.round(sec)); return Math.floor(sec / 60) + ':' + ('0' + (sec % 60)).slice(-2); };
+  var NB = ' ';
+  var lenis = null;
+
+  /* ---------- Röstfarben ---------- */
+  var ROAST_STOPS = [[0, [157, 181, 154]], [0.2, [201, 179, 106]], [0.38, [185, 119, 63]], [0.55, [142, 82, 40]], [0.72, [100, 56, 28]], [0.86, [70, 38, 20]], [1, [44, 25, 14]]];
+  function roastRGB(t) {
+    t = clamp(t, 0, 1);
+    for (var i = 1; i < ROAST_STOPS.length; i++) {
+      if (t <= ROAST_STOPS[i][0]) {
+        var a = ROAST_STOPS[i - 1], b = ROAST_STOPS[i], k = (t - a[0]) / (b[0] - a[0]);
+        return [lerp(a[1][0], b[1][0], k), lerp(a[1][1], b[1][1], k), lerp(a[1][2], b[1][2], k)];
+      }
+    }
+    return ROAST_STOPS[ROAST_STOPS.length - 1][1];
+  }
+  var rgb = function (c, m) { m = m || 0; var f = function (v) { return Math.round(clamp(m > 0 ? v + (255 - v) * m : v * (1 + m), 0, 255)); }; return 'rgb(' + f(c[0]) + ',' + f(c[1]) + ',' + f(c[2]) + ')'; };
+
+  /* ======================================================================
+     1) Sofort: Header, Menü, Hero
+     ====================================================================== */
+  var header = $('.site-header'), meter = $('.scroll-meter span');
+  var scrollHandlers = [];
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(function () {
+      ticking = false;
+      var y = window.scrollY, max = d.scrollHeight - innerHeight;
+      header.classList.toggle('is-scrolled', y > 16);
+      meter.style.transform = 'scaleX(' + (max > 0 ? clamp(y / max, 0, 1) : 0).toFixed(4) + ')';
+      for (var i = 0; i < scrollHandlers.length; i++) scrollHandlers[i](y);
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Menü (Handy/Tablet)
+  (function () {
+    var btn = $('.menu-toggle'), menu = $('#menu'), closeT;
+    function focusables() { return $$('a, button', menu).concat([btn]); }
+    function open() {
+      clearTimeout(closeT);
+      menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-label', 'Menü schließen');
+      d.classList.add('menu-open'); header.classList.add('is-scrolled');
+      if (lenis) lenis.stop();
+      requestAnimationFrame(function () { menu.classList.add('is-open'); var a = $('a', menu); if (a) a.focus(); });
+    }
+    function close(focusBtn) {
+      menu.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-label', 'Menü öffnen');
+      d.classList.remove('menu-open'); if (lenis) lenis.start();
+      closeT = setTimeout(function () { menu.hidden = true; }, 240);
+      if (focusBtn) btn.focus();
+      onScroll();
+    }
+    btn.addEventListener('click', function () { btn.getAttribute('aria-expanded') === 'true' ? close(true) : open(); });
+    menu.addEventListener('click', function (e) { if (e.target.closest('a')) close(false); });
+    document.addEventListener('keydown', function (e) {
+      if (btn.getAttribute('aria-expanded') !== 'true') return;
+      if (e.key === 'Escape') { e.preventDefault(); close(true); }
+      if (e.key === 'Tab') {
+        var f = focusables(), i = f.indexOf(document.activeElement);
+        if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+        else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+      }
+    });
+    matchMedia('(min-width: 1181px)').addEventListener('change', function (m) { if (m.matches && btn.getAttribute('aria-expanded') === 'true') close(false); });
+  })();
+
+  // Hero: Bohnen-Partikel + Röstgrad-Anzeige
+  var hero = $('.hero');
+  var roast = { p: 0, shown: -1 };
+  var beans = (function () {
+    var canvas = $('.hero__beans'), ctx = canvas.getContext('2d');
+    if (!ctx) return { set: function () {} };
+    var N = 30, SPR = 64, sprites = [], list = [], w = 0, h = 0, dpr = 1;
+    var visible = true, raf = 0, last = 0, spin = 0, crackAt = -1e9, lastY = window.scrollY;
+
+    function makeSprites() {
+      sprites = [];
+      var S = Math.round(SPR * dpr);
+      for (var i = 0; i < N; i++) {
+        var t = i / (N - 1), c = roastRGB(t), cv = document.createElement('canvas');
+        cv.width = cv.height = S;
+        var g = cv.getContext('2d'); g.translate(S / 2, S / 2);
+        var rx = S * 0.29, ry = S * 0.42;
+        var grad = g.createRadialGradient(-rx * 0.35, -ry * 0.4, S * 0.04, 0, 0, ry * 1.05);
+        grad.addColorStop(0, rgb(c, 0.28)); grad.addColorStop(0.55, rgb(c)); grad.addColorStop(1, rgb(c, -0.45));
+        g.fillStyle = grad; g.beginPath(); g.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); g.fill();
+        // Mittelfurche
+        g.strokeStyle = rgb(c, -0.62); g.lineWidth = S * 0.055; g.lineCap = 'round';
+        g.beginPath(); g.moveTo(-S * 0.015, -ry * 0.86); g.bezierCurveTo(S * 0.13, -ry * 0.3, -S * 0.13, ry * 0.3, S * 0.015, ry * 0.86); g.stroke();
+        g.strokeStyle = 'rgba(255,240,220,' + (0.12 + 0.1 * (1 - t)) + ')'; g.lineWidth = S * 0.018;
+        g.beginPath(); g.moveTo(S * 0.03, -ry * 0.8); g.bezierCurveTo(S * 0.16, -ry * 0.28, -S * 0.09, ry * 0.3, S * 0.05, ry * 0.8); g.stroke();
+        // Ölglanz bei dunklen Röstungen
+        if (t > 0.66) {
+          g.fillStyle = 'rgba(255,236,210,' + ((t - 0.66) * 0.75).toFixed(3) + ')';
+          g.beginPath(); g.ellipse(-rx * 0.42, -ry * 0.42, rx * 0.2, ry * 0.12, -0.5, 0, Math.PI * 2); g.fill();
+        }
+        sprites.push(cv);
+      }
+    }
+    function seed() {
+      var count = Math.round(clamp(w * h / 15000, 26, 80)); list = [];
+      for (var i = 0; i < count; i++) {
+        var z = 0.35 + Math.random() * 0.65;
+        list.push({ x: Math.random() * w, y: Math.random() * h, z: z, s: 14 + 34 * z * z, r: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.5, vx: (Math.random() - 0.5) * 10, vy: 3 + Math.random() * 8, off: (Math.random() - 0.5) * 0.1, k: Math.random() * 6.28 });
+      }
+      list.sort(function (a, b) { return a.z - b.z; });
+    }
+    function resize() {
+      var r = canvas.getBoundingClientRect();
+      var nd = Math.min(2, window.devicePixelRatio || 1);
+      var changedDpr = nd !== dpr || !sprites.length;
+      w = r.width; h = r.height; dpr = nd;
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+      if (changedDpr) makeSprites();
+      seed(); draw(performance.now());
+    }
+    function draw(now) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
+      var p = roast.p, crack = Math.max(0, 1 - (now - crackAt) / 600);
+      for (var i = 0; i < list.length; i++) {
+        var b = list[i], idx = Math.round(clamp(p + b.off, 0, 1) * (N - 1));
+        var s = b.s * (1 + (crack > 0 ? 0.12 * crack * Math.sin(b.k * 9 + now / 30) : 0));
+        var cos = Math.cos(b.r) * dpr, sin = Math.sin(b.r) * dpr;
+        ctx.setTransform(cos, sin, -sin, cos, b.x * dpr, b.y * dpr);
+        ctx.globalAlpha = 0.35 + 0.6 * b.z;
+        ctx.drawImage(sprites[idx], -s / 2, -s / 2, s, s);
+      }
+      ctx.globalAlpha = 1;
+    }
+    function step(now) {
+      raf = 0;
+      if (!visible || document.hidden) return;
+      raf = requestAnimationFrame(step);
+      if (now - last < 32) return; // ~30 fps
+      var dt = Math.min(0.05, (now - last) / 1000); last = now;
+      var y = window.scrollY, dy = y - lastY; lastY = y;
+      spin = lerp(spin, clamp(dy * 0.06, -3, 3), 0.15);
+      for (var i = 0; i < list.length; i++) {
+        var b = list[i];
+        b.r += (b.vr + spin * (b.z - 0.3)) * dt;
+        b.x += b.vx * dt * b.z; b.y += (b.vy - spin * 40) * dt * b.z;
+        var m = b.s;
+        if (b.y > h + m) { b.y = -m; b.x = Math.random() * w; } else if (b.y < -m) { b.y = h + m; b.x = Math.random() * w; }
+        if (b.x > w + m) b.x = -m; else if (b.x < -m) b.x = w + m;
+      }
+      draw(now);
+    }
+    function start() { if (animate && !raf && visible && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(step); } }
+    new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) start(); }).observe(canvas);
+    document.addEventListener('visibilitychange', start);
+    var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(resize, 150); });
+    resize(); start();
+    return {
+      set: function (p, prev) {
+        if (prev < 0.45 && p >= 0.45) crackAt = performance.now();
+        if (!animate) draw(performance.now());
+      }
+    };
+  })();
+
+  var gauge = (function () {
+    var nameEl = $('#gauge-name'), tempEl = $('#gauge-temp'), timeEl = $('#gauge-time'), agEl = $('#gauge-agtron'),
+      bar = $('#gauge-meter'), marker = $('#gauge-marker'), ev = $('#gauge-event'), gEl = $('#gauge'), hint = $('#gauge-hint');
+    var TEMP = [[0, 24], [0.08, 92], [0.25, 150], [0.45, 196], [0.6, 206], [0.75, 214], [0.9, 222], [1, 228]];
+    var NAMES = [[0.14, 'Rohkaffee'], [0.32, 'Gelbphase'], [0.48, 'Zimt'], [0.6, 'City'], [0.72, 'City+'], [0.84, 'Full City'], [1.01, 'Wiener']];
+    var bw = 0, lastName = '';
+    function measure() { bw = bar.clientWidth; }
+    window.addEventListener('resize', measure); measure();
+    function temp(p) { for (var i = 1; i < TEMP.length; i++) if (p <= TEMP[i][0]) return lerp(TEMP[i - 1][1], TEMP[i][1], (p - TEMP[i - 1][0]) / (TEMP[i][0] - TEMP[i - 1][0])); return 228; }
+    return function (p) {
+      var name = 'Wiener'; for (var i = 0; i < NAMES.length; i++) if (p < NAMES[i][0]) { name = NAMES[i][1]; break; }
+      var t = Math.round(temp(p));
+      if (name !== lastName) { nameEl.textContent = name; lastName = name; }
+      tempEl.textContent = t; timeEl.textContent = mmss(p * 690); agEl.textContent = Math.round(95 - p * 70);
+      marker.style.transform = 'translateX(' + (p * bw).toFixed(1) + 'px)';
+      gEl.style.setProperty('--bean', rgb(roastRGB(p)));
+      var evName = p > 0.42 && p < 0.54 ? 'First Crack' : p > 0.87 && p < 0.97 ? 'Second Crack' : '';
+      if (evName) ev.textContent = evName;
+      ev.classList.toggle('is-on', !!evName);
+      if (p > 0.02 && hint) { hint.textContent = 'Röstung läuft – weiterscrollen bis „Wiener“.'; hint = null; }
+      bar.setAttribute('aria-valuenow', Math.round(p * 100));
+      bar.setAttribute('aria-valuetext', name + ', ' + t + ' °C');
+    };
+  })();
+
+  function heroProgress(y) {
+    var hh = hero.offsetHeight, tall = d.classList.contains('roast-scroll') && innerWidth >= 900;
+    var span = tall ? hh - innerHeight : hh * 0.85;
+    return clamp(y / Math.max(1, span), 0, 1);
+  }
+  function updateRoast(y) {
+    if (y > hero.offsetHeight + 200 && roast.p >= 1) return;
+    var prev = roast.p; roast.p = heroProgress(y);
+    if (Math.abs(roast.p - roast.shown) < 0.002) return;
+    roast.shown = roast.p; gauge(roast.p); beans.set(roast.p, prev);
+  }
+  scrollHandlers.push(updateRoast);
+  updateRoast(window.scrollY);
+  onScroll();
+
+  /* ======================================================================
+     2) Warteschlange: alles unterhalb des ersten Bildschirms
+     ====================================================================== */
+  var queue = [];
+  var later = function (fn) { queue.push(fn); };
+  function runQueue() {
+    var fn = queue.shift();
+    if (!fn) { finish(); return; }
+    try { fn(); } catch (e) { if (window.console) console.warn('[bohnenwerk]', e); }
+    var next = function () { runQueue(); };
+    if ('requestIdleCallback' in window) requestIdleCallback(next, { timeout: 120 }); else setTimeout(next, 16);
+  }
+  function finish() {
+    if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+    onScroll();
+  }
+
+  /* ---------- Reveals ---------- */
+  later(function () {
+    var items = $$('[data-reveal], [data-reveal-group]');
+    if (motionOff || !('IntersectionObserver' in window)) { items.forEach(function (el) { el.classList.add('is-in'); }); window.__bwReady = true; return; }
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var el = e.target; io.unobserve(el);
+        if (el.hasAttribute('data-reveal-group')) {
+          var kids = Array.prototype.slice.call(el.children);
+          kids.forEach(function (k, i) { k.style.transitionDelay = (i * 60) + 'ms'; });
+          setTimeout(function () { kids.forEach(function (k) { k.style.transitionDelay = ''; }); }, 1200);
+        }
+        el.classList.add('is-in');
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    items.forEach(function (el) { io.observe(el); });
+    window.__bwReady = true;
+  });
+
+  /* ---------- Lenis + GSAP ---------- */
+  later(function () {
+    var hasGsap = window.gsap && window.ScrollTrigger;
+    if (hasGsap) gsap.registerPlugin(ScrollTrigger);
+    if (animate && window.Lenis) {
+      lenis = new Lenis({ lerp: 0.11, smoothWheel: true });
+      window.__lenis = lenis;
+      if (hasGsap) {
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add(function (t) { lenis.raf(t * 1000); });
+        gsap.ticker.lagSmoothing(0);
+      } else {
+        var loop = function (t) { lenis.raf(t); requestAnimationFrame(loop); }; requestAnimationFrame(loop);
+      }
+    }
+    // Anker mit Versatz für den Header, Fokus ans Ziel
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest('a[href^="#"]'); if (!a) return;
+      var id = a.getAttribute('href'); if (id.length < 2) return;
+      var target = document.getElementById(id.slice(1)); if (!target) return;
+      e.preventDefault();
+      var off = -(header.offsetHeight + 8);
+      if (lenis) lenis.scrollTo(target, { offset: off, duration: 1.1 });
+      else window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY + off, behavior: animate ? 'smooth' : 'auto' });
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      target.focus({ preventScroll: true });
+      if (history.replaceState) history.replaceState(null, '', id);
+    });
+    if (!hasGsap || !animate) return;
+
+    var mm = gsap.matchMedia();
+    // Horizontale Strecke: Sticky-Bühne per CSS, nur die Bewegung per Scrub
+    mm.add('(min-width: 900px)', function () {
+      var sec = $('.journey'), track = $('.journey__track'), bar = $('.journey__progress span');
+      sec.classList.add('is-h');
+      var dist = function () { return Math.max(0, track.scrollWidth - innerWidth); };
+      var setH = function () { sec.style.height = (innerHeight + dist()) + 'px'; };
+      setH();
+      ScrollTrigger.addEventListener('refreshInit', setH);
+      var tw = gsap.to(track, { x: function () { return -dist(); }, ease: 'none',
+        scrollTrigger: { trigger: sec, start: 'top top', end: function () { return '+=' + dist(); }, scrub: 0.6, invalidateOnRefresh: true,
+          onUpdate: function (st) { bar.style.transform = 'scaleX(' + st.progress.toFixed(4) + ')'; } } });
+      return function () { ScrollTrigger.removeEventListener('refreshInit', setH); tw.scrollTrigger && tw.scrollTrigger.kill(); tw.kill(); sec.classList.remove('is-h'); sec.style.height = ''; gsap.set(track, { clearProps: 'transform' }); };
+    });
+    // Stempel dreht sich mit, Collage leicht versetzt
+    gsap.to('.cafe__stamp', { rotate: 160, ease: 'none', scrollTrigger: { trigger: '.cafe', start: 'top bottom', end: 'bottom top', scrub: 0.5 } });
+    mm.add('(min-width: 900px)', function () {
+      gsap.fromTo('.cafe__b', { yPercent: 6 }, { yPercent: -6, ease: 'none', scrollTrigger: { trigger: '.cafe', start: 'top bottom', end: 'bottom top', scrub: 0.5 } });
+      gsap.fromTo('.roastcard__photo img', { scale: 1.08 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom bottom', scrub: 0.4 } });
+    });
+  });
+
+  /* ---------- Tabs (Pfeiltasten, automatische Aktivierung) ---------- */
+  function tabs(list, onSelect) {
+    var t = $$('[role="tab"]', list);
+    function select(tab, focus) {
+      t.forEach(function (x) { var on = x === tab; x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1; });
+      if (focus) tab.focus();
+      var panel = document.getElementById(tab.getAttribute('aria-controls')); if (panel) panel.setAttribute('aria-labelledby', tab.id);
+      onSelect(tab);
+    }
+    list.addEventListener('click', function (e) { var b = e.target.closest('[role="tab"]'); if (b) select(b, false); });
+    list.addEventListener('keydown', function (e) {
+      var i = t.indexOf(document.activeElement); if (i < 0) return;
+      var n = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: t.length - 1 }[e.key];
+      if (n === undefined) return; e.preventDefault(); select(t[(n + t.length) % t.length], true);
+    });
+    return { select: function (key, attr) { var b = t.filter(function (x) { return x.getAttribute(attr) === key; })[0]; if (b) select(b, false); } };
+  }
+
+  /* ---------- Röstprofil-Explorer ---------- */
+  var explorer;
+  later(function () {
+    var svg = $('#chart-svg'), chart = $('#chart'), NS = 'http://www.w3.org/2000/svg';
+    var XMAX = 12, YMIN = 60, YMAX = 240, RMAX = 30;
+    var cur = 'guji', curve = null, W = 0, H = 0, M = { l: 40, r: 40, t: 22, b: 28 }, tSec = 0, drawn = false;
+    var ro = { time: $('#ro-time'), temp: $('#ro-temp'), ror: $('#ro-ror'), phase: $('#ro-phase') };
+    var el = function (n, a, parent) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); if (parent) parent.appendChild(e); return e; };
+
+    // Monotone kubische Interpolation (Fritsch–Carlson)
+    function monotone(pts) {
+      var n = pts.length, dx = [], dy = [], m = [], s = [];
+      for (var i = 0; i < n - 1; i++) { dx[i] = pts[i + 1][0] - pts[i][0]; dy[i] = pts[i + 1][1] - pts[i][1]; s[i] = dy[i] / dx[i]; }
+      m[0] = s[0]; m[n - 1] = s[n - 2];
+      for (i = 1; i < n - 1; i++) m[i] = s[i - 1] * s[i] <= 0 ? 0 : 3 * (dx[i - 1] + dx[i]) / ((2 * dx[i] + dx[i - 1]) / s[i - 1] + (dx[i] + 2 * dx[i - 1]) / s[i]);
+      return function (x) {
+        var k = 0; while (k < n - 2 && x > pts[k + 1][0]) k++;
+        var h = dx[k], t = clamp((x - pts[k][0]) / h, 0, 1), t2 = t * t, t3 = t2 * t;
+        return (2 * t3 - 3 * t2 + 1) * pts[k][1] + (t3 - 2 * t2 + t) * h * m[k] + (-2 * t3 + 3 * t2) * pts[k + 1][1] + (t3 - t2) * h * m[k + 1];
+      };
+    }
+    function build(id) {
+      var P = PROFILES[id], fc = P.fc, dr = P.drop, dry = P.dry, tp = P.tp;
+      var pts = [[0, P.charge], [0.55, 150], tp, [3, 126], dry, [(dry[0] + fc[0]) / 2, (dry[1] + fc[1]) / 2 + 4], fc, [(fc[0] + dr[0]) / 2, fc[1] + (dr[1] - fc[1]) * 0.56], dr];
+      var f = monotone(pts);
+      return { P: P, f: f, ror: function (t) { return (f(t + 0.05) - f(t - 0.05)) / 0.1; } };
+    }
+    var X = function (t) { return M.l + t / XMAX * (W - M.l - M.r); };
+    var Y = function (v) { return M.t + (1 - (v - YMIN) / (YMAX - YMIN)) * (H - M.t - M.b); };
+    var YR = function (v) { return M.t + (1 - v / RMAX) * (H - M.t - M.b); };
+    var cursorG, cLine, cDot, btPath;
+
+    function render(animateIn) {
+      var r = svg.getBoundingClientRect(); W = Math.max(280, r.width); H = Math.max(220, r.height);
+      M.l = W < 500 ? 34 : 40; M.r = W < 500 ? 30 : 40;
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('preserveAspectRatio', 'none');
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      var P = curve.P, f = curve.f;
+      // Phasen
+      var bands = [[0, P.dry[0], 'rgba(157,181,154,0.11)', 'Trocknung'], [P.dry[0], P.fc[0], 'rgba(201,179,106,0.10)', 'Maillard'], [P.fc[0], P.drop[0], 'rgba(194,106,46,0.20)', W < 500 ? 'Entw.' : 'Entwicklung']];
+      bands.forEach(function (b) {
+        el('rect', { x: X(b[0]), y: M.t, width: X(b[1]) - X(b[0]), height: H - M.t - M.b, fill: b[2], class: 'c-band' }, svg);
+        var tx = el('text', { x: X(b[0]) + 6, y: M.t + 14, class: 'c-axis' }, svg); tx.textContent = b[3].toUpperCase();
+      });
+      // Raster + Achsen
+      var g = el('g', { class: 'c-grid' }, svg), ax = el('g', { class: 'c-axis' }, svg);
+      for (var v = 90; v <= 240; v += 30) { el('line', { x1: M.l, x2: W - M.r, y1: Y(v), y2: Y(v) }, g); var t1 = el('text', { x: M.l - 6, y: Y(v) + 4, 'text-anchor': 'end' }, ax); t1.textContent = v + '°'; }
+      for (var rr = 10; rr <= 30; rr += 10) { var t3 = el('text', { x: W - M.r + 6, y: YR(rr) + 4 }, ax); t3.textContent = rr; }
+      var step = W < 500 ? 4 : 2;
+      for (var m = 0; m <= XMAX; m += step) { var t2 = el('text', { x: X(m), y: H - 8, 'text-anchor': m === 0 ? 'start' : m === XMAX ? 'end' : 'middle' }, ax); t2.textContent = m + (m === XMAX ? ' min' : ''); }
+      // RoR
+      var dr = '';
+      for (var t = P.tp[0] + 0.6; t <= P.drop[0]; t += 1 / 30) dr += (dr ? 'L' : 'M') + X(t).toFixed(1) + ' ' + YR(clamp(curve.ror(t), 0, RMAX)).toFixed(1);
+      var rorPath = el('path', { d: dr, class: 'c-ror' }, svg);
+      // Bohnentemperatur
+      var d1 = '';
+      for (t = 0; t <= P.drop[0] + 0.001; t += 1 / 30) d1 += (d1 ? 'L' : 'M') + X(t).toFixed(1) + ' ' + Y(f(t)).toFixed(1);
+      d1 += 'L' + X(P.drop[0]).toFixed(1) + ' ' + Y(P.drop[1]).toFixed(1);
+      btPath = el('path', { d: d1, class: 'c-bt', pathLength: 1 }, svg);
+      // Marker
+      function mark(cls, t, v, label, anchor, vertical) {
+        var mg = el('g', { class: 'c-mark ' + cls }, svg);
+        if (vertical) el('line', { x1: X(t), x2: X(t), y1: M.t, y2: H - M.b }, mg);
+        el('circle', { cx: X(t), cy: Y(v), r: 4.5 }, mg);
+        var tx = el('text', { x: X(t) + (anchor === 'end' ? -10 : 10), y: Y(v) + (vertical ? -12 : 18), 'text-anchor': anchor || 'start' }, mg); tx.textContent = label;
+      }
+      mark('', P.tp[0], P.tp[1], 'Wendepunkt', 'start');
+      mark('c-mark--fc', P.fc[0], P.fc[1], 'First Crack', 'end', true);
+      mark('', P.drop[0], P.drop[1], 'Ende', 'end');
+      // Cursor
+      cursorG = el('g', { class: 'c-cursor' }, svg);
+      cLine = el('line', { y1: M.t, y2: H - M.b }, cursorG);
+      cDot = el('circle', { r: 6 }, cursorG);
+      setCursor(tSec);
+      if (animateIn && animate && btPath.animate) {
+        btPath.style.strokeDasharray = '1';
+        btPath.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: 700, easing: 'cubic-bezier(0.77, 0, 0.175, 1)', fill: 'backwards' });
+        rorPath.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: 350, easing: 'ease', fill: 'backwards' });
+        cursorG.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, delay: 500, easing: 'ease', fill: 'backwards' });
+      }
+      drawn = true;
+    }
+    function phaseAt(t, P) { return t < P.dry[0] ? ['Trocknung', '#3e4d3c'] : t < P.fc[0] ? ['Maillard', '#5a4a26'] : ['Entwicklung', '#7a3f19']; }
+    function setCursor(sec) {
+      var P = curve.P; tSec = clamp(sec, 0, Math.round(P.drop[0] * 60));
+      var t = tSec / 60, v = t >= P.drop[0] ? P.drop[1] : curve.f(t), r = curve.ror(t), ph = phaseAt(t, P);
+      if (cLine) { cLine.setAttribute('x1', X(t)); cLine.setAttribute('x2', X(t)); cDot.setAttribute('cx', X(t)); cDot.setAttribute('cy', Y(v)); }
+      ro.time.textContent = mmss(tSec) + ' min';
+      ro.temp.textContent = Math.round(v) + NB + '°C';
+      ro.ror.textContent = t < P.tp[0] ? 'Temperatur fällt' : 'RoR ' + num1.format(Math.max(0, r)) + NB + '°C/min';
+      ro.phase.textContent = ph[0]; ro.phase.style.setProperty('--phase', ph[1]);
+      chart.setAttribute('aria-valuenow', tSec);
+      chart.setAttribute('aria-valuemax', Math.round(P.drop[0] * 60));
+      chart.setAttribute('aria-valuetext', mmss(tSec) + ' Minuten, ' + Math.round(v) + ' Grad, ' + ph[0]);
+    }
+    function facts(id) {
+      var P = PROFILES[id], C = COFFEES[id], box = $('.explorer__facts');
+      var devS = Math.round((P.drop[0] - P.fc[0]) * 60), dtr = Math.round(devS / (P.drop[0] * 60) * 100);
+      var apply = function () {
+        $('#pf-name').textContent = C.name; $('#pf-origin').textContent = C.origin; $('#pf-note').textContent = P.note;
+        $('#pf-charge').textContent = P.charge + NB + '°C';
+        $('#pf-tp').textContent = mmss(P.tp[0] * 60) + ' · ' + P.tp[1] + NB + '°C';
+        $('#pf-fc').textContent = mmss(P.fc[0] * 60) + ' · ' + P.fc[1] + NB + '°C';
+        $('#pf-dev').textContent = mmss(devS) + ' · ' + dtr + NB + '%';
+        $('#pf-drop').textContent = mmss(P.drop[0] * 60) + ' · ' + P.drop[1] + NB + '°C';
+        var b = $('#pf-abo'); b.setAttribute('data-pick-abo', id);
+        box.classList.remove('is-swapping');
+      };
+      if (animate && drawn) { box.classList.add('is-swapping'); setTimeout(apply, 160); } else apply();
+    }
+    function select(id) { cur = id; curve = build(id); tSec = Math.round(PROFILES[id].fc[0] * 60); facts(id); render(true); }
+
+    var tb = tabs($('.explorer__tabs'), function (tab) { select(tab.getAttribute('data-coffee')); });
+    curve = build(cur); tSec = Math.round(PROFILES[cur].fc[0] * 60); facts(cur); render(false);
+
+    function fromPointer(e) { var r = svg.getBoundingClientRect(); var x = (e.clientX - r.left) / r.width * W; setCursor(((x - M.l) / (W - M.l - M.r)) * XMAX * 60); }
+    chart.addEventListener('pointermove', fromPointer);
+    chart.addEventListener('pointerdown', fromPointer);
+    chart.addEventListener('keydown', function (e) {
+      var big = e.shiftKey ? 60 : 10, P = curve.P, n;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') n = tSec + big;
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') n = tSec - big;
+      else if (e.key === 'PageUp') n = tSec + 60; else if (e.key === 'PageDown') n = tSec - 60;
+      else if (e.key === 'Home') n = 0; else if (e.key === 'End') n = P.drop[0] * 60;
+      if (n === undefined) return; e.preventDefault(); setCursor(n);
+    });
+    var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { render(false); }, 150); });
+    explorer = { pick: function (id) { tb.select(id, 'data-coffee'); } };
+    document.addEventListener('click', function (e) { var a = e.target.closest('[data-pick-profile]'); if (a) explorer.pick(a.getAttribute('data-pick-profile')); });
+  });
+
+  /* ---------- Geschmacksrad ---------- */
+  later(function () {
+    var items = $$('.fw-aroma'), sel = {}, count = $('#wheel-count'), out = $('#matches');
+    if (!items.length) return;
+    items[0].tabIndex = 0;
+    function toggle(g, on) {
+      var id = g.getAttribute('data-aroma'); on = on === undefined ? !sel[id] : on;
+      if (on) sel[id] = true; else delete sel[id];
+      g.setAttribute('aria-checked', on ? 'true' : 'false');
+    }
+    function results() {
+      var keys = Object.keys(sel); count.textContent = keys.length;
+      while (out.firstChild) out.removeChild(out.firstChild);
+      if (!keys.length) {
+        var li0 = document.createElement('li'); li0.className = 'matches__empty';
+        li0.textContent = 'Noch keine Auswahl. Probieren Sie zum Beispiel „Beeren“ und „Jasmin“ – oder „Haselnuss“ und „Karamell“.'; out.appendChild(li0); return;
+      }
+      var ranked = Object.keys(COFFEES).map(function (id) {
+        var hit = COFFEES[id].aromas.filter(function (a) { return sel[a]; });
+        return { id: id, hit: hit, score: hit.length / Math.max(keys.length, 1) };
+      }).filter(function (r) { return r.hit.length; }).sort(function (a, b) { return b.hit.length - a.hit.length || b.score - a.score; }).slice(0, 3);
+      ranked.forEach(function (r, i) {
+        var li = document.createElement('li'); li.className = 'match' + (i === 0 ? ' match--top' : ''); li.style.setProperty('--d', i);
+        var n = document.createElement('span'); n.className = 'match__name'; n.textContent = COFFEES[r.id].name;
+        var s = document.createElement('span'); s.className = 'match__score'; s.textContent = r.hit.length + ' von ' + keys.length;
+        var w = document.createElement('p'); w.className = 'match__why'; w.textContent = 'Passt bei: ' + r.hit.map(function (a) { return AROMA_LABEL[a]; }).join(', ');
+        var bar = document.createElement('span'); bar.className = 'match__bar'; var bi = document.createElement('span'); bi.style.transform = 'scaleX(' + r.score.toFixed(3) + ')'; bar.appendChild(bi);
+        var links = document.createElement('span'); links.className = 'match__links';
+        var a1 = document.createElement('a'); a1.className = 'link-arrow'; a1.href = '#profile'; a1.setAttribute('data-pick-profile', r.id); a1.textContent = 'Röstkurve';
+        var a2 = document.createElement('a'); a2.className = 'link-arrow'; a2.href = '#abo'; a2.setAttribute('data-pick-abo', r.id); a2.textContent = 'Ins Abo';
+        links.appendChild(a1); links.appendChild(a2);
+        [n, s, w, bar, links].forEach(function (x) { li.appendChild(x); });
+        out.appendChild(li);
+      });
+    }
+    items.forEach(function (g, i) {
+      g.addEventListener('click', function () { toggle(g); items.forEach(function (x) { x.tabIndex = -1; }); g.tabIndex = 0; results(); });
+      g.addEventListener('keydown', function (e) {
+        var n = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: items.length - 1 }[e.key];
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(g); results(); return; }
+        if (n === undefined) return; e.preventDefault();
+        var t = items[(n + items.length) % items.length]; g.tabIndex = -1; t.tabIndex = 0; t.focus();
+      });
+    });
+    $$('.fw-cat').forEach(function (c) {
+      c.addEventListener('click', function () {
+        var kids = items.filter(function (g) { return g.getAttribute('data-cat') === c.getAttribute('data-cat'); });
+        var all = kids.every(function (g) { return sel[g.getAttribute('data-aroma')]; });
+        kids.forEach(function (g) { toggle(g, !all); }); results();
+      });
+    });
+    $('#wheel-reset').addEventListener('click', function () { items.forEach(function (g) { toggle(g, false); }); results(); });
+  });
+
+  /* ---------- Abo-Konfigurator ---------- */
+  var abo;
+  later(function () {
+    var form = $('#abo-form'), ticket = $('.ticket');
+    var o = { coffee: $('#t-coffee'), sub: $('#t-sub'), rab: $('#t-rabatt'), rabL: $('.ticket__line--minus span'), ship: $('#t-ship'), per: $('#t-per'), month: $('#t-month'), meta: $('#t-meta'), next: $('#t-next') };
+    var val = function (n) { var c = form.querySelector('input[name="' + n + '"]:checked'); return c ? c.value : null; };
+    function nextRoast() {
+      var t = new Date(); t.setHours(12, 0, 0, 0);
+      for (var i = 1; i < 8; i++) { var x = new Date(t.getTime() + i * 864e5); if (ROAST_DAYS.indexOf(x.getDay()) > -1) return x; }
+      return t;
+    }
+    function calc() {
+      var id = val('kaffee'), packs = +val('menge'), rh = val('rhythmus'), grind = val('mahlgrad');
+      var sub = PRICE_PER_250G[id] * packs, rate = ABO_DISCOUNT + (packs === 4 ? KILO_EXTRA_DISCOUNT : 0);
+      var rab = Math.round(sub * rate * 100) / 100, goods = sub - rab, ship = goods >= FREE_SHIPPING_FROM ? 0 : SHIPPING;
+      var per = goods + ship, month = per * DELIVERIES_PER_MONTH[rh];
+      return { id: id, packs: packs, rh: rh, grind: grind, sub: sub, rate: rate, rab: rab, ship: ship, per: per, month: month };
+    }
+    function update() {
+      var c = calc();
+      o.coffee.textContent = c.packs + ' × 250' + NB + 'g ' + COFFEES[c.id].name;
+      o.sub.textContent = eur.format(c.sub);
+      o.rabL.textContent = (c.packs === 4 ? 'Abo- und Kilorabatt ' : 'Abo-Rabatt ') + Math.round(c.rate * 100) + NB + '%';
+      o.rab.textContent = '−' + eur.format(c.rab);
+      o.ship.textContent = c.ship ? eur.format(c.ship) : 'frei';
+      o.per.textContent = eur.format(c.per);
+      o.month.textContent = eur.format(c.month);
+      o.meta.textContent = c.grind + ' · ' + RHYTHM_LABEL[c.rh];
+      o.next.textContent = 'Erste Röstung für Sie: ' + nextRoast().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+    }
+    form.addEventListener('change', function (e) { if (e.target.type === 'radio') update(); });
+    update();
+    abo = { pick: function (id) { var r = form.querySelector('input[name="kaffee"][value="' + id + '"]'); if (r) { r.checked = true; update(); } } };
+    document.addEventListener('click', function (e) { var a = e.target.closest('[data-pick-abo]'); if (a) abo.pick(a.getAttribute('data-pick-abo')); });
+
+    validated(form, $('#abo-error'), function () {
+      var c = calc(), fd = new FormData(form);
+      return [['Kaffee', COFFEES[c.id].name], ['Menge', c.packs * 250 >= 1000 ? '1' + NB + 'kg' : c.packs * 250 + NB + 'g'], ['Mahlgrad', c.grind], ['Rhythmus', RHYTHM_LABEL[c.rh]], ['Pro Lieferung', eur.format(c.per)], ['E-Mail', String(fd.get('email'))]];
+    }, $('#abo-summary'), $('#abo-success'), ticket);
+    $('[data-reset="abo"]').addEventListener('click', function () { form.reset(); ticket.classList.remove('is-done'); $('#abo-success').hidden = true; update(); $('#abo-name').focus(); });
+  });
+
+  // Gemeinsame Formularprüfung (nur clientseitig, nichts wird gesendet)
+  function validated(form, errEl, summary, listEl, successEl, doneEl) {
+    var mailOk = function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); };
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var bad = [], first = null;
+      $$('input[required], select[required], textarea[required]', form).forEach(function (f) {
+        if (f.closest('[hidden]')) return;
+        var ok = f.type === 'checkbox' ? f.checked : f.type === 'email' ? mailOk(f.value.trim()) : f.value.trim().length >= 2;
+        f.setAttribute('aria-invalid', ok ? 'false' : 'true');
+        if (!ok) { bad.push(f); first = first || f; }
+      });
+      var g = form.querySelector('input[name="personen"]');
+      if (g && !g.closest('[hidden]')) { var n = +g.value; var okG = n >= 1 && n <= 10; g.setAttribute('aria-invalid', okG ? 'false' : 'true'); if (!okG) { bad.push(g); first = first || g; } }
+      if (bad.length) {
+        var names = bad.map(function (f) { return f.type === 'checkbox' ? 'Zustimmung zu den Datenschutzhinweisen' : f.type === 'email' ? 'gültige E-Mail-Adresse' : f.name === 'personen' ? 'Personen (1–10)' : 'Name'; });
+        errEl.textContent = 'Bitte prüfen: ' + names.join(', ') + '.'; errEl.hidden = false; first.focus(); return;
+      }
+      errEl.hidden = true;
+      var rows = summary();
+      while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
+      rows.forEach(function (r) { var li = document.createElement('li'), a = document.createElement('span'), b = document.createElement('span'); a.textContent = r[0]; b.textContent = r[1]; li.appendChild(a); li.appendChild(b); listEl.appendChild(li); });
+      var nm = form.querySelector('input[name="name"]').value.trim();
+      $$('[data-out="name"]', successEl).forEach(function (s) { s.textContent = nm.split(' ')[0]; });
+      doneEl.classList.add('is-done'); successEl.hidden = false; successEl.focus();
+    });
+    form.addEventListener('input', function (e) { if (e.target.getAttribute('aria-invalid') === 'true') e.target.removeAttribute('aria-invalid'); });
+  }
+
+  /* ---------- Brew-Guide ---------- */
+  later(function () {
+    var cIn = $('#b-coffee'), rIn = $('#b-ratio'), cOut = $('#b-coffee-out'), rOut = $('#b-ratio-out'), wOut = $('#b-water'), wLab = $('#b-water-label'), cups = $('#b-cups');
+    var img = $('#brew-img'), stepsEl = $('#steps'), tTime = $('#timer-time'), tOf = $('#timer-of'), prog = $('#timer-prog'), live = $('#timer-live'), bStart = $('#timer-start'), bReset = $('#timer-reset'), timerBox = $('.timer');
+    var M = METHODS.v60, key = 'v60', running = false, t0 = 0, acc = 0, raf = 0, lastStep = -1, lastSec = -1;
+    var fmtRatio = function (r) { return '1' + NB + ':' + NB + num1.format(r); };
+    function water() { return Math.round(+cIn.value * +rIn.value); }
+    function fill(input) { input.style.setProperty('--fill', ((input.value - input.min) / (input.max - input.min) * 100) + '%'); }
+    function text(tpl) {
+      var w = water();
+      return tpl.replace('{c}', cIn.value).replace('{w15}', Math.round(w * 0.16)).replace('{w60}', Math.round(w * 0.6)).replace('{w}', w).replace(/ (ml|g) /g, NB + '$1 ').replace(/ (ml|g)\./g, NB + '$1.');
+    }
+    function renderSteps() {
+      while (stepsEl.firstChild) stepsEl.removeChild(stepsEl.firstChild);
+      M.steps.forEach(function (s) {
+        var li = document.createElement('li'), t = document.createElement('span'), x = document.createElement('span');
+        t.className = 'steps__t mono'; t.textContent = mss(s[0]); x.textContent = text(s[1]);
+        li.appendChild(t); li.appendChild(x); stepsEl.appendChild(li);
+      });
+      lastStep = -1; paint(elapsed(), true);
+    }
+    function calc() {
+      fill(cIn); fill(rIn);
+      cOut.textContent = cIn.value + NB + 'g'; rOut.textContent = fmtRatio(+rIn.value);
+      var w = water(); wOut.textContent = w + NB + M.unit; wLab.textContent = M.waterLabel;
+      var n = Math.max(1, Math.round(w / M.cup)); cups.textContent = '≈ ' + n + ' ' + M.cupWord[n === 1 ? 0 : 1];
+      $$('#steps li > span:last-child').forEach(function (x, i) { x.textContent = text(M.steps[i][1]); });
+    }
+    function elapsed() { return running ? acc + (performance.now() - t0) / 1000 : acc; }
+    function paint(e, force) {
+      e = Math.min(e, M.total);
+      var sec = Math.floor(e);
+      if (sec !== lastSec || force) { tTime.textContent = mss(sec); lastSec = sec; }
+      prog.style.strokeDashoffset = (1000 * (1 - e / M.total)).toFixed(1);
+      var idx = -1; for (var i = 0; i < M.steps.length; i++) if (e >= M.steps[i][0]) idx = i;
+      if (!running && e === 0) idx = -1;
+      if (idx !== lastStep || force) {
+        $$('#steps li').forEach(function (li, i) { li.classList.toggle('is-active', i === idx); li.classList.toggle('is-done', i < idx || (e >= M.total && i === idx)); });
+        if (idx >= 0 && idx !== lastStep && running) live.textContent = 'Schritt ' + (idx + 1) + ': ' + text(M.steps[idx][1]);
+        lastStep = idx;
+      }
+    }
+    function tick() {
+      raf = 0; var e = elapsed();
+      if (e >= M.total) { acc = M.total; running = false; paint(M.total, true); timerBox.classList.add('is-done'); bStart.textContent = 'Noch einmal'; live.textContent = 'Fertig – guten Genuss!'; return; }
+      paint(e); raf = requestAnimationFrame(tick);
+    }
+    function reset() { running = false; acc = 0; cancelAnimationFrame(raf); raf = 0; timerBox.classList.remove('is-done'); bStart.textContent = 'Timer starten'; lastSec = -1; paint(0, true); }
+    bStart.addEventListener('click', function () {
+      if (running) { acc = elapsed(); running = false; cancelAnimationFrame(raf); raf = 0; bStart.textContent = 'Weiter'; return; }
+      if (acc >= M.total) reset();
+      running = true; t0 = performance.now(); bStart.textContent = 'Pause'; timerBox.classList.remove('is-done'); raf = requestAnimationFrame(tick);
+    });
+    bReset.addEventListener('click', reset);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && running && !raf) raf = requestAnimationFrame(tick); });
+    function setMethod(k) {
+      key = k; M = METHODS[k]; reset();
+      cIn.min = M.cmin; cIn.max = M.cmax; cIn.value = M.coffee;
+      rIn.min = M.rmin; rIn.max = M.rmax; rIn.step = M.rstep; rIn.value = M.ratio;
+      $('#b-grind').textContent = M.grind; $('#b-temp').textContent = M.temp.replace(' ', NB); $('#b-total').textContent = mss(M.total) + NB + 'min';
+      tOf.textContent = 'von ' + mss(M.total);
+      var src = IMG + M.img + '-960.webp', set = IMG + M.img + '-480.webp 480w, ' + src + ' 960w';
+      if (img.getAttribute('src') !== src) {
+        if (animate) img.classList.add('is-swapping');
+        var pre = new Image(); pre.onload = pre.onerror = function () { img.srcset = set; img.src = src; img.alt = M.alt; img.classList.remove('is-swapping'); };
+        pre.sizes = img.sizes; pre.srcset = set; pre.src = src;
+      }
+      renderSteps(); calc();
+    }
+    cIn.addEventListener('input', calc); rIn.addEventListener('input', calc);
+    tabs($('.brew__tabs'), function (tab) { setMethod(tab.getAttribute('data-method')); });
+    setMethod('v60');
+  });
+
+  /* ---------- Kontaktformular ---------- */
+  later(function () {
+    var form = $('#contact-form'), tf = $('#tour-fields'), sel = $('#c-date');
+    // Nächste vier Samstage
+    var t = new Date(); t.setHours(12, 0, 0, 0); var opts = [];
+    for (var i = 1; opts.length < 4 && i < 40; i++) { var x = new Date(t.getTime() + i * 864e5); if (x.getDay() === 6) opts.push(x); }
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    opts.forEach(function (o) { var op = document.createElement('option'); op.textContent = o.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'long' }) + ' · 11 Uhr'; sel.appendChild(op); });
+    form.addEventListener('change', function (e) { if (e.target.name === 'anliegen') tf.hidden = e.target.value !== 'Führung'; });
+    validated(form, $('#contact-error'), function () {
+      var fd = new FormData(form), a = String(fd.get('anliegen')), rows = [['Anliegen', a]];
+      if (a === 'Führung') { rows.push(['Termin', String(fd.get('termin'))]); rows.push(['Personen', String(fd.get('personen'))]); }
+      rows.push(['E-Mail', String(fd.get('email'))]);
+      var msg = String(fd.get('nachricht') || '').trim(); if (msg) rows.push(['Nachricht', msg.length > 80 ? msg.slice(0, 80) + '…' : msg]);
+      return rows;
+    }, $('#contact-summary'), $('#contact-success'), form);
+    $('[data-reset="contact"]').addEventListener('click', function () { form.reset(); tf.hidden = false; form.classList.remove('is-done'); $('#contact-success').hidden = true; $('#c-name').focus(); });
+  });
+
+  /* ---------- Öffnungszeiten + aktive Navigation ---------- */
+  later(function () {
+    var now = new Date(), day = now.getDay(), h = now.getHours() + now.getMinutes() / 60;
+    var open = day >= 1 && day <= 5 ? [8, 18] : [9, 18], st = $('#open-status');
+    var isOpen = h >= open[0] && h < open[1];
+    st.textContent = isOpen ? 'Jetzt geöffnet · bis 18 Uhr' : (h < open[0] ? 'Geschlossen · öffnet heute um ' + open[0] + ' Uhr' : 'Geschlossen · öffnet morgen um ' + ((day + 1) % 7 >= 1 && (day + 1) % 7 <= 5 ? 8 : 9) + ' Uhr');
+    st.classList.add(isOpen ? 'is-open' : 'is-closed');
+    $$('.hours__list [data-days]').forEach(function (r) { if (r.getAttribute('data-days').split(',').indexOf(String(day)) > -1) r.classList.add('is-today'); });
+
+    var links = $$('.nav__list a'), map = {};
+    links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { links.forEach(function (a) { a.classList.remove('is-active'); a.removeAttribute('aria-current'); }); var a = map[e.target.id]; if (a) { a.classList.add('is-active'); a.setAttribute('aria-current', 'true'); } } });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    Object.keys(map).forEach(function (id) { var s = document.getElementById(id); if (s) io.observe(s); });
+  });
+
+  // Start der Warteschlange nach dem ersten Bild (spätestens nach 1,5 s)
+  var started = false;
+  var go = function () { if (started) return; started = true; setTimeout(runQueue, 30); };
+  if (document.readyState === 'complete') go(); else window.addEventListener('load', go, { once: true });
+  setTimeout(go, 1500);
+})();
