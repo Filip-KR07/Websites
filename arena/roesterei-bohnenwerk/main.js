@@ -28,12 +28,12 @@
 
   // Röstprofile: Zeiten in Minuten, Temperaturen in °C (Bohnentemperatur)
   var PROFILES = {
-    guji:     { charge: 200, tp: [1.5, 92], dry: [4.6, 153], fc: [8 + 10 / 60, 196], drop: [9 + 25 / 60, 204], note: 'Kurz entwickelt, damit Blaubeere und Jasmin nicht unter Röstaromen verschwinden.' },
-    konga:    { charge: 198, tp: [1.45, 93], dry: [4.5, 154], fc: [8.0, 196], drop: [9 + 10 / 60, 202], note: 'Die hellste Röstung im Sortiment: knackige Säure, teeartiger Körper.' },
-    huila:    { charge: 205, tp: [1.4, 95], dry: [4.4, 155], fc: [8.5, 197], drop: [10.0, 208], note: 'Etwas mehr Entwicklung rundet die Johannisbeere mit Rohrzucker ab.' },
-    cerrado:  { charge: 208, tp: [1.4, 96], dry: [4.7, 154], fc: [8 + 50 / 60, 197], drop: [10 + 50 / 60, 214], note: 'Langsam durch die Maillard-Phase – dafür Nuss, Karamell und viel Körper.' },
-    espresso: { charge: 210, tp: [1.35, 97], dry: [4.6, 155], fc: [8 + 40 / 60, 196], drop: [11.0, 218], note: 'Für Siebträger und Milch: lange Entwicklung, wenig Säure, dichte Crema.' },
-    dunkel:   { charge: 212, tp: [1.35, 98], dry: [4.5, 156], fc: [8.5, 197], drop: [11.5, 224], note: 'Bis kurz vor den Second Crack: Zartbitter, Gewürz, kaum Säure.' }
+    guji:     { charge: 200, tp: [1.5, 92], fc: [8 + 10 / 60, 196], drop: [9 + 25 / 60, 204], note: 'Kurz entwickelt, damit Blaubeere und Jasmin nicht unter Röstaromen verschwinden.' },
+    konga:    { charge: 198, tp: [1.45, 93], fc: [8.0, 196], drop: [9 + 10 / 60, 202], note: 'Die hellste Röstung im Sortiment: knackige Säure, teeartiger Körper.' },
+    huila:    { charge: 205, tp: [1.4, 95], fc: [8.5, 197], drop: [10.0, 208], note: 'Etwas mehr Entwicklung rundet die Johannisbeere mit Rohrzucker ab.' },
+    cerrado:  { charge: 208, tp: [1.4, 96], fc: [8 + 50 / 60, 197], drop: [10 + 50 / 60, 214], note: 'Langsam durch die Maillard-Phase – dafür Nuss, Karamell und viel Körper.' },
+    espresso: { charge: 210, tp: [1.35, 97], fc: [8 + 40 / 60, 196], drop: [11.0, 218], note: 'Für Siebträger und Milch: lange Entwicklung, wenig Säure, dichte Crema.' },
+    dunkel:   { charge: 212, tp: [1.35, 98], fc: [8.5, 197], drop: [11.5, 224], note: 'Bis kurz vor den Second Crack: Zartbitter, Gewürz, kaum Säure.' }
   };
 
   // Brew-Guide: Verhältnis = Wasser je Gramm Kaffee, Zeiten in Sekunden
@@ -170,7 +170,7 @@
       var count = Math.round(clamp(w * h / 15000, 26, 80)); list = [];
       for (var i = 0; i < count; i++) {
         var z = 0.35 + Math.random() * 0.65;
-        list.push({ x: Math.random() * w, y: Math.random() * h, z: z, s: 14 + 34 * z * z, r: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.5, vx: (Math.random() - 0.5) * 10, vy: 3 + Math.random() * 8, off: (Math.random() - 0.5) * 0.1, k: Math.random() * 6.28 });
+        list.push({ x: Math.random() * w, y: Math.random() * h, z: z, s: 16 + 42 * z * z, r: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.5, vx: (Math.random() - 0.5) * 10, vy: 3 + Math.random() * 8, off: (Math.random() - 0.5) * 0.1, k: Math.random() * 6.28 });
       }
       list.sort(function (a, b) { return a.z - b.z; });
     }
@@ -383,26 +383,27 @@
     var ro = { time: $('#ro-time'), temp: $('#ro-temp'), ror: $('#ro-ror'), phase: $('#ro-phase') };
     var el = function (n, a, parent) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); if (parent) parent.appendChild(e); return e; };
 
-    // Monotone kubische Interpolation (Fritsch–Carlson)
-    function monotone(pts) {
-      var n = pts.length, dx = [], dy = [], m = [], s = [];
-      for (var i = 0; i < n - 1; i++) { dx[i] = pts[i + 1][0] - pts[i][0]; dy[i] = pts[i + 1][1] - pts[i][1]; s[i] = dy[i] / dx[i]; }
-      m[0] = s[0]; m[n - 1] = s[n - 2];
-      for (i = 1; i < n - 1; i++) m[i] = s[i - 1] * s[i] <= 0 ? 0 : 3 * (dx[i - 1] + dx[i]) / ((2 * dx[i] + dx[i - 1]) / s[i - 1] + (dx[i] + 2 * dx[i - 1]) / s[i]);
-      return function (x) {
-        var k = 0; while (k < n - 2 && x > pts[k + 1][0]) k++;
-        var h = dx[k], t = clamp((x - pts[k][0]) / h, 0, 1), t2 = t * t, t3 = t2 * t;
-        return (2 * t3 - 3 * t2 + 1) * pts[k][1] + (t3 - 2 * t2 + t) * h * m[k] + (-2 * t3 + 3 * t2) * pts[k + 1][1] + (t3 - t2) * h * m[k + 1];
-      };
-    }
+    // Kurvenmodell: bis zum Wendepunkt fällt die Fühlertemperatur, danach sinkt die Anstiegsrate (RoR)
+    // gleichmäßig: RoR(u) = Rampe(u) · (A·(1−u)^1,6 + B). A und B werden so gewählt, dass First Crack
+    // und Ende exakt getroffen werden. Gelbpunkt = Zeitpunkt, an dem 155 °C erreicht sind.
     function build(id) {
-      var P = PROFILES[id], fc = P.fc, dr = P.drop, dry = P.dry, tp = P.tp;
-      var pts = [[0, P.charge], [0.55, 150], tp, [3, 126], dry, [(dry[0] + fc[0]) / 2, (dry[1] + fc[1]) / 2 + 4], fc, [(fc[0] + dr[0]) / 2, fc[1] + (dr[1] - fc[1]) * 0.56], dr];
-      var f = monotone(pts);
-      return { P: P, f: f, ror: function (t) { return (f(t + 0.05) - f(t - 0.05)) / 0.1; } };
+      var P = PROFILES[id], tp = P.tp[0], Ttp = P.tp[1], fc = P.fc[0], dr = P.drop[0], span = dr - tp, n = 1.6, dt = 1 / 120;
+      var ramp = function (u) { return 1 - Math.exp(-u / 0.07); };
+      var I1 = [0], I2 = [0], steps = Math.ceil(span / dt);
+      for (var i = 1; i <= steps; i++) { var u = (i - 0.5) * dt / span, r = ramp(u); I1[i] = I1[i - 1] + r * Math.pow(1 - u, n) * dt; I2[i] = I2[i - 1] + r * dt; }
+      var at = function (arr, t) { var x = clamp((t - tp) / dt, 0, steps), k = Math.floor(x), f = x - k; return k >= steps ? arr[steps] : arr[k] + (arr[k + 1] - arr[k]) * f; };
+      var a1 = at(I1, fc), b1 = at(I2, fc), a2 = at(I1, dr), b2 = at(I2, dr), r1 = P.fc[1] - Ttp, r2 = P.drop[1] - Ttp;
+      var det = a1 * b2 - a2 * b1, A = (r1 * b2 - r2 * b1) / det, B = (a1 * r2 - a2 * r1) / det;
+      var f = function (t) {
+        if (t <= tp) return Ttp + (P.charge - Ttp) * Math.pow(1 - t / tp, 2.1);
+        return Ttp + A * at(I1, t) + B * at(I2, t);
+      };
+      var ror = function (t) { if (t <= tp) return 0; var u = (t - tp) / span; return ramp(u) * (A * Math.pow(Math.max(0, 1 - u), n) + B); };
+      var dry = tp; while (dry < fc && f(dry) < 155) dry += 1 / 60;
+      return { P: P, f: f, ror: ror, dry: dry };
     }
     var X = function (t) { return M.l + t / XMAX * (W - M.l - M.r); };
-    var Y = function (v) { return M.t + (1 - (v - YMIN) / (YMAX - YMIN)) * (H - M.t - M.b); };
+    var Y = function (v) { return M.t + (1 - (clamp(v, YMIN, YMAX) - YMIN) / (YMAX - YMIN)) * (H - M.t - M.b); };
     var YR = function (v) { return M.t + (1 - v / RMAX) * (H - M.t - M.b); };
     var cursorG, cLine, cDot, btPath;
 
@@ -413,10 +414,10 @@
       while (svg.firstChild) svg.removeChild(svg.firstChild);
       var P = curve.P, f = curve.f;
       // Phasen
-      var bands = [[0, P.dry[0], 'rgba(157,181,154,0.11)', 'Trocknung'], [P.dry[0], P.fc[0], 'rgba(201,179,106,0.10)', 'Maillard'], [P.fc[0], P.drop[0], 'rgba(194,106,46,0.20)', W < 500 ? 'Entw.' : 'Entwicklung']];
+      var bands = [[0, curve.dry, 'rgba(157,181,154,0.11)', 'Trocknung'], [curve.dry, P.fc[0], 'rgba(201,179,106,0.10)', 'Maillard'], [P.fc[0], P.drop[0], 'rgba(194,106,46,0.20)', W < 500 ? 'Entw.' : 'Entwicklung']];
       bands.forEach(function (b) {
         el('rect', { x: X(b[0]), y: M.t, width: X(b[1]) - X(b[0]), height: H - M.t - M.b, fill: b[2], class: 'c-band' }, svg);
-        var tx = el('text', { x: X(b[0]) + 6, y: M.t + 14, class: 'c-axis' }, svg); tx.textContent = b[3].toUpperCase();
+        if (X(b[1]) - X(b[0]) > b[3].length * 7.4 + 10) { var tx = el('text', { x: X(b[0]) + 6, y: M.t + 14, class: 'c-axis' }, svg); tx.textContent = b[3].toUpperCase(); }
       });
       // Raster + Achsen
       var g = el('g', { class: 'c-grid' }, svg), ax = el('g', { class: 'c-axis' }, svg);
@@ -426,7 +427,7 @@
       for (var m = 0; m <= XMAX; m += step) { var t2 = el('text', { x: X(m), y: H - 8, 'text-anchor': m === 0 ? 'start' : m === XMAX ? 'end' : 'middle' }, ax); t2.textContent = m + (m === XMAX ? ' min' : ''); }
       // RoR
       var dr = '';
-      for (var t = P.tp[0] + 0.6; t <= P.drop[0]; t += 1 / 30) dr += (dr ? 'L' : 'M') + X(t).toFixed(1) + ' ' + YR(clamp(curve.ror(t), 0, RMAX)).toFixed(1);
+      for (var t = P.tp[0] + 0.15; t <= P.drop[0]; t += 1 / 30) dr += (dr ? 'L' : 'M') + X(t).toFixed(1) + ' ' + YR(clamp(curve.ror(t), 0, RMAX)).toFixed(1);
       var rorPath = el('path', { d: dr, class: 'c-ror' }, svg);
       // Bohnentemperatur
       var d1 = '';
@@ -456,10 +457,10 @@
       }
       drawn = true;
     }
-    function phaseAt(t, P) { return t < P.dry[0] ? ['Trocknung', '#3e4d3c'] : t < P.fc[0] ? ['Maillard', '#5a4a26'] : ['Entwicklung', '#7a3f19']; }
+    function phaseAt(t, P) { return t < curve.dry ? ['Trocknung', '#3e4d3c'] : t < P.fc[0] ? ['Maillard', '#5a4a26'] : ['Entwicklung', '#7a3f19']; }
     function setCursor(sec) {
       var P = curve.P; tSec = clamp(sec, 0, Math.round(P.drop[0] * 60));
-      var t = tSec / 60, v = t >= P.drop[0] ? P.drop[1] : curve.f(t), r = curve.ror(t), ph = phaseAt(t, P);
+      var t = tSec / 60, v = curve.f(Math.min(t, P.drop[0])), r = curve.ror(t), ph = phaseAt(t, P);
       if (cLine) { cLine.setAttribute('x1', X(t)); cLine.setAttribute('x2', X(t)); cDot.setAttribute('cx', X(t)); cDot.setAttribute('cy', Y(v)); }
       ro.time.textContent = mmss(tSec) + ' min';
       ro.temp.textContent = Math.round(v) + NB + '°C';

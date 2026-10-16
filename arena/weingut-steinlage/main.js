@@ -361,7 +361,7 @@
       setTimeout(function () { done.focus({ preventScroll: true }); }, 60);
       if (window.ScrollTrigger) ScrollTrigger.refresh();
     });
-    $$('input, select', form).forEach(function (el) { el.addEventListener('input', function () { if (el.getAttribute('aria-invalid')) bad(el, false); }); });
+    $$('input, select', form).forEach(function (el) { ['input', 'change'].forEach(function (ev) { el.addEventListener(ev, function () { if (el.getAttribute('aria-invalid')) { bad(el, false); if (!$('[aria-invalid]', form)) err.textContent = ''; } }); }); });
     $('#d-back').addEventListener('click', function () {
       done.hidden = true; form.hidden = false; err.textContent = '';
       $('#b-name').focus();
