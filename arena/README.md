@@ -1,6 +1,6 @@
 # Die Arena
 
-20 fertige Demo-Websites für **fiktive** Betriebe aus 20 Branchen, dazu die Übersichtsseite `index.html`
+30 fertige Demo-Websites für **fiktive** Betriebe aus 30 Branchen, dazu die Übersichtsseite `index.html`
 (Filter nach Branchengruppe, Suche, Vorschaubilder). Die Übersicht zeigt außerdem die drei Handwerks-Modelle
 aus `../handwerk/`. Alle Seiten sind statisch (HTML, CSS, JS), ohne Build-Schritt, mit selbst gehosteten
 Schriften und ohne externe Anfragen. Jede Demo steht für sich und lässt sich als Startpunkt für einen echten
@@ -22,13 +22,23 @@ Rechner-Werte geändert werden.
 | „Atem“ | [`yoga-atemraum/`](yoga-atemraum/) | Atemraum Yoga, Münster | Sport & Wohlbefinden | Organisch und ruhig, mit Atemübung, Stundenplan und Stil-Quiz. |
 | „Ufer“ | [`hotel-seeblick/`](hotel-seeblick/) | Hotel Seeblick am Tegernsee, Gmund am Tegernsee | Gastronomie & Hotel | Alpin und luxuriös, mit Buchungs-Widget und Tag-Nacht-Hero. |
 | „Tavola“ | [`trattoria-nonna-rosa/`](trattoria-nonna-rosa/) | Trattoria Nonna Rosa, Stuttgart | Gastronomie & Hotel | Lebendig und handgemacht, mit Speisekarte, Reservierung und Wein-Pairing. |
-| „Adresse“ | [`immobilien-ostwald/`](immobilien-ostwald/) | Ostwald Immobilien, Frankfurt am Main | Beratung | Gehoben und architektonisch, mit Bewertung und Finanzierungsrechner. |
-| „Paragraf“ | [`kanzlei-hartmann/`](kanzlei-hartmann/) | Hartmann Rechtsanwälte, Nürnberg | Beratung | Seriös und editorial, mit Rechtsgebiete-Explorer und Erstberatung. |
-| „Bilanz“ | [`steuer-falk/`](steuer-falk/) | Falk & Partner Steuerberatung, Hannover | Beratung | Klar wie ein Kontenblatt, mit Fristenkalender und Unterlagen-Checkliste. |
+| „Adresse“ | [`immobilien-ostwald/`](immobilien-ostwald/) | Ostwald Immobilien, Frankfurt am Main | Beratung & Service | Gehoben und architektonisch, mit Bewertung und Finanzierungsrechner. |
+| „Paragraf“ | [`kanzlei-hartmann/`](kanzlei-hartmann/) | Hartmann Rechtsanwälte, Nürnberg | Beratung & Service | Seriös und editorial, mit Rechtsgebiete-Explorer und Erstberatung. |
+| „Bilanz“ | [`steuer-falk/`](steuer-falk/) | Falk & Partner Steuerberatung, Hannover | Beratung & Service | Klar wie ein Kontenblatt, mit Fristenkalender und Unterlagen-Checkliste. |
 | „Spur“ | [`fahrschule-gruene-welle/`](fahrschule-gruene-welle/) | Fahrschule Grüne Welle, Essen | Mobilität | Jung und verkehrsgrafisch, mit Theorie-Quiz und Kostenrechner. |
 | „Drehmoment“ | [`kfz-berger/`](kfz-berger/) | Kfz-Meisterwerkstatt Berger, Dortmund | Mobilität | Technisch und präzise, mit Service-Rechner und klickbarem Auto. |
 | „Blüte“ | [`florist-blattwerk/`](florist-blattwerk/) | Blattwerk Floristik, Heidelberg | Kreativ & Handel | Botanisch und editorial, mit Strauß-Konfigurator und Saisonkalender. |
 | „Silber“ | [`fotografie-lichtwerk/`](fotografie-lichtwerk/) | Lichtwerk Hochzeitsfotografie, Dresden | Kreativ & Handel | Filmisch und still, mit Galerie, Paket-Konfigurator und Verfügbarkeit. |
+| „Kruste“ | [`backstube-korn/`](backstube-korn/) | Backstube Korn, Regensburg | Gastronomie & Hotel | Warm und handwerklich, mit Ofenfrisch-Uhr und Torten-Konfigurator. |
+| „Achse“ | [`physio-bewegt/`](physio-bewegt/) | bewegt. Physiotherapie, Münster | Gesundheit | Klar und sportlich, mit Körperkarte und Übungs-Player. |
+| „Röstgrad“ | [`roesterei-bohnenwerk/`](roesterei-bohnenwerk/) | Bohnenwerk Kaffeerösterei, Dresden | Gastronomie & Hotel | Dunkel und sinnlich, mit Röstkurven, Geschmacksrad und Brew-Timer. |
+| „Terroir“ | [`weingut-steinlage/`](weingut-steinlage/) | Weingut Steinlage, Deidesheim | Gastronomie & Hotel | Ruhig und erdig, mit Lagen-Karte, Wein-Finder und Weinprobe-Buchung. |
+| „Takt“ | [`musikschule-klangraum/`](musikschule-klangraum/) | Klangraum Musikschule, Mainz | Kreativ & Handel | Verspielt und mutig, mit spielbarem Sequencer und Instrumenten-Finder. |
+| „Etappe“ | [`umzug-zugvogel/`](umzug-zugvogel/) | Zugvogel Umzüge, Hannover | Mobilität | Kräftig und logistisch, mit Volumen-Rechner und Umzugs-Checkliste. |
+| „Grundriss“ | [`architektur-raumlinie/`](architektur-raumlinie/) | Raumlinie Architekten, Stuttgart | Beratung & Service | Monochrom und präzise, mit Grundriss-Explorer und Leistungsphasen. |
+| „Drehung“ | [`tanzschule-taktvoll/`](tanzschule-taktvoll/) | Tanzschule Taktvoll, Augsburg | Sport & Wohlbefinden | Abendlich und elegant, mit Spotlight-Hero und Schritt-Lehrer. |
+| „Kette“ | [`radwerk-oldenburg/`](radwerk-oldenburg/) | Radwerk, Oldenburg | Mobilität | Urban und sportlich, mit Rahmengrößen- und Reichweiten-Rechner. |
+| „Stille“ | [`bestattung-weidner/`](bestattung-weidner/) | Bestattungen Weidner, Lübeck | Beratung & Service | Still und würdevoll, mit Trauerfall-Anleitung und Vorsorge-Planer. |
 
 ## Online ansehen (GitHub Pages)
 
@@ -68,9 +78,11 @@ größeren Änderungen an einer Demo neu aufnehmen.
 
 ## Modernitäts-Prüfung (Oktober 2026)
 
-Alle 23 Demos und beide Übersichten wurden mit den Skills design-critique, emil-design-eng und
+Die ersten 23 Demos und beide Übersichten wurden mit den Skills design-critique, emil-design-eng und
 improve-animations geprüft und nachgebessert. Die Gesamtnote stieg von 7,0–8,0 auf 8,0–8,6 (Skala 10).
 Schwerpunkte: Layout-Sprünge durch GSAP-Pins beseitigt (CSS `sticky` statt `position: fixed`),
 schnellerer erster Bildschirm (Start in Etappen, kürzere Hero-Intros), Wisch-Schienen statt langer
 Kartenstapel auf dem Handy, Press-/Hover-Feedback und einheitliche Easing-Tokens. Das Prüfskript meldet
 danach bei allen Demos 0 Befunde (1440/1920/1024/390/360 px, `?motion=off`, ohne JS).
+
+Die zehn Demos der zweiten Runde (Bäckerei bis Bestattungshaus) wurden von Anfang an nach diesen Regeln gebaut und mit denselben Prüfskripten abgenommen.
