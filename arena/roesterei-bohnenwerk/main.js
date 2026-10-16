@@ -304,8 +304,14 @@
     window.__bwReady = true;
   });
 
-  /* ---------- Lenis + GSAP ---------- */
+  /* ---------- Lenis + GSAP (erst jetzt geladen, jede Datei in eigener Aufgabe) ---------- */
+  var VENDOR = '/arena/roesterei-bohnenwerk/assets/vendor/';
+  function loadScript(src) { return new Promise(function (res) { var s = document.createElement('script'); s.src = VENDOR + src; s.onload = s.onerror = function () { res(); }; document.head.appendChild(s); }); }
   later(function () {
+    loadScript('gsap.min.js').then(function () { return loadScript('ScrollTrigger.min.js'); }).then(function () { return animate ? loadScript('lenis.min.js') : null; })
+      .then(function () { try { motionSetup(); } catch (e) { if (window.console) console.warn('[bohnenwerk]', e); } if (window.ScrollTrigger) ScrollTrigger.refresh(); });
+  });
+  function motionSetup() {
     var hasGsap = window.gsap && window.ScrollTrigger;
     if (hasGsap) gsap.registerPlugin(ScrollTrigger);
     if (animate && window.Lenis) {
@@ -326,8 +332,13 @@
       var target = document.getElementById(id.slice(1)); if (!target) return;
       e.preventDefault();
       var off = -(header.offsetHeight + 8);
-      if (lenis) lenis.scrollTo(target, { offset: off, duration: 1.1 });
-      else window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY + off, behavior: animate ? 'smooth' : 'auto' });
+      // Nachkorrektur: Abschnitte mit content-visibility bekommen ihre echte Höhe erst beim Rendern
+      if (lenis) lenis.scrollTo(target, { offset: off, duration: 1.1, onComplete: function () { if (Math.abs(target.getBoundingClientRect().top + off) > 4) lenis.scrollTo(target, { offset: off, duration: 0.5 }); } });
+      else {
+        var smooth = !motionOff;
+        target.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+        [150, 1000].forEach(function (ms) { setTimeout(function () { if (Math.abs(target.getBoundingClientRect().top + off) > 4 && (!smooth || ms > 150)) target.scrollIntoView({ behavior: 'auto', block: 'start' }); }, ms); });
+      }
       if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
       target.focus({ preventScroll: true });
       if (history.replaceState) history.replaceState(null, '', id);
@@ -354,7 +365,7 @@
       gsap.fromTo('.cafe__b', { yPercent: 6 }, { yPercent: -6, ease: 'none', scrollTrigger: { trigger: '.cafe', start: 'top bottom', end: 'bottom top', scrub: 0.5 } });
       gsap.fromTo('.roastcard__photo img', { scale: 1.08 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom bottom', scrub: 0.4 } });
     });
-  });
+  }
 
   /* ---------- Tabs (Pfeiltasten, automatische Aktivierung) ---------- */
   function tabs(list, onSelect) {
@@ -417,7 +428,7 @@
       var bands = [[0, curve.dry, 'rgba(157,181,154,0.11)', 'Trocknung'], [curve.dry, P.fc[0], 'rgba(201,179,106,0.10)', 'Maillard'], [P.fc[0], P.drop[0], 'rgba(194,106,46,0.20)', W < 500 ? 'Entw.' : 'Entwicklung']];
       bands.forEach(function (b) {
         el('rect', { x: X(b[0]), y: M.t, width: X(b[1]) - X(b[0]), height: H - M.t - M.b, fill: b[2], class: 'c-band' }, svg);
-        if (X(b[1]) - X(b[0]) > b[3].length * 7.4 + 10) { var tx = el('text', { x: X(b[0]) + 6, y: M.t + 14, class: 'c-axis' }, svg); tx.textContent = b[3].toUpperCase(); }
+        if (X(b[1]) - X(b[0]) > b[3].length * 6.9 + 12) { var tx = el('text', { x: X(b[0]) + 6, y: M.t + 14, class: 'c-bandlabel' }, svg); tx.textContent = b[3].toUpperCase(); }
       });
       // Raster + Achsen
       var g = el('g', { class: 'c-grid' }, svg), ax = el('g', { class: 'c-axis' }, svg);
@@ -439,11 +450,12 @@
         var mg = el('g', { class: 'c-mark ' + cls }, svg);
         if (vertical) el('line', { x1: X(t), x2: X(t), y1: M.t, y2: H - M.b }, mg);
         el('circle', { cx: X(t), cy: Y(v), r: 4.5 }, mg);
-        var tx = el('text', { x: X(t) + (anchor === 'end' ? -10 : 10), y: Y(v) + (vertical ? -12 : 18), 'text-anchor': anchor || 'start' }, mg); tx.textContent = label;
+        var above = vertical || (cls === 'c-mark--end' && X(P.drop[0]) - X(P.fc[0]) < 70);
+        var tx = el('text', { x: X(t) + (anchor === 'end' ? -10 : 10), y: Y(v) + (above ? -12 : 18), 'text-anchor': anchor || 'start' }, mg); tx.textContent = label;
       }
       mark('', P.tp[0], P.tp[1], 'Wendepunkt', 'start');
       mark('c-mark--fc', P.fc[0], P.fc[1], 'First Crack', 'end', true);
-      mark('', P.drop[0], P.drop[1], 'Ende', 'end');
+      mark('c-mark--end', P.drop[0], P.drop[1], 'Ende', X(P.drop[0]) - X(P.fc[0]) < 70 ? 'start' : 'end');
       // Cursor
       cursorG = el('g', { class: 'c-cursor' }, svg);
       cLine = el('line', { y1: M.t, y2: H - M.b }, cursorG);

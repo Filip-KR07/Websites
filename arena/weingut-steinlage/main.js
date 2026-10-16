@@ -90,10 +90,12 @@
   /* ================= Hero-Canvas: Höhenlinien + Rebzeilen im Wind ================= */
   function initHero() {
     var cv = $('.hero__canvas'); if (!cv || !cv.getContext) return;
-    var ctx = cv.getContext('2d'), hero = cv.parentElement;
-    var W = 0, H = 0, dpr = 1, stat = null, mask = null, rows = [], visible = true, raf = 0, last = 0, t0 = performance.now();
+    var hero = cv.parentElement, rc = document.createElement('canvas');
+    rc.className = 'hero__rows'; rc.setAttribute('aria-hidden', 'true'); cv.after(rc);
+    var ctx = rc.getContext('2d');
+    var W = 0, H = 0, dpr = 1, top = 0, mask = null, rows = [], visible = true, raf = 0, last = 0, t0 = performance.now();
     var mouse = { x: -9999, y: -9999, on: false };
-    var FPS = 30;
+    var FPS = 24;
 
     // kleine deterministische Rausch-Funktion
     function n1(x, s) { return Math.sin(x * 1.7 + s) * .5 + Math.sin(x * 3.1 + s * 2.3) * .3 + Math.sin(x * 5.3 + s * .7) * .2; }
@@ -103,9 +105,8 @@
       W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
       dpr = Math.min(2, window.devicePixelRatio || 1);
       cv.width = W * dpr; cv.height = H * dpr;
-      // statische Ebene: Höhenlinien einmal rendern
-      stat = document.createElement('canvas'); stat.width = cv.width; stat.height = cv.height;
-      var s = stat.getContext('2d'); s.scale(dpr, dpr);
+      // statische Ebene: Höhenlinien einmal in die untere Leinwand rendern
+      var s = cv.getContext('2d'); s.setTransform(dpr, 0, 0, dpr, 0, 0); s.clearRect(0, 0, W, H);
       var mobile = W < 900;
       var cx = mobile ? W * .62 : W * .74, cy = mobile ? H * .2 : H * .36;
       var maxR = Math.hypot(W, H);
@@ -128,13 +129,17 @@
       if (mobile) { mask = ctx.createLinearGradient(0, H * .62, 0, H * .9); mask.addColorStop(0, 'rgba(0,0,0,1)'); mask.addColorStop(1, 'rgba(0,0,0,.15)'); }
       else { mask = ctx.createLinearGradient(0, 0, W * .62, 0); mask.addColorStop(0, 'rgba(0,0,0,.92)'); mask.addColorStop(.55, 'rgba(0,0,0,.8)'); mask.addColorStop(1, 'rgba(0,0,0,0)'); }
       rows = [];
+      // nur der untere Streifen wird pro Bild neu gezeichnet
+      top = Math.max(0, Math.floor(H * (mobile ? .8 : .6) - 70));
+      rc.style.top = top + 'px'; rc.style.height = (H - top) + 'px';
+      rc.width = W * dpr; rc.height = Math.max(1, (H - top) * dpr);
       var R = mobile ? 6 : 9;
       for (var i = 0; i < R; i++) {
         var t = i / (R - 1);
         var y0 = H * (mobile ? .8 : .6) + H * (mobile ? .26 : .44) * Math.pow(t, 1.35);
         var sc = .4 + t * (mobile ? .8 : 1);
-        var gap = 24 * sc, plants = [];
-        for (var x = -gap + (i % 2) * gap * .5; x < W + gap; x += gap) plants.push({ x: x, b: 0, v: 0, g: Math.random() < .14 });
+        var gap = (mobile ? 24 : 30) * sc, plants = [], x0 = mobile ? -gap : W * .26;
+        for (var x = x0 + (i % 2) * gap * .5; x < W + gap; x += gap) plants.push({ x: x, b: 0, v: 0, g: Math.random() < .14 });
         rows.push({ y0: y0, sc: sc, amp: 10 + 26 * (1 - t), ph: i * .9, plants: plants, a: .16 + t * .3 });
       }
     }
@@ -143,14 +148,15 @@
     function draw(now) {
       var t = (now - t0) / 1000;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, cv.width, cv.height);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, rc.width, rc.height);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, -top * dpr);
+      var wx0 = W < 900 ? -20 : Math.round(W * .24);
       var gust = .65 + .35 * Math.sin(t * .35) * Math.sin(t * .13 + 1);
       for (var i = 0; i < rows.length; i++) {
         var r = rows[i], sc = r.sc, h = 20 * sc, rad = 4.6 * sc;
         // Draht der Zeile
         ctx.beginPath();
-        for (var x = -20; x <= W + 20; x += 24) { var yy = rowY(r, x) - h * .55; x === -20 ? ctx.moveTo(x, yy) : ctx.lineTo(x, yy); }
+        for (var x = wx0; x <= W + 20; x += 24) { var yy = rowY(r, x) - h * .55; x === wx0 ? ctx.moveTo(x, yy) : ctx.lineTo(x, yy); }
         ctx.strokeStyle = 'rgba(79,91,58,' + (r.a * .55).toFixed(3) + ')'; ctx.lineWidth = .7; ctx.stroke();
         var stems = new Path2D(), leaves = new Path2D(), grapes = new Path2D();
         for (var j = 0; j < r.plants.length; j++) {
@@ -165,20 +171,16 @@
           var sway = Math.sin(t * 1.25 + p.x * .013 + r.ph) * 4.2 * sc * gust + p.b;
           var tx = p.x + sway, ty = base - h;
           stems.moveTo(p.x, base); stems.quadraticCurveTo(p.x + sway * .2, base - h * .55, tx, ty);
-          leaves.moveTo(tx + rad, ty); leaves.arc(tx, ty, rad, 0, Math.PI * 2);
-          leaves.moveTo(tx - rad * .4 + rad * .8, ty + rad * .9); leaves.arc(tx - rad * .4, ty + rad * .9, rad * .8, 0, Math.PI * 2);
+          leaves.moveTo(tx + rad * 1.25, ty); leaves.ellipse(tx, ty, rad * 1.25, rad, sway * .03, 0, Math.PI * 2);
           if (p.g) { grapes.moveTo(tx + rad * .9 + 2.2 * sc, ty + rad * 1.6); grapes.arc(tx + rad * .9, ty + rad * 1.6, 2.2 * sc, 0, Math.PI * 2); }
         }
         ctx.strokeStyle = 'rgba(79,91,58,' + (r.a * .9).toFixed(3) + ')'; ctx.lineWidth = Math.max(.6, sc * .9); ctx.stroke(stems);
         ctx.fillStyle = 'rgba(79,91,58,' + r.a.toFixed(3) + ')'; ctx.fill(leaves);
         ctx.fillStyle = 'rgba(74,20,38,' + (r.a * 1.4).toFixed(3) + ')'; ctx.fill(grapes);
       }
-      // Rebzeilen hinter dem Text ausblenden (Lesbarkeit), dann Höhenlinien darunterlegen
+      // Rebzeilen hinter dem Text ausblenden (Lesbarkeit)
       ctx.globalCompositeOperation = 'destination-out';
-      ctx.fillStyle = mask; ctx.fillRect(0, 0, W, H);
-      ctx.globalCompositeOperation = 'destination-over';
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.drawImage(stat, 0, 0);
+      ctx.fillStyle = mask; ctx.fillRect(0, top, W < 900 ? W : W * .62, H - top);
       ctx.globalCompositeOperation = 'source-over';
     }
     function loop(now) {
@@ -197,7 +199,7 @@
     addEventListener('resize', debounce(function () { if (Math.abs(innerWidth - lastW) < 2 && W) { /* nur Höhe (Adressleiste) */ } lastW = innerWidth; build(); draw(performance.now()); }, 200));
     new IntersectionObserver(function (es) { visible = es[0].isIntersecting; visible ? start() : stop(); }).observe(hero);
     document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
-    hero.addEventListener('pointermove', function (e) { var r = cv.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; mouse.on = true; }, { passive: true });
+    hero.addEventListener('pointermove', function (e) { var r = hero.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; mouse.on = true; }, { passive: true });
     hero.addEventListener('pointerleave', function () { mouse.on = false; });
     start();
   }
@@ -494,7 +496,8 @@
 
   /* ================= Start in Etappen ================= */
   initHeader();
-  initHero();
+  // Canvas in eigenem Task, damit der erste Layout-Task kurz bleibt
+  setTimeout(initHero, 0);
   var queue = [initAnchors, initLagen, initFinder, initBooking, initStatus, initReveal, initNavSpy, initMotion];
   var idle = window.requestIdleCallback || function (cb) { return setTimeout(function () { cb({ timeRemaining: function () { return 12; } }); }, 16); };
   function pump(deadline) {
