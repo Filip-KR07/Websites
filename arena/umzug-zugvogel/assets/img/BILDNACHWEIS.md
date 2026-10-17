@@ -12,3 +12,5 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 | `nachtfahrt` | 960x640 | Truck Transportation | https://stocksnap.io/photo/truck-transportation-L05LPK1M02 |
 | `oldtimer` | 960x636 | Truck Orange | https://stocksnap.io/photo/truck-orange-3148453E5E |
 | `packen` | 960x641 | Box Boxes | https://stocksnap.io/photo/box-boxes-WP1KHDXGOY |
+
+Bearbeitung: `packen`, `autobahn`, `karton`, `nachtfahrt` und `fernstrasse` sind als Duoton (Marine → Papier) eingefärbt (ImageMagick, Graustufen + Farbverlauf-CLUT); `oldtimer` bleibt farbig.

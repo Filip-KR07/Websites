@@ -12,11 +12,10 @@
   <meta property="og:type" content="website">
   <meta property="og:locale" content="de_DE">
   <meta property="og:site_name" content="Bohnenwerk Kaffeerösterei">
-  <meta property="og:title" content="Bohnenwerk – jede Bohne bis zu ihrem Punkt geröstet">
+  <meta property="og:title" content="Bohnenwerk – wir rösten, bis die Bohne knackt">
   <meta property="og:description" content="Kaffeerösterei &amp; Café in der Dresdner Neustadt: Röstprofile, Geschmacksrad, Kaffee-Abo und Brew-Guide. (Demo, fiktiver Betrieb)">
   <link rel="preload" href="/arena/roesterei-bohnenwerk/assets/fonts/bricolage-grotesque-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/arena/roesterei-bohnenwerk/assets/fonts/dm-mono-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/arena/roesterei-bohnenwerk/assets/img/hero-960.webp" as="image" type="image/webp" imagesrcset="/arena/roesterei-bohnenwerk/assets/img/hero-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/hero-960.webp 960w" imagesizes="(min-width: 900px) 30vw, 92vw" media="(min-width: 900px)">
   <link rel="stylesheet" href="/arena/roesterei-bohnenwerk/style.css">
   <script>
     (function () {
@@ -24,9 +23,10 @@
       d.classList.add('js');
       if (/[?&]motion=off\b/.test(q)) d.classList.add('motion-off');
       else if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('reduced');
-      else d.classList.add('roast-scroll'); // hoher Hero mit Sticky-Bühne – sofort gesetzt, damit nichts springt
+      else d.classList.add('anim'); // volle Bewegung: hoher Hero mit Sticky-Bühne, Kapitel-Farbwechsel – sofort gesetzt, damit nichts springt
+      if (window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches) d.classList.add('fine');
       // Sicherheitsnetz: Startet main.js nicht, wird alles sichtbar.
-      setTimeout(function () { if (!window.__bwReady) d.classList.remove('js'); }, 4000);
+      setTimeout(function () { if (!window.__bwReady) d.classList.remove('js', 'anim'); }, 4000);
     })();
   </script>
   <script src="/arena/roesterei-bohnenwerk/main.js" defer></script>
@@ -55,10 +55,24 @@
 <body>
   <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
 
+  <!-- Wiederverwendbare Zeichen: Bohne, Bewertungs-Siegel -->
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-bean" viewBox="0 0 20 28"><ellipse cx="10" cy="14" rx="8.4" ry="12.6" fill="currentColor"/><path d="M8 2.6c4.6 4.4-3.4 13 2.6 22.6" fill="none" stroke="rgba(0,0,0,.42)" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-seal" viewBox="0 0 200 200">
+      <path id="seal-ring" d="M100,100 m-72,0 a72,72 0 1,1 144,0 a72,72 0 1,1 -144,0" fill="none"/>
+      <circle cx="100" cy="100" r="95" fill="none" stroke="currentColor" stroke-width="3"/>
+      <circle cx="100" cy="100" r="88" fill="none" stroke="currentColor" stroke-width="1"/>
+      <circle cx="100" cy="100" r="55" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 4"/>
+      <text class="seal__ring"><textPath href="#seal-ring">512 BEWERTUNGEN · GÄSTE AUS DER NEUSTADT · </textPath></text>
+      <text x="100" y="112" text-anchor="middle" class="seal__big">4,8</text>
+      <text x="100" y="136" text-anchor="middle" class="seal__small">VON 5 STERNEN</text>
+    </symbol>
+  </svg>
+
   <header class="site-header" id="kopf">
     <div class="site-header__bar wrap">
       <a class="brand" href="/arena/roesterei-bohnenwerk/" aria-label="Bohnenwerk – zur Startseite">
-        <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.5" fill="none" stroke="currentColor" stroke-width="1.5"/><ellipse cx="20" cy="20" rx="8" ry="11.5" fill="currentColor" transform="rotate(-28 20 20)"/><path d="M16.2 10.8c4.2 4.4-1.6 13.6 7.6 18.4" fill="none" stroke="#1B1411" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="2" y="2" width="36" height="36" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="5.5" y="5.5" width="29" height="29" rx="1.5" fill="none" stroke="currentColor" stroke-width=".8"/><ellipse cx="20" cy="20" rx="6.6" ry="10" fill="currentColor" transform="rotate(-24 20 20)"/><path d="M17.4 11.6c3.6 3.6-1.6 11.4 5.6 16.4" fill="none" stroke="#1B1411" stroke-width="1.6" stroke-linecap="round"/></svg>
         <span class="brand__name">Bohnenwerk<small>Rösterei &amp; Café · Dresden</small></span>
       </a>
       <nav class="nav" aria-label="Hauptnavigation">
@@ -72,8 +86,8 @@
         </ul>
       </nav>
       <div class="site-header__actions">
-        <a class="header-tel" href="tel:+493515557240"><span class="mono">0351&nbsp;555&nbsp;72&nbsp;40</span></a>
-        <a class="btn btn--copper btn--sm" href="#abo">Abo zusammenstellen</a>
+        <a class="header-tel" href="tel:+493515557240">0351&nbsp;555&nbsp;72&nbsp;40</a>
+        <a class="btn btn--stamp btn--sm" href="#abo"><span>Abo zusammenstellen</span></a>
         <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menü öffnen"><span></span><span></span></button>
       </div>
     </div>
@@ -83,182 +97,194 @@
   <div class="menu" id="menu" hidden>
     <nav aria-label="Mobile Navigation">
       <ul>
-        <li><a href="#sortiment"><span class="mono">01</span>Kaffees</a></li>
-        <li><a href="#profile"><span class="mono">02</span>Röstprofile</a></li>
-        <li><a href="#aromen"><span class="mono">03</span>Geschmacksrad</a></li>
-        <li><a href="#abo"><span class="mono">04</span>Kaffee-Abo</a></li>
-        <li><a href="#zubereitung"><span class="mono">05</span>Zubereitung</a></li>
-        <li><a href="#cafe"><span class="mono">06</span>Café &amp; Führungen</a></li>
-        <li><a href="#kontakt"><span class="mono">07</span>Kontakt</a></li>
+        <li><a href="#sortiment">Kaffees</a></li>
+        <li><a href="#profile">Röstprofile</a></li>
+        <li><a href="#aromen">Geschmacksrad</a></li>
+        <li><a href="#abo">Kaffee-Abo</a></li>
+        <li><a href="#zubereitung">Zubereitung</a></li>
+        <li><a href="#cafe">Café &amp; Führungen</a></li>
+        <li><a href="#kontakt">Kontakt</a></li>
       </ul>
     </nav>
-    <p class="menu__meta mono">Alaunstraße 41 · 01099 Dresden<br><a href="tel:+493515557240">0351&nbsp;555&nbsp;72&nbsp;40</a></p>
+    <p class="menu__meta">Alaunstraße 41 · 01099 Dresden<br><a href="tel:+493515557240">0351&nbsp;555&nbsp;72&nbsp;40</a></p>
   </div>
 
   <main id="inhalt">
-    <!-- HERO: Bohnen rösten beim Scrollen -->
+    <!-- HERO: Röstprotokoll – die Kurve zeichnet sich, die Bohnen in der Trommel rösten mit dem Scroll -->
     <section class="hero" id="top" aria-labelledby="hero-title">
       <div class="hero__stage">
-        <canvas class="hero__beans" aria-hidden="true"></canvas>
-        <div class="hero__inner wrap">
-          <div class="hero__copy">
-            <p class="eyebrow hero-in" style="--i:0"><span class="dot" aria-hidden="true"></span>Kaffeerösterei &amp; Café · Dresden-Neustadt</p>
-            <h1 class="hero__title" id="hero-title">
-              <span class="hero-in" style="--i:1">Wir rösten</span>
-              <span class="hero-in" style="--i:2">jede Bohne bis</span>
-              <span class="hero-in" style="--i:3">zu <em>ihrem</em> Punkt.</span>
-            </h1>
-            <p class="hero__lead hero-in" style="--i:4">Kleinchargen auf dem 15‑kg-Trommelröster, direkt gehandelt mit Farmen in Äthiopien, Kolumbien und Brasilien. Dienstags und freitags geröstet, in der Alaunstraße ausgeschenkt.</p>
-            <div class="hero__cta hero-in" style="--i:5">
-              <a class="btn btn--copper" href="#abo">Kaffee-Abo zusammenstellen</a>
-              <a class="btn btn--ghost" href="#cafe">Café &amp; Öffnungszeiten</a>
-            </div>
-            <ul class="hero__trust hero-in" style="--i:6">
-              <li><strong>4,8&nbsp;★</strong> aus 512 Bewertungen</li>
-              <li><strong>3</strong> Farmen im Direkthandel</li>
-              <li><strong>Di&nbsp;+&nbsp;Fr</strong> frisch geröstet</li>
-            </ul>
-          </div>
+        <p class="hero__batch"><span>Röstprotokoll · Charge 2641</span><span class="hero__batch-r">Trommel 15&nbsp;kg · geröstet Di&nbsp;&amp;&nbsp;Fr · Alaunstraße 41</span></p>
 
-          <aside class="roastcard hero-in" style="--i:3" aria-label="Röstgrad-Anzeige">
-            <figure class="roastcard__photo">
-              <img src="/arena/roesterei-bohnenwerk/assets/img/hero-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/hero-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/hero-960.webp 960w" sizes="(min-width: 900px) 30vw, 92vw" width="960" height="640" fetchpriority="high" decoding="async" alt="Espresso läuft in einem dünnen, karamellfarbenen Strahl aus dem Siebträger">
-              <figcaption class="mono">Charge 2641 · Neustadt Espresso</figcaption>
-            </figure>
-            <div class="gauge" id="gauge">
-              <div class="gauge__head">
-                <span class="mono gauge__label"><span class="gauge__bean" aria-hidden="true"></span>Röstgrad</span>
-                <span class="gauge__event mono" id="gauge-event" aria-hidden="true">First Crack</span>
-              </div>
-              <p class="gauge__name" id="gauge-name">Rohkaffee</p>
-              <dl class="gauge__data">
-                <div><dt class="mono">Bohne</dt><dd><span id="gauge-temp">24</span>&nbsp;°C</dd></div>
-                <div><dt class="mono">Röstzeit</dt><dd id="gauge-time">00:00</dd></div>
-                <div><dt class="mono">Farbe</dt><dd><span id="gauge-agtron">95</span> Agtron</dd></div>
-              </dl>
-              <div class="gauge__bar" role="meter" aria-label="Röstgrad der Bohnen im Hero" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Rohkaffee, 24 °C" id="gauge-meter">
-                <span class="gauge__fill"></span>
-                <span class="gauge__marker" id="gauge-marker"></span>
-              </div>
-              <ol class="gauge__scale mono" aria-hidden="true">
-                <li>Grün</li><li>Zimt</li><li>City</li><li>Full City</li><li>Wiener</li>
-              </ol>
-              <p class="gauge__hint mono" id="gauge-hint">Scrollen Sie – die Bohnen rösten mit.</p>
-            </div>
-          </aside>
+        <h1 class="hero__title" id="hero-title"><span class="ink">Wir rösten,</span> <span class="ink">bis die Bohne</span> <span class="ink">knackt.</span></h1>
+
+        <div class="logger" aria-hidden="true">
+          <div class="logger__bands">
+            <span class="band band--dry" style="left:0;width:43.06%"><i>Trocknung</i></span>
+            <span class="band band--mai" style="left:43.06%;width:27.77%"><i>Maillard</i></span>
+            <span class="band band--dev" style="left:70.83%;width:25%"><i>Entwicklung</i></span>
+          </div>
+          <svg class="logger__grid" viewBox="0 0 1000 600" preserveAspectRatio="none">
+            <g><path d="M0 100H1000M0 200H1000M0 300H1000M0 400H1000M0 500H1000" vector-effect="non-scaling-stroke"/><path d="M166.7 0V600M333.3 0V600M500 0V600M666.7 0V600M833.3 0V600" vector-effect="non-scaling-stroke"/></g>
+          </svg>
+          <ul class="logger__y"><li style="top:16.67%">210°</li><li style="top:33.33%">180°</li><li style="top:50%">150°</li><li style="top:66.67%">120°</li><li style="top:83.33%">90°</li></ul>
+          <ul class="logger__x"><li style="left:16.67%">2</li><li style="left:33.33%">4</li><li style="left:50%">6</li><li style="left:66.67%">8</li><li style="left:83.33%">10</li><li style="left:100%">12&nbsp;min</li></ul>
+          <svg class="logger__ref" viewBox="0 0 1000 600" preserveAspectRatio="none"><path d="M0.0 93.3L4.2 122.3L8.3 150.0L12.5 176.6L16.7 202.0L20.8 226.2L25.0 249.2L29.2 271.0L33.3 291.7L37.5 311.2L41.7 329.5L45.8 346.7L50.0 362.7L54.2 377.7L58.3 391.4L62.5 404.1L66.7 415.7L70.8 426.1L75.0 435.5L79.2 443.8L83.3 451.0L87.5 457.2L91.7 462.3L95.8 466.4L100.0 469.6L104.2 471.7L108.3 473.0L112.5 473.3L116.7 473.2L120.8 472.8L125.0 472.2L129.2 471.4L133.3 470.4L137.5 469.2L141.7 467.8L145.8 466.3L150.0 464.6L154.2 462.8L158.3 460.9L162.5 458.9L166.7 456.8L170.8 454.6L175.0 452.3L179.2 450.0L183.3 447.5L187.5 445.0L191.7 442.5L195.8 439.9L200.0 437.3L204.2 434.6L208.3 431.9L212.5 429.1L216.7 426.3L220.8 423.5L225.0 420.7L229.2 417.8L233.3 415.0L237.5 412.1L241.7 409.2L245.8 406.3L250.0 403.4L254.2 400.4L258.3 397.5L262.5 394.6L266.7 391.7L270.8 388.7L275.0 385.8L279.2 382.9L283.3 379.9L287.5 377.0L291.7 374.1L295.8 371.2L300.0 368.3L304.2 365.4L308.3 362.5L312.5 359.6L316.7 356.8L320.8 353.9L325.0 351.0L329.2 348.2L333.3 345.4L337.5 342.6L341.7 339.7L345.8 336.9L350.0 334.2L354.2 331.4L358.3 328.6L362.5 325.9L366.7 323.1L370.8 320.4L375.0 317.7L379.2 315.0L383.3 312.3L387.5 309.7L391.7 307.0L395.8 304.4L400.0 301.7L404.2 299.1L408.3 296.5L412.5 293.9L416.7 291.4L420.8 288.8L425.0 286.3L429.2 283.7L433.3 281.2L437.5 278.7L441.7 276.2L445.8 273.7L450.0 271.3L454.2 268.8L458.3 266.4L462.5 264.0L466.7 261.6L470.8 259.2L475.0 256.8L479.2 254.4L483.3 252.1L487.5 249.7L491.7 247.4L495.8 245.1L500.0 242.8L504.2 240.5L508.3 238.2L512.5 236.0L516.7 233.7L520.8 231.5L525.0 229.3L529.2 227.0L533.3 224.9L537.5 222.7L541.7 220.5L545.8 218.3L550.0 216.2L554.2 214.1L558.3 212.0L562.5 209.8L566.7 207.8L570.8 205.7L575.0 203.6L579.2 201.5L583.3 199.5L587.5 197.5L591.7 195.4L595.8 193.4L600.0 191.4L604.2 189.4L608.3 187.5L612.5 185.5L616.7 183.6L620.8 181.6L625.0 179.7L629.2 177.8L633.3 175.9L637.5 174.0L641.7 172.1L645.8 170.2L650.0 168.3L654.2 166.5L658.3 164.6L662.5 162.8L666.7 161.0L670.8 159.2L675.0 157.4L679.2 155.6L683.3 153.8L687.5 152.0L691.7 150.3L695.8 148.5L700.0 146.8L704.2 145.1L708.3 143.3L712.5 141.6L716.7 139.9L720.8 138.2L725.0 136.5L729.2 134.9L733.3 133.2L737.5 131.5L741.7 129.9L745.8 128.2L750.0 126.6L754.2 125.0L758.3 123.4L762.5 121.8L766.7 120.2L770.8 118.6L775.0 117.0L779.2 115.4L783.3 113.9L787.5 112.3L791.7 110.7L795.8 109.2L800.0 107.7L804.2 106.1L808.3 104.6L812.5 103.1L816.7 101.6L820.8 100.1L825.0 98.6L829.2 97.1L833.3 95.6L837.5 94.1L841.7 92.7L845.8 91.2L850.0 89.7L854.2 88.3L858.3 86.8L862.5 85.4L866.7 83.9L870.8 82.5L875.0 81.1L879.2 79.7L883.3 78.2L887.5 76.8L891.7 75.4L895.8 74.0L900.0 72.6L904.2 71.2L908.3 69.8L912.5 68.4L916.7 67.1L920.8 65.7L925.0 64.3L929.2 62.9L933.3 61.5L937.5 60.2L941.7 58.8L945.8 57.4L950.0 56.1L954.2 54.7L958.3 53.3" vector-effect="non-scaling-stroke"/></svg>
+          <svg class="logger__live" id="logger-live" viewBox="0 0 1000 600" preserveAspectRatio="none"><path d="M0.0 93.3L4.2 122.3L8.3 150.0L12.5 176.6L16.7 202.0L20.8 226.2L25.0 249.2L29.2 271.0L33.3 291.7L37.5 311.2L41.7 329.5L45.8 346.7L50.0 362.7L54.2 377.7L58.3 391.4L62.5 404.1L66.7 415.7L70.8 426.1L75.0 435.5L79.2 443.8L83.3 451.0L87.5 457.2L91.7 462.3L95.8 466.4L100.0 469.6L104.2 471.7L108.3 473.0L112.5 473.3L116.7 473.2L120.8 472.8L125.0 472.2L129.2 471.4L133.3 470.4L137.5 469.2L141.7 467.8L145.8 466.3L150.0 464.6L154.2 462.8L158.3 460.9L162.5 458.9L166.7 456.8L170.8 454.6L175.0 452.3L179.2 450.0L183.3 447.5L187.5 445.0L191.7 442.5L195.8 439.9L200.0 437.3L204.2 434.6L208.3 431.9L212.5 429.1L216.7 426.3L220.8 423.5L225.0 420.7L229.2 417.8L233.3 415.0L237.5 412.1L241.7 409.2L245.8 406.3L250.0 403.4L254.2 400.4L258.3 397.5L262.5 394.6L266.7 391.7L270.8 388.7L275.0 385.8L279.2 382.9L283.3 379.9L287.5 377.0L291.7 374.1L295.8 371.2L300.0 368.3L304.2 365.4L308.3 362.5L312.5 359.6L316.7 356.8L320.8 353.9L325.0 351.0L329.2 348.2L333.3 345.4L337.5 342.6L341.7 339.7L345.8 336.9L350.0 334.2L354.2 331.4L358.3 328.6L362.5 325.9L366.7 323.1L370.8 320.4L375.0 317.7L379.2 315.0L383.3 312.3L387.5 309.7L391.7 307.0L395.8 304.4L400.0 301.7L404.2 299.1L408.3 296.5L412.5 293.9L416.7 291.4L420.8 288.8L425.0 286.3L429.2 283.7L433.3 281.2L437.5 278.7L441.7 276.2L445.8 273.7L450.0 271.3L454.2 268.8L458.3 266.4L462.5 264.0L466.7 261.6L470.8 259.2L475.0 256.8L479.2 254.4L483.3 252.1L487.5 249.7L491.7 247.4L495.8 245.1L500.0 242.8L504.2 240.5L508.3 238.2L512.5 236.0L516.7 233.7L520.8 231.5L525.0 229.3L529.2 227.0L533.3 224.9L537.5 222.7L541.7 220.5L545.8 218.3L550.0 216.2L554.2 214.1L558.3 212.0L562.5 209.8L566.7 207.8L570.8 205.7L575.0 203.6L579.2 201.5L583.3 199.5L587.5 197.5L591.7 195.4L595.8 193.4L600.0 191.4L604.2 189.4L608.3 187.5L612.5 185.5L616.7 183.6L620.8 181.6L625.0 179.7L629.2 177.8L633.3 175.9L637.5 174.0L641.7 172.1L645.8 170.2L650.0 168.3L654.2 166.5L658.3 164.6L662.5 162.8L666.7 161.0L670.8 159.2L675.0 157.4L679.2 155.6L683.3 153.8L687.5 152.0L691.7 150.3L695.8 148.5L700.0 146.8L704.2 145.1L708.3 143.3L712.5 141.6L716.7 139.9L720.8 138.2L725.0 136.5L729.2 134.9L733.3 133.2L737.5 131.5L741.7 129.9L745.8 128.2L750.0 126.6L754.2 125.0L758.3 123.4L762.5 121.8L766.7 120.2L770.8 118.6L775.0 117.0L779.2 115.4L783.3 113.9L787.5 112.3L791.7 110.7L795.8 109.2L800.0 107.7L804.2 106.1L808.3 104.6L812.5 103.1L816.7 101.6L820.8 100.1L825.0 98.6L829.2 97.1L833.3 95.6L837.5 94.1L841.7 92.7L845.8 91.2L850.0 89.7L854.2 88.3L858.3 86.8L862.5 85.4L866.7 83.9L870.8 82.5L875.0 81.1L879.2 79.7L883.3 78.2L887.5 76.8L891.7 75.4L895.8 74.0L900.0 72.6L904.2 71.2L908.3 69.8L912.5 68.4L916.7 67.1L920.8 65.7L925.0 64.3L929.2 62.9L933.3 61.5L937.5 60.2L941.7 58.8L945.8 57.4L950.0 56.1L954.2 54.7L958.3 53.3" vector-effect="non-scaling-stroke"/></svg>
+          <span class="mark mark--tp" style="left:11.25%;top:78.89%"><i>Wendepunkt 01:21</i></span>
+          <span class="mark mark--fc" id="mark-fc" style="left:70.83%;top:23.89%"><i>First Crack</i></span>
+          <span class="mark mark--end" style="left:95.83%;top:8.89%"><i>Ende 11:30</i></span>
+          <div class="cursor" id="logger-cursor"><span class="cursor__line"></span><span class="cursor__dot"></span><span class="cursor__tag" id="cursor-tag">00:00 · 212&nbsp;°C</span></div>
+        </div>
+
+        <div class="drum" id="drum">
+          <div class="drum__glass">
+            <img class="drum__still" src="/arena/roesterei-bohnenwerk/assets/img/rohkaffee-480.webp" width="480" height="320" alt="" loading="lazy" decoding="async">
+            <canvas class="drum__beans" aria-hidden="true"></canvas>
+          </div>
+          <svg class="drum__ring" viewBox="0 0 400 400" aria-hidden="true">
+            <circle cx="200" cy="200" r="194" class="drum__rim"/>
+            <circle cx="200" cy="200" r="172" class="drum__rim2"/>
+            <g class="drum__rivets"><circle cx="384.0" cy="200.0" r="3.2"/><circle cx="377.7" cy="247.6" r="3.2"/><circle cx="359.3" cy="292.0" r="3.2"/><circle cx="330.1" cy="330.1" r="3.2"/><circle cx="292.0" cy="359.3" r="3.2"/><circle cx="247.6" cy="377.7" r="3.2"/><circle cx="200.0" cy="384.0" r="3.2"/><circle cx="152.4" cy="377.7" r="3.2"/><circle cx="108.0" cy="359.3" r="3.2"/><circle cx="69.9" cy="330.1" r="3.2"/><circle cx="40.7" cy="292.0" r="3.2"/><circle cx="22.3" cy="247.6" r="3.2"/><circle cx="16.0" cy="200.0" r="3.2"/><circle cx="22.3" cy="152.4" r="3.2"/><circle cx="40.7" cy="108.0" r="3.2"/><circle cx="69.9" cy="69.9" r="3.2"/><circle cx="108.0" cy="40.7" r="3.2"/><circle cx="152.4" cy="22.3" r="3.2"/><circle cx="200.0" cy="16.0" r="3.2"/><circle cx="247.6" cy="22.3" r="3.2"/><circle cx="292.0" cy="40.7" r="3.2"/><circle cx="330.1" cy="69.9" r="3.2"/><circle cx="359.3" cy="108.0" r="3.2"/><circle cx="377.7" cy="152.4" r="3.2"/></g>
+            <g class="drum__scale"><path d="M44.9 253.4A164 164 0 0 1 49.0 135.9" class="s s1"/><path d="M51.4 130.7A164 164 0 0 1 135.9 49.0" class="s s2"/><path d="M141.2 46.9A164 164 0 0 1 258.8 46.9" class="s s3"/><path d="M264.1 49.0A164 164 0 0 1 348.6 130.7" class="s s4"/><path d="M351.0 135.9A164 164 0 0 1 355.1 253.4" class="s s5"/><path class="drum__ticks" d="M57.2 252.0L34.6 260.2M61.1 138.2L39.2 128.4M143.1 59.1L134.1 36.8M256.9 59.1L265.9 36.8M338.9 138.2L360.8 128.4M342.8 252.0L365.4 260.2"/></g>
+            <g class="drum__needle" id="drum-needle"><path d="M200 22l7 16h-14z"/></g>
+          </svg>
+          <div class="drum__meter" id="gauge-meter" role="meter" aria-label="Röstgrad der Bohnen im Hero" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Rohkaffee, 212 °C"></div>
+          <svg class="seal seal--hero" viewBox="0 0 200 200" aria-hidden="true"><use href="#i-seal"/></svg>
+        </div>
+
+        <div class="gauge" id="gauge">
+          <p class="gauge__label">Röstgrad jetzt</p>
+          <p class="gauge__name" id="gauge-name">Rohkaffee</p>
+          <dl class="gauge__data">
+            <div><dt>Fühler</dt><dd><span id="gauge-temp">212</span>&nbsp;°C</dd></div>
+            <div><dt>Röstzeit</dt><dd id="gauge-time">00:00</dd></div>
+            <div><dt>Farbe</dt><dd><span id="gauge-agtron">95</span>&nbsp;Agtron</dd></div>
+          </dl>
+          <p class="gauge__hint" id="gauge-hint">Scrollen Sie – die Charge läuft mit.</p>
+        </div>
+
+        <div class="hero__side">
+          <p class="hero__lead">Kleinchargen auf dem 15‑kg-Trommelröster, direkt gehandelt mit drei Farmen in Äthiopien, Kolumbien und Brasilien. Dienstags und freitags geröstet, in der Alaunstraße ausgeschenkt.</p>
+          <p class="visually-hidden">Bewertet mit 4,8 von 5 Sternen aus 512 Bewertungen.</p>
+          <div class="hero__cta">
+            <a class="btn btn--stamp" href="#abo"><span>Kaffee-Abo zusammenstellen</span></a>
+            <a class="link-draw" href="#cafe">Café &amp; Öffnungszeiten</a>
+          </div>
         </div>
       </div>
     </section>
 
-    <div class="stamps" aria-label="Herkünfte im Direkthandel">
-      <div class="stamps__track">
-        <p class="mono"><span>Äthiopien · Guji · 2.100&nbsp;m</span><span>Kolumbien · Huila · 1.750&nbsp;m</span><span>Brasilien · Cerrado Mineiro · 1.100&nbsp;m</span><span>Äthiopien · Yirgacheffe · 1.950&nbsp;m</span></p>
-        <p class="mono" aria-hidden="true"><span>Äthiopien · Guji · 2.100&nbsp;m</span><span>Kolumbien · Huila · 1.750&nbsp;m</span><span>Brasilien · Cerrado Mineiro · 1.100&nbsp;m</span><span>Äthiopien · Yirgacheffe · 1.950&nbsp;m</span></p>
+    <!-- Sackstempel-Band: reagiert auf Scroll-Tempo -->
+    <div class="stampband" aria-label="Herkünfte im Direkthandel">
+      <div class="stampband__track" id="stampband">
+        <p><span>Äthiopien · Guji · 2.100&nbsp;m</span><span>Kolumbien · Huila · 1.750&nbsp;m</span><span>Brasilien · Cerrado Mineiro · 1.100&nbsp;m</span><span>Äthiopien · Yirgacheffe · 1.950&nbsp;m</span></p>
+        <p aria-hidden="true"><span>Äthiopien · Guji · 2.100&nbsp;m</span><span>Kolumbien · Huila · 1.750&nbsp;m</span><span>Brasilien · Cerrado Mineiro · 1.100&nbsp;m</span><span>Äthiopien · Yirgacheffe · 1.950&nbsp;m</span></p>
       </div>
     </div>
 
-    <!-- SORTIMENT -->
+    <!-- SORTIMENT: Index wie ein Sackregal -->
     <section class="section sortiment" id="sortiment" aria-labelledby="sortiment-title">
       <div class="wrap">
-        <header class="sec-head" data-reveal>
-          <p class="sec-label mono"><span>Protokoll 01</span>Sortiment Herbst</p>
-          <h2 id="sortiment-title">Sechs Kaffees. Jeder mit eigenem Röstpunkt.</h2>
-          <p class="sec-lead">Wir rösten nicht „hell“ oder „dunkel“ nach Schema, sondern so lange, bis die Bohne zeigt, was in ihr steckt. Jede Tüte trägt Röstdatum und Chargennummer.</p>
-        </header>
-        <ul class="sacks rail" data-reveal-group>
-          <li class="sack" style="--roast:#B9773F" data-coffee="guji">
-            <div class="sack__top"><span class="mono">Nr. 01 · Natural</span><span class="sack__stamp mono" aria-hidden="true">Direkt&shy;handel</span></div>
-            <p class="sack__origin">Äthiopien</p>
-            <h3 class="sack__name">Guji Hambela</h3>
-            <p class="sack__notes">Blaubeere, Jasmin, Pfirsich</p>
-            <dl class="sack__facts mono"><div><dt>Höhe</dt><dd>2.100&nbsp;m</dd></div><div><dt>Varietät</dt><dd>Heirloom</dd></div><div><dt>Röstgrad</dt><dd>Zimt</dd></div></dl>
-            <div class="sack__roast" aria-hidden="true"><span style="--p:.32"></span></div>
-            <div class="sack__foot"><p class="sack__price"><strong>14,90&nbsp;€</strong> <span class="mono">/ 250&nbsp;g</span></p><div class="sack__links"><a class="link-arrow" href="#profile" data-pick-profile="guji">Röstkurve</a><a class="link-arrow" href="#abo" data-pick-abo="guji">Ins Abo</a></div></div>
-          </li>
-          <li class="sack" style="--roast:#A5652F" data-coffee="konga">
-            <div class="sack__top"><span class="mono">Nr. 02 · Gewaschen</span><span class="sack__stamp mono" aria-hidden="true">Direkt&shy;handel</span></div>
-            <p class="sack__origin">Äthiopien</p>
-            <h3 class="sack__name">Yirgacheffe Konga</h3>
-            <p class="sack__notes">Zitrone, Schwarztee, Honig</p>
-            <dl class="sack__facts mono"><div><dt>Höhe</dt><dd>1.950&nbsp;m</dd></div><div><dt>Varietät</dt><dd>Kurume</dd></div><div><dt>Röstgrad</dt><dd>City</dd></div></dl>
-            <div class="sack__roast" aria-hidden="true"><span style="--p:.42"></span></div>
-            <div class="sack__foot"><p class="sack__price"><strong>13,90&nbsp;€</strong> <span class="mono">/ 250&nbsp;g</span></p><div class="sack__links"><a class="link-arrow" href="#profile" data-pick-profile="konga">Röstkurve</a><a class="link-arrow" href="#abo" data-pick-abo="konga">Ins Abo</a></div></div>
-          </li>
-          <li class="sack" style="--roast:#8E5228" data-coffee="huila">
-            <div class="sack__top"><span class="mono">Nr. 03 · Gewaschen</span><span class="sack__stamp mono" aria-hidden="true">Direkt&shy;handel</span></div>
-            <p class="sack__origin">Kolumbien</p>
-            <h3 class="sack__name">Huila La Esperanza</h3>
-            <p class="sack__notes">Rote Johannisbeere, Orange, Rohrzucker</p>
-            <dl class="sack__facts mono"><div><dt>Höhe</dt><dd>1.750&nbsp;m</dd></div><div><dt>Varietät</dt><dd>Caturra</dd></div><div><dt>Röstgrad</dt><dd>City+</dd></div></dl>
-            <div class="sack__roast" aria-hidden="true"><span style="--p:.54"></span></div>
-            <div class="sack__foot"><p class="sack__price"><strong>12,90&nbsp;€</strong> <span class="mono">/ 250&nbsp;g</span></p><div class="sack__links"><a class="link-arrow" href="#profile" data-pick-profile="huila">Röstkurve</a><a class="link-arrow" href="#abo" data-pick-abo="huila">Ins Abo</a></div></div>
-          </li>
-          <li class="sack" style="--roast:#74411F" data-coffee="cerrado">
-            <div class="sack__top"><span class="mono">Nr. 04 · Natural</span><span class="sack__stamp mono" aria-hidden="true">Direkt&shy;handel</span></div>
-            <p class="sack__origin">Brasilien</p>
-            <h3 class="sack__name">Cerrado Boa Vista</h3>
-            <p class="sack__notes">Haselnuss, Milchschokolade, Karamell</p>
-            <dl class="sack__facts mono"><div><dt>Höhe</dt><dd>1.100&nbsp;m</dd></div><div><dt>Varietät</dt><dd>Yellow Catuaí</dd></div><div><dt>Röstgrad</dt><dd>Full City</dd></div></dl>
-            <div class="sack__roast" aria-hidden="true"><span style="--p:.68"></span></div>
-            <div class="sack__foot"><p class="sack__price"><strong>10,90&nbsp;€</strong> <span class="mono">/ 250&nbsp;g</span></p><div class="sack__links"><a class="link-arrow" href="#profile" data-pick-profile="cerrado">Röstkurve</a><a class="link-arrow" href="#abo" data-pick-abo="cerrado">Ins Abo</a></div></div>
-          </li>
-          <li class="sack" style="--roast:#5E331A" data-coffee="espresso">
-            <div class="sack__top"><span class="mono">Nr. 05 · Blend</span><span class="sack__stamp mono" aria-hidden="true">Haus&shy;röstung</span></div>
-            <p class="sack__origin">Brasilien · Kolumbien</p>
-            <h3 class="sack__name">Neustadt Espresso</h3>
-            <p class="sack__notes">Kakao, Karamell, Mandel</p>
-            <dl class="sack__facts mono"><div><dt>Anteile</dt><dd>70 / 30</dd></div><div><dt>Für</dt><dd>Siebträger</dd></div><div><dt>Röstgrad</dt><dd>Full City+</dd></div></dl>
-            <div class="sack__roast" aria-hidden="true"><span style="--p:.76"></span></div>
-            <div class="sack__foot"><p class="sack__price"><strong>11,90&nbsp;€</strong> <span class="mono">/ 250&nbsp;g</span></p><div class="sack__links"><a class="link-arrow" href="#profile" data-pick-profile="espresso">Röstkurve</a><a class="link-arrow" href="#abo" data-pick-abo="espresso">Ins Abo</a></div></div>
-          </li>
-          <li class="sack" style="--roast:#45251A" data-coffee="dunkel">
-            <div class="sack__top"><span class="mono">Nr. 06 · Blend</span><span class="sack__stamp mono" aria-hidden="true">Haus&shy;röstung</span></div>
-            <p class="sack__origin">Brasilien · Äthiopien</p>
-            <h3 class="sack__name">Elbhang Dunkel</h3>
-            <p class="sack__notes">Zartbitter, Zimt, Tabak</p>
-            <dl class="sack__facts mono"><div><dt>Anteile</dt><dd>60 / 40</dd></div><div><dt>Für</dt><dd>Mokka, Milch</dd></div><div><dt>Röstgrad</dt><dd>Wiener</dd></div></dl>
-            <div class="sack__roast" aria-hidden="true"><span style="--p:.88"></span></div>
-            <div class="sack__foot"><p class="sack__price"><strong>10,50&nbsp;€</strong> <span class="mono">/ 250&nbsp;g</span></p><div class="sack__links"><a class="link-arrow" href="#profile" data-pick-profile="dunkel">Röstkurve</a><a class="link-arrow" href="#abo" data-pick-abo="dunkel">Ins Abo</a></div></div>
-          </li>
-        </ul>
-        <p class="rail-hint mono" aria-hidden="true">Wischen für alle sechs Kaffees →</p>
+        <div class="sortiment__head">
+          <h2 id="sortiment-title" class="xl ink" data-reveal="stamp">Sechs Kaffees,<br>sechs Röstpunkte.</h2>
+          <p class="sortiment__lead" data-reveal>Wir rösten nicht „hell“ oder „dunkel“ nach Schema. Jeder Sack läuft so lange, bis die Bohne zeigt, was in ihr steckt – und jede Tüte trägt Röstdatum und Chargennummer.</p>
+        </div>
+        <div class="shelf">
+          <ul class="sacks rail" data-reveal-group>
+            <li class="sack" style="--roast:#B9773F;--p:.32" data-coffee="guji">
+              <span class="sack__no">01</span>
+              <div class="sack__main"><h3 class="sack__name">Guji Hambela</h3><p class="sack__origin">Äthiopien · Natural · 2.100&nbsp;m · Heirloom</p></div>
+              <p class="sack__notes">Blaubeere, Jasmin, Pfirsich</p>
+              <div class="sack__roast"><span class="sack__scale" aria-hidden="true"><i></i></span><span class="sack__deg">Röstgrad Zimt</span></div>
+              <p class="sack__price"><strong>14,90&nbsp;€</strong> <span>/ 250&nbsp;g</span></p>
+              <div class="sack__links"><a class="link-draw" href="#profile" data-pick-profile="guji">Röstkurve</a><a class="link-draw" href="#abo" data-pick-abo="guji">Ins Abo</a></div>
+            </li>
+            <li class="sack" style="--roast:#A5652F;--p:.42" data-coffee="konga">
+              <span class="sack__no">02</span>
+              <div class="sack__main"><h3 class="sack__name">Yirgacheffe Konga</h3><p class="sack__origin">Äthiopien · Gewaschen · 1.950&nbsp;m · Kurume</p></div>
+              <p class="sack__notes">Zitrone, Schwarztee, Honig</p>
+              <div class="sack__roast"><span class="sack__scale" aria-hidden="true"><i></i></span><span class="sack__deg">Röstgrad City</span></div>
+              <p class="sack__price"><strong>13,90&nbsp;€</strong> <span>/ 250&nbsp;g</span></p>
+              <div class="sack__links"><a class="link-draw" href="#profile" data-pick-profile="konga">Röstkurve</a><a class="link-draw" href="#abo" data-pick-abo="konga">Ins Abo</a></div>
+            </li>
+            <li class="sack" style="--roast:#8E5228;--p:.54" data-coffee="huila">
+              <span class="sack__no">03</span>
+              <div class="sack__main"><h3 class="sack__name">Huila La Esperanza</h3><p class="sack__origin">Kolumbien · Gewaschen · 1.750&nbsp;m · Caturra</p></div>
+              <p class="sack__notes">Rote Johannisbeere, Orange, Rohrzucker</p>
+              <div class="sack__roast"><span class="sack__scale" aria-hidden="true"><i></i></span><span class="sack__deg">Röstgrad City+</span></div>
+              <p class="sack__price"><strong>12,90&nbsp;€</strong> <span>/ 250&nbsp;g</span></p>
+              <div class="sack__links"><a class="link-draw" href="#profile" data-pick-profile="huila">Röstkurve</a><a class="link-draw" href="#abo" data-pick-abo="huila">Ins Abo</a></div>
+            </li>
+            <li class="sack" style="--roast:#74411F;--p:.68" data-coffee="cerrado">
+              <span class="sack__no">04</span>
+              <div class="sack__main"><h3 class="sack__name">Cerrado Boa Vista</h3><p class="sack__origin">Brasilien · Natural · 1.100&nbsp;m · Yellow Catuaí</p></div>
+              <p class="sack__notes">Haselnuss, Milchschokolade, Karamell</p>
+              <div class="sack__roast"><span class="sack__scale" aria-hidden="true"><i></i></span><span class="sack__deg">Röstgrad Full City</span></div>
+              <p class="sack__price"><strong>10,90&nbsp;€</strong> <span>/ 250&nbsp;g</span></p>
+              <div class="sack__links"><a class="link-draw" href="#profile" data-pick-profile="cerrado">Röstkurve</a><a class="link-draw" href="#abo" data-pick-abo="cerrado">Ins Abo</a></div>
+            </li>
+            <li class="sack" style="--roast:#5E331A;--p:.76" data-coffee="espresso">
+              <span class="sack__no">05</span>
+              <div class="sack__main"><h3 class="sack__name">Neustadt Espresso</h3><p class="sack__origin">Blend Brasilien 70 · Kolumbien 30 · für Siebträger</p></div>
+              <p class="sack__notes">Kakao, Karamell, Mandel</p>
+              <div class="sack__roast"><span class="sack__scale" aria-hidden="true"><i></i></span><span class="sack__deg">Röstgrad Full City+</span></div>
+              <p class="sack__price"><strong>11,90&nbsp;€</strong> <span>/ 250&nbsp;g</span></p>
+              <div class="sack__links"><a class="link-draw" href="#profile" data-pick-profile="espresso">Röstkurve</a><a class="link-draw" href="#abo" data-pick-abo="espresso">Ins Abo</a></div>
+            </li>
+            <li class="sack" style="--roast:#45251A;--p:.88" data-coffee="dunkel">
+              <span class="sack__no">06</span>
+              <div class="sack__main"><h3 class="sack__name">Elbhang Dunkel</h3><p class="sack__origin">Blend Brasilien 60 · Äthiopien 40 · für Mokka &amp; Milch</p></div>
+              <p class="sack__notes">Zartbitter, Zimt, Tabak</p>
+              <div class="sack__roast"><span class="sack__scale" aria-hidden="true"><i></i></span><span class="sack__deg">Röstgrad Wiener</span></div>
+              <p class="sack__price"><strong>10,50&nbsp;€</strong> <span>/ 250&nbsp;g</span></p>
+              <div class="sack__links"><a class="link-draw" href="#profile" data-pick-profile="dunkel">Röstkurve</a><a class="link-draw" href="#abo" data-pick-abo="dunkel">Ins Abo</a></div>
+            </li>
+          </ul>
+          <div class="sackpeek" aria-hidden="true">
+            <div class="sackpeek__bag">
+              <span class="sackpeek__top">Bohnenwerk · Dresden</span>
+              <span class="sackpeek__no" id="peek-no">Nr. 01</span>
+              <span class="sackpeek__name" id="peek-name">Guji Hambela</span>
+              <span class="sackpeek__origin" id="peek-origin">Äthiopien · Natural</span>
+              <svg class="sackpeek__bean" viewBox="0 0 20 28"><use href="#i-bean"/></svg>
+            </div>
+          </div>
+        </div>
+        <p class="rail-hint" aria-hidden="true">Wischen für alle sechs Säcke</p>
       </div>
     </section>
 
-    <!-- RÖSTPROFIL-EXPLORER -->
-    <section class="section profile" id="profile" aria-labelledby="profile-title">
+    <!-- RÖSTPROFIL-EXPLORER: Kapitel auf Logger-Papier -->
+    <section class="section profile chapter-paper" id="profile" aria-labelledby="profile-title">
       <div class="wrap">
-        <header class="sec-head sec-head--split" data-reveal>
-          <div>
-            <p class="sec-label mono"><span>Protokoll 02</span>Röstprofil-Explorer</p>
-            <h2 id="profile-title">Zehn Minuten, die den Geschmack entscheiden.</h2>
-          </div>
-          <p class="sec-lead">So sieht jede Charge auf unserem Röstlog aus: Bohnentemperatur über Zeit, der First Crack und die Entwicklungszeit danach. Fahren Sie mit der Maus über die Kurve – oder nutzen Sie die Pfeiltasten.</p>
-        </header>
+        <div class="profile__head">
+          <h2 id="profile-title" class="xl" data-reveal="stamp">Zehn Minuten entscheiden, wonach Ihr Kaffee schmeckt.</h2>
+          <p class="profile__lead" data-reveal>So sieht jede Charge auf unserem Röstlog aus: Bohnentemperatur über Zeit, der First Crack und die Entwicklungszeit danach. Fahren Sie mit der Maus über die Kurve – oder nutzen Sie die Pfeiltasten.</p>
+        </div>
 
-        <div class="explorer" data-reveal>
+        <div class="explorer" data-reveal="ink">
           <div class="explorer__tabs" role="tablist" aria-label="Kaffee für die Röstkurve wählen">
-            <button role="tab" type="button" id="ptab-guji" aria-controls="ppanel" aria-selected="true" data-coffee="guji"><span class="swatch" style="--roast:#B9773F"></span>Guji Hambela</button>
-            <button role="tab" type="button" id="ptab-konga" aria-controls="ppanel" aria-selected="false" tabindex="-1" data-coffee="konga"><span class="swatch" style="--roast:#A5652F"></span>Yirgacheffe Konga</button>
-            <button role="tab" type="button" id="ptab-huila" aria-controls="ppanel" aria-selected="false" tabindex="-1" data-coffee="huila"><span class="swatch" style="--roast:#8E5228"></span>Huila La Esperanza</button>
-            <button role="tab" type="button" id="ptab-cerrado" aria-controls="ppanel" aria-selected="false" tabindex="-1" data-coffee="cerrado"><span class="swatch" style="--roast:#74411F"></span>Cerrado Boa Vista</button>
-            <button role="tab" type="button" id="ptab-espresso" aria-controls="ppanel" aria-selected="false" tabindex="-1" data-coffee="espresso"><span class="swatch" style="--roast:#5E331A"></span>Neustadt Espresso</button>
-            <button role="tab" type="button" id="ptab-dunkel" aria-controls="ppanel" aria-selected="false" tabindex="-1" data-coffee="dunkel"><span class="swatch" style="--roast:#45251A"></span>Elbhang Dunkel</button>
+            <button role="tab" type="button" id="ptab-guji" aria-controls="ppanel" aria-selected="true" data-coffee="guji"><span class="swatch" style="--roast:#B9773F"></span><span>Guji Hambela</span></button>
+            <button role="tab" type="button" id="ptab-konga" aria-controls="ppanel" aria-selected="false" tabindex="-1" data-coffee="konga"><span class="swatch" style="--roast:#A5652F"></span><span>Yirgacheffe Konga</span></button>
+            <button role="tab" type="button" id="ptab-huila" aria-controls="ppanel" aria-selected="false" tabindex="-1" data-coffee="huila"><span class="swatch" style="--roast:#8E5228"></span><span>Huila La Esperanza</span></button>
+            <button role="tab" type="button" id="ptab-cerrado" aria-controls="ppanel" aria-selected="false" tabindex="-1" data-coffee="cerrado"><span class="swatch" style="--roast:#74411F"></span><span>Cerrado Boa Vista</span></button>
+            <button role="tab" type="button" id="ptab-espresso" aria-controls="ppanel" aria-selected="false" tabindex="-1" data-coffee="espresso"><span class="swatch" style="--roast:#5E331A"></span><span>Neustadt Espresso</span></button>
+            <button role="tab" type="button" id="ptab-dunkel" aria-controls="ppanel" aria-selected="false" tabindex="-1" data-coffee="dunkel"><span class="swatch" style="--roast:#45251A"></span><span>Elbhang Dunkel</span></button>
           </div>
 
           <div class="explorer__panel" id="ppanel" role="tabpanel" aria-labelledby="ptab-guji">
             <div class="explorer__chart">
               <div class="readout" aria-hidden="true">
-                <span class="readout__time mono" id="ro-time">05:00</span>
+                <span class="readout__time" id="ro-time">05:00</span>
                 <span class="readout__temp" id="ro-temp">163&nbsp;°C</span>
-                <span class="readout__ror mono" id="ro-ror">RoR 11,2&nbsp;°C/min</span>
-                <span class="readout__phase mono" id="ro-phase">Maillard</span>
+                <span class="readout__ror" id="ro-ror">RoR 11,2&nbsp;°C/min</span>
+                <span class="readout__phase" id="ro-phase">Maillard</span>
               </div>
               <div class="chart" id="chart" tabindex="0" role="slider" aria-label="Röstkurve ablesen – Zeitpunkt mit Pfeiltasten wählen" aria-valuemin="0" aria-valuemax="600" aria-valuenow="300" aria-valuetext="05:00 Minuten">
                 <svg class="chart__svg" id="chart-svg" viewBox="0 0 720 400" preserveAspectRatio="none" aria-hidden="true"></svg>
-                <noscript><p class="chart__noscript">Die interaktive Röstkurve benötigt JavaScript. Die wichtigsten Werte stehen rechts.</p></noscript>
+                <noscript><p class="chart__noscript">Die interaktive Röstkurve benötigt JavaScript. Die wichtigsten Werte stehen daneben.</p></noscript>
               </div>
-              <ul class="chart__legend mono" aria-hidden="true">
+              <ul class="chart__legend" aria-hidden="true">
                 <li><span class="lg lg--bt"></span>Bohnentemperatur</li>
                 <li><span class="lg lg--ror"></span>Anstiegsrate (RoR)</li>
                 <li><span class="lg lg--dry"></span>Trocknung</li>
@@ -267,65 +293,67 @@
               </ul>
             </div>
             <aside class="explorer__facts">
-              <p class="mono explorer__origin" id="pf-origin">Äthiopien · Natural</p>
+              <p class="explorer__origin" id="pf-origin">Äthiopien · Natural</p>
               <h3 id="pf-name">Guji Hambela</h3>
               <p class="explorer__note" id="pf-note">Kurz entwickelt, damit Blaubeere und Jasmin nicht unter Röstaromen verschwinden.</p>
-              <dl class="facts mono">
+              <dl class="facts">
                 <div><dt>Chargiert bei</dt><dd id="pf-charge">200&nbsp;°C</dd></div>
                 <div><dt>Wendepunkt</dt><dd id="pf-tp">01:30 · 92&nbsp;°C</dd></div>
                 <div><dt>First Crack</dt><dd id="pf-fc">08:10 · 196&nbsp;°C</dd></div>
                 <div><dt>Entwicklung</dt><dd id="pf-dev">01:15 · 13&nbsp;%</dd></div>
                 <div><dt>Ende</dt><dd id="pf-drop">09:25 · 204&nbsp;°C</dd></div>
               </dl>
-              <a class="btn btn--ghost btn--sm" href="#abo" id="pf-abo" data-pick-abo="guji">Diesen Kaffee ins Abo</a>
+              <a class="btn btn--ink btn--sm" href="#abo" id="pf-abo" data-pick-abo="guji"><span>Diesen Kaffee ins Abo</span></a>
             </aside>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- GESCHMACKSRAD -->
+    <!-- GESCHMACKSRAD: drehen, wählen, Treffer -->
     <section class="section aromen" id="aromen" aria-labelledby="aromen-title">
       <div class="wrap aromen__grid">
-        <header class="sec-head" data-reveal>
-          <p class="sec-label mono"><span>Protokoll 03</span>Geschmacksrad</p>
-          <h2 id="aromen-title">Was schmecken Sie gern?</h2>
-          <p class="sec-lead">Tippen Sie Aromen auf dem Rad an. Wir zeigen Ihnen, welche Kaffees aus dem aktuellen Sortiment am besten passen – nach den Notizen aus unseren Verkostungen.</p>
-          <p class="wheel-help mono">Tastatur: Pfeiltasten wandern ums Rad, Leertaste wählt.</p>
-        </header>
+        <div class="aromen__head">
+          <h2 id="aromen-title" class="xl ink" data-reveal="stamp">Was schmecken Sie gern?</h2>
+          <p class="aromen__lead" data-reveal>Tippen Sie Aromen auf dem Rad an – greifen und drehen geht auch. Wir zeigen, welche Kaffees aus dem Sortiment am besten passen, nach den Notizen aus unseren Verkostungen.</p>
+          <p class="wheel-help" data-reveal>Tastatur: Pfeiltasten wandern ums Rad, Leertaste wählt.</p>
+        </div>
 
         <div class="wheel" data-reveal>
-          <svg class="wheel__svg" viewBox="-200 -200 400 400" role="group" aria-label="Aromenrad mit 15 Aromen in 6 Gruppen">
-<g class="fw-cat" data-cat="fruchtig"><path class="fw-cat__seg" d="M1.19 -113.99A114 114 0 0 1 108.05 -36.36L47.39 -15.95A50 50 0 0 0 0.52 -50Z"/><text class="fw-cat__txt" x="48.79" y="-67.15" transform="rotate(36.0 48.79 -67.15)" text-anchor="middle" dominant-baseline="central">Fruchtig</text></g>
-<g class="fw-aroma" data-cat="fruchtig" data-aroma="beeren" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Beeren" style="--dx:1.46px;--dy:-6.85px"><path class="fw-aroma__seg" d="M1.68 -191.99A192 192 0 0 1 76.56 -176.08L47.05 -108.21A118 118 0 0 0 1.03 -118Z"/><text class="fw-aroma__txt" x="31.6" y="-148.68" transform="rotate(-78.0 31.6 -148.68)" text-anchor="middle" dominant-baseline="central">Beeren</text></g>
-<g class="fw-aroma" data-cat="fruchtig" data-aroma="zitrus" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Zitrus" style="--dx:4.11px;--dy:-5.66px"><path class="fw-aroma__seg" d="M79.62 -174.71A192 192 0 0 1 141.56 -129.71L87 -79.72A118 118 0 0 0 48.93 -107.38Z"/><text class="fw-aroma__txt" x="89.34" y="-122.97" transform="rotate(-54.0 89.34 -122.97)" text-anchor="middle" dominant-baseline="central">Zitrus</text></g>
-<g class="fw-aroma" data-cat="fruchtig" data-aroma="steinobst" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Steinobst" style="--dx:6.06px;--dy:-3.5px"><path class="fw-aroma__seg" d="M143.8 -127.22A192 192 0 0 1 182.08 -60.92L111.9 -37.44A118 118 0 0 0 88.38 -78.19Z"/><text class="fw-aroma__txt" x="131.64" y="-76" transform="rotate(-30.0 131.64 -76)" text-anchor="middle" dominant-baseline="central">Steinobst</text></g>
-<g class="fw-cat" data-cat="blumig"><path class="fw-cat__seg" d="M108.78 -34.09A114 114 0 0 1 99.32 55.96L43.56 24.55A50 50 0 0 0 47.71 -14.95Z"/><text class="fw-cat__txt" x="82.55" y="8.68" transform="rotate(276.0 82.55 8.68)" text-anchor="middle" dominant-baseline="central">Blumig</text></g>
-<g class="fw-aroma" data-cat="blumig" data-aroma="jasmin" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Jasmin" style="--dx:6.96px;--dy:-0.73px"><path class="fw-aroma__seg" d="M183.11 -57.74A192 192 0 0 1 191.12 18.4L117.46 11.31A118 118 0 0 0 112.54 -35.48Z"/><text class="fw-aroma__txt" x="151.17" y="-15.89" transform="rotate(-6.0 151.17 -15.89)" text-anchor="middle" dominant-baseline="central">Jasmin</text></g>
-<g class="fw-aroma" data-cat="blumig" data-aroma="schwarztee" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Schwarztee" style="--dx:6.66px;--dy:2.16px"><path class="fw-aroma__seg" d="M190.77 21.74A192 192 0 0 1 167.11 94.55L102.7 58.11A118 118 0 0 0 117.24 13.36Z"/><text class="fw-aroma__txt" x="144.56" y="46.97" transform="rotate(18.0 144.56 46.97)" text-anchor="middle" dominant-baseline="central">Schwarztee</text></g>
-<g class="fw-cat" data-cat="suess"><path class="fw-cat__seg" d="M98.12 58.03A114 114 0 0 1 -22.53 111.75L-9.88 49.01A50 50 0 0 0 43.04 25.45Z"/><text class="fw-cat__txt" x="33.76" y="75.82" transform="rotate(336.0 33.76 75.82)" text-anchor="middle" dominant-baseline="central">Süß</text></g>
-<g class="fw-aroma" data-cat="suess" data-aroma="honig" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Honig" style="--dx:5.2px;--dy:4.68px"><path class="fw-aroma__seg" d="M165.43 97.45A192 192 0 0 1 114.21 154.34L70.19 94.86A118 118 0 0 0 101.67 59.89Z"/><text class="fw-aroma__txt" x="112.96" y="101.71" transform="rotate(42.0 112.96 101.71)" text-anchor="middle" dominant-baseline="central">Honig</text></g>
-<g class="fw-aroma" data-cat="suess" data-aroma="rohrzucker" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Rohrzucker" style="--dx:2.85px;--dy:6.39px"><path class="fw-aroma__seg" d="M111.49 156.31A192 192 0 0 1 41.56 187.45L25.54 115.2A118 118 0 0 0 68.52 96.07Z"/><text class="fw-aroma__txt" x="61.82" y="138.86" transform="rotate(66.0 61.82 138.86)" text-anchor="middle" dominant-baseline="central">Rohrzucker</text></g>
-<g class="fw-aroma" data-cat="suess" data-aroma="karamell" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Karamell" style="--dx:0px;--dy:7px"><path class="fw-aroma__seg" d="M38.28 188.15A192 192 0 0 1 -38.28 188.15L-23.53 115.63A118 118 0 0 0 23.53 115.63Z"/><text class="fw-aroma__txt" x="0" y="152" transform="rotate(90.0 0 152)" text-anchor="middle" dominant-baseline="central">Karamell</text></g>
-<g class="fw-cat" data-cat="nussig"><path class="fw-cat__seg" d="M-24.87 111.25A114 114 0 0 1 -98.12 58.03L-43.04 25.45A50 50 0 0 0 -10.91 48.8Z"/><text class="fw-cat__txt" x="-48.79" y="67.15" transform="rotate(396.0 -48.79 67.15)" text-anchor="middle" dominant-baseline="central">Nussig</text></g>
-<g class="fw-aroma" data-cat="nussig" data-aroma="mandel" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Mandel" style="--dx:-2.85px;--dy:6.39px"><path class="fw-aroma__seg" d="M-41.56 187.45A192 192 0 0 1 -111.49 156.31L-68.52 96.07A118 118 0 0 0 -25.54 115.2Z"/><text class="fw-aroma__txt" x="-61.82" y="138.86" transform="rotate(294.0 -61.82 138.86)" text-anchor="middle" dominant-baseline="central">Mandel</text></g>
-<g class="fw-aroma" data-cat="nussig" data-aroma="haselnuss" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Haselnuss" style="--dx:-5.2px;--dy:4.68px"><path class="fw-aroma__seg" d="M-114.21 154.34A192 192 0 0 1 -165.43 97.45L-101.67 59.89A118 118 0 0 0 -70.19 94.86Z"/><text class="fw-aroma__txt" x="-112.96" y="101.71" transform="rotate(318.0 -112.96 101.71)" text-anchor="middle" dominant-baseline="central">Haselnuss</text></g>
-<g class="fw-cat" data-cat="kakao"><path class="fw-cat__seg" d="M-99.32 55.96A114 114 0 0 1 -85.51 -75.39L-37.51 -33.07A50 50 0 0 0 -43.56 24.55Z"/><text class="fw-cat__txt" x="-82.55" y="-8.68" transform="rotate(276.0 -82.55 -8.68)" text-anchor="middle" dominant-baseline="central">Kakao</text></g>
-<g class="fw-aroma" data-cat="kakao" data-aroma="schokolade" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Schokolade" style="--dx:-6.66px;--dy:2.16px"><path class="fw-aroma__seg" d="M-167.11 94.55A192 192 0 0 1 -190.77 21.74L-117.24 13.36A118 118 0 0 0 -102.7 58.11Z"/><text class="fw-aroma__txt" x="-144.56" y="46.97" transform="rotate(342.0 -144.56 46.97)" text-anchor="middle" dominant-baseline="central">Schokolade</text></g>
-<g class="fw-aroma" data-cat="kakao" data-aroma="kakao" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Kakao" style="--dx:-6.96px;--dy:-0.73px"><path class="fw-aroma__seg" d="M-191.12 18.4A192 192 0 0 1 -183.11 -57.74L-112.54 -35.48A118 118 0 0 0 -117.46 11.31Z"/><text class="fw-aroma__txt" x="-151.17" y="-15.89" transform="rotate(366.0 -151.17 -15.89)" text-anchor="middle" dominant-baseline="central">Kakao</text></g>
-<g class="fw-aroma" data-cat="kakao" data-aroma="zartbitter" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Zartbitter" style="--dx:-6.06px;--dy:-3.5px"><path class="fw-aroma__seg" d="M-182.08 -60.92A192 192 0 0 1 -143.8 -127.22L-88.38 -78.19A118 118 0 0 0 -111.9 -37.44Z"/><text class="fw-aroma__txt" x="-131.64" y="-76" transform="rotate(390.0 -131.64 -76)" text-anchor="middle" dominant-baseline="central">Zartbitter</text></g>
-<g class="fw-cat" data-cat="wuerzig"><path class="fw-cat__seg" d="M-83.92 -77.16A114 114 0 0 1 -1.19 -113.99L-0.52 -50A50 50 0 0 0 -36.8 -33.84Z"/><text class="fw-cat__txt" x="-33.76" y="-75.82" transform="rotate(336.0 -33.76 -75.82)" text-anchor="middle" dominant-baseline="central">Würzig</text></g>
-<g class="fw-aroma" data-cat="wuerzig" data-aroma="zimt" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Zimt" style="--dx:-4.11px;--dy:-5.66px"><path class="fw-aroma__seg" d="M-141.56 -129.71A192 192 0 0 1 -79.62 -174.71L-48.93 -107.38A118 118 0 0 0 -87 -79.72Z"/><text class="fw-aroma__txt" x="-89.34" y="-122.97" transform="rotate(414.0 -89.34 -122.97)" text-anchor="middle" dominant-baseline="central">Zimt</text></g>
-<g class="fw-aroma" data-cat="wuerzig" data-aroma="tabak" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Tabak" style="--dx:-1.46px;--dy:-6.85px"><path class="fw-aroma__seg" d="M-76.56 -176.08A192 192 0 0 1 -1.68 -191.99L-1.03 -118A118 118 0 0 0 -47.05 -108.21Z"/><text class="fw-aroma__txt" x="-31.6" y="-148.68" transform="rotate(438.0 -31.6 -148.68)" text-anchor="middle" dominant-baseline="central">Tabak</text></g>
+          <svg class="wheel__svg" id="wheel-svg" viewBox="-215 -228 430 443" role="group" aria-label="Aromenrad mit 15 Aromen in 6 Gruppen">
+            <g class="wheel__rot" id="wheel-rot">
+              <g class="fw-cat" data-cat="fruchtig"><path class="fw-cat__seg" d="M1.19 -113.99A114 114 0 0 1 108.05 -36.36L47.39 -15.95A50 50 0 0 0 0.52 -50Z"/><text class="fw-cat__txt" x="48.79" y="-67.15" transform="rotate(36.0 48.79 -67.15)" text-anchor="middle" dominant-baseline="central">Fruchtig</text></g>
+              <g class="fw-aroma" data-cat="fruchtig" data-aroma="beeren" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Beeren" style="--dx:1.46px;--dy:-6.85px"><path class="fw-aroma__seg" d="M1.68 -191.99A192 192 0 0 1 76.56 -176.08L47.05 -108.21A118 118 0 0 0 1.03 -118Z"/><text class="fw-aroma__txt" x="31.6" y="-148.68" transform="rotate(-78.0 31.6 -148.68)" text-anchor="middle" dominant-baseline="central">Beeren</text></g>
+              <g class="fw-aroma" data-cat="fruchtig" data-aroma="zitrus" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Zitrus" style="--dx:4.11px;--dy:-5.66px"><path class="fw-aroma__seg" d="M79.62 -174.71A192 192 0 0 1 141.56 -129.71L87 -79.72A118 118 0 0 0 48.93 -107.38Z"/><text class="fw-aroma__txt" x="89.34" y="-122.97" transform="rotate(-54.0 89.34 -122.97)" text-anchor="middle" dominant-baseline="central">Zitrus</text></g>
+              <g class="fw-aroma" data-cat="fruchtig" data-aroma="steinobst" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Steinobst" style="--dx:6.06px;--dy:-3.5px"><path class="fw-aroma__seg" d="M143.8 -127.22A192 192 0 0 1 182.08 -60.92L111.9 -37.44A118 118 0 0 0 88.38 -78.19Z"/><text class="fw-aroma__txt" x="131.64" y="-76" transform="rotate(-30.0 131.64 -76)" text-anchor="middle" dominant-baseline="central">Steinobst</text></g>
+              <g class="fw-cat" data-cat="blumig"><path class="fw-cat__seg" d="M108.78 -34.09A114 114 0 0 1 99.32 55.96L43.56 24.55A50 50 0 0 0 47.71 -14.95Z"/><text class="fw-cat__txt" x="82.55" y="8.68" transform="rotate(276.0 82.55 8.68)" text-anchor="middle" dominant-baseline="central">Blumig</text></g>
+              <g class="fw-aroma" data-cat="blumig" data-aroma="jasmin" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Jasmin" style="--dx:6.96px;--dy:-0.73px"><path class="fw-aroma__seg" d="M183.11 -57.74A192 192 0 0 1 191.12 18.4L117.46 11.31A118 118 0 0 0 112.54 -35.48Z"/><text class="fw-aroma__txt" x="151.17" y="-15.89" transform="rotate(-6.0 151.17 -15.89)" text-anchor="middle" dominant-baseline="central">Jasmin</text></g>
+              <g class="fw-aroma" data-cat="blumig" data-aroma="schwarztee" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Schwarztee" style="--dx:6.66px;--dy:2.16px"><path class="fw-aroma__seg" d="M190.77 21.74A192 192 0 0 1 167.11 94.55L102.7 58.11A118 118 0 0 0 117.24 13.36Z"/><text class="fw-aroma__txt" x="144.56" y="46.97" transform="rotate(18.0 144.56 46.97)" text-anchor="middle" dominant-baseline="central">Schwarztee</text></g>
+              <g class="fw-cat" data-cat="suess"><path class="fw-cat__seg" d="M98.12 58.03A114 114 0 0 1 -22.53 111.75L-9.88 49.01A50 50 0 0 0 43.04 25.45Z"/><text class="fw-cat__txt" x="33.76" y="75.82" transform="rotate(336.0 33.76 75.82)" text-anchor="middle" dominant-baseline="central">Süß</text></g>
+              <g class="fw-aroma" data-cat="suess" data-aroma="honig" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Honig" style="--dx:5.2px;--dy:4.68px"><path class="fw-aroma__seg" d="M165.43 97.45A192 192 0 0 1 114.21 154.34L70.19 94.86A118 118 0 0 0 101.67 59.89Z"/><text class="fw-aroma__txt" x="112.96" y="101.71" transform="rotate(42.0 112.96 101.71)" text-anchor="middle" dominant-baseline="central">Honig</text></g>
+              <g class="fw-aroma" data-cat="suess" data-aroma="rohrzucker" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Rohrzucker" style="--dx:2.85px;--dy:6.39px"><path class="fw-aroma__seg" d="M111.49 156.31A192 192 0 0 1 41.56 187.45L25.54 115.2A118 118 0 0 0 68.52 96.07Z"/><text class="fw-aroma__txt" x="61.82" y="138.86" transform="rotate(66.0 61.82 138.86)" text-anchor="middle" dominant-baseline="central">Rohrzucker</text></g>
+              <g class="fw-aroma" data-cat="suess" data-aroma="karamell" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Karamell" style="--dx:0px;--dy:7px"><path class="fw-aroma__seg" d="M38.28 188.15A192 192 0 0 1 -38.28 188.15L-23.53 115.63A118 118 0 0 0 23.53 115.63Z"/><text class="fw-aroma__txt" x="0" y="152" transform="rotate(90.0 0 152)" text-anchor="middle" dominant-baseline="central">Karamell</text></g>
+              <g class="fw-cat" data-cat="nussig"><path class="fw-cat__seg" d="M-24.87 111.25A114 114 0 0 1 -98.12 58.03L-43.04 25.45A50 50 0 0 0 -10.91 48.8Z"/><text class="fw-cat__txt" x="-48.79" y="67.15" transform="rotate(396.0 -48.79 67.15)" text-anchor="middle" dominant-baseline="central">Nussig</text></g>
+              <g class="fw-aroma" data-cat="nussig" data-aroma="mandel" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Mandel" style="--dx:-2.85px;--dy:6.39px"><path class="fw-aroma__seg" d="M-41.56 187.45A192 192 0 0 1 -111.49 156.31L-68.52 96.07A118 118 0 0 0 -25.54 115.2Z"/><text class="fw-aroma__txt" x="-61.82" y="138.86" transform="rotate(294.0 -61.82 138.86)" text-anchor="middle" dominant-baseline="central">Mandel</text></g>
+              <g class="fw-aroma" data-cat="nussig" data-aroma="haselnuss" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Haselnuss" style="--dx:-5.2px;--dy:4.68px"><path class="fw-aroma__seg" d="M-114.21 154.34A192 192 0 0 1 -165.43 97.45L-101.67 59.89A118 118 0 0 0 -70.19 94.86Z"/><text class="fw-aroma__txt" x="-112.96" y="101.71" transform="rotate(318.0 -112.96 101.71)" text-anchor="middle" dominant-baseline="central">Haselnuss</text></g>
+              <g class="fw-cat" data-cat="kakao"><path class="fw-cat__seg" d="M-99.32 55.96A114 114 0 0 1 -85.51 -75.39L-37.51 -33.07A50 50 0 0 0 -43.56 24.55Z"/><text class="fw-cat__txt" x="-82.55" y="-8.68" transform="rotate(276.0 -82.55 -8.68)" text-anchor="middle" dominant-baseline="central">Kakao</text></g>
+              <g class="fw-aroma" data-cat="kakao" data-aroma="schokolade" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Schokolade" style="--dx:-6.66px;--dy:2.16px"><path class="fw-aroma__seg" d="M-167.11 94.55A192 192 0 0 1 -190.77 21.74L-117.24 13.36A118 118 0 0 0 -102.7 58.11Z"/><text class="fw-aroma__txt" x="-144.56" y="46.97" transform="rotate(342.0 -144.56 46.97)" text-anchor="middle" dominant-baseline="central">Schokolade</text></g>
+              <g class="fw-aroma" data-cat="kakao" data-aroma="kakao" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Kakao" style="--dx:-6.96px;--dy:-0.73px"><path class="fw-aroma__seg" d="M-191.12 18.4A192 192 0 0 1 -183.11 -57.74L-112.54 -35.48A118 118 0 0 0 -117.46 11.31Z"/><text class="fw-aroma__txt" x="-151.17" y="-15.89" transform="rotate(366.0 -151.17 -15.89)" text-anchor="middle" dominant-baseline="central">Kakao</text></g>
+              <g class="fw-aroma" data-cat="kakao" data-aroma="zartbitter" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Zartbitter" style="--dx:-6.06px;--dy:-3.5px"><path class="fw-aroma__seg" d="M-182.08 -60.92A192 192 0 0 1 -143.8 -127.22L-88.38 -78.19A118 118 0 0 0 -111.9 -37.44Z"/><text class="fw-aroma__txt" x="-131.64" y="-76" transform="rotate(390.0 -131.64 -76)" text-anchor="middle" dominant-baseline="central">Zartbitter</text></g>
+              <g class="fw-cat" data-cat="wuerzig"><path class="fw-cat__seg" d="M-83.92 -77.16A114 114 0 0 1 -1.19 -113.99L-0.52 -50A50 50 0 0 0 -36.8 -33.84Z"/><text class="fw-cat__txt" x="-33.76" y="-75.82" transform="rotate(336.0 -33.76 -75.82)" text-anchor="middle" dominant-baseline="central">Würzig</text></g>
+              <g class="fw-aroma" data-cat="wuerzig" data-aroma="zimt" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Zimt" style="--dx:-4.11px;--dy:-5.66px"><path class="fw-aroma__seg" d="M-141.56 -129.71A192 192 0 0 1 -79.62 -174.71L-48.93 -107.38A118 118 0 0 0 -87 -79.72Z"/><text class="fw-aroma__txt" x="-89.34" y="-122.97" transform="rotate(414.0 -89.34 -122.97)" text-anchor="middle" dominant-baseline="central">Zimt</text></g>
+              <g class="fw-aroma" data-cat="wuerzig" data-aroma="tabak" role="checkbox" aria-checked="false" tabindex="-1" aria-label="Tabak" style="--dx:-1.46px;--dy:-6.85px"><path class="fw-aroma__seg" d="M-76.56 -176.08A192 192 0 0 1 -1.68 -191.99L-1.03 -118A118 118 0 0 0 -47.05 -108.21Z"/><text class="fw-aroma__txt" x="-31.6" y="-148.68" transform="rotate(438.0 -31.6 -148.68)" text-anchor="middle" dominant-baseline="central">Tabak</text></g>
+            </g>
             <circle class="wheel__hub" r="46"/>
             <text class="wheel__count" id="wheel-count" y="-6" text-anchor="middle">0</text>
             <text class="wheel__countlabel" y="14" text-anchor="middle">Aromen</text>
+            <path class="wheel__pointer" d="M-11 -224h22l-11 26z"/>
           </svg>
-          <button class="btn btn--ghost btn--sm wheel__reset" type="button" id="wheel-reset">Auswahl zurücksetzen</button>
+          <button class="btn btn--ghost btn--sm wheel__reset" type="button" id="wheel-reset"><span>Auswahl zurücksetzen</span></button>
         </div>
 
         <div class="matches" data-reveal>
-          <p class="mono matches__label" id="matches-label">Ihre Treffer</p>
+          <p class="matches__label" id="matches-label">Ihre Treffer</p>
           <ol class="matches__list" id="matches" aria-live="polite" aria-labelledby="matches-label">
             <li class="matches__empty">Noch keine Auswahl. Probieren Sie zum Beispiel „Beeren“ und „Jasmin“ – oder „Haselnuss“ und „Karamell“.</li>
           </ol>
@@ -333,42 +361,47 @@
       </div>
     </section>
 
-    <!-- HERKUNFT: horizontale Strecke -->
+    <!-- HERKUNFT: horizontale Strecke mit Tiefen-Parallax -->
     <section class="journey" id="roesterei" aria-labelledby="journey-title">
       <div class="journey__sticky">
         <div class="journey__head wrap">
-          <p class="sec-label mono"><span>Protokoll 04</span>Von der Farm in die Tasse</p>
-          <h2 id="journey-title">Fünf Stationen, ein Kaffee.</h2>
+          <h2 id="journey-title" class="xl ink">Vom Hang in Guji bis an Ihren Frühstückstisch.</h2>
+          <p class="journey__count" aria-hidden="true"><span id="journey-no">01</span> / 05</p>
         </div>
         <div class="journey__viewport">
           <ol class="journey__track">
             <li class="station">
-              <figure><img src="/arena/roesterei-bohnenwerk/assets/img/rohkaffee-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/rohkaffee-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/rohkaffee-960.webp 960w" sizes="(min-width: 900px) 34vw, 82vw" width="960" height="640" loading="lazy" decoding="async" alt="Hände greifen in eine Schale mit grünem Rohkaffee"></figure>
-              <p class="station__no mono">01 · Direkthandel</p>
+              <span class="station__big" aria-hidden="true">01</span>
+              <figure class="crop"><img src="/arena/roesterei-bohnenwerk/assets/img/rohkaffee-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/rohkaffee-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/rohkaffee-960.webp 960w" sizes="(min-width: 900px) 34vw, 82vw" width="960" height="640" loading="lazy" decoding="async" alt="Hände greifen in eine Schale mit grünem Rohkaffee"></figure>
+              <p class="station__no">Direkthandel</p>
               <h3>Wir kaufen dort, wo wir waren.</h3>
               <p>Unsere drei Partnerfarmen kennen wir persönlich. Jonas Pietsch verkostet die Ernte vor Ort und verhandelt Mehrjahresverträge – ohne Zwischenhändler.</p>
             </li>
             <li class="station">
-              <figure><img src="/arena/roesterei-bohnenwerk/assets/img/bohnen-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/bohnen-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/bohnen-960.webp 960w" sizes="(min-width: 900px) 34vw, 82vw" width="960" height="640" loading="lazy" decoding="async" alt="Frisch geröstete, glänzende Kaffeebohnen in Nahaufnahme"></figure>
-              <p class="station__no mono">02 · Röstung</p>
+              <span class="station__big" aria-hidden="true">02</span>
+              <figure class="crop"><img src="/arena/roesterei-bohnenwerk/assets/img/bohnen-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/bohnen-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/bohnen-960.webp 960w" sizes="(min-width: 900px) 34vw, 82vw" width="960" height="640" loading="lazy" decoding="async" alt="Frisch geröstete, glänzende Kaffeebohnen in Nahaufnahme"></figure>
+              <p class="station__no">Röstung</p>
               <h3>15&nbsp;Kilo, zehn Minuten, volle Aufmerksamkeit.</h3>
               <p>Dienstags und freitags läuft unser Trommelröster. Jede Charge wird protokolliert: Temperatur, Luftstrom, First Crack, Entwicklungszeit.</p>
             </li>
             <li class="station">
-              <figure><img src="/arena/roesterei-bohnenwerk/assets/img/chemex-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/chemex-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/chemex-960.webp 960w" sizes="(min-width: 900px) 34vw, 82vw" width="960" height="640" loading="lazy" decoding="async" alt="Heißes Wasser wird aus einem Schwanenhalskessel in eine Glaskaraffe mit Filter gegossen"></figure>
-              <p class="station__no mono">03 · Cupping</p>
+              <span class="station__big" aria-hidden="true">03</span>
+              <figure class="crop"><img src="/arena/roesterei-bohnenwerk/assets/img/chemex-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/chemex-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/chemex-960.webp 960w" sizes="(min-width: 900px) 34vw, 82vw" width="960" height="640" loading="lazy" decoding="async" alt="Heißes Wasser wird aus einem Schwanenhalskessel in eine Glaskaraffe mit Filter gegossen"></figure>
+              <p class="station__no">Cupping</p>
               <h3>Erst probieren, dann verpacken.</h3>
               <p>Jede Röstung wird am Folgetag verkostet. Passt sie nicht zum Profil, geht sie nicht in den Verkauf, sondern in den Mitarbeiterkaffee.</p>
             </li>
             <li class="station">
-              <figure><img src="/arena/roesterei-bohnenwerk/assets/img/bar-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/bar-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/bar-960.webp 960w" sizes="(min-width: 900px) 34vw, 82vw" width="960" height="640" loading="lazy" decoding="async" alt="Barista spannt einen Siebträger in die Espressomaschine ein"></figure>
-              <p class="station__no mono">04 · Ausschank</p>
+              <span class="station__big" aria-hidden="true">04</span>
+              <figure class="crop"><img src="/arena/roesterei-bohnenwerk/assets/img/bar-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/bar-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/bar-960.webp 960w" sizes="(min-width: 900px) 34vw, 82vw" width="960" height="640" loading="lazy" decoding="async" alt="Barista spannt einen Siebträger in die Espressomaschine ein"></figure>
+              <p class="station__no">Ausschank</p>
               <h3>Im Café zuerst.</h3>
               <p>Was neu im Sortiment ist, schenkt Mara Seidel zuerst an der Bar aus. Ihr Feedback und das der Gäste fließt in die nächste Röstung.</p>
             </li>
             <li class="station">
-              <figure><img src="/arena/roesterei-bohnenwerk/assets/img/anstossen-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/anstossen-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/anstossen-960.webp 960w" sizes="(min-width: 900px) 34vw, 82vw" width="960" height="640" loading="lazy" decoding="async" alt="Drei Hände stoßen mit Cappuccino und Kaltgetränk über einem Holztisch an"></figure>
-              <p class="station__no mono">05 · Ihre Tasse</p>
+              <span class="station__big" aria-hidden="true">05</span>
+              <figure class="crop"><img src="/arena/roesterei-bohnenwerk/assets/img/anstossen-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/anstossen-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/anstossen-960.webp 960w" sizes="(min-width: 900px) 34vw, 82vw" width="960" height="640" loading="lazy" decoding="async" alt="Drei Hände stoßen mit Cappuccino und Kaltgetränk über einem Holztisch an"></figure>
+              <p class="station__no">Ihre Tasse</p>
               <h3>Spätestens vier Tage nach der Röstung bei Ihnen.</h3>
               <p>Versand am Rösttag, frisch gemahlen oder als ganze Bohne. Im Abo bestimmen Sie Menge und Rhythmus selbst.</p>
             </li>
@@ -378,34 +411,31 @@
       </div>
     </section>
 
-    <!-- ABO-KONFIGURATOR -->
+    <!-- ABO-KONFIGURATOR: Kapitel Rohkaffee-Grün -->
     <section class="section abo" id="abo" aria-labelledby="abo-title">
       <div class="wrap">
-        <header class="sec-head sec-head--split" data-reveal>
-          <div>
-            <p class="sec-label mono"><span>Protokoll 05</span>Kaffee-Abo</p>
-            <h2 id="abo-title">Ihr Kaffee, in Ihrem Rhythmus.</h2>
-          </div>
-          <p class="sec-lead">Wählen Sie Kaffee, Mahlgrad, Menge und Lieferrhythmus. Pausieren oder kündigen jederzeit zur nächsten Lieferung – im Abo sparen Sie 10&nbsp;% auf jede Tüte.</p>
-        </header>
+        <div class="abo__head">
+          <h2 id="abo-title" class="xl ink" data-reveal="stamp">Frisch vom Rösttag. So oft, wie Sie ihn trinken.</h2>
+          <p class="abo__lead" data-reveal>Kaffee, Mahlgrad, Menge und Rhythmus wählen. Pausieren oder kündigen geht jederzeit zur nächsten Lieferung – im Abo sparen Sie 10&nbsp;% auf jede Tüte.</p>
+        </div>
 
         <form class="abo__form" id="abo-form" novalidate data-reveal>
           <div class="abo__config">
             <fieldset class="field-group">
-              <legend><span class="mono">1</span>Kaffee</legend>
+              <legend><span class="step-no">1</span>Kaffee</legend>
               <div class="choice-grid choice-grid--coffee">
-                <label class="choice"><input type="radio" name="kaffee" value="guji" checked><span class="choice__box"><span class="swatch" style="--roast:#B9773F"></span><span class="choice__t">Guji Hambela</span><span class="choice__m mono">14,90&nbsp;€</span></span></label>
-                <label class="choice"><input type="radio" name="kaffee" value="konga"><span class="choice__box"><span class="swatch" style="--roast:#A5652F"></span><span class="choice__t">Yirgacheffe Konga</span><span class="choice__m mono">13,90&nbsp;€</span></span></label>
-                <label class="choice"><input type="radio" name="kaffee" value="huila"><span class="choice__box"><span class="swatch" style="--roast:#8E5228"></span><span class="choice__t">Huila La Esperanza</span><span class="choice__m mono">12,90&nbsp;€</span></span></label>
-                <label class="choice"><input type="radio" name="kaffee" value="cerrado"><span class="choice__box"><span class="swatch" style="--roast:#74411F"></span><span class="choice__t">Cerrado Boa Vista</span><span class="choice__m mono">10,90&nbsp;€</span></span></label>
-                <label class="choice"><input type="radio" name="kaffee" value="espresso"><span class="choice__box"><span class="swatch" style="--roast:#5E331A"></span><span class="choice__t">Neustadt Espresso</span><span class="choice__m mono">11,90&nbsp;€</span></span></label>
-                <label class="choice"><input type="radio" name="kaffee" value="dunkel"><span class="choice__box"><span class="swatch" style="--roast:#45251A"></span><span class="choice__t">Elbhang Dunkel</span><span class="choice__m mono">10,50&nbsp;€</span></span></label>
+                <label class="choice"><input type="radio" name="kaffee" value="guji" checked><span class="choice__box"><span class="swatch" style="--roast:#B9773F"></span><span class="choice__t">Guji Hambela</span><span class="choice__m">14,90&nbsp;€</span></span></label>
+                <label class="choice"><input type="radio" name="kaffee" value="konga"><span class="choice__box"><span class="swatch" style="--roast:#A5652F"></span><span class="choice__t">Yirgacheffe Konga</span><span class="choice__m">13,90&nbsp;€</span></span></label>
+                <label class="choice"><input type="radio" name="kaffee" value="huila"><span class="choice__box"><span class="swatch" style="--roast:#8E5228"></span><span class="choice__t">Huila La Esperanza</span><span class="choice__m">12,90&nbsp;€</span></span></label>
+                <label class="choice"><input type="radio" name="kaffee" value="cerrado"><span class="choice__box"><span class="swatch" style="--roast:#74411F"></span><span class="choice__t">Cerrado Boa Vista</span><span class="choice__m">10,90&nbsp;€</span></span></label>
+                <label class="choice"><input type="radio" name="kaffee" value="espresso"><span class="choice__box"><span class="swatch" style="--roast:#5E331A"></span><span class="choice__t">Neustadt Espresso</span><span class="choice__m">11,90&nbsp;€</span></span></label>
+                <label class="choice"><input type="radio" name="kaffee" value="dunkel"><span class="choice__box"><span class="swatch" style="--roast:#45251A"></span><span class="choice__t">Elbhang Dunkel</span><span class="choice__m">10,50&nbsp;€</span></span></label>
               </div>
-              <p class="field-note mono">Preise je 250&nbsp;g ohne Abo-Rabatt</p>
+              <p class="field-note">Preise je 250&nbsp;g ohne Abo-Rabatt</p>
             </fieldset>
 
             <fieldset class="field-group">
-              <legend><span class="mono">2</span>Mahlgrad</legend>
+              <legend><span class="step-no">2</span>Mahlgrad</legend>
               <div class="seg">
                 <label><input type="radio" name="mahlgrad" value="Ganze Bohne" checked><span>Ganze Bohne</span></label>
                 <label><input type="radio" name="mahlgrad" value="Espresso (fein)"><span>Espresso</span></label>
@@ -416,7 +446,7 @@
 
             <div class="field-row">
               <fieldset class="field-group">
-                <legend><span class="mono">3</span>Menge je Lieferung</legend>
+                <legend><span class="step-no">3</span>Menge je Lieferung</legend>
                 <div class="seg">
                   <label><input type="radio" name="menge" value="1"><span>250&nbsp;g</span></label>
                   <label><input type="radio" name="menge" value="2" checked><span>500&nbsp;g</span></label>
@@ -424,7 +454,7 @@
                 </div>
               </fieldset>
               <fieldset class="field-group">
-                <legend><span class="mono">4</span>Rhythmus</legend>
+                <legend><span class="step-no">4</span>Rhythmus</legend>
                 <div class="seg">
                   <label><input type="radio" name="rhythmus" value="woche"><span>Wöchentlich</span></label>
                   <label><input type="radio" name="rhythmus" value="zweiwochen" checked><span>Alle 2 Wochen</span></label>
@@ -433,112 +463,126 @@
               </fieldset>
             </div>
             <ul class="abo__perks">
-              <li><span class="mono">Rösttag</span>Versand am Tag der Röstung, dienstags oder freitags</li>
-              <li><span class="mono">Flexibel</span>Kaffee tauschen, pausieren oder beenden – bis zum Vortag</li>
-              <li><span class="mono">Versand</span>Frei ab 25&nbsp;€ je Lieferung, sonst 3,90&nbsp;€</li>
+              <li><strong>Rösttag</strong>Versand am Tag der Röstung, dienstags oder freitags</li>
+              <li><strong>Flexibel</strong>Kaffee tauschen, pausieren oder beenden – bis zum Vortag</li>
+              <li><strong>Versand</strong>Frei ab 25&nbsp;€ je Lieferung, sonst 3,90&nbsp;€</li>
             </ul>
           </div>
 
           <aside class="ticket" aria-labelledby="ticket-title">
+            <span class="ticket__hole" aria-hidden="true"></span>
             <div class="ticket__head">
-              <p class="mono">Abo-Beleg · Beispielrechnung</p>
+              <p class="ticket__kicker">Tütenetikett · Beispielrechnung</p>
               <h3 id="ticket-title">Ihr Abo</h3>
+              <span class="ticket__stamp" aria-hidden="true">Abo</span>
             </div>
             <div class="ticket__body" aria-live="polite" id="abo-out">
-              <p class="ticket__line"><span id="t-coffee">2 × 250&nbsp;g Guji Hambela</span><span id="t-sub" class="mono">29,80&nbsp;€</span></p>
-              <p class="ticket__line ticket__line--minus"><span>Abo-Rabatt 10&nbsp;%</span><span id="t-rabatt" class="mono">−2,98&nbsp;€</span></p>
-              <p class="ticket__line"><span>Versand</span><span id="t-ship" class="mono">frei</span></p>
-              <p class="ticket__total"><span class="mono">Pro Lieferung</span><strong id="t-per">26,82&nbsp;€</strong></p>
-              <p class="ticket__total ticket__total--month"><span class="mono">≈ pro Monat</span><strong id="t-month">58,11&nbsp;€</strong></p>
-              <p class="ticket__meta mono" id="t-meta">Ganze Bohne · alle 2 Wochen</p>
-              <p class="ticket__next mono" id="t-next">Erste Röstung für Sie: am nächsten Rösttag</p>
+              <p class="ticket__line"><span id="t-coffee">2 × 250&nbsp;g Guji Hambela</span><span id="t-sub" class="num">29,80&nbsp;€</span></p>
+              <p class="ticket__line ticket__line--minus"><span>Abo-Rabatt 10&nbsp;%</span><span id="t-rabatt" class="num">−2,98&nbsp;€</span></p>
+              <p class="ticket__line"><span>Versand</span><span id="t-ship" class="num">frei</span></p>
+              <p class="ticket__total"><span>Pro Lieferung</span><strong id="t-per">26,82&nbsp;€</strong></p>
+              <p class="ticket__total ticket__total--month"><span>≈ pro Monat</span><strong id="t-month">58,11&nbsp;€</strong></p>
+              <p class="ticket__meta" id="t-meta">Ganze Bohne · alle 2 Wochen</p>
+              <p class="ticket__next" id="t-next">Erste Röstung für Sie: am nächsten Rösttag</p>
             </div>
             <div class="ticket__fields">
               <div class="field"><label for="abo-name">Name</label><input id="abo-name" name="name" type="text" autocomplete="name" required></div>
               <div class="field"><label for="abo-mail">E-Mail</label><input id="abo-mail" name="email" type="email" autocomplete="email" required></div>
               <label class="check"><input type="checkbox" name="ok" required><span>Ich habe die <a href="/arena/roesterei-bohnenwerk/datenschutz.html">Datenschutzhinweise</a> gelesen.</span></label>
               <p class="form-error" role="alert" id="abo-error" hidden></p>
-              <button class="btn btn--copper btn--block" type="submit">Abo unverbindlich anfragen</button>
-              <p class="ticket__demo mono">Demo – unverbindliche Beispielrechnung, es wird nichts bestellt.</p>
+              <button class="btn btn--ink btn--block" type="submit"><span>Abo unverbindlich anfragen</span></button>
+              <p class="ticket__demo">Demo – unverbindliche Beispielrechnung, es wird nichts bestellt.</p>
             </div>
             <div class="success" id="abo-success" hidden tabindex="-1">
-              <p class="mono success__label">Anfrage erfasst · Demo</p>
+              <p class="success__label">Anfrage erfasst · Demo</p>
               <h3>Danke, <span data-out="name"></span>!</h3>
               <ul class="success__list" id="abo-summary"></ul>
               <p class="success__demo">Demo – es wurde nichts gesendet.</p>
-              <button class="btn btn--ghost btn--sm" type="button" data-reset="abo">Abo neu zusammenstellen</button>
+              <button class="btn btn--ghost btn--sm" type="button" data-reset="abo"><span>Abo neu zusammenstellen</span></button>
             </div>
           </aside>
         </form>
       </div>
     </section>
 
-    <!-- BREW-GUIDE -->
+    <!-- BREW-GUIDE: der Timer ist eine Waage -->
     <section class="section brew" id="zubereitung" aria-labelledby="brew-title">
       <div class="wrap">
-        <header class="sec-head sec-head--split" data-reveal>
-          <div>
-            <p class="sec-label mono"><span>Protokoll 06</span>Brew-Guide</p>
-            <h2 id="brew-title">Zu Hause so gut wie an der Bar.</h2>
-          </div>
-          <p class="sec-lead">Mara Seidels Grundrezepte für vier Zubereitungen. Stellen Sie Kaffeemenge und Verhältnis ein, starten Sie den Timer – die Schritte laufen mit.</p>
-        </header>
+        <div class="brew__head">
+          <h2 id="brew-title" class="xl ink" data-reveal="stamp">Mara Seidels Rezepte, auf das Gramm genau.</h2>
+          <p class="brew__lead" data-reveal>Vier Grundrezepte von der Bar. Stellen Sie Kaffeemenge und Verhältnis ein, starten Sie die Waage – die Schritte laufen mit.</p>
+        </div>
 
-        <div class="brew__app" data-reveal>
+        <div class="brew__app" data-reveal="ink">
           <div class="brew__tabs" role="tablist" aria-label="Zubereitung wählen">
             <button role="tab" type="button" id="btab-v60" aria-controls="bpanel" aria-selected="true" data-method="v60">
-              <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 9h22l-8 12h-6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M11 25h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>V60</button>
+              <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 9h22l-8 12h-6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M11 25h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>V60</span></button>
             <button role="tab" type="button" id="btab-fp" aria-controls="bpanel" aria-selected="false" tabindex="-1" data-method="fp">
-              <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="9" y="9" width="14" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 3v12M11 15h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>French Press</button>
+              <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="9" y="9" width="14" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 3v12M11 15h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>French Press</span></button>
             <button role="tab" type="button" id="btab-es" aria-controls="bpanel" aria-selected="false" tabindex="-1" data-method="es">
-              <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 14h15v5a6 6 0 0 1-6 6h-3a6 6 0 0 1-6-6z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M22 16h2a2.5 2.5 0 0 1 0 5h-2.4M12 6v4M17 6v4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Espresso</button>
+              <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 14h15v5a6 6 0 0 1-6 6h-3a6 6 0 0 1-6-6z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M22 16h2a2.5 2.5 0 0 1 0 5h-2.4M12 6v4M17 6v4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Espresso</span></button>
             <button role="tab" type="button" id="btab-ap" aria-controls="bpanel" aria-selected="false" tabindex="-1" data-method="ap">
-              <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="11" y="4" width="10" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 16h14l-2 10H11z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>AeroPress</button>
+              <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="11" y="4" width="10" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 16h14l-2 10H11z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>AeroPress</span></button>
           </div>
 
           <div class="brew__panel" id="bpanel" role="tabpanel" aria-labelledby="btab-v60">
             <div class="brew__recipe">
-              <figure class="brew__photo">
+              <figure class="brew__photo crop">
                 <img id="brew-img" src="/arena/roesterei-bohnenwerk/assets/img/dripper-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/dripper-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/dripper-960.webp 960w" sizes="(min-width: 900px) 30vw, 92vw" width="960" height="638" loading="lazy" decoding="async" alt="Handfilter aus Porzellan auf einer Kanne vor einem hellen Fenster">
               </figure>
-              <dl class="brew__meta mono">
+              <dl class="brew__meta">
                 <div><dt>Mahlgrad</dt><dd id="b-grind">mittelfein</dd></div>
                 <div><dt>Wasser</dt><dd id="b-temp">93&nbsp;°C</dd></div>
                 <div><dt>Zeit</dt><dd id="b-total">3:00&nbsp;min</dd></div>
               </dl>
               <div class="calc">
                 <div class="calc__row">
-                  <label for="b-coffee" class="mono">Kaffee</label>
+                  <label for="b-coffee">Kaffee</label>
                   <input type="range" id="b-coffee" min="8" max="60" step="1" value="15">
                   <output for="b-coffee" id="b-coffee-out" class="calc__val">15&nbsp;g</output>
                 </div>
                 <div class="calc__row">
-                  <label for="b-ratio" class="mono">Verhältnis</label>
+                  <label for="b-ratio">Verhältnis</label>
                   <input type="range" id="b-ratio" min="12" max="18" step="0.5" value="16">
                   <output for="b-ratio" id="b-ratio-out" class="calc__val">1&nbsp;:&nbsp;16</output>
                 </div>
-                <p class="calc__result" aria-live="polite"><span class="mono" id="b-water-label">Wasser</span><strong id="b-water">240&nbsp;ml</strong><span class="calc__cups mono" id="b-cups">≈ 2 Tassen</span></p>
+                <p class="calc__result" aria-live="polite"><span id="b-water-label">Wasser</span><strong id="b-water">240&nbsp;ml</strong><span class="calc__cups" id="b-cups">≈ 2 Tassen</span></p>
               </div>
             </div>
 
             <div class="brew__timer">
-              <div class="timer">
-                <svg class="timer__ring" viewBox="0 0 120 120" aria-hidden="true">
-                  <circle class="timer__track" cx="60" cy="60" r="54"/>
-                  <circle class="timer__prog" id="timer-prog" cx="60" cy="60" r="54" pathLength="1000"/>
+              <div class="scale timer" data-method="v60">
+                <svg class="scale__svg" viewBox="0 0 300 330" aria-hidden="true">
+                  <g class="scale__src scale__src--v60"><path d="M92 36h116l-38 80h-40z"/><path d="M110 52l26 56M190 52l-26 56M150 46v66" class="thin"/><path d="M208 46c18 0 22 20 6 28" /><path d="M120 116h60"/></g>
+                  <g class="scale__src scale__src--kettle"><path d="M244 20h44v46h-44z"/><path d="M244 34c-26 0-34 8-50 26s-26 24-38 24" /><path d="M156 84l-6 6"/><path d="M252 20v-8h28v8"/></g>
+                  <g class="scale__src scale__src--es"><path d="M104 36h92v24c0 18-10 28-24 28h-44c-14 0-24-10-24-28z"/><path d="M104 46H26c-8 0-10 12 0 12h78"/><path d="M136 88v16M164 88v16"/><path d="M116 36v-10h68v10"/></g>
+                  <g class="drops" id="drops"><ellipse rx="2.6" ry="4.2"/><ellipse rx="2.6" ry="4.2"/><ellipse rx="2.6" ry="4.2"/><ellipse rx="2.6" ry="4.2"/><ellipse rx="2.6" ry="4.2"/><ellipse rx="2.6" ry="4.2"/><ellipse rx="2.6" ry="4.2"/><ellipse rx="2.6" ry="4.2"/><ellipse rx="2.6" ry="4.2"/><ellipse rx="2.6" ry="4.2"/></g>
+                  <defs>
+                    <clipPath id="cl-carafe"><path d="M108 184h84l14 96c1 6-3 10-9 10H103c-6 0-10-4-9-10z"/></clipPath>
+                    <clipPath id="cl-press"><rect x="104" y="128" width="92" height="162" rx="6"/></clipPath>
+                    <clipPath id="cl-cup"><path d="M116 236h68v22c0 22-14 32-34 32s-34-10-34-32z"/></clipPath>
+                    <clipPath id="cl-ap"><rect x="122" y="112" width="56" height="96" rx="3"/></clipPath>
+                  </defs>
+                  <g class="scale__vessel scale__vessel--v60"><g clip-path="url(#cl-carafe)"><rect class="liq" x="90" y="178" width="120" height="112"/></g><path d="M108 184h84l14 96c1 6-3 10-9 10H103c-6 0-10-4-9-10z"/><path d="M104 176h92"/></g>
+                  <g class="scale__vessel scale__vessel--fp"><g clip-path="url(#cl-press)"><rect class="liq" x="104" y="128" width="92" height="162"/></g><rect x="104" y="128" width="92" height="162" rx="6"/><path d="M196 152h14c8 0 8 110 0 110h-14"/><path d="M118 120h64M150 120V96"/><circle cx="150" cy="90" r="6"/></g>
+                  <g class="scale__vessel scale__vessel--es"><g clip-path="url(#cl-cup)"><rect class="liq" x="116" y="236" width="68" height="54"/></g><path d="M116 236h68v22c0 22-14 32-34 32s-34-10-34-32z"/><path d="M184 244h8c12 0 12 22 0 22h-10"/></g>
+                  <g class="scale__vessel scale__vessel--ap"><g clip-path="url(#cl-ap)"><rect class="liq" x="122" y="112" width="56" height="96"/></g><rect x="122" y="112" width="56" height="96" rx="3"/><path d="M114 208h72"/><path d="M110 216h80v62c0 8-4 12-12 12h-56c-8 0-12-4-12-12z"/><path d="M190 230h8c10 0 10 30 0 30h-8"/></g>
+                  <g class="scale__base"><rect x="56" y="292" width="188" height="8" rx="2"/><path d="M40 300h220l-8 28H48z"/></g>
                 </svg>
-                <div class="timer__face">
+                <div class="scale__lcd">
                   <span class="timer__time" id="timer-time" role="timer" aria-label="Brüh-Timer">0:00</span>
-                  <span class="timer__of mono" id="timer-of">von 3:00</span>
+                  <span class="scale__weight" id="scale-weight" aria-hidden="true">0&nbsp;g</span>
+                  <span class="timer__of" id="timer-of">von 3:00</span>
+                  <svg class="scale__prog" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true"><path class="scale__prog-track" d="M0 2H100"/><path class="timer__prog" id="timer-prog" d="M0 2H100" pathLength="1000"/></svg>
                 </div>
               </div>
               <div class="timer__ctrl">
-                <button class="btn btn--copper" type="button" id="timer-start">Timer starten</button>
-                <button class="btn btn--ghost" type="button" id="timer-reset">Zurücksetzen</button>
+                <button class="btn btn--stamp" type="button" id="timer-start"><span>Timer starten</span></button>
+                <button class="btn btn--ghost" type="button" id="timer-reset"><span>Zurücksetzen</span></button>
               </div>
               <p class="visually-hidden" aria-live="assertive" id="timer-live"></p>
               <ol class="steps" id="steps">
-                <li><span class="steps__t mono">0:00</span><span>Filter ausspülen, 15&nbsp;g Kaffee einfüllen, 40&nbsp;ml Wasser zum Vorbrühen.</span></li>
+                <li><span class="steps__t">0:00</span><span>Filter ausspülen, 15&nbsp;g Kaffee einfüllen, 40&nbsp;ml Wasser zum Vorbrühen.</span></li>
               </ol>
             </div>
           </div>
@@ -549,29 +593,10 @@
     <!-- CAFÉ & FÜHRUNGEN -->
     <section class="section cafe" id="cafe" aria-labelledby="cafe-title">
       <div class="wrap cafe__grid">
-        <div class="cafe__copy" data-reveal>
-          <p class="sec-label mono"><span>Protokoll 07</span>Café &amp; Führungen</p>
-          <h2 id="cafe-title">Alaunstraße&nbsp;41: Röster hinten, Bar vorne.</h2>
-          <p class="sec-lead">Durch die Glasscheibe sehen Sie dienstags und freitags den Trommelröster arbeiten. Vorne schenken wir aus, was gerade aus der Kühlschale kommt – dazu Kuchen von der Bäckerei nebenan.</p>
-          <div class="hours" id="hours">
-            <p class="hours__status mono" id="open-status">Café · Öffnungszeiten</p>
-            <dl class="hours__list">
-              <div data-days="1,2,3,4,5"><dt>Montag – Freitag</dt><dd class="mono">8–18&nbsp;Uhr</dd></div>
-              <div data-days="6,0"><dt>Samstag &amp; Sonntag</dt><dd class="mono">9–18&nbsp;Uhr</dd></div>
-              <div><dt>Röstung (zum Zuschauen)</dt><dd class="mono">Di&nbsp;&amp;&nbsp;Fr</dd></div>
-              <div><dt>Rösterei-Führung</dt><dd class="mono">Sa 11&nbsp;Uhr</dd></div>
-            </dl>
-          </div>
-          <div class="tour">
-            <p class="mono tour__label">Führung mit Verkostung</p>
-            <p>60 Minuten mit Jonas Pietsch: Rohkaffee riechen, eine Charge mitverfolgen, drei Röstgrade verkosten. 18&nbsp;€ pro Person, höchstens 10 Gäste.</p>
-            <a class="btn btn--copper btn--sm" href="#kontakt">Platz für Samstag anfragen</a>
-          </div>
-        </div>
-        <div class="cafe__collage" data-reveal>
-          <figure class="cafe__a"><img src="/arena/roesterei-bohnenwerk/assets/img/cafe-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/cafe-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/cafe-960.webp 960w" sizes="(min-width: 900px) 40vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Gemütlicher Cafébereich mit warmem Licht, Holztheke und Ziegelwand"></figure>
-          <figure class="cafe__b"><img src="/arena/roesterei-bohnenwerk/assets/img/latteart-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/latteart-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/latteart-960.webp 960w" sizes="(min-width: 900px) 22vw, 46vw" width="960" height="640" loading="lazy" decoding="async" alt="Hand hält einen Cappuccino mit Latte-Art-Rosette"></figure>
-          <figure class="cafe__c"><img src="/arena/roesterei-bohnenwerk/assets/img/crema-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/crema-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/crema-960.webp 960w" sizes="(min-width: 900px) 18vw, 42vw" width="960" height="635" loading="lazy" decoding="async" alt="Cappuccino mit fein gezeichneter Latte-Art von oben"></figure>
+        <div class="cafe__collage">
+          <figure class="cafe__a crop" data-reveal="ink"><img src="/arena/roesterei-bohnenwerk/assets/img/cafe-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/cafe-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/cafe-960.webp 960w" sizes="(min-width: 900px) 46vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Gemütlicher Cafébereich mit warmem Licht, Holztheke und Ziegelwand"></figure>
+          <figure class="cafe__b" data-reveal="ink"><img src="/arena/roesterei-bohnenwerk/assets/img/latteart-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/latteart-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/latteart-960.webp 960w" sizes="(min-width: 900px) 22vw, 46vw" width="960" height="640" loading="lazy" decoding="async" alt="Hand hält einen Cappuccino mit Latte-Art-Rosette"></figure>
+          <figure class="cafe__c" data-reveal="ink"><img src="/arena/roesterei-bohnenwerk/assets/img/crema-960.webp" srcset="/arena/roesterei-bohnenwerk/assets/img/crema-480.webp 480w, /arena/roesterei-bohnenwerk/assets/img/crema-960.webp 960w" sizes="(min-width: 900px) 18vw, 42vw" width="960" height="635" loading="lazy" decoding="async" alt="Cappuccino mit fein gezeichneter Latte-Art von oben"></figure>
           <svg class="cafe__stamp" viewBox="0 0 200 200" aria-hidden="true">
             <defs><path id="stamp-circle" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0"/></defs>
             <circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -581,50 +606,65 @@
             <text x="100" y="118" text-anchor="middle" class="stamp-small">TROMMEL</text>
           </svg>
         </div>
+        <div class="cafe__copy">
+          <h2 id="cafe-title" class="xl ink" data-reveal="stamp">Alaunstraße&nbsp;41. Hinten röstet es, vorne wird ausgeschenkt.</h2>
+          <p class="cafe__lead" data-reveal>Durch die Glasscheibe sehen Sie dienstags und freitags den Trommelröster arbeiten. Vorne schenken wir aus, was gerade aus der Kühlschale kommt – dazu Kuchen von der Bäckerei nebenan.</p>
+          <div class="hours" id="hours" data-reveal>
+            <p class="hours__status" id="open-status">Café · Öffnungszeiten</p>
+            <dl class="hours__list">
+              <div data-days="1,2,3,4,5"><dt>Montag – Freitag</dt><dd>8–18&nbsp;Uhr</dd></div>
+              <div data-days="6,0"><dt>Samstag &amp; Sonntag</dt><dd>9–18&nbsp;Uhr</dd></div>
+              <div><dt>Röstung (zum Zuschauen)</dt><dd>Di&nbsp;&amp;&nbsp;Fr</dd></div>
+              <div><dt>Rösterei-Führung</dt><dd>Sa 11&nbsp;Uhr</dd></div>
+            </dl>
+          </div>
+          <div class="tour" data-reveal>
+            <p class="tour__label">Führung mit Verkostung · Sa 11&nbsp;Uhr</p>
+            <p>60 Minuten mit Jonas Pietsch: Rohkaffee riechen, eine Charge mitverfolgen, drei Röstgrade verkosten. 18&nbsp;€ pro Person, höchstens 10 Gäste.</p>
+            <a class="btn btn--stamp btn--sm" href="#kontakt"><span>Platz für Samstag anfragen</span></a>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- TEAM -->
+    <!-- TEAM: Stempel statt Porträts -->
     <section class="section team" id="team" aria-labelledby="team-title">
       <div class="wrap">
-        <header class="sec-head sec-head--split" data-reveal>
-          <div>
-            <p class="sec-label mono"><span>Protokoll 08</span>Wer röstet</p>
-            <h2 id="team-title">Acht Leute, ein Röster.</h2>
-          </div>
-          <p class="sec-lead">Hinter Bohnenwerk stehen acht Menschen zwischen Röstraum, Bar und Versand. Vier davon treffen Sie am häufigsten.</p>
-        </header>
-        <ul class="team__grid" data-reveal-group>
-          <li class="person"><span class="person__mono" aria-hidden="true">JP</span><h3>Jonas Pietsch</h3><p class="mono">Röstmeister &amp; Einkauf</p><p>Röstet seit 2012, besucht jedes Frühjahr die Farmen und schreibt die Röstprofile.</p></li>
-          <li class="person"><span class="person__mono" aria-hidden="true">MS</span><h3>Mara Seidel</h3><p class="mono">Barista-Trainerin</p><p>Leitet die Bar und die Barista-Kurse, entwickelt die Rezepte im Brew-Guide.</p></li>
-          <li class="person"><span class="person__mono" aria-hidden="true">LH</span><h3>Lene Hofmann</h3><p class="mono">Café-Leitung</p><p>Kümmert sich um Dienstpläne, Kuchen-Lieferanten und darum, dass morgens um acht alles läuft.</p></li>
-          <li class="person"><span class="person__mono" aria-hidden="true">TA</span><h3>Tarek Aydın</h3><p class="mono">Versand &amp; Abo</p><p>Packt am Rösttag jede Abo-Tüte selbst und beantwortet Ihre Fragen zu Lieferungen.</p></li>
+        <div class="team__head">
+          <h2 id="team-title" class="xl ink" data-reveal="stamp">Acht Leute zwischen Röstraum, Bar und Packtisch.</h2>
+          <p class="team__lead" data-reveal>Vier davon treffen Sie am häufigsten.</p>
+        </div>
+        <ul class="team__list" data-reveal-group>
+          <li class="person"><span class="person__stamp" aria-hidden="true">JP</span><h3>Jonas Pietsch</h3><p class="person__role">Röstmeister &amp; Einkauf</p><p class="person__text">Röstet seit 2012, besucht jedes Frühjahr die Farmen und schreibt die Röstprofile.</p></li>
+          <li class="person"><span class="person__stamp" aria-hidden="true">MS</span><h3>Mara Seidel</h3><p class="person__role">Barista-Trainerin</p><p class="person__text">Leitet die Bar und die Barista-Kurse, entwickelt die Rezepte im Brew-Guide.</p></li>
+          <li class="person"><span class="person__stamp" aria-hidden="true">LH</span><h3>Lene Hofmann</h3><p class="person__role">Café-Leitung</p><p class="person__text">Kümmert sich um Dienstpläne, Kuchen-Lieferanten und darum, dass morgens um acht alles läuft.</p></li>
+          <li class="person"><span class="person__stamp" aria-hidden="true">TA</span><h3>Tarek Aydın</h3><p class="person__role">Versand &amp; Abo</p><p class="person__text">Packt am Rösttag jede Abo-Tüte selbst und beantwortet Ihre Fragen zu Lieferungen.</p></li>
         </ul>
       </div>
     </section>
 
-    <!-- STIMMEN -->
+    <!-- STIMMEN: Verkostungszettel unter dem Siegel -->
     <section class="section voices" id="stimmen" aria-labelledby="voices-title">
-      <div class="wrap">
-        <header class="sec-head" data-reveal>
-          <p class="sec-label mono"><span>Protokoll 09</span>Stimmen</p>
-          <h2 id="voices-title"><span class="voices__score">4,8</span> von 5 – aus 512 Bewertungen.</h2>
-        </header>
-        <ul class="voices__grid" data-reveal-group>
-          <li class="voice">
+      <div class="wrap voices__grid">
+        <div class="voices__head">
+          <svg class="seal seal--big" viewBox="0 0 200 200" aria-hidden="true" data-reveal="stamp"><use href="#i-seal"/></svg>
+          <h2 id="voices-title" class="voices__title"><span class="voices__score">4,8</span> von 5 Sternen aus 512 Bewertungen.</h2>
+        </div>
+        <ul class="voices__notes" data-reveal-group>
+          <li class="voice voice--a">
             <p class="voice__stars" aria-label="5 von 5 Sternen">★★★★★</p>
             <blockquote><p>„Der Guji schmeckt tatsächlich nach Blaubeere – ich dachte, das sei Marketing. Seit einem Jahr im Abo, kam bisher immer pünktlich am Donnerstag.“</p></blockquote>
-            <p class="voice__who mono">Katrin&nbsp;W. · Abo seit 2023</p>
+            <p class="voice__who">Katrin&nbsp;W. · Abo seit 2023</p>
           </li>
-          <li class="voice">
+          <li class="voice voice--b">
             <p class="voice__stars" aria-label="5 von 5 Sternen">★★★★★</p>
             <blockquote><p>„Die Samstagsführung ist jeden Euro wert. Jonas erklärt den First Crack so, dass man ihn danach im Café wirklich hört.“</p></blockquote>
-            <p class="voice__who mono">Sebastian&nbsp;R. · Führung im März</p>
+            <p class="voice__who">Sebastian&nbsp;R. · Führung im März</p>
           </li>
-          <li class="voice">
+          <li class="voice voice--c">
             <p class="voice__stars" aria-label="4 von 5 Sternen">★★★★<span class="voice__off">★</span></p>
             <blockquote><p>„Bester Flat White in der Neustadt. Am Wochenende gegen elf wird es eng – lieber früh kommen.“</p></blockquote>
-            <p class="voice__who mono">Aylin&nbsp;K. · Stammgast</p>
+            <p class="voice__who">Aylin&nbsp;K. · Stammgast</p>
           </li>
         </ul>
       </div>
@@ -633,20 +673,19 @@
     <!-- STANDORT -->
     <section class="section place" id="standort" aria-labelledby="place-title">
       <div class="wrap place__grid">
-        <div class="place__copy" data-reveal>
-          <p class="sec-label mono"><span>Protokoll 10</span>Standort</p>
-          <h2 id="place-title">Mitten in der Äußeren Neustadt.</h2>
-          <address>
+        <div class="place__copy">
+          <h2 id="place-title" class="xl ink" data-reveal="stamp">Mitten in der Äußeren Neustadt.</h2>
+          <address data-reveal>
             <strong>Bohnenwerk Kaffeerösterei &amp; Café</strong><br>
             Alaunstraße 41<br>01099 Dresden
           </address>
-          <ul class="place__ways">
-            <li><span class="mono">Tram</span>Linie 7 und 8, Haltestelle Louisenstraße – 3 Minuten zu Fuß</li>
-            <li><span class="mono">Rad</span>Bügel direkt vor der Tür</li>
-            <li><span class="mono">Versand</span>Abo und Bohnen deutschlandweit, Abholung im Café möglich</li>
+          <ul class="place__ways" data-reveal>
+            <li><strong>Tram</strong>Linie 7 und 8, Haltestelle Louisenstraße – 3 Minuten zu Fuß</li>
+            <li><strong>Rad</strong>Bügel direkt vor der Tür</li>
+            <li><strong>Versand</strong>Abo und Bohnen deutschlandweit, Abholung im Café möglich</li>
           </ul>
         </div>
-        <figure class="map" data-reveal>
+        <figure class="map" data-reveal="ink">
           <svg viewBox="0 0 600 440" role="img" aria-labelledby="map-title">
             <title id="map-title">Lageplan: Bohnenwerk in der Alaunstraße zwischen Louisenstraße und Alaunpark, nördlich des Albertplatzes und der Elbe</title>
             <rect width="600" height="440" class="map__bg"/>
@@ -680,28 +719,26 @@
               <text x="24" y="360">Albertplatz</text>
               <text x="440" y="418" class="map__riverlabel">Elbe</text>
             </g>
+            <path class="map__route" id="map-route" d="M214 205H328L331 168" pathLength="1"/>
             <g class="map__tram" transform="translate(214 205)">
               <rect x="-8" y="-8" width="16" height="16" rx="3"/>
               <text x="-14" y="26" text-anchor="end">Tram 7 · 8</text>
             </g>
             <g class="map__pin" transform="translate(330 158)">
-              <circle class="map__pulse" r="22"/>
+              <circle class="map__ring" r="21"/>
               <circle r="9" class="map__dot"/>
               <text x="18" y="-14" class="map__pinlabel">Bohnenwerk · Nr. 41</text>
             </g>
           </svg>
-          <figcaption class="mono">Schematische Karte, nicht maßstabsgetreu</figcaption>
+          <figcaption>Schematische Karte, nicht maßstabsgetreu · Kupferlinie: Fußweg von der Tram</figcaption>
         </figure>
       </div>
     </section>
 
     <!-- FAQ -->
     <section class="section faq" id="faq" aria-labelledby="faq-title">
-      <div class="wrap faq__grid">
-        <header class="sec-head" data-reveal>
-          <p class="sec-label mono"><span>Protokoll 11</span>Fragen</p>
-          <h2 id="faq-title">Gut zu wissen.</h2>
-        </header>
+      <div class="wrap">
+        <h2 id="faq-title" class="xl ink" data-reveal="stamp">Was Gäste uns am Tresen fragen.</h2>
         <div class="faq__list" data-reveal>
           <details>
             <summary>Wie frisch ist der Kaffee, wenn er bei mir ankommt?</summary>
@@ -734,17 +771,17 @@
     <!-- KONTAKT -->
     <section class="section contact" id="kontakt" aria-labelledby="contact-title">
       <div class="wrap contact__grid">
-        <div class="contact__copy" data-reveal>
-          <p class="sec-label mono"><span>Protokoll 12</span>Kontakt</p>
-          <h2 id="contact-title">Führung anfragen oder einfach fragen.</h2>
-          <p class="sec-lead">Wir melden uns innerhalb eines Werktags. Für Abo-Fragen erreichen Sie Tarek direkt per Telefon.</p>
-          <ul class="contact__ways">
-            <li><span class="mono">Telefon</span><a href="tel:+493515557240">0351&nbsp;555&nbsp;72&nbsp;40</a></li>
-            <li><span class="mono">E-Mail</span><a href="mailto:hallo@bohnenwerk.de">hallo@bohnenwerk.de</a></li>
-            <li><span class="mono">Café</span>Mo–Fr 8–18&nbsp;Uhr · Sa–So 9–18&nbsp;Uhr</li>
+        <div class="contact__copy">
+          <h2 id="contact-title" class="xl ink" data-reveal="stamp">Schreiben Sie uns. Oder kommen Sie samstags um elf.</h2>
+          <p class="contact__lead" data-reveal>Wir melden uns innerhalb eines Werktags. Für Abo-Fragen erreichen Sie Tarek direkt per Telefon.</p>
+          <ul class="contact__ways" data-reveal>
+            <li><strong>Telefon</strong><a class="link-draw" href="tel:+493515557240">0351&nbsp;555&nbsp;72&nbsp;40</a></li>
+            <li><strong>E-Mail</strong><a class="link-draw" href="mailto:hallo@bohnenwerk.de">hallo@bohnenwerk.de</a></li>
+            <li><strong>Café</strong>Mo–Fr 8–18&nbsp;Uhr · Sa–So 9–18&nbsp;Uhr</li>
           </ul>
         </div>
-        <form class="contact__form" id="contact-form" novalidate data-reveal>
+        <form class="contact__form" id="contact-form" novalidate data-reveal="ink">
+          <p class="contact__formhead" aria-hidden="true">Anfragezettel</p>
           <fieldset class="field-group">
             <legend class="visually-hidden">Anliegen</legend>
             <div class="seg seg--wide">
@@ -769,13 +806,13 @@
           <div class="field"><label for="c-msg">Nachricht <span class="opt">(optional)</span></label><textarea id="c-msg" name="nachricht" rows="4"></textarea></div>
           <label class="check"><input type="checkbox" name="ok" required><span>Ich habe die <a href="/arena/roesterei-bohnenwerk/datenschutz.html">Datenschutzhinweise</a> gelesen.</span></label>
           <p class="form-error" role="alert" id="contact-error" hidden></p>
-          <button class="btn btn--copper" type="submit">Anfrage senden</button>
+          <button class="btn btn--stamp" type="submit"><span>Anfrage senden</span></button>
           <div class="success" id="contact-success" hidden tabindex="-1">
-            <p class="mono success__label">Anfrage erfasst · Demo</p>
+            <p class="success__label">Anfrage erfasst · Demo</p>
             <h3>Danke, <span data-out="name"></span>!</h3>
             <ul class="success__list" id="contact-summary"></ul>
             <p class="success__demo">Demo – es wurde nichts gesendet.</p>
-            <button class="btn btn--ghost btn--sm" type="button" data-reset="contact">Neue Anfrage</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-reset="contact"><span>Neue Anfrage</span></button>
           </div>
         </form>
       </div>
@@ -785,21 +822,21 @@
   <footer class="site-footer">
     <div class="wrap footer__grid">
       <div class="footer__brand">
-        <p class="footer__word">Bohnenwerk</p>
-        <p class="mono">Kaffeerösterei &amp; Café · seit 2014</p>
+        <p class="footer__word ink" data-reveal="stamp">Bohnenwerk</p>
+        <p class="footer__since">Kaffeerösterei &amp; Café · Dresden-Neustadt · seit 2014</p>
       </div>
       <div>
-        <p class="mono footer__h">Adresse</p>
+        <p class="footer__h">Adresse</p>
         <p>Alaunstraße 41<br>01099 Dresden</p>
         <p><a href="tel:+493515557240">0351&nbsp;555&nbsp;72&nbsp;40</a><br><a href="mailto:hallo@bohnenwerk.de">hallo@bohnenwerk.de</a></p>
       </div>
       <div>
-        <p class="mono footer__h">Café</p>
+        <p class="footer__h">Café</p>
         <p>Mo–Fr 8–18&nbsp;Uhr<br>Sa–So 9–18&nbsp;Uhr</p>
         <p>Röstung Di &amp; Fr<br>Führungen Sa 11&nbsp;Uhr</p>
       </div>
       <div>
-        <p class="mono footer__h">Rechtliches</p>
+        <p class="footer__h">Rechtliches</p>
         <p><a href="/arena/roesterei-bohnenwerk/impressum.html">Impressum</a><br><a href="/arena/roesterei-bohnenwerk/datenschutz.html">Datenschutz</a></p>
       </div>
     </div>

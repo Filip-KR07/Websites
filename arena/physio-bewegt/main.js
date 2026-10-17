@@ -1,5 +1,6 @@
 /* bewegt. Physiotherapie – Modell „Achse“
-   Start in Etappen: Header, Menü und Hero sofort; alles darunter über eine Warteschlange in kleinen Häppchen. */
+   Start in Etappen: Header, Menü und Hero sofort; alles darunter über eine Warteschlange in kleinen Häppchen.
+   Motion-System „Tempo 2-1-3“ (Kurven/Dauern als CSS-Variablen in style.css): heben konzentrisch, senken exzentrisch. */
 (function () {
   'use strict';
 
@@ -14,6 +15,7 @@
   };
   var ZUZAHLUNG_PAUSCHALE = 10;   // € je Verordnung (gesetzliche Zuzahlung)
   var ZUZAHLUNG_ANTEIL = 0.10;    // 10 % der Behandlungskosten
+  var WAAGE_MAX_GRAD = 14;        // maximale Neigung der Waage im Rechner
 
   var doc = document, root = doc.documentElement;
   var MOTION_OFF = root.classList.contains('motion-off');
@@ -23,16 +25,24 @@
   var $$ = function (s, c) { return Array.prototype.slice.call((c || doc).querySelectorAll(s)); };
   var EUR = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
   var lenis = null;
+  function easeIO(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  function poly(arr) {
+    if (arr.length < 2) return '';
+    var f = Figur.f, d = 'M' + f(arr[0][0]) + ' ' + f(arr[0][1]);
+    for (var i = 1; i < arr.length; i++) d += 'L' + f(arr[i][0]) + ' ' + f(arr[i][1]);
+    return d;
+  }
 
-  /* ---------- Header: Schatten + Scroll-Fortschritt ---------- */
-  var hdr = $('.hdr'), bar = $('.hdr__progress i'), ticking = false;
+  /* ---------- Header-Schatten + Achse (Scroll-Fortschritt) ---------- */
+  var hdr = $('.hdr'), axisFill = $('.axis__line i'), ticking = false, scrollHooks = [];
   function onScroll() {
     if (ticking) return; ticking = true;
     requestAnimationFrame(function () {
       ticking = false;
       var y = window.scrollY, max = root.scrollHeight - innerHeight;
       hdr.classList.toggle('is-scrolled', y > 8);
-      bar.style.transform = 'scaleX(' + (max > 0 ? Math.min(1, y / max) : 0).toFixed(4) + ')';
+      if (axisFill) axisFill.style.transform = 'scaleY(' + (max > 0 ? Math.min(1, y / max) : 0).toFixed(4) + ')';
+      for (var i = 0; i < scrollHooks.length; i++) scrollHooks[i](y);
     });
   }
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
@@ -65,10 +75,10 @@
         else if (!e.shiftKey && doc.activeElement === lst) { e.preventDefault(); first.focus(); }
       }
     });
-    addEventListener('resize', function () { if (!menu.hidden && innerWidth > 1180) close(true); });
+    addEventListener('resize', function () { if (!menu.hidden && innerWidth > 1199) close(true); });
   })();
 
-  /* ---------- Hero: Linien-Figur mit Bewegungsbogen ---------- */
+  /* ---------- Hero: Treppenstufe mit Live-Messung ---------- */
   function arcPath(K, A, H, r) {
     var u = [A[0] - K[0], A[1] - K[1]], v = [H[0] - K[0], H[1] - K[1]];
     var lu = Math.hypot(u[0], u[1]), lv = Math.hypot(v[0], v[1]);
@@ -76,43 +86,35 @@
     var sweep = (u[0] * v[1] - u[1] * v[0]) > 0 ? 1 : 0, f = Figur.f;
     return 'M' + f(K[0]) + ' ' + f(K[1]) + 'L' + f(s[0]) + ' ' + f(s[1]) + 'A' + r + ' ' + r + ' 0 0 ' + sweep + ' ' + f(e[0]) + ' ' + f(e[1]) + 'Z';
   }
-  function trailPath(arr) {
-    if (arr.length < 2) return '';
-    var f = Figur.f, d = 'M' + f(arr[0][0]) + ' ' + f(arr[0][1]);
-    for (var i = 1; i < arr.length; i++) d += 'L' + f(arr[i][0]) + ' ' + f(arr[i][1]);
-    return d;
-  }
 
   (function hero() {
-    var svg = $('.hero .stage'); if (!svg || !window.Figur) return;
-    var fig = Figur.bind($('.fig--hero', svg)), seq = Figur.SEQ.hero, dur = Figur.duration('hero');
-    var trail = $('.stage__trail', svg), ktrail = $('.stage__trail--knee', svg), arc = $('.stage__arc', svg), deg = $('.stage__deg', svg);
-    // gestrichelte Soll-Bahn des Handgelenks (einmal berechnet)
-    var ghost = [];
-    for (var i = 0; i <= 60; i++) ghost.push(Figur.solve(Figur.sample(seq, 2.1 * i / 60)).AF.W);
-    $('.stage__ghost', svg).setAttribute('d', trailPath(ghost));
-
-    var pts = [], kpts = [], lastDeg = -1, t0 = performance.now(), raf = 0, visible = true, last = 0;
+    var svg = $('.lab'); if (!svg || !window.Figur) return;
+    var f = Figur.f, fig = Figur.bind($('.fig--hero', svg)), seq = Figur.SEQ.treppe;
+    var trail = $('.lab__trail', svg), arc = $('.lab__arc', svg), plumb = $('.lab__plumb', svg);
+    var hud = {};
+    $$('.hud__r', svg).forEach(function (g) { hud[g.getAttribute('data-hud')] = { lead: $('.hud__lead', g), v: $('.hud__v', g), last: null }; });
+    function setV(h, val) { if (h.last !== val) { h.v.textContent = val + '°'; h.last = val; } }
+    var pts = [], t0 = performance.now(), raf = 0, visible = true, last = 0;
     var m = { x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0 };
 
     function render(s, live) {
       var p = Figur.sample(seq, s);
-      p.tb += m.x * 5; p.hx += m.x * 6; p.nk += m.x * 10 - m.y * 8; p.aF -= m.y * 16; p.aB -= m.y * 13;
+      p.tb += m.x * 4 - m.y * 3; p.nk += m.x * 10 - m.y * 8; p.aF -= m.y * 22; p.aB -= m.y * 18; p.aF += m.x * 10;
       var q = Figur.draw(fig, p), S = q.s;
-      if (live) {
-        pts.push(S.AF.W); if (pts.length > 46) pts.shift();
-        kpts.push(S.F.K); if (kpts.length > 30) kpts.shift();
-        trail.setAttribute('d', trailPath(pts)); ktrail.setAttribute('d', trailPath(kpts));
-      }
-      arc.setAttribute('d', arcPath(S.F.K, S.F.A, S.H, 26));
-      var a = Math.round(Figur.angle(S.F.K, S.F.A, S.H));
-      if (a !== lastDeg) { deg.textContent = a + '°'; lastDeg = a; }
+      if (live) { pts.push(S.F.K); if (pts.length > 54) pts.shift(); trail.setAttribute('d', poly(pts)); }
+      arc.setAttribute('d', arcPath(S.F.K, S.F.A, S.H, 24));
+      plumb.setAttribute('d', 'M' + f(S.H[0]) + ' -40V440');
+      hud.knee.lead.setAttribute('d', 'M' + f(S.F.K[0] + 8) + ' ' + f(S.F.K[1]) + 'L412 206L430 206');
+      hud.hip.lead.setAttribute('d', 'M' + f(S.H[0] - 8) + ' ' + f(S.H[1]) + 'L132 174L118 174');
+      hud.trunk.lead.setAttribute('d', 'M' + f(S.S[0] - 8) + ' ' + f(S.S[1]) + 'L176 44L162 44');
+      setV(hud.knee, Math.round(Figur.angle(S.F.K, S.F.A, S.H)));
+      setV(hud.hip, Math.round(Figur.angle(S.H, S.S, S.F.K)));
+      setV(hud.trunk, Math.round(Math.abs(p.tb)));
     }
     function frame(now) {
       raf = 0;
       var dt = Math.min(0.05, (now - (last || now)) / 1000); last = now;
-      // Feder für die Maus (weich, ohne Nachwippen)
-      var k = 60, c = 15;
+      var k = 60, c = 15; // Feder für die Maus: weich, ohne Nachwippen
       m.vx += ((m.tx - m.x) * k - m.vx * c) * dt; m.vy += ((m.ty - m.y) * k - m.vy * c) * dt;
       m.x += m.vx * dt; m.y += m.vy * dt;
       render((now - t0) / 1000, true);
@@ -121,12 +123,10 @@
     function play() { if (!raf && visible && !doc.hidden) { last = 0; raf = requestAnimationFrame(frame); } }
     function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
 
-    if (REDUCED) {
-      render(1.95, false);
-      trail.setAttribute('d', trailPath(ghost));
-      return;
-    }
-    render(0, false); play();
+    if (REDUCED) { render(2.9, false); trail.setAttribute('d', $('.lab__ghost', svg).getAttribute('d')); return; }
+    render(0, false);
+    // Figur erst losgehen lassen, wenn sie sich gezeichnet hat (CSS-Intro ~1 s)
+    setTimeout(function () { t0 = performance.now(); play(); }, 900);
     new IntersectionObserver(function (en) { visible = en[0].isIntersecting; visible ? play() : stop(); }).observe(svg);
     doc.addEventListener('visibilitychange', function () { doc.hidden ? stop() : play(); });
     if (FINE) addEventListener('pointermove', function (e) {
@@ -185,22 +185,29 @@
     });
   });
 
-  /* ---------- Reveals (nur Elemente unterhalb des Viewports) ---------- */
+  /* ---------- Reveals: Überschriften schwenken um ihren Gelenkpunkt („Hebel“), Blöcke heben sich ---------- */
   later(function () {
     if (MOTION_OFF) return;
-    var els = $$('.sec__head, .tabs, .kk__map, .kk__panel, .ablauf__head, .player, .calc, .pg, .stats, .team__h, .team, .quotes, .map, .so__info, .faq__list, .form');
     var io = new IntersectionObserver(function (en) {
-      en.forEach(function (x) { if (x.isIntersecting) { x.target.classList.add('is-in'); io.unobserve(x.target); } });
-    }, { rootMargin: '0px 0px -8% 0px' });
-    els.forEach(function (el, i) {
-      if (el.getBoundingClientRect().top < innerHeight) return;
+      en.forEach(function (x) {
+        if (!x.isIntersecting) return;
+        var el = x.target; io.unobserve(el);
+        el.classList.add('is-in'); el.classList.remove('is-pre');
+      });
+    }, { rootMargin: '0px 0px -10% 0px' });
+    function below(el) { return el.getBoundingClientRect().top > innerHeight; }
+    $$('[data-lever]').forEach(function (el) { if (below(el)) { el.classList.add('lv'); io.observe(el); } });
+    var blocks = '.th__head .sec__lead, .tabs, .kk__head .sec__lead, .kk__map, .kk__panel, .weg__sub, .ue__head .sec__lead, .player, .ko__head .sec__lead, .calc, .pg, .proto, .team__h, .team, .quotes, .map, .so__info, .faq__list, .te__head .sec__lead, .form';
+    $$(blocks).forEach(function (el) {
+      if (!below(el)) return;
       el.setAttribute('data-reveal', '');
-      if (el.classList.contains('pg')) el.style.transitionDelay = (i % 3) * 60 + 'ms';
+      if (el.classList.contains('pg')) el.style.transitionDelay = ($$('.pg').indexOf(el) * 80) + 'ms';
       io.observe(el);
     });
+    $$('.gonio, .map').forEach(function (el) { if (below(el)) { el.classList.add('is-pre'); io.observe(el); } });
   });
 
-  /* ---------- Tabs (Pfeiltasten, Home/End) ---------- */
+  /* ---------- Tabs (Pfeiltasten in beide Richtungen, Home/End) ---------- */
   function tabs(list, onChange) {
     var btns = $$('[role="tab"]', list);
     function select(b, focus) {
@@ -214,7 +221,7 @@
     list.addEventListener('click', function (e) { var b = e.target.closest('[role="tab"]'); if (b) select(b); });
     list.addEventListener('keydown', function (e) {
       var i = btns.indexOf(doc.activeElement); if (i < 0) return;
-      var n = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: btns.length - 1 }[e.key];
+      var n = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: btns.length - 1 }[e.key];
       if (n === undefined) return;
       e.preventDefault(); select(btns[(n + btns.length) % btns.length], true);
     });
@@ -226,7 +233,11 @@
   var therapyTabs = null;
   later(function () {
     var list = $('.therapien .tabs__list'), ind = $('.tabs__ind', list), first = true;
-    function place(b) { ind.style.transform = 'translateX(' + b.offsetLeft + 'px) scaleX(' + (b.offsetWidth / 100).toFixed(3) + ')'; }
+    function place(b) {
+      var vertical = getComputedStyle(list).flexDirection === 'column';
+      ind.style.transform = vertical ? 'translateY(' + b.offsetTop + 'px) scaleY(' + (b.offsetHeight / 100).toFixed(3) + ')'
+        : 'translateX(' + b.offsetLeft + 'px) scaleX(' + (b.offsetWidth / 100).toFixed(3) + ')';
+    }
     therapyTabs = tabs(list, function (b) {
       place(b);
       var p = doc.getElementById(b.getAttribute('aria-controls'));
@@ -257,12 +268,26 @@
   var TH_NAMEN = { kg: 'Krankengymnastik', mt: 'Manuelle Therapie', mld: 'Lymphdrainage', sport: 'Sportphysio', geraet: 'KG am Gerät' };
 
   later(function () {
-    var body = $('.body'), panel = $('.kk__panel'), seg = $('.seg'); if (!body) return;
+    var body = $('.body'), panel = $('.kk__panel'), seg = $('.seg'), kk = $('.kk'); if (!body) return;
+    var wireP = $('.kk__wire path', kk), wireC = $('.kk__wire circle', kk), nameEl = $('[data-k="name"]', panel);
     var groups = { front: $('[data-side="front"]', body), back: $('[data-side="back"]', body) };
     var view = 'front', first = true;
+    // Messlinie vom gewählten Punkt bis zur Überschrift im Panel
+    function wire(animate) {
+      if (innerWidth < 900) return;
+      var dot = $('.rg[aria-checked="true"] .rg__dot', groups[view]); if (!dot) return;
+      var kr = kk.getBoundingClientRect(), a = dot.getBoundingClientRect();
+      var x1 = a.left + a.width / 2 - kr.left, y1 = a.top + a.height / 2 - kr.top;
+      var x2 = panel.offsetLeft + nameEl.offsetLeft - 16, y2 = panel.offsetTop + nameEl.offsetTop + nameEl.offsetHeight * 0.55;
+      var mx = x1 + (x2 - x1) * 0.5;
+      wireP.setAttribute('d', 'M' + x1.toFixed(1) + ' ' + y1.toFixed(1) + 'C' + mx.toFixed(1) + ' ' + y1.toFixed(1) + ' ' + mx.toFixed(1) + ' ' + y2.toFixed(1) + ' ' + x2.toFixed(1) + ' ' + y2.toFixed(1));
+      wireC.setAttribute('cx', x2.toFixed(1)); wireC.setAttribute('cy', y2.toFixed(1));
+      if (animate && !REDUCED) { wireP.classList.remove('is-on'); void wireP.getBoundingClientRect(); }
+      wireP.classList.add('is-on');
+    }
     function fill(id) {
       var d = REGIONEN[id];
-      $('[data-k="name"]', panel).textContent = d.name;
+      nameEl.textContent = d.name;
       var ul = $('[data-k="ursachen"]', panel); ul.textContent = '';
       d.ursachen.forEach(function (u) { var li = doc.createElement('li'); li.textContent = u; ul.appendChild(li); });
       var tg = $('[data-k="therapien"]', panel); tg.textContent = '';
@@ -270,7 +295,7 @@
       $('[data-k="uebung"]', panel).textContent = d.ue;
       $('[data-k="anleitung"]', panel).textContent = d.an;
       if (!first && !REDUCED) { panel.classList.remove('is-swap'); void panel.offsetWidth; panel.classList.add('is-swap'); }
-      first = false;
+      wire(!first); first = false;
     }
     function choose(g, focus) {
       $$('.rg', groups[view]).forEach(function (x) { var on = x === g; x.setAttribute('aria-checked', on); x.tabIndex = on ? 0 : -1; });
@@ -282,12 +307,12 @@
       var swap = function () {
         groups[view].hidden = true; view = v; groups[v].hidden = false;
         body.setAttribute('data-view', v); seg.setAttribute('data-v', v);
-        var sel = $('.rg[aria-checked="true"]', groups[v]) || $('.rg', groups[v]);
-        choose(sel);
+        choose($('.rg[aria-checked="true"]', groups[v]) || $('.rg', groups[v]));
       };
       $$('.seg__b', seg).forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-view') === v); });
       if (REDUCED) { swap(); return; }
-      body.classList.add('is-flip'); setTimeout(function () { swap(); body.classList.remove('is-flip'); }, 180);
+      // Drehung um die Körperachse: zusammenklappen, Seite wechseln, aufklappen
+      body.classList.add('is-flip'); setTimeout(function () { swap(); body.classList.remove('is-flip'); }, 220);
     }
     seg.addEventListener('click', function (e) { var b = e.target.closest('.seg__b'); if (b) setView(b.getAttribute('data-view')); });
     body.addEventListener('click', function (e) { var g = e.target.closest('.rg'); if (g) choose(g); });
@@ -304,54 +329,109 @@
       var b = doc.getElementById('tab-' + a.getAttribute('data-tab')); if (b) therapyTabs.select(b);
     });
     choose($('.rg[data-r="knie"]', body));
+    var rt = 0; addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { wire(false); }, 120); });
+    if (doc.fonts) doc.fonts.ready.then(function () { wire(false); });
+    // erst zeichnen, wenn die Karte in Sicht kommt
+    if (!REDUCED) { wireP.classList.remove('is-on'); new IntersectionObserver(function (en, o) { if (en[0].isIntersecting) { o.disconnect(); wire(true); } }, { threshold: 0.4 }).observe(kk); }
   });
 
-  /* ---------- Ablauf: horizontale Strecke per sticky + Scrub (Desktop) ---------- */
+  /* ---------- Ihr Weg: Figur läuft die Bewegungskurve ab (sticky + Scrub, Desktop) ---------- */
   later(function () {
-    if (!window.gsap || REDUCED) return;
-    var sec = $('.ablauf'), view = $('.ablauf__view'), path = $('.ablauf__path');
+    if (!window.gsap || REDUCED || !window.Figur) return;
+    var sec = $('.weg'), view = $('.weg__view'), track = $('.weg__track'), live = $('.weg__live'), curve = $('.weg__curve');
+    var fig = Figur.bind($('.fig--weg', sec)), W = Figur.WEG, N = W.length - 1;
+    var ghosts = $$('.ghost', sec).map(function (g) { return { el: g, at: +g.getAttribute('data-at'), on: false }; });
+    var steps = $$('.step', sec);
     var mm = gsap.matchMedia();
     mm.add('(min-width: 900px)', function () {
       sec.classList.add('is-h');
-      var dist = function () { return Math.max(0, view.scrollWidth - innerWidth + 64); };
-      var setH = function () { sec.style.height = (innerHeight + dist()) + 'px'; };
+      var D = 0;
+      var setH = function () {
+        var cs = getComputedStyle(view), avail = view.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        D = Math.max(0, track.offsetWidth - avail + 24);
+        sec.style.height = (innerHeight + D + innerHeight * 0.35) + 'px';
+      };
       setH(); ScrollTrigger.addEventListener('refreshInit', setH);
-      var tl = gsap.timeline({ scrollTrigger: { trigger: sec, start: 'top top', end: function () { return '+=' + dist(); }, scrub: 0.6, invalidateOnRefresh: true } });
-      tl.fromTo(view, { x: 0 }, { x: function () { return -dist(); }, ease: 'none' }, 0)
-        .fromTo(path, { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', ease: 'none' }, 0);
-      return function () { ScrollTrigger.removeEventListener('refreshInit', setH); sec.classList.remove('is-h'); sec.style.height = ''; gsap.set([view, path], { clearProps: 'all' }); };
+      var st = { p: 0 }, lastS = -1;
+      function render() {
+        var p = st.p, s = p * N, a = Math.min(N - 1, Math.floor(s)), t = s - a;
+        if (Math.abs(s - lastS) < 0.0005) return; lastS = s;
+        Figur.draw(fig, Figur.mix(W[a], W[a + 1], easeIO(t)));
+        live.setAttribute('transform', 'translate(' + (s * 400).toFixed(1) + ' 0)');
+        curve.style.strokeDashoffset = (1 - p).toFixed(4);
+        track.style.transform = 'translate3d(' + (-p * D).toFixed(1) + 'px,0,0)';
+        for (var i = 0; i < ghosts.length; i++) { var on = ghosts[i].at <= p + 0.002; if (on !== ghosts[i].on) { ghosts[i].on = on; ghosts[i].el.classList.toggle('is-on', on); } }
+        for (var j = 0; j < steps.length; j++) steps[j].classList.toggle('is-on', j / N <= p + 0.04);
+      }
+      var tw = gsap.to(st, { p: 1, ease: 'none', onUpdate: render,
+        scrollTrigger: { trigger: sec, start: 'top top', end: function () { return '+=' + (D + innerHeight * 0.35); }, scrub: 0.5, invalidateOnRefresh: true } });
+      render();
+      return function () {
+        tw.scrollTrigger && tw.scrollTrigger.kill(); tw.kill();
+        ScrollTrigger.removeEventListener('refreshInit', setH); sec.classList.remove('is-h'); sec.style.height = '';
+        track.style.transform = ''; curve.style.strokeDashoffset = '';
+      };
     });
   });
 
-  /* ---------- Praxis: leichte Parallaxe der Bilder ---------- */
+  /* ---------- Praxis: Satz baut sich Wort für Wort auf ---------- */
   later(function () {
-    if (!window.gsap || REDUCED) return;
-    $$('.pg img').forEach(function (img, i) {
-      gsap.fromTo(img, { yPercent: -4, scale: 1.08 }, { yPercent: 4, scale: 1.08, ease: 'none', scrollTrigger: { trigger: img.parentNode, start: 'top bottom', end: 'bottom top', scrub: true } });
-    });
+    var p = $('[data-words]'); if (!p || !window.gsap || REDUCED) return;
+    var words = p.textContent.trim().split(/\s+/); p.textContent = '';
+    var spans = words.map(function (w, i) { var s = doc.createElement('span'); s.className = 'w'; s.textContent = w; p.appendChild(s); if (i < words.length - 1) p.appendChild(doc.createTextNode(' ')); return s; });
+    var tw = gsap.fromTo(spans, { opacity: 0.2 }, { opacity: 1, ease: 'none', stagger: 0.08,
+      scrollTrigger: { trigger: p, start: 'top 82%', end: 'bottom 52%', scrub: true } });
+    // ohne weiteres Scrollen nach ~2 s vollständig lesbar
+    new IntersectionObserver(function (en, o) {
+      if (!en[0].isIntersecting) return; o.disconnect();
+      setTimeout(function () { if (tw.progress() < 1) { tw.scrollTrigger.kill(); gsap.to(spans, { opacity: 1, duration: 0.5, stagger: 0.012, overwrite: true }); } }, 2200);
+    }, { threshold: 0.6 }).observe(p);
   });
 
-  /* ---------- Übungs-Player ---------- */
+  /* ---------- Übungs-Player mit Bewegungsbahnen und Tempo-Leiste ---------- */
   var PHASEN = {
-    stuhl: [[0.9, 'Nach vorn neigen', 1], [2.2, 'Aufstehen', 2], [3.2, 'Stehen', 2], [6.0, 'Langsam setzen', 3], [7.0, 'Sitzen', 0]],
+    stuhl: [[0.9, 'Nach vorn neigen', 1], [2.2, 'Aufstehen', 1], [3.2, 'Stehen', 2], [6.0, 'Langsam setzen', 3], [7.0, 'Sitzen', 0]],
     ferse: [[1.5, 'Hochdrücken', 1], [2.5, 'Halten', 2], [4.5, 'Absenken', 3], [5.0, 'Pause', 0]],
     arme: [[2.5, 'Heben · einatmen', 1], [3.5, 'Halten', 2], [6.0, 'Senken · ausatmen', 3], [6.6, 'Pause', 0]]
   };
+  // welcher Gelenkwinkel live gemessen wird
+  var MESSUNG = {
+    stuhl: ['Knie', function (s) { return Figur.angle(s.F.K, s.F.A, s.H); }],
+    ferse: ['Sprunggelenk', function (s) { return Figur.angle(s.F.A, s.F.K, s.F.T); }],
+    arme: ['Schulter', function (s) { return Figur.angle(s.S, s.H, s.AF.E); }]
+  };
+  var PHASE_STEP = { stuhl: [1, 2, 2, 3, 0], ferse: [1, 2, 3, 0], arme: [1, 2, 3, 0] };
   later(function () {
     var el = $('[data-player]'); if (!el || !window.Figur) return;
     var svg = $('.stage', el), fig = Figur.bind($('.fig--player', svg)), trail = $('.stage__trail', svg);
-    var ring = $('.ring__v', el), phaseEl = $('.player__phase', el), cnt = $('[data-count]', el), goalEls = $$('[data-goal], [data-goal-v]', el);
+    var paths = { w: $('.path--w', svg), k: $('.path--k', svg), h: $('.path--h', svg) };
+    var phaseEl = $('.player__phase', el), cnt = $('[data-count]', el), goalEls = $$('[data-goal], [data-goal-v]', el);
     var go = $('[data-go]', el), goL = $('[data-go-l]', el), live = $('[data-live]', el);
-    var st = { ex: 'stuhl', t: 0, reps: 0, goal: 10, run: false, raf: 0, last: 0, pts: [], phase: -1 };
+    var degK = $('[data-deg-k]', el), degV = $('[data-deg]', el), bar = $('[data-tempo]', el), head = $('.tempo__head', el);
+    var st = { ex: 'stuhl', t: 0, reps: 0, goal: 10, run: false, raf: 0, last: 0, pts: [], phase: -1, deg: -1, bw: 0 };
 
-    function phaseAt(t) { var ph = PHASEN[st.ex]; for (var i = 0; i < ph.length; i++) if (t <= ph[i][0]) return ph[i]; return ph[ph.length - 1]; }
+    function phaseIdx(t) { var ph = PHASEN[st.ex]; for (var i = 0; i < ph.length; i++) if (t <= ph[i][0]) return i; return ph.length - 1; }
     function steps() { return $$('#ep-' + st.ex + ' .ep__steps li'); }
+    function build() {
+      var seq = Figur.SEQ[st.ex], dur = Figur.duration(st.ex), w = [], k = [], h = [];
+      for (var i = 0; i <= 90; i++) { var s = Figur.solve(Figur.sample(seq, dur * i / 90 * 0.999)); w.push(s.AF.W); k.push(s.F.K); h.push(s.H); }
+      paths.w.setAttribute('d', poly(w)); paths.k.setAttribute('d', poly(k)); paths.h.setAttribute('d', poly(h));
+      degK.textContent = MESSUNG[st.ex][0]; st.deg = -1;
+      bar.textContent = ''; var prev = 0;
+      PHASEN[st.ex].forEach(function (ph) { var sp = doc.createElement('span'); sp.style.flexGrow = (ph[0] - prev).toFixed(2); sp.setAttribute('data-k', ph[2]); sp.textContent = ph[1]; bar.appendChild(sp); prev = ph[0]; });
+      st.bw = bar.offsetWidth;
+    }
     function render(trace) {
-      var q = Figur.draw(fig, Figur.sample(Figur.SEQ[st.ex], st.t));
-      if (trace) { st.pts.push(q.s.AF.W); if (st.pts.length > 40) st.pts.shift(); trail.setAttribute('d', trailPath(st.pts)); }
-      ring.style.strokeDashoffset = (100 - 100 * st.t / Figur.duration(st.ex)).toFixed(2);
-      var ph = phaseAt(st.t);
-      if (st.run && ph !== st.phase) { st.phase = ph; phaseEl.textContent = ph[1]; steps().forEach(function (li, i) { li.classList.toggle('is-now', i === ph[2]); }); }
+      var q = Figur.draw(fig, Figur.sample(Figur.SEQ[st.ex], st.t)), dur = Figur.duration(st.ex);
+      if (trace) { st.pts.push(q.s.AF.W); if (st.pts.length > 40) st.pts.shift(); trail.setAttribute('d', poly(st.pts)); }
+      var d = Math.round(MESSUNG[st.ex][1](q.s)); if (d !== st.deg) { st.deg = d; degV.textContent = d + '°'; }
+      head.style.transform = 'translateX(' + (st.bw * st.t / dur).toFixed(1) + 'px)';
+      var pi = phaseIdx(st.t);
+      if (st.run && pi !== st.phase) {
+        st.phase = pi; phaseEl.textContent = PHASEN[st.ex][pi][1];
+        var sIdx = PHASE_STEP[st.ex][pi];
+        steps().forEach(function (li, i) { li.classList.toggle('is-now', i === sIdx); });
+      }
     }
     function tick(now) {
       st.raf = 0;
@@ -391,20 +471,21 @@
       });
     });
     doc.addEventListener('visibilitychange', function () { if (doc.hidden && st.run) stop(); });
+    addEventListener('resize', function () { st.bw = bar.offsetWidth; render(false); });
     tabs($('.player__pick', el), function (b) {
-      var ex = b.getAttribute('data-ex'); if (ex === st.ex && st.t === 0 && !st.reps) { render(false); return; }
+      var ex = b.getAttribute('data-ex'); if (ex === st.ex && st.t === 0 && !st.reps && st.bw) { render(false); return; }
       st.ex = ex;
       $$('.prop', svg).forEach(function (p) { p.hidden = p.getAttribute('data-prop') !== ex; });
-      reset();
+      build(); reset();
     });
-    render(false);
   });
 
-  /* ---------- Rezept-Rechner ---------- */
+  /* ---------- Rezept-Rechner mit Waage ---------- */
   later(function () {
     var f = $('#calc'); if (!f) return;
     var n = $('#c-n'), v = $('#c-v'), frei = $('#c-frei');
-    var o = function (k) { return $('[data-o="' + k + '"]', f); }, b = function (k) { return $('[data-b="' + k + '"]', f); };
+    var beam = $('.lever__beam', f), pans = $$('.lever__pan', f), degT = $('.lever__deg', f);
+    var o = function (k) { return $('[data-o="' + k + '"]', f); };
     function fillRange(r) { r.style.setProperty('--fill', ((r.value - r.min) / (r.max - r.min) * 100) + '%'); }
     function calc() {
       var hm = PREISE[f.querySelector('input[name="hm"]:checked').value], cn = +n.value, cv = +v.value;
@@ -417,18 +498,31 @@
       o('kdet').textContent = frei.checked ? 'Zuzahlungsbefreit – die Kasse übernimmt die vollen ' + EUR.format(kosten) + '.'
         : (cv > 1 ? cv + ' × ' : '') + EUR.format(ZUZAHLUNG_PAUSCHALE) + ' Pauschale + 10 % von ' + EUR.format(kosten);
       o('sdet').textContent = (cn * cv) + ' × ' + EUR.format(hm.selbst) + ' ' + hm.name;
-      b('kasse').style.transform = 'scaleX(' + Math.max(0.015, kasse / max).toFixed(3) + ')';
-      b('selbst').style.transform = 'scaleX(' + Math.max(0.015, selbst / max).toFixed(3) + ')';
+      // schwerere Seite sinkt: links Kassenanteil, rechts Selbstzahler
+      var a = Math.max(-WAAGE_MAX_GRAD, Math.min(WAAGE_MAX_GRAD, (selbst - kasse) / max * WAAGE_MAX_GRAD));
+      beam.style.transform = 'rotate(' + a.toFixed(2) + 'deg)';
+      pans.forEach(function (p) { p.style.transform = 'rotate(' + (-a).toFixed(2) + 'deg)'; });
+      degT.textContent = Math.round(Math.abs(a)) + '°';
     }
     f.addEventListener('input', calc); f.addEventListener('change', calc);
     f.addEventListener('submit', function (e) { e.preventDefault(); });
     calc();
   });
 
-  /* ---------- Zahlen hochzählen ---------- */
+  /* ---------- Goniometer-Skala für die Bewertung ---------- */
+  later(function () {
+    var g = $('.gonio__ticks'); if (!g) return;
+    var NS = 'http://www.w3.org/2000/svg', d = '';
+    for (var i = 0; i <= 27; i++) {
+      var a = (-135 + i * 10) * Math.PI / 180, r1 = i % 5 === 0 ? 74 : 79, r2 = 84;
+      d += 'M' + (110 + r1 * Math.sin(a)).toFixed(1) + ' ' + (110 - r1 * Math.cos(a)).toFixed(1) + 'L' + (110 + r2 * Math.sin(a)).toFixed(1) + ' ' + (110 - r2 * Math.cos(a)).toFixed(1);
+    }
+    var p = doc.createElementNS(NS, 'path'); p.setAttribute('d', d); g.appendChild(p);
+  });
+
+  /* ---------- Zahlen im Messprotokoll ---------- */
   later(function () {
     if (REDUCED) return;
-    var els = $$('[data-count-to]');
     var io = new IntersectionObserver(function (en) {
       en.forEach(function (x) {
         if (!x.isIntersecting) return; io.unobserve(x.target);
@@ -439,17 +533,70 @@
         })(t0);
       });
     }, { threshold: 0.6 });
-    els.forEach(function (el) { if (el.getBoundingClientRect().top > innerHeight) io.observe(el); });
+    $$('[data-count-to]').forEach(function (el) { if (el.getBoundingClientRect().top > innerHeight) io.observe(el); });
   });
 
-  /* ---------- Aktiver Navigationspunkt ---------- */
+  /* ---------- Aktiver Navigationspunkt, Achse hell/dunkel ---------- */
   later(function () {
-    var links = $$('.nav a'), map = {};
-    links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
+    var links = $$('.nav a, .axis a'), map = {};
+    links.forEach(function (a) { var id = a.getAttribute('href').slice(1); (map[id] = map[id] || []).push(a); });
     var io = new IntersectionObserver(function (en) {
-      en.forEach(function (x) { var a = map[x.target.id]; if (a && x.isIntersecting) { links.forEach(function (l) { l.classList.toggle('is-active', l === a); }); } });
+      en.forEach(function (x) { var hit = map[x.target.id]; if (hit && x.isIntersecting) links.forEach(function (l) { l.classList.toggle('is-active', hit.indexOf(l) > -1); }); });
     }, { rootMargin: '-45% 0px -50% 0px' });
     Object.keys(map).forEach(function (id) { var s = doc.getElementById(id); if (s) io.observe(s); });
+    var axis = $('.axis'); if (!axis) return;
+    var dark = new Set();
+    var io2 = new IntersectionObserver(function (en) {
+      en.forEach(function (x) { x.isIntersecting ? dark.add(x.target) : dark.delete(x.target); });
+      axis.classList.toggle('is-dark', dark.size > 0);
+    }, { rootMargin: '-30% 0px -30% 0px' });
+    $$('.uebungen, .ftr').forEach(function (s) { io2.observe(s); });
+  });
+
+  /* ---------- Achse: kleine Figur turnt beim Scrollen mit ---------- */
+  later(function () {
+    var g = $('.fig--rail'); if (!g || REDUCED || getComputedStyle($('.axis')).display === 'none') return;
+    var fig = Figur.bind(g), seq = Figur.SEQ.arme, dur = Figur.duration('arme');
+    scrollHooks.push(function (y) { Figur.draw(fig, Figur.sample(seq, (y / 140) % dur)); });
+  });
+
+  /* ---------- Maßband: läuft, Tempo folgt der Scroll-Geschwindigkeit ---------- */
+  later(function () {
+    var tape = $('.tape'), track = $('.tape__track', tape); if (!tape) return;
+    if (REDUCED) { tape.classList.add('is-static'); return; }
+    var list = $('.tape__list', track), clone = list.cloneNode(true); clone.setAttribute('aria-hidden', 'true'); track.appendChild(clone);
+    var w = list.offsetWidth, x = 0, v = 0, lastY = scrollY, last = 0, raf = 0, vis = false;
+    function frame(now) {
+      raf = 0; var dt = Math.min(0.05, (now - (last || now)) / 1000); last = now;
+      var dy = scrollY - lastY; lastY = scrollY;
+      v += ((dy / Math.max(dt, 0.001)) * 0.25 - v) * 0.12; // geglättete Scroll-Geschwindigkeit
+      var speed = 36 + Math.min(900, Math.abs(v)) * (dy < 0 ? -1 : 1);
+      x -= speed * dt; if (x <= -w) x += w; if (x > 0) x -= w;
+      track.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,0)';
+      if (vis && !doc.hidden) raf = requestAnimationFrame(frame);
+    }
+    new IntersectionObserver(function (en) { vis = en[0].isIntersecting; if (vis && !raf) { last = 0; lastY = scrollY; raf = requestAnimationFrame(frame); } }).observe(tape);
+    addEventListener('resize', function () { w = list.offsetWidth; });
+    doc.addEventListener('visibilitychange', function () { if (!doc.hidden && vis && !raf) { last = 0; raf = requestAnimationFrame(frame); } });
+  });
+
+  /* ---------- Magnetische Buttons (nur feiner Zeiger) ---------- */
+  later(function () {
+    if (!FINE || REDUCED) return;
+    $$('[data-magnet]').forEach(function (b) {
+      var tx = 0, ty = 0, x = 0, y = 0, raf = 0;
+      function loop() {
+        x += (tx - x) * 0.2; y += (ty - y) * 0.2;
+        b.style.setProperty('--mx', x.toFixed(2) + 'px'); b.style.setProperty('--my', y.toFixed(2) + 'px');
+        raf = (Math.abs(tx - x) > 0.05 || Math.abs(ty - y) > 0.05) ? requestAnimationFrame(loop) : 0;
+      }
+      b.addEventListener('pointermove', function (e) {
+        var r = b.getBoundingClientRect();
+        tx = Math.max(-8, Math.min(8, (e.clientX - r.left - r.width / 2) * 0.22)); ty = Math.max(-6, Math.min(6, (e.clientY - r.top - r.height / 2) * 0.3));
+        if (!raf) raf = requestAnimationFrame(loop);
+      });
+      b.addEventListener('pointerleave', function () { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(loop); });
+    });
   });
 
   /* ---------- Termin-Formular ---------- */

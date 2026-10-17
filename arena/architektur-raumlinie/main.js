@@ -308,7 +308,7 @@ const HAUS = (() => {
       if (s !== step) { step = s; steps.forEach((li, i) => li.classList.toggle('is-on', i === s)); }
     }
     render(0);
-    ScrollTrigger.create({ trigger: sx, start: 'top top', end: 'bottom bottom', scrub: 0.4, onUpdate: self => render(self.progress) });
+    ScrollTrigger.create({ trigger: sx, start: 'top 65%', end: 'bottom bottom', scrub: 0.4, onUpdate: self => render(self.progress) });
   }
 
   /* ---------- Set Piece: Lichtpause – Kapitel ziehen ihren Hintergrund von links auf ---------- */
@@ -338,7 +338,22 @@ const HAUS = (() => {
         io.unobserve(el);
       });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
-    els.forEach(e => io.observe(e)); groups.forEach(g => io.observe(g));
+    // Clip-Reveals: Chromium rechnet clip-path in die Sichtbarkeit ein – deshalb das Elternelement beobachten
+    const proxies = new Map();
+    const io2 = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        (proxies.get(en.target) || []).forEach(el => el.classList.add('is-in'));
+        io2.unobserve(en.target);
+      });
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0 });
+    els.forEach(e => {
+      if (e.dataset.reveal === 'wipe' || e.dataset.reveal === 'plan') {
+        const p = e.parentElement; if (!proxies.has(p)) { proxies.set(p, []); io2.observe(p); }
+        proxies.get(p).push(e);
+      } else io.observe(e);
+    });
+    groups.forEach(g => io.observe(g));
   }
 
   /* ---------- Aktive Navigation + Blatt-Nummer im Planrahmen ---------- */

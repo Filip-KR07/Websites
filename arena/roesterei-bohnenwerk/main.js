@@ -1,5 +1,5 @@
 /* Bohnenwerk Kaffeerösterei – Modell „Röstgrad“
-   Aufbau: Sofort (Header, Menü, Hero-Bohnen) → Warteschlange in kleinen Häppchen (alles darunter). */
+   Aufbau: Sofort (Header, Menü, Hero: Röstprotokoll + Trommel) → Warteschlange in kleinen Häppchen (alles darunter). */
 (function () {
   'use strict';
 
@@ -35,6 +35,10 @@
     espresso: { charge: 210, tp: [1.35, 97], fc: [8 + 40 / 60, 196], drop: [11.0, 218], note: 'Für Siebträger und Milch: lange Entwicklung, wenig Säure, dichte Crema.' },
     dunkel:   { charge: 212, tp: [1.35, 98], fc: [8.5, 197], drop: [11.5, 224], note: 'Bis kurz vor den Second Crack: Zartbitter, Gewürz, kaum Säure.' }
   };
+  // Hero: das Röstprotokoll von Charge 2641 (dunkle Röstung bis „Wiener“). Die Kurve im HTML ist mit
+  // denselben Werten vorberechnet (x: 0–12 min, y: 60–240 °C) – bei Änderung den Pfad neu erzeugen.
+  var HERO_PROFILE = PROFILES.dunkel;
+  var HERO_INTRO = 0.14;            // so weit läuft die Charge beim Laden von selbst
 
   // Brew-Guide: Verhältnis = Wasser je Gramm Kaffee, Zeiten in Sekunden
   var METHODS = {
@@ -51,22 +55,26 @@
       img: 'aeropress', alt: 'Frisch gebrühter Kaffee wird in ein Glas gegossen, daneben Bohnen',
       steps: [[0, '{c} g Kaffee einfüllen, {w} ml Wasser aufgießen.'], [10, 'Zehnmal zügig umrühren.'], [30, 'Stempel aufsetzen, ziehen lassen.'], [90, 'Gleichmäßig in 30 Sekunden herunterdrücken.'], [120, 'Fertig – nach Geschmack mit Wasser verlängern.']] }
   };
+  // Waage: Anteil der Wassermenge auf der Waage über die Zeit [Sekunde, Anteil] – daraus Gewicht, Füllstand, Tropfen
+  var POUR = { v60: [[0, 0], [10, 0.16], [45, 0.16], [62, 0.6], [75, 0.6], [105, 1]], fp: [[0, 0], [22, 1]], es: [[0, 0], [6, 0.04], [28, 1]], ap: [[0, 0], [12, 1]] };
 
   /* ====================================================================== */
   var d = document.documentElement;
   var motionOff = d.classList.contains('motion-off');
   var reduced = d.classList.contains('reduced');
   var animate = !motionOff && !reduced;
+  var fine = d.classList.contains('fine');
   var IMG = '/arena/roesterei-bohnenwerk/assets/img/';
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   var clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
   var lerp = function (a, b, t) { return a + (b - a) * t; };
+  var easeOut = function (t) { return 1 - Math.pow(1 - t, 3); };
   var eur = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
   var num1 = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 });
   var mmss = function (sec) { sec = Math.max(0, Math.round(sec)); var m = Math.floor(sec / 60), s = sec % 60; return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; };
   var mss = function (sec) { sec = Math.max(0, Math.round(sec)); return Math.floor(sec / 60) + ':' + ('0' + (sec % 60)).slice(-2); };
-  var NB = ' ';
+  var NB = ' ';
   var lenis = null;
 
   /* ---------- Röstfarben ---------- */
@@ -82,6 +90,23 @@
     return ROAST_STOPS[ROAST_STOPS.length - 1][1];
   }
   var rgb = function (c, m) { m = m || 0; var f = function (v) { return Math.round(clamp(m > 0 ? v + (255 - v) * m : v * (1 + m), 0, 255)); }; return 'rgb(' + f(c[0]) + ',' + f(c[1]) + ',' + f(c[2]) + ')'; };
+
+  /* ---------- Kurvenmodell (Hero und Explorer) ----------
+     Bis zum Wendepunkt fällt die Fühlertemperatur, danach sinkt die Anstiegsrate (RoR) gleichmäßig:
+     RoR(u) = Rampe(u) · (A·(1−u)^1,6 + B). A und B treffen First Crack und Ende exakt. Gelbpunkt = 155 °C. */
+  function buildProfile(P) {
+    var tp = P.tp[0], Ttp = P.tp[1], fc = P.fc[0], dr = P.drop[0], span = dr - tp, n = 1.6, dt = 1 / 120;
+    var ramp = function (u) { return 1 - Math.exp(-u / 0.07); };
+    var I1 = [0], I2 = [0], steps = Math.ceil(span / dt);
+    for (var i = 1; i <= steps; i++) { var u = (i - 0.5) * dt / span, r = ramp(u); I1[i] = I1[i - 1] + r * Math.pow(1 - u, n) * dt; I2[i] = I2[i - 1] + r * dt; }
+    var at = function (arr, t) { var x = clamp((t - tp) / dt, 0, steps), k = Math.floor(x), f = x - k; return k >= steps ? arr[steps] : arr[k] + (arr[k + 1] - arr[k]) * f; };
+    var a1 = at(I1, fc), b1 = at(I2, fc), a2 = at(I1, dr), b2 = at(I2, dr), r1 = P.fc[1] - Ttp, r2 = P.drop[1] - Ttp;
+    var det = a1 * b2 - a2 * b1, A = (r1 * b2 - r2 * b1) / det, B = (a1 * r2 - a2 * r1) / det;
+    var f = function (t) { if (t <= tp) return Ttp + (P.charge - Ttp) * Math.pow(1 - t / tp, 2.1); return Ttp + A * at(I1, t) + B * at(I2, t); };
+    var ror = function (t) { if (t <= tp) return 0; var u = (t - tp) / span; return ramp(u) * (A * Math.pow(Math.max(0, 1 - u), n) + B); };
+    var dry = tp; while (dry < fc && f(dry) < 155) dry += 1 / 60;
+    return { P: P, f: f, ror: ror, dry: dry };
+  }
 
   /* ======================================================================
      1) Sofort: Header, Menü, Hero
@@ -133,137 +158,198 @@
     matchMedia('(min-width: 1181px)').addEventListener('change', function (m) { if (m.matches && btn.getAttribute('aria-expanded') === 'true') close(false); });
   })();
 
-  // Hero: Bohnen-Partikel + Röstgrad-Anzeige
+  /* ---------- Hero: Trommel mit Bohnen (Canvas, einfache Physik) ----------
+     Bohnen fallen unter Schwerkraft, stoßen sich gegenseitig ab und werden von der drehenden Trommelwand
+     mitgenommen – so entsteht das typische Kaskadieren. Scroll-Tempo beschleunigt die Trommel, First Crack
+     lässt die Bohnen springen. ~30 fps, nur sichtbar und bei aktivem Tab. */
   var hero = $('.hero');
-  var roast = { p: 0, shown: -1 };
-  var beans = (function () {
-    var canvas = $('.hero__beans'), ctx = canvas.getContext('2d');
-    if (!ctx) return { set: function () {} };
-    var N = 30, SPR = 64, sprites = [], list = [], w = 0, h = 0, dpr = 1;
-    var visible = true, raf = 0, last = 0, spin = 0, crackAt = -1e9, lastY = window.scrollY;
+  var drum = (function () {
+    var canvas = $('.drum__beans'), ctx = canvas && canvas.getContext('2d');
+    if (!ctx) return { set: function () {}, crack: function () {} };
+    var NS = 24, sprites = [], beans = [], S = 0, dpr = 1, R = 0, r = 0, cx = 0, cy = 0, L = 0;
+    var omega = 1.9, omegaT = 1.9, phi = 0, visible = true, raf = 0, last = 0, lastY = window.scrollY, roastR = 0;
 
     function makeSprites() {
       sprites = [];
-      var S = Math.round(SPR * dpr);
-      for (var i = 0; i < N; i++) {
-        var t = i / (N - 1), c = roastRGB(t), cv = document.createElement('canvas');
-        cv.width = cv.height = S;
-        var g = cv.getContext('2d'); g.translate(S / 2, S / 2);
-        var rx = S * 0.29, ry = S * 0.42;
-        var grad = g.createRadialGradient(-rx * 0.35, -ry * 0.4, S * 0.04, 0, 0, ry * 1.05);
-        grad.addColorStop(0, rgb(c, 0.28)); grad.addColorStop(0.55, rgb(c)); grad.addColorStop(1, rgb(c, -0.45));
+      var px = Math.max(8, Math.round(L * dpr));
+      for (var i = 0; i < NS; i++) {
+        var t = i / (NS - 1), c = roastRGB(t), cv = document.createElement('canvas');
+        cv.width = cv.height = px;
+        var g = cv.getContext('2d'); g.translate(px / 2, px / 2);
+        var rx = px * 0.3, ry = px * 0.42;
+        var grad = g.createRadialGradient(-rx * 0.35, -ry * 0.4, px * 0.04, 0, 0, ry * 1.05);
+        grad.addColorStop(0, rgb(c, 0.26)); grad.addColorStop(0.55, rgb(c)); grad.addColorStop(1, rgb(c, -0.5));
         g.fillStyle = grad; g.beginPath(); g.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); g.fill();
-        // Mittelfurche
-        g.strokeStyle = rgb(c, -0.62); g.lineWidth = S * 0.055; g.lineCap = 'round';
-        g.beginPath(); g.moveTo(-S * 0.015, -ry * 0.86); g.bezierCurveTo(S * 0.13, -ry * 0.3, -S * 0.13, ry * 0.3, S * 0.015, ry * 0.86); g.stroke();
-        g.strokeStyle = 'rgba(255,240,220,' + (0.12 + 0.1 * (1 - t)) + ')'; g.lineWidth = S * 0.018;
-        g.beginPath(); g.moveTo(S * 0.03, -ry * 0.8); g.bezierCurveTo(S * 0.16, -ry * 0.28, -S * 0.09, ry * 0.3, S * 0.05, ry * 0.8); g.stroke();
-        // Ölglanz bei dunklen Röstungen
-        if (t > 0.66) {
-          g.fillStyle = 'rgba(255,236,210,' + ((t - 0.66) * 0.75).toFixed(3) + ')';
-          g.beginPath(); g.ellipse(-rx * 0.42, -ry * 0.42, rx * 0.2, ry * 0.12, -0.5, 0, Math.PI * 2); g.fill();
-        }
+        g.strokeStyle = rgb(c, -0.64); g.lineWidth = px * 0.06; g.lineCap = 'round';
+        g.beginPath(); g.moveTo(-px * 0.015, -ry * 0.86); g.bezierCurveTo(px * 0.13, -ry * 0.3, -px * 0.13, ry * 0.3, px * 0.015, ry * 0.86); g.stroke();
+        if (t > 0.66) { g.fillStyle = 'rgba(255,236,210,' + ((t - 0.66) * 0.7).toFixed(3) + ')'; g.beginPath(); g.ellipse(-rx * 0.4, -ry * 0.42, rx * 0.2, ry * 0.12, -0.5, 0, Math.PI * 2); g.fill(); }
         sprites.push(cv);
       }
     }
     function seed() {
-      var count = Math.round(clamp(w * h / 15000, 26, 80)); list = [];
-      for (var i = 0; i < count; i++) {
-        var z = 0.35 + Math.random() * 0.65;
-        list.push({ x: Math.random() * w, y: Math.random() * h, z: z, s: 16 + 42 * z * z, r: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.5, vx: (Math.random() - 0.5) * 10, vy: 3 + Math.random() * 8, off: (Math.random() - 0.5) * 0.1, k: Math.random() * 6.28 });
+      beans = [];
+      var count = S < 300 ? 64 : 104, rowH = r * 1.74, row = 0;
+      while (beans.length < count && row < 60) {
+        var y = cy + R - r - 1 - row * rowH, half = Math.sqrt(Math.max(0, (R - r) * (R - r) - (y - cy) * (y - cy)));
+        for (var x = cx - half + (row % 2 ? r : 0); x <= cx + half && beans.length < count; x += 2 * r + 0.5) {
+          var jx = x + (Math.random() - 0.5), jy = y + (Math.random() - 0.5);
+          beans.push({ x: jx, y: jy, px: jx, py: jy, a: Math.random() * 6.28, o: (Math.random() - 0.5) * 0.08 });
+        }
+        row++;
       }
-      list.sort(function (a, b) { return a.z - b.z; });
     }
-    function resize() {
-      var r = canvas.getBoundingClientRect();
+    function layout() {
+      var rect = canvas.getBoundingClientRect();
+      if (rect.width < 10) return false;
       var nd = Math.min(2, window.devicePixelRatio || 1);
-      var changedDpr = nd !== dpr || !sprites.length;
-      w = r.width; h = r.height; dpr = nd;
-      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
-      if (changedDpr) makeSprites();
-      seed(); draw(performance.now());
+      S = rect.width; dpr = nd; canvas.width = Math.round(S * dpr); canvas.height = Math.round(S * dpr);
+      cx = cy = S / 2; R = S / 2 - 1; r = Math.max(4.5, S * 0.026); L = r * 3.1;
+      makeSprites(); seed();
+      return true;
     }
-    function draw(now) {
-      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
-      var p = roast.p, crack = Math.max(0, 1 - (now - crackAt) / 600);
-      for (var i = 0; i < list.length; i++) {
-        var b = list[i], idx = Math.round(clamp(p + b.off, 0, 1) * (N - 1));
-        var s = b.s * (1 + (crack > 0 ? 0.12 * crack * Math.sin(b.k * 9 + now / 30) : 0));
-        var cos = Math.cos(b.r) * dpr, sin = Math.sin(b.r) * dpr;
-        ctx.setTransform(cos, sin, -sin, cos, b.x * dpr, b.y * dpr);
-        ctx.globalAlpha = 0.35 + 0.6 * b.z;
-        ctx.drawImage(sprites[idx], -s / 2, -s / 2, s, s);
+    function physics() {
+      var n = beans.length, g = 0.42 * S / 340, damp = 0.994, two = 2 * r, two2 = two * two, Rin = R - r, wall = omega * Rin / 60, i, j, b, c;
+      for (i = 0; i < n; i++) { b = beans[i]; var vx = (b.x - b.px) * damp, vy = (b.y - b.py) * damp; b.px = b.x; b.py = b.y; b.x += vx; b.y += vy + g; }
+      for (var it = 0; it < 2; it++) {
+        beans.sort(function (p, q) { return p.x - q.x; });
+        for (i = 0; i < n; i++) {
+          b = beans[i];
+          for (j = i + 1; j < n; j++) {
+            c = beans[j]; var dx = c.x - b.x; if (dx >= two) break;
+            var dy = c.y - b.y; if (dy >= two || dy <= -two) continue;
+            var dd = dx * dx + dy * dy; if (dd >= two2 || dd < 1e-6) continue;
+            var dist = Math.sqrt(dd), k = (two - dist) / dist * 0.5, ox = dx * k, oy = dy * k;
+            b.x -= ox; b.y -= oy; c.x += ox; c.y += oy;
+          }
+        }
       }
-      ctx.globalAlpha = 1;
+      for (i = 0; i < n; i++) {
+        b = beans[i]; var ex = b.x - cx, ey = b.y - cy, e2 = ex * ex + ey * ey;
+        if (e2 > Rin * Rin) {
+          var e = Math.sqrt(e2), nx = ex / e, ny = ey / e; b.x = cx + nx * Rin; b.y = cy + ny * Rin;
+          var wx = b.x - b.px, wy = b.y - b.py, tx = -ny, ty = nx, vt = wx * tx + wy * ty, vn = wx * nx + wy * ny;
+          if (vn > 0) vn *= -0.12; vt += (wall - vt) * 0.24;
+          b.px = b.x - (tx * vt + nx * vn); b.py = b.y - (ty * vt + ny * vn);
+        }
+        b.a += ((b.x - b.px) * 0.05 + (b.y - b.py) * 0.02);
+      }
     }
-    function step(now) {
+    function draw() {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, S, S);
+      // Schaufeln der Trommel
+      ctx.strokeStyle = 'rgba(233,215,191,0.07)'; ctx.lineWidth = Math.max(2, S * 0.012); ctx.lineCap = 'round';
+      for (var k = 0; k < 4; k++) { var a = phi + k * Math.PI / 2, ca = Math.cos(a), sa = Math.sin(a); ctx.beginPath(); ctx.moveTo(cx + ca * R * 0.98, cy + sa * R * 0.98); ctx.lineTo(cx + ca * R * 0.7, cy + sa * R * 0.7); ctx.stroke(); }
+      for (var i = 0; i < beans.length; i++) {
+        var b = beans[i], idx = Math.round(clamp(roastR + b.o, 0, 1) * (NS - 1)), cs = Math.cos(b.a) * dpr, sn = Math.sin(b.a) * dpr;
+        ctx.setTransform(cs, sn, -sn, cs, b.x * dpr, b.y * dpr);
+        ctx.drawImage(sprites[idx], -L / 2, -L / 2, L, L);
+      }
+    }
+    function frame(now) {
       raf = 0;
       if (!visible || document.hidden) return;
-      raf = requestAnimationFrame(step);
-      if (now - last < 32) return; // ~30 fps
-      var dt = Math.min(0.05, (now - last) / 1000); last = now;
+      raf = requestAnimationFrame(frame);
+      if (now - last < 31) return; // ~30 fps
+      last = now;
       var y = window.scrollY, dy = y - lastY; lastY = y;
-      spin = lerp(spin, clamp(dy * 0.06, -3, 3), 0.15);
-      for (var i = 0; i < list.length; i++) {
-        var b = list[i];
-        b.r += (b.vr + spin * (b.z - 0.3)) * dt;
-        b.x += b.vx * dt * b.z; b.y += (b.vy - spin * 40) * dt * b.z;
-        var m = b.s;
-        if (b.y > h + m) { b.y = -m; b.x = Math.random() * w; } else if (b.y < -m) { b.y = h + m; b.x = Math.random() * w; }
-        if (b.x > w + m) b.x = -m; else if (b.x < -m) b.x = w + m;
-      }
-      draw(now);
+      omegaT = 1.9 + clamp(dy * 0.035, -1.3, 2.8);
+      omega = lerp(omega, omegaT, 0.12);
+      phi += omega / 30;
+      physics(); physics();
+      draw();
     }
-    function start() { if (animate && !raf && visible && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(step); } }
+    function start() { if (animate && !raf && visible && !document.hidden && S) { last = 0; raf = requestAnimationFrame(frame); } }
+    if (!layout()) return { set: function () {}, crack: function () {} };
+    // Bett einmal kurz „setzen“ lassen, dann zeichnen
+    for (var w = 0; w < 6; w++) physics();
+    draw();
+    canvas.closest('.drum').classList.add('is-live');
     new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) start(); }).observe(canvas);
     document.addEventListener('visibilitychange', start);
-    var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(resize, 150); });
-    resize(); start();
+    var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { var w0 = S; if (layout() && w0) { for (var k = 0; k < 6; k++) physics(); draw(); } }, 160); });
+    start();
     return {
-      set: function (p, prev) {
-        if (prev < 0.45 && p >= 0.45) crackAt = performance.now();
-        if (!animate) draw(performance.now());
+      set: function (rr) { roastR = rr; if (!animate) draw(); },
+      crack: function (strength) {
+        if (!animate) return;
+        for (var i = 0; i < beans.length; i++) { var b = beans[i]; b.py = b.y + (1.5 + Math.random() * 4.5) * strength; b.px = b.x + (Math.random() - 0.5) * 3 * strength; }
       }
     };
   })();
 
-  var gauge = (function () {
-    var nameEl = $('#gauge-name'), tempEl = $('#gauge-temp'), timeEl = $('#gauge-time'), agEl = $('#gauge-agtron'),
-      bar = $('#gauge-meter'), marker = $('#gauge-marker'), ev = $('#gauge-event'), gEl = $('#gauge'), hint = $('#gauge-hint');
-    var TEMP = [[0, 24], [0.08, 92], [0.25, 150], [0.45, 196], [0.6, 206], [0.75, 214], [0.9, 222], [1, 228]];
-    var NAMES = [[0.14, 'Rohkaffee'], [0.32, 'Gelbphase'], [0.48, 'Zimt'], [0.6, 'City'], [0.72, 'City+'], [0.84, 'Full City'], [1.01, 'Wiener']];
-    var bw = 0, lastName = '';
-    function measure() { bw = bar.clientWidth; }
-    window.addEventListener('resize', measure); measure();
-    function temp(p) { for (var i = 1; i < TEMP.length; i++) if (p <= TEMP[i][0]) return lerp(TEMP[i - 1][1], TEMP[i][1], (p - TEMP[i - 1][0]) / (TEMP[i][0] - TEMP[i - 1][0])); return 228; }
-    return function (p) {
-      var name = 'Wiener'; for (var i = 0; i < NAMES.length; i++) if (p < NAMES[i][0]) { name = NAMES[i][1]; break; }
-      var t = Math.round(temp(p));
+  /* ---------- Hero: Röstprotokoll – Cursor, Live-Kurve, Röstgrad-Anzeige ---------- */
+  var heroCurve = buildProfile(HERO_PROFILE);
+  var roastHero = (function () {
+    var P = HERO_PROFILE, logger = $('.logger'), live = $('#logger-live'), cur = $('#logger-cursor'), dot = $('.cursor__dot', cur), tag = $('#cursor-tag');
+    var nameEl = $('#gauge-name'), tempEl = $('#gauge-temp'), timeEl = $('#gauge-time'), agEl = $('#gauge-agtron'), meterEl = $('#gauge-meter'), gEl = $('#gauge'), hint = $('#gauge-hint');
+    var needle = $('#drum-needle'), fcMark = $('#mark-fc'), drumEl = $('#drum');
+    var W = 0, H = 0, lastName = '', lastT = -1, prevT = 0, flip = null;
+    function measure() { W = logger.clientWidth; H = logger.clientHeight; }
+    window.addEventListener('resize', function () { measure(); lastT = -1; render(state.p); });
+    measure();
+    function roastIndex(t) {
+      if (t < heroCurve.dry) return 0.2 * t / heroCurve.dry;
+      if (t < P.fc[0]) return 0.2 + 0.3 * (t - heroCurve.dry) / (P.fc[0] - heroCurve.dry);
+      return 0.5 + 0.5 * clamp((t - P.fc[0]) / (P.drop[0] - P.fc[0]), 0, 1);
+    }
+    function roastName(t, T) {
+      if (t < heroCurve.dry) return 'Rohkaffee';
+      if (t < P.fc[0] - 1.6) return 'Gelbphase';
+      if (t < P.fc[0]) return 'Zimt';
+      return T < 205 ? 'City' : T < 211 ? 'City+' : T < 217 ? 'Full City' : 'Wiener';
+    }
+    function render(p) {
+      var t = p * P.drop[0];
+      if (Math.abs(t - lastT) < 0.004) return;
+      lastT = t;
+      var T = heroCurve.f(t), x = t / 12 * W, y = (240 - clamp(T, 60, 240)) / 180 * H, ri = roastIndex(t), name = roastName(t, T), Tr = Math.round(T);
+      cur.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,0)';
+      dot.style.transform = 'translate3d(0,' + y.toFixed(1) + 'px,0)';
+      tag.style.transform = 'translate3d(0,' + (y - 34).toFixed(1) + 'px,0)';
+      var f = x > W * 0.62; if (f !== flip) { cur.classList.toggle('is-flip', f); flip = f; }
+      live.style.clipPath = 'inset(0 ' + (100 - t / 12 * 100).toFixed(2) + '% 0 0)';
+      tag.textContent = mmss(t * 60) + ' · ' + Tr + NB + '°C';
       if (name !== lastName) { nameEl.textContent = name; lastName = name; }
-      tempEl.textContent = t; timeEl.textContent = mmss(p * 690); agEl.textContent = Math.round(95 - p * 70);
-      marker.style.transform = 'translateX(' + (p * bw).toFixed(1) + 'px)';
-      gEl.style.setProperty('--bean', rgb(roastRGB(p)));
-      var evName = p > 0.42 && p < 0.54 ? 'First Crack' : p > 0.87 && p < 0.97 ? 'Second Crack' : '';
-      if (evName) ev.textContent = evName;
-      ev.classList.toggle('is-on', !!evName);
-      if (p > 0.02 && hint) { hint.textContent = 'Röstung läuft – weiterscrollen bis „Wiener“.'; hint = null; }
-      bar.setAttribute('aria-valuenow', Math.round(p * 100));
-      bar.setAttribute('aria-valuetext', name + ', ' + t + ' °C');
-    };
+      tempEl.textContent = Tr; timeEl.textContent = mmss(t * 60); agEl.textContent = Math.round(95 - ri * 60);
+      needle.style.transform = 'rotate(' + (-110 + 220 * ri).toFixed(1) + 'deg)';
+      gEl.style.setProperty('--bean', rgb(roastRGB(ri)));
+      meterEl.setAttribute('aria-valuenow', Math.round(ri * 100));
+      meterEl.setAttribute('aria-valuetext', name + ', ' + Tr + ' °C');
+      drum.set(ri);
+      // First Crack / Second Crack beim Überschreiten nach vorn
+      if (prevT < P.fc[0] && t >= P.fc[0]) { fcMark.classList.add('is-cracked'); drum.crack(1); if (animate) { drumEl.classList.remove('is-crack'); void drumEl.offsetWidth; drumEl.classList.add('is-crack'); } }
+      else if (t < P.fc[0] - 0.3) fcMark.classList.remove('is-cracked');
+      if (prevT < 11 && t >= 11) drum.crack(0.55);
+      prevT = t;
+      if (hint && p > HERO_INTRO + 0.03) { hint.textContent = 'Röstung läuft – weiter bis „Wiener“.'; hint = null; }
+    }
+    var state = { p: 0 };
+    return { render: render, state: state };
   })();
 
   function heroProgress(y) {
-    var hh = hero.offsetHeight, tall = d.classList.contains('roast-scroll') && innerWidth >= 900;
+    var hh = hero.offsetHeight, tall = d.classList.contains('anim') && innerWidth >= 900;
     var span = tall ? hh - innerHeight : hh * 0.85;
     return clamp(y / Math.max(1, span), 0, 1);
   }
+  var intro = animate ? 0 : 1, introStart = 0;
+  function heroTarget(y) { return HERO_INTRO + (1 - HERO_INTRO) * heroProgress(y); }
   function updateRoast(y) {
-    if (y > hero.offsetHeight + 200 && roast.p >= 1) return;
-    var prev = roast.p; roast.p = heroProgress(y);
-    if (Math.abs(roast.p - roast.shown) < 0.002) return;
-    roast.shown = roast.p; gauge(roast.p); beans.set(roast.p, prev);
+    if (y > hero.offsetHeight + 200 && roastHero.state.p >= 1) return;
+    var target = heroTarget(y);
+    roastHero.state.p = intro < 1 ? target * easeOut(intro) : target;
+    roastHero.render(roastHero.state.p);
   }
   scrollHandlers.push(updateRoast);
+  if (animate) {
+    // Lade-Intro: die Charge läuft von selbst an (1,4 s), danach übernimmt der Scroll
+    requestAnimationFrame(function introStep(now) {
+      if (!introStart) introStart = now;
+      intro = clamp((now - introStart - 250) / 1400, 0, 1);
+      updateRoast(window.scrollY);
+      if (intro < 1) requestAnimationFrame(introStep);
+    });
+  }
   updateRoast(window.scrollY);
   onScroll();
 
@@ -295,13 +381,85 @@
         if (el.hasAttribute('data-reveal-group')) {
           var kids = Array.prototype.slice.call(el.children);
           kids.forEach(function (k, i) { k.style.transitionDelay = (i * 60) + 'ms'; });
-          setTimeout(function () { kids.forEach(function (k) { k.style.transitionDelay = ''; }); }, 1200);
+          setTimeout(function () { kids.forEach(function (k) { k.style.transitionDelay = ''; }); }, 1400);
         }
         el.classList.add('is-in');
       });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
     items.forEach(function (el) { io.observe(el); });
     window.__bwReady = true;
+  });
+
+  /* ---------- Kapitel-Farbwechsel: Logger-Papier füllt die Seite ---------- */
+  later(function () {
+    if (!d.classList.contains('anim')) return;
+    var sec = $('.chapter-paper');
+    new IntersectionObserver(function (es) { es.forEach(function (e) { sec.classList.toggle('is-paper', e.isIntersecting); }); }, { rootMargin: '-38% 0px -38% 0px' }).observe(sec);
+  });
+
+  /* ---------- Sackstempel-Band: Tempo und Richtung folgen dem Scroll ---------- */
+  later(function () {
+    if (!animate) return;
+    var track = $('#stampband'), band = track.parentNode, x = 0, boost = 0, dir = -1, raf = 0, visible = false, last = 0, lastY = window.scrollY, half = 0;
+    var measure = function () { half = track.scrollWidth / 2; };
+    measure(); window.addEventListener('resize', measure);
+    scrollHandlers.push(function (y) { var dy = y - lastY; lastY = y; if (!dy) return; dir = dy > 0 ? -1 : 1; boost = Math.min(1400, boost + Math.abs(dy) * 7); if (visible && !raf) raf = requestAnimationFrame(loop); });
+    function loop(now) {
+      raf = 0; if (!visible || document.hidden) return;
+      var dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016; last = now;
+      x += dir * (46 + boost) * dt; boost *= Math.pow(0.04, dt);
+      if (x <= -half) x += half; else if (x > 0) x -= half;
+      track.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,0) skewX(' + (dir * -Math.min(7, boost / 120)).toFixed(2) + 'deg)';
+      raf = requestAnimationFrame(loop);
+    }
+    new IntersectionObserver(function (es) { visible = es[0].isIntersecting; last = 0; if (visible && !raf) raf = requestAnimationFrame(loop); }).observe(band);
+    document.addEventListener('visibilitychange', function () { last = 0; if (visible && !raf) raf = requestAnimationFrame(loop); });
+  });
+
+  /* ---------- Mikro-Interaktionen: Zeichen-Rollen, magnetische Stempel-Buttons ---------- */
+  later(function () {
+    if (!fine || !animate) return;
+    $$('.nav__list a').forEach(function (a) {
+      var txt = a.textContent, roll = document.createElement('span'), sr = document.createElement('span');
+      roll.className = 'roll'; roll.setAttribute('aria-hidden', 'true');
+      txt.split('').forEach(function (ch, i) { var s = document.createElement('span'); s.textContent = ch; s.style.setProperty('--c', i); roll.appendChild(s); });
+      sr.className = 'visually-hidden'; sr.textContent = txt;
+      a.textContent = ''; a.appendChild(roll); a.appendChild(sr);
+    });
+    $$('.btn--stamp').forEach(function (b) {
+      var tx = 0, ty = 0, x = 0, y = 0, raf = 0;
+      function loop() { x = lerp(x, tx, 0.2); y = lerp(y, ty, 0.2); b.style.translate = x.toFixed(2) + 'px ' + y.toFixed(2) + 'px'; if (Math.abs(x - tx) > 0.05 || Math.abs(y - ty) > 0.05) raf = requestAnimationFrame(loop); else raf = 0; }
+      b.addEventListener('pointermove', function (e) { var r = b.getBoundingClientRect(); tx = clamp((e.clientX - r.left - r.width / 2) * 0.16, -6, 6); ty = clamp((e.clientY - r.top - r.height / 2) * 0.22, -4, 4); if (!raf) raf = requestAnimationFrame(loop); });
+      b.addEventListener('pointerleave', function () { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(loop); });
+    });
+  });
+
+  /* ---------- Sackregal: Vorschau-Sack folgt dem Zeiger mit Feder ---------- */
+  later(function () {
+    if (!fine || !matchMedia('(min-width: 900px)').matches) return;
+    var shelf = $('.shelf'), peek = $('.sackpeek'), bag = $('.sackpeek__bag'), list = $('.sacks');
+    var no = $('#peek-no'), nm = $('#peek-name'), og = $('#peek-origin');
+    var tx = 0, ty = 0, x = 0, y = 0, vx = 0, raf = 0, curId = '', W = 210, Hh = 260;
+    function loop() {
+      var nx = animate ? lerp(x, tx, 0.18) : tx, ny = animate ? lerp(y, ty, 0.18) : ty; vx = nx - x; x = nx; y = ny;
+      peek.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) rotate(' + clamp(vx * 0.6, -9, 9).toFixed(2) + 'deg)';
+      raf = (Math.abs(tx - x) > 0.3 || Math.abs(ty - y) > 0.3 || Math.abs(vx) > 0.05) ? requestAnimationFrame(loop) : 0;
+    }
+    list.addEventListener('pointermove', function (e) {
+      var r = shelf.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
+      tx = px > r.width - W - 60 ? px - W - 36 : px + 36; ty = clamp(py - Hh / 2, -40, r.height - Hh + 40);
+      if (!shelf.classList.contains('is-peeking')) { x = tx; y = ty; }
+      if (!raf) raf = requestAnimationFrame(loop);
+    });
+    list.addEventListener('pointerover', function (e) {
+      var li = e.target.closest('.sack'); if (!li) return;
+      var id = li.getAttribute('data-coffee'); shelf.classList.add('is-peeking');
+      if (id === curId) return; curId = id;
+      no.textContent = 'Nr. ' + $('.sack__no', li).textContent; nm.textContent = COFFEES[id].name; og.textContent = COFFEES[id].origin;
+      peek.style.setProperty('--roast', li.style.getPropertyValue('--roast'));
+      if (animate && bag.animate) bag.animate([{ transform: 'scale(1.06) rotate(-1deg)', opacity: 0.55 }, { transform: 'none', opacity: 1 }], { duration: 200, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+    });
+    list.addEventListener('pointerleave', function () { shelf.classList.remove('is-peeking'); curId = ''; });
   });
 
   /* ---------- Lenis + GSAP (erst jetzt geladen, jede Datei in eigener Aufgabe) ---------- */
@@ -346,24 +504,45 @@
     if (!hasGsap || !animate) return;
 
     var mm = gsap.matchMedia();
-    // Horizontale Strecke: Sticky-Bühne per CSS, nur die Bewegung per Scrub
+    // Horizontale Strecke: Sticky-Bühne per CSS, Bewegung per Scrub; Bilder und Ziffern laufen mit eigener Tiefe
     mm.add('(min-width: 900px)', function () {
-      var sec = $('.journey'), track = $('.journey__track'), bar = $('.journey__progress span');
+      var sec = $('.journey'), track = $('.journey__track'), bar = $('.journey__progress span'), countEl = $('#journey-no');
+      var stations = $$('.station', track).map(function (s) { return { el: s, img: $('img', s), big: $('.station__big', s), left: 0, w: 0 }; });
       sec.classList.add('is-h');
       var dist = function () { return Math.max(0, track.scrollWidth - innerWidth); };
-      var setH = function () { sec.style.height = (innerHeight + dist()) + 'px'; };
+      var cache = function () { stations.forEach(function (s) { s.left = s.el.offsetLeft; s.w = s.el.offsetWidth; }); };
+      var setH = function () { sec.style.height = (innerHeight + dist()) + 'px'; cache(); };
       setH();
       ScrollTrigger.addEventListener('refreshInit', setH);
+      var lastNo = '';
+      var depth = function () {
+        var tx = gsap.getProperty(track, 'x') || 0, vw = innerWidth, best = 0, bd = 1e9;
+        stations.forEach(function (s, i) {
+          var c = s.left + tx + s.w / 2, n = clamp((c - vw / 2) / vw, -1.2, 1.2);
+          s.img.style.transform = 'translate3d(' + (n * -7).toFixed(2) + '%,0,0)';
+          s.big.style.transform = 'translate3d(' + (n * 90).toFixed(1) + 'px,0,0)';
+          var dd = Math.abs(c - vw * 0.42); if (dd < bd) { bd = dd; best = i; }
+        });
+        var no = '0' + (best + 1); if (no !== lastNo) { countEl.textContent = no; lastNo = no; }
+      };
       var tw = gsap.to(track, { x: function () { return -dist(); }, ease: 'none',
         scrollTrigger: { trigger: sec, start: 'top top', end: function () { return '+=' + dist(); }, scrub: 0.6, invalidateOnRefresh: true,
-          onUpdate: function (st) { bar.style.transform = 'scaleX(' + st.progress.toFixed(4) + ')'; } } });
-      return function () { ScrollTrigger.removeEventListener('refreshInit', setH); tw.scrollTrigger && tw.scrollTrigger.kill(); tw.kill(); sec.classList.remove('is-h'); sec.style.height = ''; gsap.set(track, { clearProps: 'transform' }); };
+          onUpdate: function (st) { bar.style.transform = 'scaleX(' + st.progress.toFixed(4) + ')'; } },
+        onUpdate: depth });
+      depth();
+      return function () { ScrollTrigger.removeEventListener('refreshInit', setH); tw.scrollTrigger && tw.scrollTrigger.kill(); tw.kill(); sec.classList.remove('is-h'); sec.style.height = ''; gsap.set(track, { clearProps: 'transform' }); stations.forEach(function (s) { s.img.style.transform = ''; s.big.style.transform = ''; }); };
     });
+    // Stadtplan: der Fußweg von der Tram zeichnet sich mit dem Scroll
+    var route = $('#map-route');
+    if (route) {
+      route.style.strokeDashoffset = '1';
+      gsap.to(route, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: '.map', start: 'top 80%', end: 'center 45%', scrub: 0.5 } });
+    }
     // Stempel dreht sich mit, Collage leicht versetzt
     gsap.to('.cafe__stamp', { rotate: 160, ease: 'none', scrollTrigger: { trigger: '.cafe', start: 'top bottom', end: 'bottom top', scrub: 0.5 } });
     mm.add('(min-width: 900px)', function () {
-      gsap.fromTo('.cafe__b', { yPercent: 6 }, { yPercent: -6, ease: 'none', scrollTrigger: { trigger: '.cafe', start: 'top bottom', end: 'bottom top', scrub: 0.5 } });
-      gsap.fromTo('.roastcard__photo img', { scale: 1.08 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom bottom', scrub: 0.4 } });
+      gsap.fromTo('.cafe__b', { yPercent: 7 }, { yPercent: -7, ease: 'none', scrollTrigger: { trigger: '.cafe', start: 'top bottom', end: 'bottom top', scrub: 0.5 } });
+      gsap.fromTo('.cafe__c', { yPercent: -4 }, { yPercent: 6, ease: 'none', scrollTrigger: { trigger: '.cafe', start: 'top bottom', end: 'bottom top', scrub: 0.5 } });
     });
   }
 
@@ -393,26 +572,6 @@
     var cur = 'guji', curve = null, W = 0, H = 0, M = { l: 40, r: 40, t: 22, b: 28 }, tSec = 0, drawn = false;
     var ro = { time: $('#ro-time'), temp: $('#ro-temp'), ror: $('#ro-ror'), phase: $('#ro-phase') };
     var el = function (n, a, parent) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); if (parent) parent.appendChild(e); return e; };
-
-    // Kurvenmodell: bis zum Wendepunkt fällt die Fühlertemperatur, danach sinkt die Anstiegsrate (RoR)
-    // gleichmäßig: RoR(u) = Rampe(u) · (A·(1−u)^1,6 + B). A und B werden so gewählt, dass First Crack
-    // und Ende exakt getroffen werden. Gelbpunkt = Zeitpunkt, an dem 155 °C erreicht sind.
-    function build(id) {
-      var P = PROFILES[id], tp = P.tp[0], Ttp = P.tp[1], fc = P.fc[0], dr = P.drop[0], span = dr - tp, n = 1.6, dt = 1 / 120;
-      var ramp = function (u) { return 1 - Math.exp(-u / 0.07); };
-      var I1 = [0], I2 = [0], steps = Math.ceil(span / dt);
-      for (var i = 1; i <= steps; i++) { var u = (i - 0.5) * dt / span, r = ramp(u); I1[i] = I1[i - 1] + r * Math.pow(1 - u, n) * dt; I2[i] = I2[i - 1] + r * dt; }
-      var at = function (arr, t) { var x = clamp((t - tp) / dt, 0, steps), k = Math.floor(x), f = x - k; return k >= steps ? arr[steps] : arr[k] + (arr[k + 1] - arr[k]) * f; };
-      var a1 = at(I1, fc), b1 = at(I2, fc), a2 = at(I1, dr), b2 = at(I2, dr), r1 = P.fc[1] - Ttp, r2 = P.drop[1] - Ttp;
-      var det = a1 * b2 - a2 * b1, A = (r1 * b2 - r2 * b1) / det, B = (a1 * r2 - a2 * r1) / det;
-      var f = function (t) {
-        if (t <= tp) return Ttp + (P.charge - Ttp) * Math.pow(1 - t / tp, 2.1);
-        return Ttp + A * at(I1, t) + B * at(I2, t);
-      };
-      var ror = function (t) { if (t <= tp) return 0; var u = (t - tp) / span; return ramp(u) * (A * Math.pow(Math.max(0, 1 - u), n) + B); };
-      var dry = tp; while (dry < fc && f(dry) < 155) dry += 1 / 60;
-      return { P: P, f: f, ror: ror, dry: dry };
-    }
     var X = function (t) { return M.l + t / XMAX * (W - M.l - M.r); };
     var Y = function (v) { return M.t + (1 - (clamp(v, YMIN, YMAX) - YMIN) / (YMAX - YMIN)) * (H - M.t - M.b); };
     var YR = function (v) { return M.t + (1 - v / RMAX) * (H - M.t - M.b); };
@@ -424,8 +583,8 @@
       svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('preserveAspectRatio', 'none');
       while (svg.firstChild) svg.removeChild(svg.firstChild);
       var P = curve.P, f = curve.f;
-      // Phasen
-      var bands = [[0, curve.dry, 'rgba(157,181,154,0.11)', 'Trocknung'], [curve.dry, P.fc[0], 'rgba(201,179,106,0.10)', 'Maillard'], [P.fc[0], P.drop[0], 'rgba(194,106,46,0.20)', W < 500 ? 'Entw.' : 'Entwicklung']];
+      // Phasen (Farben für Logger-Papier)
+      var bands = [[0, curve.dry, 'rgba(79,106,76,0.13)', 'Trocknung'], [curve.dry, P.fc[0], 'rgba(184,140,40,0.13)', 'Maillard'], [P.fc[0], P.drop[0], 'rgba(194,106,46,0.2)', W < 500 ? 'Entw.' : 'Entwicklung']];
       bands.forEach(function (b) {
         el('rect', { x: X(b[0]), y: M.t, width: X(b[1]) - X(b[0]), height: H - M.t - M.b, fill: b[2], class: 'c-band' }, svg);
         if (X(b[1]) - X(b[0]) > b[3].length * 6.9 + 12) { var tx = el('text', { x: X(b[0]) + 6, y: M.t + 14, class: 'c-bandlabel' }, svg); tx.textContent = b[3].toUpperCase(); }
@@ -445,7 +604,6 @@
       for (t = 0; t <= P.drop[0] + 0.001; t += 1 / 30) d1 += (d1 ? 'L' : 'M') + X(t).toFixed(1) + ' ' + Y(f(t)).toFixed(1);
       d1 += 'L' + X(P.drop[0]).toFixed(1) + ' ' + Y(P.drop[1]).toFixed(1);
       btPath = el('path', { d: d1, class: 'c-bt', pathLength: 1 }, svg);
-      // Marker
       function mark(cls, t, v, label, anchor, vertical) {
         var mg = el('g', { class: 'c-mark ' + cls }, svg);
         if (vertical) el('line', { x1: X(t), x2: X(t), y1: M.t, y2: H - M.b }, mg);
@@ -456,16 +614,16 @@
       mark('', P.tp[0], P.tp[1], 'Wendepunkt', 'start');
       mark('c-mark--fc', P.fc[0], P.fc[1], 'First Crack', 'end', true);
       mark('c-mark--end', P.drop[0], P.drop[1], 'Ende', X(P.drop[0]) - X(P.fc[0]) < 70 ? 'start' : 'end');
-      // Cursor
       cursorG = el('g', { class: 'c-cursor' }, svg);
       cLine = el('line', { y1: M.t, y2: H - M.b }, cursorG);
       cDot = el('circle', { r: 6 }, cursorG);
       setCursor(tSec);
       if (animateIn && animate && btPath.animate) {
+        // Der Schreiber zeichnet die neue Charge – langsam wie die Glut, Raster bleibt stehen
         btPath.style.strokeDasharray = '1';
-        btPath.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: 700, easing: 'cubic-bezier(0.77, 0, 0.175, 1)', fill: 'backwards' });
-        rorPath.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: 350, easing: 'ease', fill: 'backwards' });
-        cursorG.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, delay: 500, easing: 'ease', fill: 'backwards' });
+        btPath.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: 900, easing: 'cubic-bezier(0.77, 0, 0.175, 1)', fill: 'backwards' });
+        rorPath.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: 450, easing: 'ease', fill: 'backwards' });
+        cursorG.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, delay: 600, easing: 'ease', fill: 'backwards' });
       }
       drawn = true;
     }
@@ -492,15 +650,15 @@
         $('#pf-fc').textContent = mmss(P.fc[0] * 60) + ' · ' + P.fc[1] + NB + '°C';
         $('#pf-dev').textContent = mmss(devS) + ' · ' + dtr + NB + '%';
         $('#pf-drop').textContent = mmss(P.drop[0] * 60) + ' · ' + P.drop[1] + NB + '°C';
-        var b = $('#pf-abo'); b.setAttribute('data-pick-abo', id);
+        $('#pf-abo').setAttribute('data-pick-abo', id);
         box.classList.remove('is-swapping');
       };
       if (animate && drawn) { box.classList.add('is-swapping'); setTimeout(apply, 160); } else apply();
     }
-    function select(id) { cur = id; curve = build(id); tSec = Math.round(PROFILES[id].fc[0] * 60); facts(id); render(true); }
+    function select(id) { cur = id; curve = buildProfile(PROFILES[id]); tSec = Math.round(PROFILES[id].fc[0] * 60); facts(id); render(true); }
 
     var tb = tabs($('.explorer__tabs'), function (tab) { select(tab.getAttribute('data-coffee')); });
-    curve = build(cur); tSec = Math.round(PROFILES[cur].fc[0] * 60); facts(cur); render(false);
+    curve = buildProfile(PROFILES[cur]); tSec = Math.round(PROFILES[cur].fc[0] * 60); facts(cur); render(false);
 
     function fromPointer(e) { var r = svg.getBoundingClientRect(); var x = (e.clientX - r.left) / r.width * W; setCursor(((x - M.l) / (W - M.l - M.r)) * XMAX * 60); }
     chart.addEventListener('pointermove', fromPointer);
@@ -518,10 +676,25 @@
     document.addEventListener('click', function (e) { var a = e.target.closest('[data-pick-profile]'); if (a) explorer.pick(a.getAttribute('data-pick-profile')); });
   });
 
-  /* ---------- Geschmacksrad ---------- */
+  /* ---------- Geschmacksrad: wählen, greifen, drehen – mit Feder ---------- */
   later(function () {
     var items = $$('.fw-aroma'), sel = {}, count = $('#wheel-count'), out = $('#matches');
     if (!items.length) return;
+    var svg = $('#wheel-svg'), rotG = $('#wheel-rot'), wheelEl = $('.wheel');
+    var centers = items.map(function (g) { var t = $('text', g); return Math.atan2(+t.getAttribute('y'), +t.getAttribute('x')) * 180 / Math.PI; });
+    var ang = 0, vel = 0, target = 0, raf = 0, lastT = 0, dragging = false, suppress = false;
+    function apply() { rotG.setAttribute('transform', 'rotate(' + ang.toFixed(2) + ')'); }
+    function spring(now) {
+      var dt = lastT ? Math.min(0.032, (now - lastT) / 1000) : 0.016; lastT = now;
+      var k = 150, c = 15; // leicht unterdämpft: kleines Nachfedern
+      vel += ((target - ang) * k - vel * c) * dt; ang += vel * dt; apply();
+      if (Math.abs(target - ang) < 0.05 && Math.abs(vel) < 0.5) { ang = target; apply(); raf = 0; lastT = 0; return; }
+      raf = requestAnimationFrame(spring);
+    }
+    function goTo(a) { target = a; if (!animate) { ang = a; vel = 0; apply(); return; } if (!raf) { lastT = 0; raf = requestAnimationFrame(spring); } }
+    function nearestFor(i, from) { var a = -90 - centers[i]; while (a - from > 180) a -= 360; while (a - from < -180) a += 360; return a; }
+    function snap(a) { var best = a, bd = 1e9; centers.forEach(function (c, i) { var s = nearestFor(i, a); if (Math.abs(s - a) < bd) { bd = Math.abs(s - a); best = s; } }); return best; }
+
     items[0].tabIndex = 0;
     function toggle(g, on) {
       var id = g.getAttribute('data-aroma'); on = on === undefined ? !sel[id] : on;
@@ -546,30 +719,61 @@
         var w = document.createElement('p'); w.className = 'match__why'; w.textContent = 'Passt bei: ' + r.hit.map(function (a) { return AROMA_LABEL[a]; }).join(', ');
         var bar = document.createElement('span'); bar.className = 'match__bar'; var bi = document.createElement('span'); bi.style.transform = 'scaleX(' + r.score.toFixed(3) + ')'; bar.appendChild(bi);
         var links = document.createElement('span'); links.className = 'match__links';
-        var a1 = document.createElement('a'); a1.className = 'link-arrow'; a1.href = '#profile'; a1.setAttribute('data-pick-profile', r.id); a1.textContent = 'Röstkurve';
-        var a2 = document.createElement('a'); a2.className = 'link-arrow'; a2.href = '#abo'; a2.setAttribute('data-pick-abo', r.id); a2.textContent = 'Ins Abo';
+        var a1 = document.createElement('a'); a1.className = 'link-draw'; a1.href = '#profile'; a1.setAttribute('data-pick-profile', r.id); a1.textContent = 'Röstkurve';
+        var a2 = document.createElement('a'); a2.className = 'link-draw'; a2.href = '#abo'; a2.setAttribute('data-pick-abo', r.id); a2.textContent = 'Ins Abo';
         links.appendChild(a1); links.appendChild(a2);
         [n, s, w, bar, links].forEach(function (x) { li.appendChild(x); });
         out.appendChild(li);
       });
     }
     items.forEach(function (g, i) {
-      g.addEventListener('click', function () { toggle(g); items.forEach(function (x) { x.tabIndex = -1; }); g.tabIndex = 0; results(); });
+      g.addEventListener('click', function () { if (suppress) return; toggle(g); items.forEach(function (x) { x.tabIndex = -1; }); g.tabIndex = 0; results(); });
       g.addEventListener('keydown', function (e) {
         var n = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: items.length - 1 }[e.key];
         if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(g); results(); return; }
         if (n === undefined) return; e.preventDefault();
-        var t = items[(n + items.length) % items.length]; g.tabIndex = -1; t.tabIndex = 0; t.focus();
+        var k = (n + items.length) % items.length, t = items[k]; g.tabIndex = -1; t.tabIndex = 0; t.focus();
+        goTo(nearestFor(k, ang)); // das fokussierte Aroma wandert unter den Zeiger
       });
     });
     $$('.fw-cat').forEach(function (c) {
       c.addEventListener('click', function () {
+        if (suppress) return;
         var kids = items.filter(function (g) { return g.getAttribute('data-cat') === c.getAttribute('data-cat'); });
         var all = kids.every(function (g) { return sel[g.getAttribute('data-aroma')]; });
         kids.forEach(function (g) { toggle(g, !all); }); results();
       });
     });
-    $('#wheel-reset').addEventListener('click', function () { items.forEach(function (g) { toggle(g, false); }); results(); });
+    $('#wheel-reset').addEventListener('click', function () { items.forEach(function (g) { toggle(g, false); }); results(); goTo(snap(Math.round(ang / 360) * 360)); });
+
+    // Greifen und drehen (Zeiger/Touch, mit Schwung); kurzer Tipp bleibt ein Klick
+    var pid = null, a0 = 0, ang0 = 0, lastA = 0, lastTime = 0, v = 0;
+    function pAngle(e) { var r = svg.getBoundingClientRect(), x = e.clientX - (r.left + r.width * 215 / 430), y = e.clientY - (r.top + r.height * 228 / 443); return Math.atan2(y, x) * 180 / Math.PI; }
+    function norm(a) { while (a > 180) a -= 360; while (a < -180) a += 360; return a; }
+    svg.addEventListener('pointerdown', function (e) { if (e.button !== 0 && e.pointerType === 'mouse') return; pid = e.pointerId; a0 = lastA = pAngle(e); ang0 = ang; lastTime = performance.now(); v = 0; dragging = false; });
+    svg.addEventListener('pointermove', function (e) {
+      if (e.pointerId !== pid) return;
+      var a = pAngle(e), da = norm(a - a0);
+      if (!dragging && Math.abs(da) > 6) { dragging = true; wheelEl.classList.add('is-dragging'); try { svg.setPointerCapture(pid); } catch (x) {} cancelAnimationFrame(raf); raf = 0; vel = 0; }
+      if (!dragging) return;
+      var now = performance.now(), step = norm(a - lastA), dt = Math.max(1, now - lastTime);
+      v = lerp(v, step / dt * 1000, 0.4); lastA = a; lastTime = now;
+      ang = ang0 + da; target = ang; apply();
+    });
+    function end(e) {
+      if (e.pointerId !== pid) return; pid = null;
+      if (!dragging) return;
+      dragging = false; wheelEl.classList.remove('is-dragging'); suppress = true; setTimeout(function () { suppress = false; }, 60);
+      vel = animate ? clamp(v, -900, 900) : 0;
+      goTo(snap(ang + clamp(v, -900, 900) * 0.22));
+    }
+    svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', function (e) { if (e.pointerId === pid) { pid = null; if (dragging) { dragging = false; wheelEl.classList.remove('is-dragging'); goTo(snap(ang)); } } });
+
+    // Auftritt: das Rad wird einmal angeschubst und federt in Position
+    if (animate) {
+      ang = -55; apply();
+      new IntersectionObserver(function (es, o) { if (es[0].isIntersecting) { o.disconnect(); vel = 260; goTo(0); } }, { threshold: 0.35 }).observe(svg);
+    }
   });
 
   /* ---------- Abo-Konfigurator ---------- */
@@ -590,6 +794,13 @@
       var per = goods + ship, month = per * DELIVERIES_PER_MONTH[rh];
       return { id: id, packs: packs, rh: rh, grind: grind, sub: sub, rate: rate, rab: rab, ship: ship, per: per, month: month };
     }
+    // Zählwerk: neue Summe rollt von unten ein (nur bei echter Änderung)
+    var rolled = false;
+    function setRoll(el, txt) {
+      if (el.textContent === txt) return;
+      el.textContent = txt;
+      if (rolled && animate && el.animate) el.animate([{ transform: 'translateY(60%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+    }
     function update() {
       var c = calc();
       o.coffee.textContent = c.packs + ' × 250' + NB + 'g ' + COFFEES[c.id].name;
@@ -597,8 +808,9 @@
       o.rabL.textContent = (c.packs === 4 ? 'Abo- und Kilorabatt ' : 'Abo-Rabatt ') + Math.round(c.rate * 100) + NB + '%';
       o.rab.textContent = '−' + eur.format(c.rab);
       o.ship.textContent = c.ship ? eur.format(c.ship) : 'frei';
-      o.per.textContent = eur.format(c.per);
-      o.month.textContent = eur.format(c.month);
+      setRoll(o.per, eur.format(c.per));
+      setRoll(o.month, eur.format(c.month));
+      rolled = true;
       o.meta.textContent = c.grind + ' · ' + RHYTHM_LABEL[c.rh];
       o.next.textContent = 'Erste Röstung für Sie: ' + nextRoast().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
     }
@@ -643,11 +855,16 @@
     form.addEventListener('input', function (e) { if (e.target.getAttribute('aria-invalid') === 'true') e.target.removeAttribute('aria-invalid'); });
   }
 
-  /* ---------- Brew-Guide ---------- */
+
+  /* ---------- Brew-Guide: Timer als Waage mit Tropfen ---------- */
   later(function () {
     var cIn = $('#b-coffee'), rIn = $('#b-ratio'), cOut = $('#b-coffee-out'), rOut = $('#b-ratio-out'), wOut = $('#b-water'), wLab = $('#b-water-label'), cups = $('#b-cups');
     var img = $('#brew-img'), stepsEl = $('#steps'), tTime = $('#timer-time'), tOf = $('#timer-of'), prog = $('#timer-prog'), live = $('#timer-live'), bStart = $('#timer-start'), bReset = $('#timer-reset'), timerBox = $('.timer');
-    var M = METHODS.v60, key = 'v60', running = false, t0 = 0, acc = 0, raf = 0, lastStep = -1, lastSec = -1;
+    var weightEl = $('#scale-weight'), dropsEl = $$('#drops ellipse');
+    var M = METHODS.v60, key = 'v60', running = false, t0 = 0, acc = 0, raf = 0, lastStep = -1, lastSec = -1, lastW = -1, lastFrame = 0;
+    // Geometrie der Waagen-Zeichnung (SVG-Einheiten): Tropfenquelle, Gefäß oben/unten
+    var GEO = { v60: { src: [[150, 118]], top: 184, bottom: 290, max: 0.82 }, fp: { src: [[156, 90]], top: 128, bottom: 290, max: 0.8 }, es: { src: [[136, 106], [164, 106]], top: 236, bottom: 290, max: 0.7 }, ap: { src: [[156, 90]], top: 112, bottom: 208, max: 0.85 } };
+    var drops = dropsEl.map(function (e) { return { el: e, on: false, x: 0, y: 0, vy: 0 }; }), spawnAcc = 0;
     var fmtRatio = function (r) { return '1' + NB + ':' + NB + num1.format(r); };
     function water() { return Math.round(+cIn.value * +rIn.value); }
     function fill(input) { input.style.setProperty('--fill', ((input.value - input.min) / (input.max - input.min) * 100) + '%'); }
@@ -655,11 +872,14 @@
       var w = water();
       return tpl.replace('{c}', cIn.value).replace('{w15}', Math.round(w * 0.16)).replace('{w60}', Math.round(w * 0.6)).replace('{w}', w).replace(/ (ml|g) /g, NB + '$1 ').replace(/ (ml|g)\./g, NB + '$1.');
     }
+    function pour(t) { var p = POUR[key]; for (var i = 1; i < p.length; i++) if (t <= p[i][0]) return lerp(p[i - 1][1], p[i][1], (t - p[i - 1][0]) / (p[i][0] - p[i - 1][0])); return 1; }
+    function pouring(t) { var p = POUR[key]; for (var i = 1; i < p.length; i++) if (t <= p[i][0]) return p[i][1] > p[i - 1][1]; return key === 'v60' && t < 150; }
+    function liquid(f) { $$('.liq').forEach(function (l) { l.style.transform = 'scaleY(' + (f * GEO[key].max).toFixed(4) + ')'; }); }
     function renderSteps() {
       while (stepsEl.firstChild) stepsEl.removeChild(stepsEl.firstChild);
       M.steps.forEach(function (s) {
         var li = document.createElement('li'), t = document.createElement('span'), x = document.createElement('span');
-        t.className = 'steps__t mono'; t.textContent = mss(s[0]); x.textContent = text(s[1]);
+        t.className = 'steps__t'; t.textContent = mss(s[0]); x.textContent = text(s[1]);
         li.appendChild(t); li.appendChild(x); stepsEl.appendChild(li);
       });
       lastStep = -1; paint(elapsed(), true);
@@ -670,6 +890,7 @@
       var w = water(); wOut.textContent = w + NB + M.unit; wLab.textContent = M.waterLabel;
       var n = Math.max(1, Math.round(w / M.cup)); cups.textContent = '≈ ' + n + ' ' + M.cupWord[n === 1 ? 0 : 1];
       $$('#steps li > span:last-child').forEach(function (x, i) { x.textContent = text(M.steps[i][1]); });
+      lastW = -1; paint(elapsed(), true);
     }
     function elapsed() { return running ? acc + (performance.now() - t0) / 1000 : acc; }
     function paint(e, force) {
@@ -677,6 +898,8 @@
       var sec = Math.floor(e);
       if (sec !== lastSec || force) { tTime.textContent = mss(sec); lastSec = sec; }
       prog.style.strokeDashoffset = (1000 * (1 - e / M.total)).toFixed(1);
+      var f = e > 0 ? pour(e) : 0, wv = Math.round(water() * f);
+      if (wv !== lastW || force) { weightEl.textContent = wv + NB + 'g'; lastW = wv; liquid(f); }
       var idx = -1; for (var i = 0; i < M.steps.length; i++) if (e >= M.steps[i][0]) idx = i;
       if (!running && e === 0) idx = -1;
       if (idx !== lastStep || force) {
@@ -685,21 +908,41 @@
         lastStep = idx;
       }
     }
-    function tick() {
-      raf = 0; var e = elapsed();
-      if (e >= M.total) { acc = M.total; running = false; paint(M.total, true); timerBox.classList.add('is-done'); bStart.textContent = 'Noch einmal'; live.textContent = 'Fertig – guten Genuss!'; return; }
-      paint(e); raf = requestAnimationFrame(tick);
+    function simDrops(e, dt) {
+      if (!animate) return;
+      var G = GEO[key], level = G.bottom - (G.bottom - G.top) * pour(e) * G.max;
+      if (running && pouring(e)) { spawnAcc += dt * (key === 'v60' && e > 105 ? 5 : key === 'es' ? 9 : 16); }
+      while (spawnAcc >= 1) {
+        spawnAcc -= 1;
+        var dfree = drops.filter(function (x) { return !x.on; })[0]; if (!dfree) break;
+        var s = G.src[Math.floor(Math.random() * G.src.length)];
+        dfree.on = true; dfree.x = s[0] + (Math.random() - 0.5) * 3; dfree.y = s[1]; dfree.vy = 30 + Math.random() * 30; dfree.el.style.opacity = '1';
+      }
+      drops.forEach(function (x) {
+        if (!x.on) return;
+        x.vy += 1100 * dt; x.y += x.vy * dt;
+        if (x.y >= level - 2) { x.on = false; x.el.style.opacity = '0'; return; }
+        x.el.setAttribute('transform', 'translate(' + x.x.toFixed(1) + ' ' + x.y.toFixed(1) + ')');
+      });
     }
-    function reset() { running = false; acc = 0; cancelAnimationFrame(raf); raf = 0; timerBox.classList.remove('is-done'); bStart.textContent = 'Timer starten'; lastSec = -1; paint(0, true); }
+    function clearDrops() { spawnAcc = 0; drops.forEach(function (x) { x.on = false; x.el.style.opacity = '0'; }); }
+    function tick(now) {
+      raf = 0; var e = elapsed(), dt = lastFrame ? Math.min(0.05, (now - lastFrame) / 1000) : 0.016; lastFrame = now;
+      if (e >= M.total) { acc = M.total; running = false; paint(M.total, true); clearDrops(); timerBox.classList.add('is-done'); setLabel('Noch einmal'); live.textContent = 'Fertig – guten Genuss!'; return; }
+      paint(e); simDrops(e, dt); raf = requestAnimationFrame(tick);
+    }
+    function setLabel(t) { var s = $('span', bStart); (s || bStart).textContent = t; }
+    function reset() { running = false; acc = 0; cancelAnimationFrame(raf); raf = 0; lastFrame = 0; clearDrops(); timerBox.classList.remove('is-done'); setLabel('Timer starten'); lastSec = -1; paint(0, true); }
     bStart.addEventListener('click', function () {
-      if (running) { acc = elapsed(); running = false; cancelAnimationFrame(raf); raf = 0; bStart.textContent = 'Weiter'; return; }
+      if (running) { acc = elapsed(); running = false; cancelAnimationFrame(raf); raf = 0; lastFrame = 0; setLabel('Weiter'); return; }
       if (acc >= M.total) reset();
-      running = true; t0 = performance.now(); bStart.textContent = 'Pause'; timerBox.classList.remove('is-done'); raf = requestAnimationFrame(tick);
+      running = true; t0 = performance.now(); lastFrame = 0; setLabel('Pause'); timerBox.classList.remove('is-done'); raf = requestAnimationFrame(tick);
     });
     bReset.addEventListener('click', reset);
-    document.addEventListener('visibilitychange', function () { if (!document.hidden && running && !raf) raf = requestAnimationFrame(tick); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && running && !raf) { lastFrame = 0; raf = requestAnimationFrame(tick); } });
     function setMethod(k) {
       key = k; M = METHODS[k]; reset();
+      timerBox.setAttribute('data-method', k);
       cIn.min = M.cmin; cIn.max = M.cmax; cIn.value = M.coffee;
       rIn.min = M.rmin; rIn.max = M.rmax; rIn.step = M.rstep; rIn.value = M.ratio;
       $('#b-grind').textContent = M.grind; $('#b-temp').textContent = M.temp.replace(' ', NB); $('#b-total').textContent = mss(M.total) + NB + 'min';
@@ -759,3 +1002,4 @@
   if (document.readyState === 'complete') go(); else window.addEventListener('load', go, { once: true });
   setTimeout(go, 1500);
 })();
+

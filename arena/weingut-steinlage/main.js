@@ -52,7 +52,7 @@
     { n: 5, name: 'Mandelgrund', h: 135, x: .9, y: .36 }
   ];
   // Handy: Lagen im Zickzack links neben dem Etikett
-  var LAGEN_M = [{ x: .11, y: .13 }, { x: .33, y: .33 }, { x: .1, y: .53 }, { x: .32, y: .72 }, { x: .12, y: .91 }];
+  var LAGEN_M = [{ x: .11, y: .19 }, { x: .33, y: .33 }, { x: .1, y: .53 }, { x: .32, y: .72 }, { x: .12, y: .91 }];
   var BREITE = 49.4; // Deidesheim, für Sonnenhöhe und Tageslänge
   var MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 
@@ -136,7 +136,7 @@
     function layout() {
       var r = hero.getBoundingClientRect(), pr = plotEl.getBoundingClientRect();
       W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
-      mob = W < 900; dpr = Math.min(2, window.devicePixelRatio || 1); CELL = mob ? 5 : 6;
+      mob = W < 900; dpr = Math.min(2, window.devicePixelRatio || 1); CELL = mob ? 6 : 7;
       P = { x: pr.left - r.left, y: pr.top - r.top, w: pr.width, h: pr.height };
       // Lagen in Pixel
       var rad = clamp(mob ? Math.min(P.w * .1, P.h * .1) : P.w * .075, 22, 64), R = rnd(7);
@@ -176,7 +176,7 @@
       var m = 26, x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
       parcels.forEach(function (p) { p.poly.forEach(function (q) { x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); }); });
       RB = { x: Math.floor(x0 - m), y: Math.floor(y0 - m), w: Math.ceil(x1 - x0 + 2 * m), h: Math.ceil(y1 - y0 + 2 * m) };
-      cvR.style.left = RB.x + 'px'; cvR.style.top = RB.y + 'px'; cvR.style.width = RB.w + 'px'; cvR.style.height = RB.h + 'px';
+      cvR.style.transform = 'translate(' + RB.x + 'px,' + RB.y + 'px)'; cvR.style.width = RB.w + 'px'; cvR.style.height = RB.h + 'px';
       cvR.width = RB.w * dpr; cvR.height = RB.h * dpr;
       cvL.width = W * dpr; cvL.height = H * dpr;
       // Höhenraster
@@ -242,6 +242,9 @@
           if ((a > lv) !== (d > lv)) {
             var x = i * CELL + CELL * (lv - a) / (d - a);
             if (x < 24 || x > W - 24) return;
+            // keine Kollision mit den Lagen-Beschriftungen
+            for (var q = 0; q < parcels.length; q++) { var pp = parcels[q], top = Math.min.apply(null, pp.poly.map(function (v) { return v[1]; })) - 13;
+              if (Math.abs(ys - top) < 26 && x > pp.x - pp.r - 30 && x < pp.x + pp.r + 100) return; }
             c.fillStyle = 'rgba(239,235,227,.95)'; c.fillRect(x - 17, ys - 7, 34, 14);
             c.fillStyle = 'rgba(79,91,58,.9)'; c.fillText(lv + ' m', x, ys + .5);
             return;
@@ -361,7 +364,8 @@
 
     function build(intro) {
       layout();
-      shade(); rows(performance.now());
+      // erstes Licht/Rebzeilen im nächsten Task, damit kein langer Block entsteht
+      setTimeout(function () { shade(); rows(performance.now()); }, 0);
       if (intro && !still) { lx.setTransform(1, 0, 0, 1, 0, 0); lx.clearRect(0, 0, cvL.width, cvL.height); drawForest(); introDone = false; introLevel = 0; introT = performance.now(); }
       else staticAll();
     }
@@ -723,19 +727,19 @@
     var lay = $$('.jahr__season i', sec), moEl = $('#jahr-mo'), elEl = $('#jahr-el'), dayEl = $('#jahr-day');
     var view = $('.jahr__view', sec), w = 0, h = 0, pts = [], lastTxt = '', lastP = -1;
     var NS = 'http://www.w3.org/2000/svg';
-    function xy(p) { var s = sunAt(p); return [16 + p * (w - 32), h - 16 - (s.el - 10) / 58 * (h - 40)]; }
+    function xy(p) { var s = sunAt(p); return [16 + p * (w - 32), h - 30 - (s.el - 10) / 58 * (h - 50)]; }
     function measure() {
       var r = svg.getBoundingClientRect(); w = Math.max(10, r.width); h = Math.max(10, r.height);
       svg.setAttribute('viewBox', '0 0 ' + w.toFixed(0) + ' ' + h.toFixed(0));
       pts = []; var d = '';
       for (var i = 0; i <= 60; i++) { var q = xy(i / 60); pts.push(q); d += (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }
       path.setAttribute('d', d); trail.setAttribute('d', d); trail.setAttribute('pathLength', '1'); trail.style.strokeDasharray = '0 1';
-      hz.setAttribute('x1', 0); hz.setAttribute('x2', w); hz.setAttribute('y1', h - 8); hz.setAttribute('y2', h - 8);
+      hz.setAttribute('x1', 0); hz.setAttribute('x2', w); hz.setAttribute('y1', h - 20); hz.setAttribute('y2', h - 20);
       while (ticks.firstChild) ticks.removeChild(ticks.firstChild);
       MONATE.forEach(function (m, i) {
         var x = 16 + (i + .5) / 12 * (w - 32), ln = document.createElementNS(NS, 'line'), tx = document.createElementNS(NS, 'text');
-        ln.setAttribute('x1', x); ln.setAttribute('x2', x); ln.setAttribute('y1', h - 12); ln.setAttribute('y2', h - 4);
-        tx.setAttribute('x', x); tx.setAttribute('y', h + 10); tx.textContent = w < 500 ? m.charAt(0) : m.slice(0, 3);
+        ln.setAttribute('x1', x); ln.setAttribute('x2', x); ln.setAttribute('y1', h - 24); ln.setAttribute('y2', h - 16);
+        tx.setAttribute('x', x); tx.setAttribute('y', h - 3); tx.textContent = w < 500 ? m.charAt(0) : m.slice(0, 3);
         ticks.appendChild(ln); ticks.appendChild(tx);
       });
       lastP = -1; set(Math.max(0, lastSet));
@@ -785,12 +789,14 @@
   }
 
   /* ================= GSAP: Lenis, Strecken, Scrubs ================= */
-  function initMotion() {
-    var setSun = initSun(), setOdo = initOdo();
+  var setSun = null, setOdo = null, gsapOK = false, mm = null;
+  function motionBase() {
     var map = $('.map');
-    if (!window.gsap || !window.ScrollTrigger) { if (map) { map.style.setProperty('--draw', 0); map.classList.add('is-drawn'); } return; }
+    gsapOK = !!(window.gsap && window.ScrollTrigger);
+    if (!gsapOK) { if (map) { map.style.setProperty('--draw', 0); map.classList.add('is-drawn'); } return; }
     var gsap = window.gsap, ST = window.ScrollTrigger;
     gsap.registerPlugin(ST);
+    mm = gsap.matchMedia();
     if (!still && window.Lenis) {
       lenis = new window.Lenis({ lerp: 0.1, smoothWheel: true });
       window.__lenis = lenis;
@@ -799,8 +805,10 @@
       gsap.ticker.add(function (t) { lenis.raf(t * 1000); });
       gsap.ticker.lagSmoothing(0);
     }
-    if (still) return;
-
+  }
+  function motionMap() {
+    if (!gsapOK || still) return;
+    var ST = window.ScrollTrigger, map = $('.map');
     // Set Piece 1: Höhenlinien der Lagenkarte zeichnen sich mit dem Scroll
     if (map) {
       var drawn = false;
@@ -812,9 +820,12 @@
       setTimeout(function () { if (!drawn && map.getBoundingClientRect().top < innerHeight) { drawn = true; map.style.setProperty('--draw', 0); map.classList.add('is-drawn'); } }, 2500);
     }
 
+  }
+  function motionJahr() {
+    if (!gsapOK || still) return;
+    var gsap = window.gsap;
     // Set Piece 2: Ein Jahr im Weinberg als Sonnenbahn (Desktop sticky + scrub, Handy Wisch-Schiene)
     var sec = $('#jahr'), view = $('.jahr__view', sec), track = $('#jahr-track');
-    var mm = gsap.matchMedia();
     mm.add('(min-width: 900px)', function () {
       doc.classList.add('jahr-h');
       var dist = 0;
@@ -841,6 +852,10 @@
       };
     });
 
+  }
+  function motionRest() {
+    if (!gsapOK || still) return;
+    var gsap = window.gsap;
     // Set Piece 3: das Glas füllt sich beim Hereinscrollen
     var pour = $('.glass__pour');
     if (pour) gsap.fromTo(pour, { y: 120 }, { y: 0, ease: 'none', scrollTrigger: { trigger: '.finder__out', start: 'top 85%', end: 'center 55%', scrub: .8 } });
@@ -858,7 +873,6 @@
       gsap.to('.label', { y: -60, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
       gsap.to('.cta__yr', { xPercent: -8, ease: 'none', scrollTrigger: { trigger: '.cta', start: 'top bottom', end: 'bottom top', scrub: true } });
     });
-    ST.refresh();
   }
 
   /* ================= Start in Etappen ================= */
@@ -866,7 +880,8 @@
   initRoll();
   // Karte in eigenem Task, damit der erste Layout-Task kurz bleibt
   setTimeout(initHero, 0);
-  var queue = [initLabelTilt, initMagnet, initAnchors, initLagen, initFinder, initBooking, initStatus, initReveal, initNavSpy, initMotion];
+  var queue = [initLabelTilt, initMagnet, initAnchors, initLagen, initFinder, initBooking, initStatus, initReveal, initNavSpy,
+    function () { setSun = initSun(); }, function () { setOdo = initOdo(); }, motionBase, motionMap, motionJahr, motionRest];
   var idle = window.requestIdleCallback || function (cb) { return setTimeout(function () { cb({ timeRemaining: function () { return 12; } }); }, 16); };
   function pump(deadline) {
     var t = performance.now();

@@ -146,6 +146,7 @@ figure { margin: 0; }
 .hero { position: relative; overflow: clip; padding-top: var(--hdr); background: radial-gradient(120% 90% at 30% 30%, var(--paper), var(--kalk) 60%); }
 .hero__map { position: absolute; inset: 0; pointer-events: none; }
 .hero__map canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }
+.hero__map .hero__rows { width: 0; height: 0; }
 .hero__alti { position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none; padding: 5px 9px 4px 22px; font-size: .75rem; font-weight: 650; letter-spacing: .04em; color: var(--wine); background: rgba(248, 245, 239, .94); box-shadow: 0 0 0 1px var(--line); opacity: 0; transition: opacity 200ms ease; white-space: nowrap; }
 .hero__alti::before { content: ""; position: absolute; left: 7px; top: 50%; width: 9px; height: 9px; margin-top: -5px; border: 1.5px solid var(--wine); border-radius: 50%; }
 .hero__alti.is-on { opacity: 1; }
@@ -452,7 +453,7 @@ html:not(.js) .jahr__inst { display: none; }
 @media (hover: hover) and (pointer: fine) { .pkg:hover input:not(:checked) + .pkg__row { background: rgba(74, 20, 38, .05); } }
 .booking__row { display: grid; gap: 16px; }
 .field { display: grid; gap: 6px; align-content: start; min-width: 0; }
-.field label, .field .label { font-weight: 650; font-size: .875rem; }
+.field label, .field .flabel { font-weight: 650; font-size: .875rem; }
 .field input, .field select { width: 100%; min-height: 52px; padding: 0 14px; border-radius: 2px; border: 1px solid rgba(42, 29, 33, .28); background: var(--paper); transition: border-color var(--d-ui) ease, box-shadow var(--d-ui) ease; }
 .field select { -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%234A1426' stroke-width='1.6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 12px; padding-right: 36px; }
 .field input:focus-visible, .field select:focus-visible { outline: none; border-color: var(--wine); box-shadow: 0 0 0 3px rgba(74, 20, 38, .18); }
@@ -630,6 +631,7 @@ html.js:not(.motion-off) .faq__list details[open] p { animation: inkin 360ms var
 .ftr__base { display: grid; gap: 18px; margin-top: 44px; padding-top: 22px; border-top: 1px solid rgba(239, 235, 227, .14); font-size: .8125rem; color: rgba(239, 235, 227, .72); }
 .demo-pill { justify-self: start; display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 16px 0 24px; white-space: nowrap; max-width: 100%; font-size: .75rem; font-weight: 650; text-decoration: none; color: var(--wine); background: var(--paper);
   clip-path: polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 50%); position: relative; transition: transform var(--d-press) var(--ease-out); }
+.ftr .demo-pill { padding: 0 16px 0 24px; display: inline-flex; }
 .demo-pill::before { content: ""; position: absolute; left: 10px; top: 50%; width: 5px; height: 5px; margin-top: -2.5px; border-radius: 50%; background: var(--wine); }
 .demo-pill:active { transform: scale(0.97); }
 
