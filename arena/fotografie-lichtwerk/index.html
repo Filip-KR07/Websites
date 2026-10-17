@@ -6,15 +6,15 @@
   <title>Lichtwerk – Hochzeitsfotografie Anna Weber · Dresden · Reportage im Film-Look</title>
   <meta name="description" content="Lichtwerk – Hochzeitsfotografie von Anna Weber aus Dresden: ruhige Reportagen im Film-Look, Paarshootings und Fine-Art-Alben. Über 180 Hochzeiten seit 2015 in Dresden, der Sächsischen Schweiz und darüber hinaus.">
   <meta name="robots" content="noindex">
-  <meta name="theme-color" content="#F6F4F0">
+  <meta name="theme-color" content="#17110F">
   <meta name="color-scheme" content="light">
   <link rel="icon" href="/arena/fotografie-lichtwerk/favicon.svg" type="image/svg+xml">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="de_DE">
   <meta property="og:site_name" content="Lichtwerk – Hochzeitsfotografie">
-  <meta property="og:title" content="Lichtwerk – Ihr Tag, in Licht entwickelt. Hochzeitsfotografie in Dresden">
+  <meta property="og:title" content="Lichtwerk – Die Sekunden zwischen den Posen. Hochzeitsfotografie in Dresden">
   <meta property="og:description" content="Ruhige Hochzeitsreportagen im Film-Look von Anna Weber und Tom Richter, Dresden. Pakete live berechnen, Wunschdatum prüfen. (Demo, fiktiver Betrieb)">
-  <link rel="preload" href="/arena/fotografie-lichtwerk/assets/fonts/instrument-serif-latin-400-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/arena/fotografie-lichtwerk/assets/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/arena/fotografie-lichtwerk/assets/fonts/epilogue-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/arena/fotografie-lichtwerk/style.css">
   <script>
@@ -23,8 +23,9 @@
       d.classList.add('js');
       if (/[?&]motion=off\b/.test(q)) d.classList.add('motion-off');
       else if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('reduced');
+      else d.classList.add('motion');
       // Sicherheitsnetz: Startet main.js nicht, wird alles sichtbar.
-      setTimeout(function () { if (!window.__lichtwerkReady) d.classList.remove('js'); }, 4000);
+      setTimeout(function () { if (!window.__lichtwerkReady) { d.classList.remove('js', 'motion', 'reduced'); } }, 4000);
     })();
   </script>
   <script src="/arena/fotografie-lichtwerk/assets/vendor/gsap.min.js" defer></script>
@@ -99,17 +100,21 @@
     <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
     <symbol id="i-replay" viewBox="0 0 24 24"><path d="M5 12a7 7 0 1 0 2.1-5M5 4v4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3.4 2.6 5.5 6 .7-4.4 4.1 1.2 5.9L12 16.7l-5.4 2.9 1.2-5.9L3.4 9.6l6-.7Z" fill="currentColor"/></symbol>
     <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m4 6.5 8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
     <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.3" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
-    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
     <symbol id="i-aperture" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M16 2.75 20.6 13M29.2 15 18.2 16.6M22.6 27.5 15.6 19M7 25.6 13.4 16.4M4.7 9.8 15.6 11.2M21.3 4 14.6 12.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></symbol>
+    <!-- Fettstift-Spuren (von Hand gezeichnet) -->
+    <symbol id="g-loop" viewBox="0 0 150 100" preserveAspectRatio="none"><path pathLength="1" d="M18 14C52 2 116 4 140 14C150 38 148 70 138 88C104 98 46 97 13 89C3 64 2 34 10 15C14 8 26 4 44 6"/></symbol>
+    <symbol id="g-x" viewBox="0 0 150 100" preserveAspectRatio="none"><path pathLength="1" d="M20 16C52 40 96 66 132 86M128 12C96 38 58 66 18 90"/></symbol>
+    <linearGradient id="can-shade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset=".28" stop-color="#fff" stop-opacity=".18"/><stop offset=".46" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></linearGradient>
+    <filter id="ink-rough" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.2" xChannelSelector="R" yChannelSelector="G" result="d"/><feComponentTransfer in="n" result="m"><feFuncA type="discrete" tableValues="0 1 1 1 1 1 1 0.4"/></feComponentTransfer><feComposite in="d" in2="m" operator="in"/></filter>
+    <symbol id="g-tick" viewBox="0 0 150 30" preserveAspectRatio="none"><path pathLength="1" d="M6 18C40 12 92 10 144 14"/></symbol>
   </svg>
 
   <a class="skip-link" href="#main">Zum Inhalt springen</a>
 
-  <header class="site-header" data-header>
-    <div class="header-inner wrap">
+  <header class="site-header is-dark" data-header>
+    <div class="header-inner">
       <a class="brand" href="/arena/fotografie-lichtwerk/" aria-label="Lichtwerk – Hochzeitsfotografie, zur Startseite">
         <svg class="brand-mark" aria-hidden="true"><use href="#i-aperture"/></svg>
         <span class="brand-word">Lichtwerk</span>
@@ -117,17 +122,17 @@
       </a>
       <nav class="main-nav" aria-label="Hauptnavigation">
         <ul>
-          <li><a href="#galerie">Galerie</a></li>
-          <li><a href="#geschichte">Love Story</a></li>
-          <li><a href="#pakete">Pakete</a></li>
-          <li><a href="#verfuegbarkeit">Verfügbarkeit</a></li>
-          <li><a href="#ueber-uns">Über uns</a></li>
-          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#galerie" data-roll>Galerie</a></li>
+          <li><a href="#geschichte" data-roll>Love Story</a></li>
+          <li><a href="#pakete" data-roll>Pakete</a></li>
+          <li><a href="#verfuegbarkeit" data-roll>Verfügbarkeit</a></li>
+          <li><a href="#ueber-uns" data-roll>Über uns</a></li>
+          <li><a href="#faq" data-roll>FAQ</a></li>
         </ul>
       </nav>
       <div class="header-actions">
         <a class="header-phone" href="tel:+493515554780"><svg class="ico" aria-hidden="true"><use href="#i-phone"/></svg><span>0351&nbsp;555&nbsp;47&nbsp;80</span></a>
-        <a class="btn btn--ink btn--sm" href="#anfrage">Anfragen</a>
+        <a class="btn btn--sm btn--header" href="#anfrage"><span>Anfragen</span></a>
         <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" data-menu-open>
           <span class="menu-btn-lines" aria-hidden="true"></span><span class="menu-btn-label">Menü</span>
         </button>
@@ -140,17 +145,17 @@
     <div class="menu-inner">
       <div class="menu-top">
         <span class="brand-word">Lichtwerk</span>
-        <button class="icon-btn icon-btn--line" type="button" data-menu-close aria-label="Menü schließen"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
+        <button class="icon-btn" type="button" data-menu-close aria-label="Menü schließen"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
       </div>
       <nav aria-label="Mobile Navigation">
         <ol class="menu-list">
-          <li><a href="#galerie"><span class="menu-no">01</span>Galerie</a></li>
-          <li><a href="#geschichte"><span class="menu-no">02</span>Love Story</a></li>
-          <li><a href="#pakete"><span class="menu-no">03</span>Pakete &amp; Preise</a></li>
-          <li><a href="#verfuegbarkeit"><span class="menu-no">04</span>Verfügbarkeit</a></li>
-          <li><a href="#ueber-uns"><span class="menu-no">05</span>Über uns</a></li>
-          <li><a href="#faq"><span class="menu-no">06</span>Fragen</a></li>
-          <li><a href="#anfrage"><span class="menu-no">07</span>Anfrage</a></li>
+          <li><a href="#galerie"><span class="menu-no" aria-hidden="true">▸&nbsp;01</span>Galerie</a></li>
+          <li><a href="#geschichte"><span class="menu-no" aria-hidden="true">▸&nbsp;02</span>Love Story</a></li>
+          <li><a href="#pakete"><span class="menu-no" aria-hidden="true">▸&nbsp;03</span>Pakete &amp; Preise</a></li>
+          <li><a href="#verfuegbarkeit"><span class="menu-no" aria-hidden="true">▸&nbsp;04</span>Verfügbarkeit</a></li>
+          <li><a href="#ueber-uns"><span class="menu-no" aria-hidden="true">▸&nbsp;05</span>Über uns</a></li>
+          <li><a href="#faq"><span class="menu-no" aria-hidden="true">▸&nbsp;06</span>Fragen</a></li>
+          <li><a href="#anfrage"><span class="menu-no" aria-hidden="true">▸&nbsp;07</span>Anfrage</a></li>
         </ol>
       </nav>
       <div class="menu-foot">
@@ -161,164 +166,193 @@
   </div>
 
   <main id="main">
-    <!-- ============ HERO / Entwicklungsbad ============ -->
-    <section class="hero" id="start" aria-labelledby="hero-title">
-      <div class="hero-glow" aria-hidden="true"></div>
-      <div class="hero-grid wrap">
-        <div class="hero-copy">
-          <p class="eyebrow hero-eyebrow" data-hero-in>Hochzeitsfotografie · Dresden &amp; Sachsen</p>
-          <h1 class="hero-title display" id="hero-title" data-hero-in>Ihr Tag, <em>in Licht</em> entwickelt.</h1>
-          <p class="hero-lead" data-hero-in>Ruhige Reportagen für Paare, die sich an den Tag erinnern wollen, nicht an das Posieren. Wir sind da, wenn es leise wird: kurz vor dem Ja, beim ersten Tanz, wenn die Oma noch einmal die Hand drückt.</p>
-          <div class="hero-ctas" data-hero-in>
-            <a class="btn btn--ink" href="#verfuegbarkeit"><svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg>Wunschdatum prüfen</a>
-            <a class="btn btn--line" href="#galerie">Galerie ansehen<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          </div>
-          <ul class="hero-trust" data-hero-in>
-            <li><span class="trust-stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span><strong>5,0</strong>&nbsp;aus 94&nbsp;Bewertungen</li>
-            <li><strong>180+</strong>&nbsp;Hochzeiten seit 2015</li>
-            <li><strong>4–6</strong>&nbsp;Wochen bis zur Galerie</li>
-          </ul>
+    <!-- ============ HERO: Kontaktbogen unter Rotlicht ============ -->
+    <section class="hero" id="start" aria-labelledby="hero-title" data-hero>
+      <div class="hero-grid">
+        <h1 class="hero-title" id="hero-title">
+          <span class="ht-line">Die Sekunden</span>
+          <span class="ht-line ht-line--in">zwischen<svg class="ht-mark" viewBox="0 0 150 30" preserveAspectRatio="none" aria-hidden="true"><use href="#g-tick"/></svg></span>
+          <span class="ht-line">den Posen.</span>
+        </h1>
+        <p class="hero-lead">Hochzeitsreportagen von Anna Weber aus Dresden: unauffällig fotografiert, jedes Bild von Hand entwickelt. Seit 2015 über 180&nbsp;Hochzeiten – vom Standesamt Radebeul bis zum Weinberg bei Meißen.</p>
+        <div class="hero-ctas">
+          <a class="btn btn--paper" href="#verfuegbarkeit" data-magnet><span>Wunschdatum prüfen</span></a>
+          <a class="text-link text-link--night" href="#galerie">Zum Kontaktbogen<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
         </div>
 
-        <figure class="hero-print" data-dev>
-          <div class="film film--hero">
-            <span class="film-edge film-edge--top" aria-hidden="true"><span>LICHTWERK 400</span><span>▸ 24</span><span>24A</span></span>
-            <div class="hero-frame" data-dev-frame>
-              <img class="hero-img" src="/arena/fotografie-lichtwerk/assets/img/hero-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/hero-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/hero-960.webp 960w" sizes="(max-width: 899px) 92vw, 54vw" width="960" height="640" fetchpriority="high" decoding="async" alt="Brautpaar sitzt im Abendlicht am Ufer eines Sees, die Braut lehnt den Kopf an seine Schulter" data-dev-img>
-              <canvas class="hero-canvas" aria-hidden="true" data-dev-canvas></canvas>
-              <span class="grain grain--live" aria-hidden="true"></span>
+        <figure class="sheet" data-sheet>
+          <div class="sheet-paper" data-sheet-paper>
+            <div class="strips" aria-hidden="true" data-strips>
+              <div class="strip" data-strip>
+                <span class="strip-edge strip-edge--top"><span>LICHTWERK 400</span><span>ROLLE 07 · 14.06.</span><span>◂ 17</span></span>
+                <span class="strip-frames">
+                  <span class="fr"><img src="/arena/fotografie-lichtwerk/assets/img/kleid-480.webp" width="480" height="319" alt="" loading="lazy" decoding="async"></span>
+                  <span class="fr"><img src="/arena/fotografie-lichtwerk/assets/img/anstecker-480.webp" width="480" height="318" alt="" loading="lazy" decoding="async"></span>
+                  <span class="fr fr--rot"><img src="/arena/fotografie-lichtwerk/assets/img/strauss-480.webp" width="480" height="720" alt="" loading="lazy" decoding="async"></span>
+                  <span class="fr"><img src="/arena/fotografie-lichtwerk/assets/img/schleife-480.webp" width="480" height="320" alt="" loading="lazy" decoding="async"><svg class="gm gm--tick" viewBox="0 0 150 30" preserveAspectRatio="none"><use href="#g-tick"/></svg></span>
+                  <span class="fr fr--rot"><img src="/arena/fotografie-lichtwerk/assets/img/altar-480.webp" width="480" height="719" alt="" loading="lazy" decoding="async"></span>
+                </span>
+                <span class="strip-edge strip-edge--bottom"><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span></span>
+              </div>
+              <div class="strip strip--main" data-strip>
+                <span class="strip-edge strip-edge--top"><span>5,0 ★ AUS 94 BEWERTUNGEN</span><span>▸ 22</span><span>24A</span></span>
+                <span class="strip-frames">
+                  <span class="fr"><img src="/arena/fotografie-lichtwerk/assets/img/ringtausch-480.webp" width="480" height="320" alt="" decoding="async"></span>
+                  <span class="fr fr--pick"><img src="/arena/fotografie-lichtwerk/assets/img/hero-480.webp" width="480" height="320" alt="" decoding="async"><svg class="gm gm--loop" viewBox="0 0 150 100" preserveAspectRatio="none"><use href="#g-loop"/></svg></span>
+                  <span class="fr fr--rot"><img src="/arena/fotografie-lichtwerk/assets/img/braut-480.webp" width="480" height="720" alt="" decoding="async"></span>
+                  <span class="fr"><img src="/arena/fotografie-lichtwerk/assets/img/baum-480.webp" width="480" height="320" alt="" decoding="async"></span>
+                  <span class="fr"><img src="/arena/fotografie-lichtwerk/assets/img/kuss-480.webp" width="480" height="320" alt="" decoding="async"></span>
+                </span>
+                <span class="strip-edge strip-edge--bottom"><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span></span>
+              </div>
+              <div class="strip" data-strip>
+                <span class="strip-edge strip-edge--top"><span>180+ HOCHZEITEN SEIT 2015</span><span>▸ 27</span><span>29A</span></span>
+                <span class="strip-frames">
+                  <span class="fr"><img src="/arena/fotografie-lichtwerk/assets/img/sekt-480.webp" width="480" height="320" alt="" loading="lazy" decoding="async"></span>
+                  <span class="fr"><img src="/arena/fotografie-lichtwerk/assets/img/treppe-480.webp" width="480" height="320" alt="" loading="lazy" decoding="async"></span>
+                  <span class="fr"><img src="/arena/fotografie-lichtwerk/assets/img/tafel-480.webp" width="480" height="274" alt="" loading="lazy" decoding="async"><svg class="gm gm--x" viewBox="0 0 150 100" preserveAspectRatio="none"><use href="#g-x"/></svg></span>
+                  <span class="fr"><img src="/arena/fotografie-lichtwerk/assets/img/antrag-480.webp" width="480" height="321" alt="" loading="lazy" decoding="async"></span>
+                  <span class="fr"><img src="/arena/fotografie-lichtwerk/assets/img/herbst-480.webp" width="480" height="320" alt="" loading="lazy" decoding="async"></span>
+                </span>
+                <span class="strip-edge strip-edge--bottom"><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span></span>
+              </div>
             </div>
-            <span class="film-edge film-edge--bottom" aria-hidden="true"><span>◂ 23A</span><span>Moritzburger Teichlandschaft · 19:42</span><span>25 ▸</span></span>
-            <svg class="hero-mark" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" vector-effect="non-scaling-stroke" d="M7 8.5C31 1.5 72 2.5 97.5 5.5C99.6 30 99.2 72 96.8 95.5C72 99.6 28 98.8 3.8 95.8C1 72 .4 32 3.2 6.5C5 2.2 13 .6 24 2.8"/></svg>
+            <canvas class="sheet-canvas" aria-hidden="true" data-sheet-canvas></canvas>
+            <span class="sheet-note" aria-hidden="true">24A – Abzug 30&nbsp;×&nbsp;40, matt. A.</span>
+            <span class="loupe" aria-hidden="true" data-loupe><i></i></span>
           </div>
-          <figcaption class="darkroom">
-            <ol class="darkroom-steps" aria-hidden="true">
-              <li data-step="0"><span class="ds-no">1</span>Entwickler</li>
-              <li data-step="1"><span class="ds-no">2</span>Stoppbad</li>
-              <li data-step="2"><span class="ds-no">3</span>Fixierer</li>
-            </ol>
-            <span class="darkroom-time" aria-hidden="true" data-dev-time>00:00</span>
-            <button class="darkroom-replay" type="button" data-dev-replay><svg class="ico" aria-hidden="true"><use href="#i-replay"/></svg><span>Noch einmal entwickeln</span></button>
-            <span class="sr-only">Abendlicht an den Moritzburger Teichen – Beispiel aus einer Reportage.</span>
-          </figcaption>
+          <p class="stamp" data-stamp><span class="stamp-top">Lichtwerk · Dresden</span><span class="stamp-score">5,0 <span aria-hidden="true">★★★★★</span></span><span class="stamp-bottom">aus 94 Bewertungen</span></p>
+          <figcaption class="sr-only">Kontaktbogen einer Hochzeitsreportage: drei Filmstreifen mit Bildern vom Getting Ready, der Trauung, dem Paarshooting im Abendlicht an den Moritzburger Teichen und der Feier. Ein Bild ist mit Fettstift für einen Abzug markiert.</figcaption>
         </figure>
+
+        <div class="timer" data-timer>
+          <ol class="timer-steps" aria-hidden="true">
+            <li data-step="0">Entwickler</li>
+            <li data-step="1">Stoppbad</li>
+            <li data-step="2">Fixierer</li>
+          </ol>
+          <span class="timer-time" aria-hidden="true" data-timer-time>01:30</span>
+          <button class="timer-replay" type="button" data-timer-replay><svg class="ico" aria-hidden="true"><use href="#i-replay"/></svg><span>Noch einmal entwickeln</span></button>
+        </div>
       </div>
-      <a class="hero-scroll" href="#haltung" aria-label="Weiter zur Haltung"><span aria-hidden="true">Weiter</span><i aria-hidden="true"></i></a>
+      <div class="safelight" aria-hidden="true" data-safelight></div>
     </section>
 
-    <!-- ============ Haltung ============ -->
-    <section class="statement" id="haltung" aria-labelledby="statement-title">
-      <div class="wrap statement-inner">
-        <h2 class="eyebrow" id="statement-title"><span class="eb-no">01</span>Haltung</h2>
-        <p class="statement-text" data-words>Wir inszenieren wenig und beobachten viel. Was am Ende in Ihrer Galerie liegt, sind keine Posen, sondern die Sekunden dazwischen: das Lachen vor dem Ja, die Hand der Großmutter, der Regen, der plötzlich allen egal war.</p>
-        <p class="statement-sign" data-reveal><span class="sign">Anna Weber</span><span class="sign-role">Fotografin, Lichtwerk</span></p>
+    <!-- ============ Haltung: Licht an, Schärfe ziehen ============ -->
+    <section class="statement" id="haltung" aria-labelledby="statement-title" data-statement>
+      <div class="statement-stage" data-st-stage>
+        <div class="statement-dark" aria-hidden="true" data-st-dark></div>
+        <div class="leak" aria-hidden="true" data-leak><i></i><i></i><i></i></div>
+        <div class="statement-inner">
+          <h2 class="sr-only" id="statement-title">Unsere Haltung</h2>
+          <p class="statement-text" data-words>Wir inszenieren wenig und beobachten viel. Was am Ende in Ihrer Galerie liegt, sind keine Posen, sondern die Sekunden dazwischen: das Lachen vor dem Ja, die Hand der Großmutter, der Regen, der plötzlich allen egal war.</p>
+          <p class="statement-sign" data-st-sign><span class="sign">Anna Weber</span><span class="sign-role">Fotografin, Lichtwerk</span><svg class="sign-line" viewBox="0 0 220 24" aria-hidden="true"><path pathLength="1" d="M4 15C30 6 52 20 80 13S130 4 160 12S200 18 216 9"/></svg></p>
+        </div>
       </div>
     </section>
 
-    <!-- ============ Galerie ============ -->
-    <section class="gallery-sec" id="galerie" aria-labelledby="gallery-title">
+    <!-- ============ Galerie: Leuchttisch ============ -->
+    <section class="gallery" id="galerie" aria-labelledby="gallery-title">
       <div class="wrap">
-        <div class="sec-head sec-head--split">
-          <div>
-            <p class="eyebrow" data-reveal><span class="eb-no">02</span>Galerie</p>
-            <h2 class="h2 display" id="gallery-title" data-reveal>Vier Kapitel <em>eines Tages</em></h2>
-          </div>
-          <p class="sec-lead" data-reveal>Eine kleine Auswahl aus echten Reportagen – vom Kleid am Fenster bis zum Konfetti auf der Treppe. Ein Klick öffnet das Bild groß, mit Kontaktabzug zum Durchblättern.</p>
+        <div class="g-head">
+          <h2 class="g-title" id="gallery-title" data-reveal>Vier Rollen<br>aus einem Tag.</h2>
+          <p class="g-lead" data-reveal>Kleid am Fenster, Ringtausch, Abendlicht, Konfetti: eine kleine Auswahl aus echten Reportagen. Ein Klick legt das Bild auf den Leuchttisch – mit Kontaktabzug zum Durchblättern.</p>
+          <p class="g-counter" aria-hidden="true" data-reveal><span class="odo odo--big" data-g-odo>14</span><span class="g-counter-label">Bilder auf<br>dem Leuchttisch</span></p>
         </div>
 
         <div class="g-tabs" role="tablist" aria-label="Galerie nach Kapitel filtern" data-reveal>
-          <button class="g-tab" role="tab" id="tab-alle" aria-selected="true" aria-controls="g-panel" data-filter="alle">Alle <span class="g-count">14</span></button>
-          <button class="g-tab" role="tab" id="tab-ready" aria-selected="false" aria-controls="g-panel" tabindex="-1" data-filter="ready">Getting Ready <span class="g-count">3</span></button>
-          <button class="g-tab" role="tab" id="tab-trauung" aria-selected="false" aria-controls="g-panel" tabindex="-1" data-filter="trauung">Trauung <span class="g-count">3</span></button>
-          <button class="g-tab" role="tab" id="tab-paar" aria-selected="false" aria-controls="g-panel" tabindex="-1" data-filter="paar">Paarshooting <span class="g-count">5</span></button>
-          <button class="g-tab" role="tab" id="tab-feier" aria-selected="false" aria-controls="g-panel" tabindex="-1" data-filter="feier">Feier <span class="g-count">3</span></button>
-          <span class="g-tab-ink" aria-hidden="true" data-tab-ink></span>
+          <button class="g-tab" role="tab" id="tab-alle" aria-selected="true" aria-controls="g-panel" data-filter="alle"><span class="g-tab-name">Alle</span><sup class="g-count">14</sup></button>
+          <button class="g-tab" role="tab" id="tab-ready" aria-selected="false" aria-controls="g-panel" tabindex="-1" data-filter="ready"><span class="g-tab-name">Getting Ready</span><sup class="g-count">3</sup></button>
+          <button class="g-tab" role="tab" id="tab-trauung" aria-selected="false" aria-controls="g-panel" tabindex="-1" data-filter="trauung"><span class="g-tab-name">Trauung</span><sup class="g-count">3</sup></button>
+          <button class="g-tab" role="tab" id="tab-paar" aria-selected="false" aria-controls="g-panel" tabindex="-1" data-filter="paar"><span class="g-tab-name">Paarshooting</span><sup class="g-count">5</sup></button>
+          <button class="g-tab" role="tab" id="tab-feier" aria-selected="false" aria-controls="g-panel" tabindex="-1" data-filter="feier"><span class="g-tab-name">Feier</span><sup class="g-count">3</sup></button>
+          <svg class="g-ink" viewBox="0 0 150 30" preserveAspectRatio="none" aria-hidden="true" data-tab-ink><use href="#g-tick"/></svg>
         </div>
 
         <div class="g-panel" id="g-panel" role="tabpanel" aria-labelledby="tab-alle" data-g-panel>
           <ul class="g-grid" data-g-grid>
             <li class="g-item" data-cat="ready" style="--ar:1.505">
-              <button class="g-open" type="button" data-cap="Getting Ready · Hotelzimmer in der Neustadt">
+              <button class="g-open" type="button" data-cap="Getting Ready · Hotelzimmer in der Neustadt" data-cursor="Ansehen">
                 <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/kleid-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/kleid-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/kleid-960.webp 960w" sizes="(max-width: 899px) 66vw, 34vw" width="960" height="638" loading="lazy" decoding="async" alt="Rücken eines Brautkleids aus Spitze mit einer Reihe kleiner Stoffknöpfe"></span>
-                <span class="g-edge" aria-hidden="true"><span>01</span><span>Getting Ready</span></span>
+                <span class="g-edge" aria-hidden="true"><span>▸ 01</span><span>Getting Ready</span></span>
               </button>
             </li>
             <li class="g-item" data-cat="trauung" style="--ar:.668">
-              <button class="g-open" type="button" data-cap="Trauung · Kirchliche Zeremonie">
+              <button class="g-open" type="button" data-cap="Trauung · Kirchliche Zeremonie" data-cursor="Ansehen">
                 <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/altar-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/altar-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/altar-960.webp 960w" sizes="(max-width: 899px) 34vw, 16vw" width="960" height="1438" loading="lazy" decoding="async" alt="Brautpaar kniet während der kirchlichen Trauung vor dem Altar, der Pfarrer segnet sie"></span>
-                <span class="g-edge" aria-hidden="true"><span>02</span><span>Trauung</span></span>
+                <span class="g-edge" aria-hidden="true"><span>▸ 02</span><span>Trauung</span></span>
               </button>
             </li>
             <li class="g-item" data-cat="paar" style="--ar:1.5">
-              <button class="g-open" type="button" data-cap="Paarshooting · Moritzburger Teiche, Abendlicht">
-                <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/hero-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/hero-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/hero-960.webp 960w" sizes="(max-width: 899px) 66vw, 34vw" width="960" height="640" loading="lazy" decoding="async" alt="Brautpaar sitzt im Abendlicht am Ufer eines Sees"></span>
-                <span class="g-edge" aria-hidden="true"><span>03</span><span>Paarshooting</span></span>
+              <button class="g-open" type="button" data-cap="Paarshooting · Moritzburger Teiche, Abendlicht" data-cursor="Ansehen">
+                <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/hero-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/hero-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/hero-960.webp 960w" sizes="(max-width: 899px) 66vw, 34vw" width="960" height="640" loading="lazy" decoding="async" alt="Brautpaar sitzt im Abendlicht am Ufer eines Sees, die Braut lehnt den Kopf an seine Schulter"></span>
+                <span class="g-edge" aria-hidden="true"><span>▸ 03</span><span>Paarshooting</span></span>
               </button>
             </li>
             <li class="g-item" data-cat="feier" style="--ar:1.5">
-              <button class="g-open" type="button" data-cap="Feier · Sektempfang auf der Freitreppe">
+              <button class="g-open" type="button" data-cap="Feier · Sektempfang auf der Freitreppe" data-cursor="Ansehen">
                 <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/sekt-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/sekt-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/sekt-960.webp 960w" sizes="(max-width: 899px) 66vw, 34vw" width="960" height="640" loading="lazy" decoding="async" alt="Bräutigam im Smoking hält zwei Sektgläser, neben ihm die Braut auf einer Steintreppe"></span>
-                <span class="g-edge" aria-hidden="true"><span>04</span><span>Feier</span></span>
+                <span class="g-edge" aria-hidden="true"><span>▸ 04</span><span>Feier</span></span>
               </button>
             </li>
             <li class="g-item" data-cat="ready" style="--ar:1.509">
-              <button class="g-open" type="button" data-cap="Getting Ready · Die Blume ans Revers">
+              <button class="g-open" type="button" data-cap="Getting Ready · Die Blume ans Revers" data-cursor="Ansehen">
                 <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/anstecker-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/anstecker-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/anstecker-960.webp 960w" sizes="(max-width: 899px) 66vw, 34vw" width="960" height="636" loading="lazy" decoding="async" alt="Der Trauzeuge steckt dem Bräutigam einen Blumenanstecker ans Revers"></span>
-                <span class="g-edge" aria-hidden="true"><span>05</span><span>Getting Ready</span></span>
+                <span class="g-edge" aria-hidden="true"><span>▸ 05</span><span>Getting Ready</span></span>
               </button>
             </li>
             <li class="g-item" data-cat="trauung" style="--ar:1.5">
-              <button class="g-open" type="button" data-cap="Trauung · Ringtausch">
+              <button class="g-open" type="button" data-cap="Trauung · Ringtausch" data-cursor="Ansehen">
                 <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/ringtausch-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/ringtausch-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/ringtausch-960.webp 960w" sizes="(max-width: 899px) 66vw, 34vw" width="960" height="640" loading="lazy" decoding="async" alt="Ringtausch: Der Bräutigam steckt der Braut den Ring an, sie hält einen kleinen Strauß"></span>
-                <span class="g-edge" aria-hidden="true"><span>06</span><span>Trauung</span></span>
+                <span class="g-edge" aria-hidden="true"><span>▸ 06</span><span>Trauung</span></span>
               </button>
             </li>
             <li class="g-item" data-cat="paar" style="--ar:.667">
-              <button class="g-open" type="button" data-cap="Paarshooting · Im Garten nach der Trauung">
+              <button class="g-open" type="button" data-cap="Paarshooting · Im Garten nach der Trauung" data-cursor="Ansehen">
                 <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/braut-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/braut-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/braut-960.webp 960w" sizes="(max-width: 899px) 34vw, 16vw" width="960" height="1440" loading="lazy" decoding="async" alt="Braut lacht im Garten, den Brautstrauß in der Hand"></span>
-                <span class="g-edge" aria-hidden="true"><span>07</span><span>Paarshooting</span></span>
+                <span class="g-edge" aria-hidden="true"><span>▸ 07</span><span>Paarshooting</span></span>
               </button>
             </li>
             <li class="g-item" data-cat="feier" style="--ar:1.5">
-              <button class="g-open" type="button" data-cap="Feier · Konfetti beim Auszug">
+              <button class="g-open" type="button" data-cap="Feier · Konfetti beim Auszug" data-cursor="Ansehen">
                 <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/treppe-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/treppe-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/treppe-960.webp 960w" sizes="(max-width: 899px) 66vw, 34vw" width="960" height="640" loading="lazy" decoding="async" alt="Brautpaar geht die Treppe hinunter, Gäste werfen Konfetti"></span>
-                <span class="g-edge" aria-hidden="true"><span>08</span><span>Feier</span></span>
+                <span class="g-edge" aria-hidden="true"><span>▸ 08</span><span>Feier</span></span>
               </button>
             </li>
             <li class="g-item" data-cat="ready" style="--ar:1.5">
-              <button class="g-open" type="button" data-cap="Getting Ready · Die Schleife sitzt">
+              <button class="g-open" type="button" data-cap="Getting Ready · Die Schleife sitzt" data-cursor="Ansehen">
                 <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/schleife-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/schleife-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/schleife-960.webp 960w" sizes="(max-width: 899px) 66vw, 34vw" width="960" height="640" loading="lazy" decoding="async" alt="Hände binden eine Satinschleife am Rücken des Brautkleids"></span>
-                <span class="g-edge" aria-hidden="true"><span>09</span><span>Getting Ready</span></span>
+                <span class="g-edge" aria-hidden="true"><span>▸ 09</span><span>Getting Ready</span></span>
               </button>
             </li>
             <li class="g-item" data-cat="trauung" style="--ar:.667">
-              <button class="g-open" type="button" data-cap="Trauung · Weiße Rosen">
+              <button class="g-open" type="button" data-cap="Trauung · Weiße Rosen" data-cursor="Ansehen">
                 <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/strauss-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/strauss-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/strauss-960.webp 960w" sizes="(max-width: 899px) 34vw, 16vw" width="960" height="1440" loading="lazy" decoding="async" alt="Brautstrauß aus weißen Rosen und Grün in den Händen der Braut"></span>
-                <span class="g-edge" aria-hidden="true"><span>10</span><span>Trauung</span></span>
+                <span class="g-edge" aria-hidden="true"><span>▸ 10</span><span>Trauung</span></span>
               </button>
             </li>
             <li class="g-item" data-cat="paar" style="--ar:1.5">
-              <button class="g-open" type="button" data-cap="Paarshooting · Unter der alten Eiche">
+              <button class="g-open" type="button" data-cap="Paarshooting · Unter der alten Eiche" data-cursor="Ansehen">
                 <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/baum-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/baum-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/baum-960.webp 960w" sizes="(max-width: 899px) 66vw, 34vw" width="960" height="640" loading="lazy" decoding="async" alt="Brautpaar lehnt lachend an einem tief hängenden Ast eines alten Baums"></span>
-                <span class="g-edge" aria-hidden="true"><span>11</span><span>Paarshooting</span></span>
+                <span class="g-edge" aria-hidden="true"><span>▸ 11</span><span>Paarshooting</span></span>
               </button>
             </li>
             <li class="g-item" data-cat="feier" style="--ar:1.755">
-              <button class="g-open" type="button" data-cap="Feier · Die gedeckte Tafel">
+              <button class="g-open" type="button" data-cap="Feier · Die gedeckte Tafel" data-cursor="Ansehen">
                 <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/tafel-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/tafel-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/tafel-960.webp 960w" sizes="(max-width: 899px) 66vw, 34vw" width="960" height="547" loading="lazy" decoding="async" alt="Festlich gedeckte Tafel, ein Tannenzapfen hält das Namenskärtchen des Bräutigams"></span>
-                <span class="g-edge" aria-hidden="true"><span>12</span><span>Feier</span></span>
+                <span class="g-edge" aria-hidden="true"><span>▸ 12</span><span>Feier</span></span>
               </button>
             </li>
             <li class="g-item" data-cat="paar" style="--ar:1.5">
-              <button class="g-open" type="button" data-cap="Paarshooting · Schwarzweiß, ganz nah">
+              <button class="g-open" type="button" data-cap="Paarshooting · Schwarzweiß, ganz nah" data-cursor="Ansehen">
                 <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/kuss-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/kuss-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/kuss-960.webp 960w" sizes="(max-width: 899px) 66vw, 34vw" width="960" height="640" loading="lazy" decoding="async" alt="Schwarzweißfoto: Kuss, ihre Hand mit dem Verlobungsring liegt an seiner Wange"></span>
-                <span class="g-edge" aria-hidden="true"><span>13</span><span>Paarshooting</span></span>
+                <span class="g-edge" aria-hidden="true"><span>▸ 13</span><span>Paarshooting</span></span>
               </button>
             </li>
             <li class="g-item" data-cat="paar" style="--ar:1.498">
-              <button class="g-open" type="button" data-cap="Paarshooting · Parkbank im Gegenlicht">
+              <button class="g-open" type="button" data-cap="Paarshooting · Parkbank im Gegenlicht" data-cursor="Ansehen">
                 <span class="g-img"><img src="/arena/fotografie-lichtwerk/assets/img/antrag-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/antrag-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/antrag-960.webp 960w" sizes="(max-width: 899px) 66vw, 34vw" width="960" height="641" loading="lazy" decoding="async" alt="Brautpaar küsst sich auf einer Parkbank im warmen Gegenlicht"></span>
-                <span class="g-edge" aria-hidden="true"><span>14</span><span>Paarshooting</span></span>
+                <span class="g-edge" aria-hidden="true"><span>▸ 14</span><span>Paarshooting</span></span>
               </button>
             </li>
           </ul>
@@ -327,106 +361,108 @@
       </div>
     </section>
 
-    <!-- ============ Love Story ============ -->
+    <!-- ============ Love Story: Filmrolle ============ -->
     <section class="story" id="geschichte" aria-labelledby="story-title" data-story>
-      <div class="story-pin" data-story-pin>
-        <div class="story-head wrap">
-          <p class="eyebrow eyebrow--night"><span class="eb-no">03</span>Love Story</p>
-          <div class="story-axis" aria-hidden="true">
-            <span class="axis-line"><span data-axis-fill></span></span>
-            <span class="axis-years"><span>2018</span><span>2021</span><span>2024</span><span>2025 · Trauung</span><span>2025 · Feier</span></span>
-          </div>
+      <div class="story-stage" data-story-stage>
+        <div class="story-head">
+          <h2 class="story-title" id="story-title">Marie &amp; Jonas.<br>Fünf Bilder, sieben Jahre.</h2>
+          <p class="story-intro">Eine Geschichte beginnt selten am Hochzeitstag. Wir haben Marie und Jonas über Jahre begleitet – hier ist sie, auf einer einzigen Rolle.</p>
+          <p class="story-count" aria-hidden="true"><span class="story-count-label">Bild</span><span class="odo" data-story-odo>01</span><span class="story-count-of">/&nbsp;05</span></p>
         </div>
-        <div class="story-viewport" data-story-viewport>
+        <div class="story-film" data-story-film>
           <ol class="story-track" data-story-track>
-            <li class="story-intro">
-              <h2 class="story-title display" id="story-title">Marie &amp; Jonas.<br><em>Fünf Bilder,</em> sieben Jahre.</h2>
-              <p>Eine Geschichte beginnt selten am Hochzeitstag. Wir haben Marie und Jonas über Jahre begleitet – hier ist sie, Bild für Bild. Scrollen Sie weiter.</p>
-              <span class="story-hint" aria-hidden="true">Scrollen<i></i></span>
-            </li>
-            <li class="story-panel">
-              <figure class="story-fig">
-                <div class="film film--story">
-                  <div class="story-img"><img src="/arena/fotografie-lichtwerk/assets/img/herbst-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/herbst-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/herbst-960.webp 960w" sizes="(max-width: 899px) 92vw, 40vw" width="960" height="640" loading="lazy" decoding="async" alt="Zwei Menschen in Strickpullover und Parka halten sich an den Händen, Herbstwald im Hintergrund"><span class="grain" aria-hidden="true"></span></div>
-                  <span class="film-edge film-edge--bottom" aria-hidden="true"><span>▸ 01</span><span>Dresdner Heide</span><span>01A</span></span>
-                </div>
-                <figcaption class="story-cap">
-                  <span class="story-year">2018</span>
+            <li class="sf">
+              <figure>
+                <div class="sf-frame"><img src="/arena/fotografie-lichtwerk/assets/img/herbst-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/herbst-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/herbst-960.webp 960w" sizes="(max-width: 899px) 86vw, 36vw" width="960" height="640" loading="lazy" decoding="async" alt="Zwei Menschen in Strickpullover und Parka halten sich an den Händen, Herbstwald im Hintergrund"></div>
+                <span class="sf-edge" aria-hidden="true"><span>▸ 01</span><span>Dresdner Heide</span></span>
+                <figcaption class="sf-cap">
+                  <span class="sf-year">2018</span>
                   <h3>Kennengelernt beim Pilzesammeln</h3>
                   <p>Sie hatte den Korb, er die Bestimmungs-App. Gefunden haben die beiden in der Dresdner Heide vor allem einander.</p>
                 </figcaption>
               </figure>
             </li>
-            <li class="story-panel">
-              <figure class="story-fig">
-                <div class="film film--story">
-                  <div class="story-img"><img src="/arena/fotografie-lichtwerk/assets/img/ostsee-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/ostsee-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/ostsee-960.webp 960w" sizes="(max-width: 899px) 92vw, 40vw" width="960" height="640" loading="lazy" decoding="async" alt="Schwarzweißfoto: Paar geht an einem windigen Strand entlang, Felsen im Meer"><span class="grain" aria-hidden="true"></span></div>
-                  <span class="film-edge film-edge--bottom" aria-hidden="true"><span>▸ 02</span><span>Hiddensee, Februar</span><span>02A</span></span>
-                </div>
-                <figcaption class="story-cap">
-                  <span class="story-year">2021</span>
+            <li class="sf">
+              <figure>
+                <div class="sf-frame"><img src="/arena/fotografie-lichtwerk/assets/img/ostsee-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/ostsee-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/ostsee-960.webp 960w" sizes="(max-width: 899px) 86vw, 36vw" width="960" height="640" loading="lazy" decoding="async" alt="Schwarzweißfoto: Paar geht an einem windigen Strand entlang, Felsen im Meer"></div>
+                <span class="sf-edge" aria-hidden="true"><span>▸ 02</span><span>Hiddensee, Februar</span></span>
+                <figcaption class="sf-cap">
+                  <span class="sf-year">2021</span>
                   <h3>Der erste gemeinsame Urlaub</h3>
                   <p>Viel Wind, kein Netz, ein einziges Bild im Gegenlicht. Es hängt heute im Flur ihrer Wohnung in Löbtau.</p>
                 </figcaption>
               </figure>
             </li>
-            <li class="story-panel">
-              <figure class="story-fig">
-                <div class="film film--story">
-                  <div class="story-img"><img src="/arena/fotografie-lichtwerk/assets/img/antrag-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/antrag-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/antrag-960.webp 960w" sizes="(max-width: 899px) 92vw, 40vw" width="960" height="641" loading="lazy" decoding="async" alt="Paar küsst sich auf einer Parkbank im ersten Morgenlicht"><span class="grain" aria-hidden="true"></span></div>
-                  <span class="film-edge film-edge--bottom" aria-hidden="true"><span>▸ 03</span><span>Großer Garten, 7:40 Uhr</span><span>03A</span></span>
-                </div>
-                <figcaption class="story-cap">
-                  <span class="story-year">2024</span>
+            <li class="sf">
+              <figure>
+                <div class="sf-frame"><img src="/arena/fotografie-lichtwerk/assets/img/antrag-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/antrag-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/antrag-960.webp 960w" sizes="(max-width: 899px) 86vw, 36vw" width="960" height="641" loading="lazy" decoding="async" alt="Paar küsst sich auf einer Parkbank im ersten Morgenlicht"></div>
+                <span class="sf-edge" aria-hidden="true"><span>▸ 03</span><span>Großer Garten, 7:40 Uhr</span></span>
+                <figcaption class="sf-cap">
+                  <span class="sf-year">2024</span>
                   <h3>Der Antrag – wir waren eingeweiht</h3>
                   <p>Jonas hatte uns vorher angerufen. Wir standen mit dem Teleobjektiv hinter den Rhododendren, Marie hat nichts gemerkt.</p>
                 </figcaption>
               </figure>
             </li>
-            <li class="story-panel">
-              <figure class="story-fig">
-                <div class="film film--story">
-                  <div class="story-img"><img src="/arena/fotografie-lichtwerk/assets/img/ringtausch-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/ringtausch-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/ringtausch-960.webp 960w" sizes="(max-width: 899px) 92vw, 40vw" width="960" height="640" loading="lazy" decoding="async" alt="Ringtausch, Nahaufnahme der Hände des Paares"><span class="grain" aria-hidden="true"></span></div>
-                  <span class="film-edge film-edge--bottom" aria-hidden="true"><span>▸ 04</span><span>Weingut bei Radebeul</span><span>04A</span></span>
-                </div>
-                <figcaption class="story-cap">
-                  <span class="story-year">2025</span>
+            <li class="sf">
+              <figure>
+                <div class="sf-frame"><img src="/arena/fotografie-lichtwerk/assets/img/ringtausch-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/ringtausch-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/ringtausch-960.webp 960w" sizes="(max-width: 899px) 86vw, 36vw" width="960" height="640" loading="lazy" decoding="async" alt="Ringtausch, Nahaufnahme der Hände des Paares"></div>
+                <span class="sf-edge" aria-hidden="true"><span>▸ 04</span><span>Weingut bei Radebeul</span></span>
+                <figcaption class="sf-cap">
+                  <span class="sf-year">2025</span>
                   <h3>Die freie Trauung im Weinberg</h3>
                   <p>Der Moment, in dem Maries Hände zittern und Jonas plötzlich ganz ruhig wird. Hinter uns: 62 Gäste und kein trockenes Taschentuch.</p>
                 </figcaption>
               </figure>
             </li>
-            <li class="story-panel">
-              <figure class="story-fig">
-                <div class="film film--story">
-                  <div class="story-img"><img src="/arena/fotografie-lichtwerk/assets/img/treppe-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/treppe-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/treppe-960.webp 960w" sizes="(max-width: 899px) 92vw, 40vw" width="960" height="640" loading="lazy" decoding="async" alt="Das Brautpaar geht durch Konfetti die Treppe hinunter, Gäste jubeln"><span class="grain" aria-hidden="true"></span></div>
-                  <span class="film-edge film-edge--bottom" aria-hidden="true"><span>▸ 05</span><span>Auszug, 15:12 Uhr</span><span>05A</span></span>
-                </div>
-                <figcaption class="story-cap">
-                  <span class="story-year">2025</span>
+            <li class="sf">
+              <figure>
+                <div class="sf-frame"><img src="/arena/fotografie-lichtwerk/assets/img/treppe-960.webp" srcset="/arena/fotografie-lichtwerk/assets/img/treppe-480.webp 480w, /arena/fotografie-lichtwerk/assets/img/treppe-960.webp 960w" sizes="(max-width: 899px) 86vw, 36vw" width="960" height="640" loading="lazy" decoding="async" alt="Das Brautpaar geht durch Konfetti die Treppe hinunter, Gäste jubeln"></div>
+                <span class="sf-edge" aria-hidden="true"><span>▸ 05</span><span>Auszug, 15:12 Uhr</span></span>
+                <figcaption class="sf-cap">
+                  <span class="sf-year">2025</span>
                   <h3>Konfetti, dann bis zum Morgen getanzt</h3>
                   <p>Das Konfetti klebte noch Wochen später im Auto. Das Album liegt heute bei Maries Eltern – auf deren eigenen Wunsch.</p>
                 </figcaption>
               </figure>
             </li>
             <li class="story-outro">
-              <p class="story-outro-text display">Ihre Geschichte fängt nicht am Hochzeitstag an. <em>Unsere Bilder auch nicht.</em></p>
-              <a class="btn btn--paper" href="#pakete" data-preset-engagement>Mit Verlobungsshooting planen<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+              <p class="story-outro-text">Ihre Geschichte fängt nicht am Hochzeitstag an. Unsere Bilder auch nicht.</p>
+              <a class="btn btn--paper" href="#pakete" data-preset-engagement data-magnet><span>Mit Verlobungsshooting planen</span></a>
             </li>
           </ol>
+        </div>
+        <div class="story-can" aria-hidden="true" data-story-can>
+          <svg viewBox="0 0 120 170">
+            <defs>
+              <clipPath id="can-body"><rect x="14" y="30" width="88" height="112"/></clipPath>
+            </defs>
+            <rect x="44" y="2" width="28" height="18" rx="3" fill="#2a2826"/>
+            <path d="M48 6h20M48 10h20M48 14h20" stroke="#55524d" stroke-width="1.4"/>
+            <rect x="8" y="18" width="100" height="14" rx="4" fill="#3a3835"/>
+            <g clip-path="url(#can-body)">
+              <rect x="14" y="30" width="88" height="112" fill="#E9CFC7"/>
+              <g class="can-label" data-can-label>
+                <text x="20" y="74" class="can-word">LICHTWERK</text><text x="128" y="74" class="can-word">LICHTWERK</text>
+                <text x="20" y="96" class="can-small">400 · 36 BILDER</text><text x="128" y="96" class="can-small">400 · 36 BILDER</text>
+                <rect x="20" y="108" width="40" height="3" fill="#111"/><rect x="128" y="108" width="40" height="3" fill="#111"/>
+              </g>
+              <rect x="14" y="30" width="88" height="112" fill="url(#can-shade)"/>
+            </g>
+            <rect x="8" y="140" width="100" height="14" rx="4" fill="#3a3835"/>
+            <rect x="50" y="152" width="16" height="12" rx="2" fill="#2a2826"/>
+            <rect x="6" y="44" width="10" height="84" rx="2" fill="#151413"/>
+          </svg>
         </div>
       </div>
     </section>
 
-    <!-- ============ Pakete / Konfigurator ============ -->
+    <!-- ============ Pakete: Labortisch mit Filmdose ============ -->
     <section class="packages" id="pakete" aria-labelledby="pkg-title">
       <div class="wrap">
-        <div class="sec-head sec-head--split">
-          <div>
-            <p class="eyebrow" data-reveal><span class="eb-no">04</span>Pakete &amp; Preise</p>
-            <h2 class="h2 display" id="pkg-title" data-reveal>Stellen Sie Ihr Paket <em>selbst zusammen.</em></h2>
-          </div>
-          <p class="sec-lead" data-reveal>Keine starren Pakete mit Dingen, die Sie nicht brauchen. Schieben Sie die Stunden, wählen Sie Extras – der Preis rechnet live mit. Immer dabei: Vorgespräch, Zeitplan-Hilfe, jedes Bild von Hand bearbeitet, Online-Galerie und Anfahrt bis 30&nbsp;km.</p>
+        <div class="pkg-head">
+          <h2 class="pkg-title" id="pkg-title" data-reveal>Ihr Paket,<br>Stunde für Stunde.</h2>
+          <p class="pkg-lead" data-reveal>Keine starren Pakete mit Dingen, die Sie nicht brauchen. Schieben Sie die Stunden, wählen Sie Extras – der Preis rechnet live mit. Immer dabei: Vorgespräch, Zeitplan-Hilfe, jedes Bild von Hand bearbeitet, Online-Galerie und Anfahrt bis 30&nbsp;km.</p>
         </div>
 
         <div class="cfg" data-cfg>
@@ -441,7 +477,7 @@
               </div>
             </fieldset>
 
-            <div class="cfg-block">
+            <div class="cfg-block cfg-hours">
               <div class="cfg-row">
                 <label class="cfg-label" for="cfg-hours">Begleitung am Hochzeitstag</label>
                 <output class="cfg-hours-out" for="cfg-hours" data-hours-out><span data-hours-num>8</span>&nbsp;Stunden</output>
@@ -487,47 +523,74 @@
             </fieldset>
           </form>
 
-          <aside class="ticket" aria-labelledby="ticket-title" data-ticket>
-            <div class="ticket-head">
-              <p class="ticket-kicker">Laborauftrag</p>
-              <h3 class="ticket-title" id="ticket-title">Ihr Paket</h3>
-              <span class="ticket-no" aria-hidden="true">Nr.&nbsp;LW-<span data-ticket-no>0806</span></span>
+          <aside class="lab" aria-labelledby="ticket-title" data-ticket>
+            <div class="scene" aria-hidden="true" data-scene>
+              <div class="scene-can2" data-scene-second>
+                <svg viewBox="0 0 120 170"><rect x="44" y="2" width="28" height="18" rx="3" fill="#77746e"/><rect x="8" y="18" width="100" height="14" rx="4" fill="#8f8c86"/><rect x="14" y="30" width="88" height="112" fill="#B9B6AF"/><text x="58" y="96" text-anchor="middle" class="can-word">T.&nbsp;R.</text><rect x="14" y="30" width="88" height="112" fill="url(#can-shade)"/><rect x="8" y="140" width="100" height="14" rx="4" fill="#8f8c86"/></svg>
+              </div>
+              <div class="scene-tongue" data-tongue><div class="tongue-strip" data-tongue-strip></div></div>
+              <div class="scene-can">
+                <svg viewBox="0 0 120 170">
+                  <rect x="44" y="2" width="28" height="18" rx="3" fill="#2a2826"/>
+                  <path d="M48 6h20M48 10h20M48 14h20" stroke="#55524d" stroke-width="1.4"/>
+                  <rect x="8" y="18" width="100" height="14" rx="4" fill="#3a3835"/>
+                  <rect x="14" y="30" width="88" height="112" fill="#111"/>
+                  <rect x="20" y="40" width="76" height="92" fill="#E9CFC7"/>
+                  <text x="58" y="62" text-anchor="middle" class="can-small">LICHTWERK</text>
+                  <text x="58" y="98" text-anchor="middle" class="can-big" data-can-hours>8 h</text>
+                  <text x="58" y="120" text-anchor="middle" class="can-small" data-can-imgs>560–720</text>
+                  <rect x="14" y="30" width="88" height="112" fill="url(#can-shade)"/>
+                  <rect x="8" y="140" width="100" height="14" rx="4" fill="#3a3835"/>
+                  <rect x="50" y="152" width="16" height="12" rx="2" fill="#2a2826"/>
+                  <rect x="100" y="52" width="10" height="70" rx="2" fill="#151413"/>
+                </svg>
+              </div>
+              <div class="scene-album" data-scene-album><i></i><i></i><i></i></div>
+              <div class="scene-print" data-scene-eng><img src="/arena/fotografie-lichtwerk/assets/img/kuss-480.webp" width="480" height="320" alt="" loading="lazy" decoding="async"></div>
             </div>
-            <dl class="ticket-rows">
-              <div><dt>Begleitung</dt><dd data-t-hours>8 Stunden</dd></div>
-              <div><dt>Second Shooter</dt><dd data-t-second>–</dd></div>
-              <div><dt>Verlobungsshooting</dt><dd data-t-eng>–</dd></div>
-              <div><dt>Album</dt><dd data-t-album>Nur digital</dd></div>
-              <div><dt>Bilder, ca.</dt><dd data-t-images>560–720</dd></div>
-              <div><dt>Online-Galerie, Anfahrt bis 30&nbsp;km</dt><dd>inklusive</dd></div>
-            </dl>
-            <div class="ticket-total">
-              <span class="ticket-total-label">Gesamt</span>
-              <span class="ticket-price" data-price>2.370&nbsp;€</span>
+
+            <div class="label">
+              <div class="label-head">
+                <p class="label-kicker">Laborauftrag</p>
+                <h3 class="label-title" id="ticket-title">Ihr Paket</h3>
+                <span class="label-no" aria-hidden="true">Nr.&nbsp;LW-<span data-ticket-no>0806</span></span>
+              </div>
+              <dl class="label-rows">
+                <div><dt>Begleitung</dt><dd data-t-hours>8 Stunden</dd></div>
+                <div><dt>Second Shooter</dt><dd data-t-second>–</dd></div>
+                <div><dt>Verlobungsshooting</dt><dd data-t-eng>–</dd></div>
+                <div><dt>Album</dt><dd data-t-album>Nur digital</dd></div>
+                <div><dt>Bilder, ca.</dt><dd data-t-images>560–720</dd></div>
+                <div><dt>Online-Galerie, Anfahrt bis 30&nbsp;km</dt><dd>inklusive</dd></div>
+              </dl>
+              <div class="label-total">
+                <span class="label-total-key">Gesamt</span>
+                <span class="label-price"><span class="odo odo--price" data-price>2.370&nbsp;€</span></span>
+              </div>
+              <p class="label-note">Unverbindliche Beispielrechnung inkl. 19&nbsp;% USt. Anfahrt über 30&nbsp;km: 0,50&nbsp;€/km. Das verbindliche Angebot erhalten Sie nach dem Vorgespräch.</p>
+              <p class="sr-only" aria-live="polite" data-price-live></p>
+              <a class="btn btn--ink btn--block" href="#anfrage" data-cfg-take data-magnet><span>Mit diesem Paket anfragen</span><svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
             </div>
-            <p class="ticket-note">Unverbindliche Beispielrechnung inkl. 19&nbsp;% USt. Anfahrt über 30&nbsp;km: 0,50&nbsp;€/km. Das verbindliche Angebot erhalten Sie nach dem Vorgespräch.</p>
-            <p class="sr-only" aria-live="polite" data-price-live></p>
-            <a class="btn btn--ink btn--block" href="#anfrage" data-cfg-take>Mit diesem Paket anfragen<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
           </aside>
         </div>
+      </div>
 
-        <ul class="extras" data-reveal>
-          <li><span>Außerdem</span></li>
-          <li>After-Wedding-Shooting</li>
-          <li>Elopement in der Sächsischen Schweiz</li>
-          <li>Zusätzliche Rolle Mittelformat-Film</li>
-          <li>Gutscheine zum Verschenken</li>
-        </ul>
+      <div class="extras" data-marquee>
+        <p class="sr-only">Außerdem buchbar: After-Wedding-Shooting, Elopement in der Sächsischen Schweiz, zusätzliche Rolle Mittelformat-Film und Gutscheine zum Verschenken.</p>
+        <div class="extras-track" aria-hidden="true" data-marquee-track>
+          <span class="extras-set"><b>Außerdem buchbar</b><span>After-Wedding-Shooting</span><span>Elopement in der Sächsischen Schweiz</span><span>Zusätzliche Rolle Mittelformat-Film</span><span>Gutscheine zum Verschenken</span></span>
+          <span class="extras-set"><b>Außerdem buchbar</b><span>After-Wedding-Shooting</span><span>Elopement in der Sächsischen Schweiz</span><span>Zusätzliche Rolle Mittelformat-Film</span><span>Gutscheine zum Verschenken</span></span>
+        </div>
       </div>
     </section>
 
-    <!-- ============ Verfügbarkeit ============ -->
+    <!-- ============ Verfügbarkeit: Terminbuch ============ -->
     <section class="avail" id="verfuegbarkeit" aria-labelledby="avail-title">
       <div class="wrap avail-grid">
         <div class="avail-intro">
-          <p class="eyebrow" data-reveal><span class="eb-no">05</span>Verfügbarkeit</p>
-          <h2 class="h2 display" id="avail-title" data-reveal>Ist Ihr Datum <em>noch frei?</em></h2>
-          <p class="sec-lead" data-reveal>Wir fotografieren höchstens eine Hochzeit pro Tag, im Sommer sind Samstage oft ein Jahr im Voraus vergeben. Wählen Sie Ihr Wunschdatum – Freitage und Sonntage sind gute Alternativen.</p>
+          <h2 class="avail-title" id="avail-title" data-reveal>Ist Ihr Datum noch frei?</h2>
+          <p class="avail-lead" data-reveal>Wir fotografieren höchstens eine Hochzeit pro Tag. Samstage im Sommer sind oft ein Jahr im Voraus vergeben – Freitage und Sonntage sind gute Alternativen.</p>
+          <p class="avail-readout" aria-hidden="true" data-readout><span class="avail-readout-date" data-readout-date>Tag wählen</span><span class="avail-readout-state" data-readout-state>→</span></p>
           <ul class="avail-legend" data-reveal>
             <li><i class="lg lg--frei" aria-hidden="true"></i>frei</li>
             <li><i class="lg lg--angefragt" aria-hidden="true"></i>angefragt</li>
@@ -539,12 +602,12 @@
 
         <div class="cal-card" data-cal>
           <div class="cal-top">
-            <button class="icon-btn icon-btn--line" type="button" data-cal-prev aria-label="Vorheriger Monat"><svg class="ico" aria-hidden="true"><use href="#i-left"/></svg></button>
+            <button class="icon-btn" type="button" data-cal-prev aria-label="Vorheriger Monat"><svg class="ico" aria-hidden="true"><use href="#i-left"/></svg></button>
             <label class="sr-only" for="cal-month">Monat wählen</label>
             <div class="cal-select">
               <select id="cal-month" data-cal-month></select>
             </div>
-            <button class="icon-btn icon-btn--line" type="button" data-cal-next aria-label="Nächster Monat"><svg class="ico" aria-hidden="true"><use href="#i-right"/></svg></button>
+            <button class="icon-btn" type="button" data-cal-next aria-label="Nächster Monat"><svg class="ico" aria-hidden="true"><use href="#i-right"/></svg></button>
           </div>
           <table class="cal" aria-labelledby="cal-caption" aria-describedby="cal-kbd" data-cal-table>
             <caption class="sr-only" id="cal-caption" data-cal-caption>Kalender</caption>
@@ -562,50 +625,46 @@
       </div>
     </section>
 
-    <!-- ============ Über uns ============ -->
+    <!-- ============ Über uns: Rückseiten der Abzüge ============ -->
     <section class="about" id="ueber-uns" aria-labelledby="about-title">
       <div class="wrap">
-        <div class="sec-head sec-head--split">
-          <div>
-            <p class="eyebrow" data-reveal><span class="eb-no">06</span>Über uns</p>
-            <h2 class="h2 display" id="about-title" data-reveal>Zwei Kameras, <em>eine ruhige Hand.</em></h2>
-          </div>
-          <p class="sec-lead" data-reveal>Unser Atelier liegt in der Dresdner Neustadt, zwischen Bäckerei und Plattenladen. Hier trinken wir mit Ihnen Kaffee, blättern durch Alben und sprechen über Ihren Tag – bevor wir überhaupt über Kameras reden.</p>
+        <div class="about-head">
+          <h2 class="about-title" id="about-title" data-reveal>Zwei Kameras,<br>eine ruhige Hand.</h2>
+          <p class="about-lead" data-reveal>Unser Atelier liegt in der Dresdner Neustadt, zwischen Bäckerei und Plattenladen. Hier trinken wir mit Ihnen Kaffee, blättern durch Alben und sprechen über Ihren Tag – bevor wir überhaupt über Kameras reden.</p>
         </div>
 
         <div class="team">
-          <article class="person" data-reveal>
-            <div class="mono" aria-hidden="true">
-              <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="100" cy="100" r="86" fill="none" stroke="currentColor" stroke-width=".6" stroke-dasharray="2 5"/><path id="mono-a-arc" d="M30 100a70 70 0 0 1 140 0" fill="none"/><text class="mono-ring"><textPath href="#mono-a-arc" startOffset="50%" text-anchor="middle">FOTOGRAFIN · SEIT 2015</textPath></text></svg>
-              <span class="mono-letters">A<i>W</i></span>
-            </div>
-            <div class="person-body">
+          <article class="back" data-reveal>
+            <span class="back-mono" aria-hidden="true">AW</span>
+            <div class="back-body">
               <h3>Anna Weber</h3>
-              <p class="person-role">Fotografin &amp; Inhaberin</p>
+              <p class="back-role">Fotografin &amp; Inhaberin · seit 2015</p>
               <p>Gelernt hat Anna in einem Porträtstudio in Leipzig, seit 2015 fotografiert sie Hochzeiten unter eigenem Namen. Sie arbeitet digital und packt auf Wunsch ein paar Rollen Mittelformat-Film ein – für die Bilder, die ein bisschen langsamer entstehen dürfen.</p>
-              <ul class="person-facts"><li>Lieblingslicht: die halbe Stunde nach Sonnenuntergang</li><li>Spricht Deutsch, Englisch, ein wenig Tschechisch</li></ul>
+              <ul class="back-facts"><li>Lieblingslicht: die halbe Stunde nach Sonnenuntergang</li><li>Spricht Deutsch, Englisch, ein wenig Tschechisch</li></ul>
             </div>
+            <span class="back-stamp" aria-hidden="true">Kamera&nbsp;1</span>
           </article>
-          <article class="person" data-reveal style="--d:120ms">
-            <div class="mono mono--rose" aria-hidden="true">
-              <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="100" cy="100" r="86" fill="none" stroke="currentColor" stroke-width=".6" stroke-dasharray="2 5"/><path id="mono-t-arc" d="M30 100a70 70 0 0 1 140 0" fill="none"/><text class="mono-ring"><textPath href="#mono-t-arc" startOffset="50%" text-anchor="middle">SECOND SHOOTER · SEIT 2019</textPath></text></svg>
-              <span class="mono-letters">T<i>R</i></span>
-            </div>
-            <div class="person-body">
+          <article class="back back--two" data-reveal>
+            <span class="back-mono" aria-hidden="true">TR</span>
+            <div class="back-body">
               <h3>Tom Richter</h3>
-              <p class="person-role">Second Shooter</p>
+              <p class="back-role">Second Shooter · seit 2019</p>
               <p>Tom ist bei etwa der Hälfte unserer Hochzeiten dabei. Während Anna beim Paar bleibt, fängt er die Gäste ein: den Vater, der heimlich die Rede probt, die Kinder unter dem Tisch, die Blicke aus der dritten Reihe.</p>
-              <ul class="person-facts"><li>Fotografiert am liebsten mit Festbrennweite</li><li>Kann auf jeder Hochzeit einen Discofox</li></ul>
+              <ul class="back-facts"><li>Fotografiert am liebsten mit Festbrennweite</li><li>Kann auf jeder Hochzeit einen Discofox</li></ul>
             </div>
+            <span class="back-stamp" aria-hidden="true">Kamera&nbsp;2</span>
           </article>
         </div>
 
-        <ol class="process">
-          <li data-reveal><span class="proc-no">01</span><span class="proc-term">Belichten</span><h3>Kennenlernen</h3><p>Kaffee im Atelier oder ein Videocall. Wir hören zu, Sie entscheiden ganz in Ruhe.</p></li>
-          <li data-reveal style="--d:60ms"><span class="proc-no">02</span><span class="proc-term">Einstellen</span><h3>Planen</h3><p>Zeitplan, Lichtstunde, Familienfotos-Liste: Sechs Wochen vorher gehen wir alles gemeinsam durch.</p></li>
-          <li data-reveal style="--d:120ms"><span class="proc-no">03</span><span class="proc-term">Auslösen</span><h3>Fotografieren</h3><p>Am Tag selbst sind wir unauffällig und pünktlich. Und haben immer Ersatzakkus und Taschentücher dabei.</p></li>
-          <li data-reveal style="--d:180ms"><span class="proc-no">04</span><span class="proc-term">Entwickeln</span><h3>Ausliefern</h3><p>Nach 4–6 Wochen kommt Ihre Online-Galerie, jedes Bild einzeln bearbeitet. Das Album folgt nach Ihrer Auswahl.</p></li>
-        </ol>
+        <div class="process">
+          <h3 class="process-title" data-reveal>Vom ersten Kaffee bis zur Galerie</h3>
+          <ol class="process-list">
+            <li data-reveal><span class="proc-time">60&nbsp;Min.</span><span class="proc-term">Belichten</span><h4>Kennenlernen</h4><p>Kaffee im Atelier oder ein Videocall. Wir hören zu, Sie entscheiden ganz in Ruhe.</p></li>
+            <li data-reveal><span class="proc-time">6&nbsp;Wo.</span><span class="proc-term">Einstellen</span><h4>Planen</h4><p>Zeitplan, Lichtstunde, Familienfotos-Liste: Sechs Wochen vorher gehen wir alles gemeinsam durch.</p></li>
+            <li data-reveal><span class="proc-time">2–12&nbsp;h</span><span class="proc-term">Auslösen</span><h4>Fotografieren</h4><p>Am Tag selbst sind wir unauffällig und pünktlich. Und haben immer Ersatzakkus und Taschentücher dabei.</p></li>
+            <li data-reveal><span class="proc-time">4–6&nbsp;Wo.</span><span class="proc-term">Entwickeln</span><h4>Ausliefern</h4><p>Nach 4–6 Wochen kommt Ihre Online-Galerie, jedes Bild einzeln bearbeitet. Das Album folgt nach Ihrer Auswahl.</p></li>
+          </ol>
+        </div>
       </div>
     </section>
 
@@ -613,9 +672,8 @@
     <section class="voices" id="stimmen" aria-labelledby="voices-title">
       <div class="wrap voices-inner">
         <div class="voices-head">
-          <p class="eyebrow" data-reveal><span class="eb-no">07</span>Stimmen</p>
-          <h2 class="h2 display" id="voices-title" data-reveal>Was Paare <em>danach</em> schreiben</h2>
-          <p class="voices-score" data-reveal><span class="trust-stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span><span><strong>5,0</strong> aus 94 Bewertungen</span></p>
+          <h2 class="voices-title" id="voices-title" data-reveal>Was Paare danach schreiben</h2>
+          <p class="voices-stamp" data-reveal><span class="vs-score">5,0</span><span class="vs-stars" aria-hidden="true">★★★★★</span><span class="vs-count">aus 94 Bewertungen</span></p>
         </div>
         <div class="quotes" data-quotes>
           <div class="quotes-stage" aria-live="polite" data-quotes-stage>
@@ -637,20 +695,19 @@
             </figure>
           </div>
           <div class="quotes-nav">
-            <button class="icon-btn icon-btn--line" type="button" data-q-prev aria-label="Vorherige Stimme"><svg class="ico" aria-hidden="true"><use href="#i-left"/></svg></button>
-            <span class="quotes-count" aria-hidden="true"><span data-q-now>01</span> / 04</span>
-            <button class="icon-btn icon-btn--line" type="button" data-q-next aria-label="Nächste Stimme"><svg class="ico" aria-hidden="true"><use href="#i-right"/></svg></button>
+            <button class="icon-btn" type="button" data-q-prev aria-label="Vorherige Stimme"><svg class="ico" aria-hidden="true"><use href="#i-left"/></svg></button>
+            <span class="quotes-count" aria-hidden="true"><span data-q-now>01</span>&nbsp;/&nbsp;04</span>
+            <button class="icon-btn" type="button" data-q-next aria-label="Nächste Stimme"><svg class="ico" aria-hidden="true"><use href="#i-right"/></svg></button>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ============ Region ============ -->
-    <section class="region" id="region" aria-labelledby="region-title">
-      <div class="wrap region-grid">
+    <section class="region" id="region" aria-labelledby="region-title" data-region>
+      <div class="region-grid">
         <div class="region-copy">
-          <p class="eyebrow" data-reveal><span class="eb-no">08</span>Atelier &amp; Region</p>
-          <h2 class="h2 display" id="region-title" data-reveal>Zuhause an der Elbe, <em>unterwegs</em> in ganz Sachsen.</h2>
+          <h2 class="region-title" id="region-title" data-reveal>Zuhause an der Elbe, unterwegs in ganz Sachsen.</h2>
           <p data-reveal>Bis 30&nbsp;km ab Atelier ist die Anfahrt inklusive – das umfasst Dresden, Radebeul, Moritzburg, Meißen und Pirna. Für die Sächsische Schweiz, das Erzgebirge oder Hochzeiten im Ausland rechnen wir fair nach Kilometern bzw. Aufwand ab.</p>
           <address class="region-card" data-reveal>
             <span class="region-card-title">Atelier Lichtwerk</span>
@@ -666,7 +723,6 @@
             <desc id="map-desc">Schematische Karte mit der Elbe von der Sächsischen Schweiz über Pirna, Dresden, Radebeul und Meißen bis Riesa. Ein Kreis von 30 Kilometern um das Atelier in der Dresdner Neustadt markiert das Gebiet mit inklusiver Anfahrt.</desc>
             <defs>
               <pattern id="map-hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><path d="M0 0v10" stroke="#B9B6AF" stroke-width=".8" opacity=".55"/></pattern>
-              <radialGradient id="map-fade" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#E9CFC7" stop-opacity=".55"/><stop offset="1" stop-color="#E9CFC7" stop-opacity="0"/></radialGradient>
             </defs>
             <g class="map-topo" fill="none" stroke="#D8D5CE" stroke-width="1">
               <path d="M40 690c120-30 210-10 300-40s170-70 280-50 220 60 330 30 160-60 220-70"/>
@@ -677,28 +733,28 @@
               <path d="M0 70c100 20 190-10 280-40S440-10 540 20"/>
             </g>
             <path class="map-saxon" d="M760 745c30-60 70-110 150-140s180-40 278-110v255Z" fill="url(#map-hatch)"/>
-            <circle cx="550.8" cy="443.7" r="300" fill="url(#map-fade)"/>
+            <circle class="map-area" cx="550.8" cy="443.7" r="300" fill="#E9CFC7" fill-opacity=".28"/>
             <circle class="map-ring" cx="550.8" cy="443.7" r="300" fill="none" stroke="#111" stroke-width="1.2" stroke-dasharray="3 7"/>
             <circle cx="550.8" cy="443.7" r="150" fill="none" stroke="#B9B6AF" stroke-width="1" stroke-dasharray="2 8"/>
-            <path class="map-elbe" pathLength="1" d="M1188 712C1100 700 1000 680 944 656C925 648 910 632 895 623C877 612 854 599 839 592C824 584 813 579 804 578C795 577 795 589 783 587C771 585 749 575 734 567C719 559 707 548 692 539C677 531 657 527 643 517C629 507 617 489 608 478C599 467 595 457 587 450C579 444 569 443 559 438C550 433 539 429 531 423C523 416 518 406 510 400C502 395 494 394 482 389C471 385 454 380 440 372C426 365 411 354 398 345C386 335 377 330 367 317C357 304 348 284 336 267C323 249 309 229 294 211C278 194 262 178 245 161C227 145 209 129 189 111C169 94 147 74 126 56C104 37 71 9 60 0" fill="none" stroke="#8C8982" stroke-width="5" stroke-linecap="round"/>
+            <path class="map-elbe" pathLength="1" d="M1188 712C1100 700 1000 680 944 656C925 648 910 632 895 623C877 612 854 599 839 592C824 584 813 579 804 578C795 577 795 589 783 587C771 585 749 575 734 567C719 559 707 548 692 539C677 531 657 527 643 517C629 507 617 489 608 478C599 467 595 457 587 450C579 444 569 443 559 438C550 433 539 429 531 423C523 416 518 406 510 400C502 395 494 394 482 389C471 385 454 380 440 372C426 365 411 354 398 345C386 335 377 330 367 317C357 304 348 284 336 267C323 249 309 229 294 211C278 194 262 178 245 161C227 145 209 129 189 111C169 94 147 74 126 56C104 37 71 9 60 0" fill="none" stroke="#8C8982" stroke-width="5" stroke-linecap="round" data-elbe/>
             <text class="map-river" x="326" y="190" transform="rotate(53 326 190)">Elbe</text>
             <g class="map-places">
-              <g><circle cx="366.3" cy="319.1" r="5"/><text x="352" y="306" text-anchor="end">Meißen</text></g>
-              <g><circle cx="496.3" cy="382.5" r="5"/><text x="482" y="398" text-anchor="end">Radebeul</text></g>
-              <g><circle cx="510.3" cy="319.1" r="5"/><text x="524" y="314">Moritzburg</text></g>
-              <g><circle cx="692" cy="542.7" r="5"/><text x="706" y="532">Pirna</text></g>
-              <g><circle cx="440.4" cy="517.1" r="5"/><text x="426" y="533" text-anchor="end">Tharandt</text></g>
-              <g class="is-out"><circle cx="840.2" cy="592.7" r="5"/><text x="852" y="620">Bad Schandau</text></g>
-              <g class="is-out"><circle cx="272.6" cy="598.3" r="5"/><text x="258" y="614" text-anchor="end">Freiberg</text></g>
-              <g class="is-out"><circle cx="1031" cy="299.1" r="5"/><text x="1017" y="286" text-anchor="end">Bautzen</text></g>
-              <g class="is-out"><circle cx="401.9" cy="177.9" r="5"/><text x="416" y="196">Großenhain</text></g>
-              <g class="is-out"><circle cx="239.8" cy="157.9" r="5"/><text x="226" y="150" text-anchor="end">Riesa</text></g>
+              <g data-at=".55"><circle cx="366.3" cy="319.1" r="5"/><text x="352" y="306" text-anchor="end">Meißen</text></g>
+              <g data-at=".45"><circle cx="496.3" cy="382.5" r="5"/><text x="482" y="398" text-anchor="end">Radebeul</text></g>
+              <g data-at=".47"><circle cx="510.3" cy="319.1" r="5"/><text x="524" y="314">Moritzburg</text></g>
+              <g data-at=".22"><circle cx="692" cy="542.7" r="5"/><text x="706" y="532">Pirna</text></g>
+              <g data-at=".38"><circle cx="440.4" cy="517.1" r="5"/><text x="426" y="533" text-anchor="end">Tharandt</text></g>
+              <g class="is-out" data-at=".1"><circle cx="840.2" cy="592.7" r="5"/><text x="852" y="620">Bad Schandau</text></g>
+              <g class="is-out" data-at=".42"><circle cx="272.6" cy="598.3" r="5"/><text x="258" y="614" text-anchor="end">Freiberg</text></g>
+              <g class="is-out" data-at=".3"><circle cx="1031" cy="299.1" r="5"/><text x="1017" y="286" text-anchor="end">Bautzen</text></g>
+              <g class="is-out" data-at=".7"><circle cx="401.9" cy="177.9" r="5"/><text x="416" y="196">Großenhain</text></g>
+              <g class="is-out" data-at=".85"><circle cx="239.8" cy="157.9" r="5"/><text x="226" y="150" text-anchor="end">Riesa</text></g>
             </g>
             <text class="map-region" x="1170" y="704" text-anchor="end">Sächsische Schweiz</text>
             <text class="map-ring-label" x="551" y="124" text-anchor="middle">30 km · Anfahrt inklusive</text>
             <g class="map-home">
-              <circle class="map-pulse" cx="550.8" cy="443.7" r="16" fill="#E9CFC7"/>
-              <circle cx="550.8" cy="443.7" r="8" fill="#111"/>
+              <circle cx="550.8" cy="443.7" r="16" fill="none" stroke="#B8322A" stroke-width="2"/>
+              <circle cx="550.8" cy="443.7" r="7" fill="#111"/>
               <text x="574" y="430" class="map-home-label">Dresden</text>
               <text x="576" y="388" class="map-home-sub">Atelier Neustadt</text>
             </g>
@@ -712,49 +768,47 @@
     <section class="faq" id="faq" aria-labelledby="faq-title">
       <div class="wrap faq-grid">
         <div class="faq-head">
-          <p class="eyebrow" data-reveal><span class="eb-no">09</span>Fragen</p>
-          <h2 class="h2 display" id="faq-title" data-reveal>Was Paare <em>meistens</em> wissen möchten</h2>
-          <p class="sec-lead" data-reveal>Ihre Frage ist nicht dabei? Rufen Sie an – <a class="ink-link" href="tel:+493515554780">0351&nbsp;555&nbsp;47&nbsp;80</a>, Di–Fr 10–17&nbsp;Uhr.</p>
+          <h2 class="faq-title" id="faq-title" data-reveal>Was Paare meistens wissen möchten</h2>
+          <p class="faq-lead" data-reveal>Ihre Frage ist nicht dabei? Rufen Sie an – <a class="ink-link" href="tel:+493515554780">0351&nbsp;555&nbsp;47&nbsp;80</a>, Di–Fr 10–17&nbsp;Uhr.</p>
         </div>
         <div class="faq-list">
           <details class="faq-item" data-reveal>
-            <summary><span>Wie viele Bilder bekommen wir?</span><i aria-hidden="true"></i></summary>
+            <summary><span class="faq-no" aria-hidden="true">01</span><span class="faq-q">Wie viele Bilder bekommen wir?</span><i aria-hidden="true"></i></summary>
             <div class="faq-body"><p>Als Faustregel 70–90 Bilder pro Stunde, mit Second Shooter etwa ein Drittel mehr. Wir liefern lieber 600 starke Bilder als 1.500 ähnliche – Doppelungen und geschlossene Augen sortieren wir für Sie aus.</p></div>
           </details>
           <details class="faq-item" data-reveal>
-            <summary><span>Wann ist die Galerie fertig?</span><i aria-hidden="true"></i></summary>
+            <summary><span class="faq-no" aria-hidden="true">02</span><span class="faq-q">Wann ist die Galerie fertig?</span><i aria-hidden="true"></i></summary>
             <div class="faq-body"><p>In der Regel nach 4–6 Wochen, in der Hauptsaison kann es etwas länger dauern. Etwa 30 Vorschaubilder schicken wir Ihnen meist schon in der Woche nach der Hochzeit.</p></div>
           </details>
           <details class="faq-item" data-reveal>
-            <summary><span>Wie reservieren wir unser Datum?</span><i aria-hidden="true"></i></summary>
+            <summary><span class="faq-no" aria-hidden="true">03</span><span class="faq-q">Wie reservieren wir unser Datum?</span><i aria-hidden="true"></i></summary>
             <div class="faq-body"><p>Nach dem Vorgespräch erhalten Sie ein Angebot und einen Vertrag. Mit der Unterschrift und einer Anzahlung von 30&nbsp;% ist der Tag fest für Sie reserviert. Bis dahin halten wir das Datum sieben Tage unverbindlich frei.</p></div>
           </details>
           <details class="faq-item" data-reveal>
-            <summary><span>Müssen wir posieren?</span><i aria-hidden="true"></i></summary>
+            <summary><span class="faq-no" aria-hidden="true">04</span><span class="faq-q">Müssen wir posieren?</span><i aria-hidden="true"></i></summary>
             <div class="faq-body"><p>Kaum. Für das Paarshooting nehmen wir uns 30–45 Minuten und geben kleine Impulse statt Posen-Anleitungen: gehen, reden, sich etwas ins Ohr flüstern. Der Rest des Tages ist Reportage.</p></div>
           </details>
           <details class="faq-item" data-reveal>
-            <summary><span>Was passiert, wenn Anna krank wird?</span><i aria-hidden="true"></i></summary>
+            <summary><span class="faq-no" aria-hidden="true">05</span><span class="faq-q">Was passiert, wenn Anna krank wird?</span><i aria-hidden="true"></i></summary>
             <div class="faq-body"><p>Dann übernimmt Tom oder eine Fotografin aus unserem festen Netzwerk in Dresden, deren Arbeit Sie vorher sehen können. In zehn Jahren ist das zweimal vorgekommen.</p></div>
           </details>
           <details class="faq-item" data-reveal>
-            <summary><span>Bekommen wir auch die RAW-Dateien?</span><i aria-hidden="true"></i></summary>
+            <summary><span class="faq-no" aria-hidden="true">06</span><span class="faq-q">Bekommen wir auch die RAW-Dateien?</span><i aria-hidden="true"></i></summary>
             <div class="faq-body"><p>Nein, die Bearbeitung gehört zu unserer Handschrift. Sie erhalten alle ausgewählten Bilder in voller Auflösung als JPG, ohne Wasserzeichen, mit privaten Nutzungsrechten – zum Drucken, Teilen und Weiterschenken.</p></div>
           </details>
           <details class="faq-item" data-reveal>
-            <summary><span>Fotografieren Sie auch analog?</span><i aria-hidden="true"></i></summary>
+            <summary><span class="faq-no" aria-hidden="true">07</span><span class="faq-q">Fotografieren Sie auch analog?</span><i aria-hidden="true"></i></summary>
             <div class="faq-body"><p>Auf Wunsch ja: Eine Rolle Mittelformat-Film (12–15 Bilder) kostet 140&nbsp;€ inklusive Entwicklung und Scans. Die Bilder kommen etwas später, dafür mit echtem Korn.</p></div>
           </details>
         </div>
       </div>
     </section>
 
-    <!-- ============ Anfrage ============ -->
+    <!-- ============ Anfrage: Licht aus ============ -->
     <section class="contact" id="anfrage" aria-labelledby="contact-title">
       <div class="wrap contact-grid">
         <div class="contact-copy">
-          <p class="eyebrow eyebrow--night" data-reveal><span class="eb-no">10</span>Anfrage</p>
-          <h2 class="h2 display" id="contact-title" data-reveal>Erzählen Sie uns <em>von Ihrem Tag.</em></h2>
+          <h2 class="contact-title" id="contact-title" data-reveal>Erzählen Sie uns von Ihrem Tag.</h2>
           <p data-reveal>Wir antworten persönlich, meist innerhalb eines Werktags, und schlagen Ihnen zwei, drei Termine für ein Kennenlernen vor. Die Anfrage ist selbstverständlich unverbindlich.</p>
           <ul class="contact-direct" data-reveal>
             <li><a href="tel:+493515554780"><svg class="ico" aria-hidden="true"><use href="#i-phone"/></svg>0351&nbsp;555&nbsp;47&nbsp;80</a></li>
@@ -827,17 +881,17 @@
               <p class="field-err" id="f-consent-err" data-err></p>
             </div>
             <div class="form-foot">
-              <button class="btn btn--paper" type="submit">Anfrage senden<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+              <button class="btn btn--paper" type="submit" data-magnet><span>Anfrage senden</span><svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
               <p class="form-note">* Pflichtfeld · Demo: Es wird nichts gesendet.</p>
             </div>
           </form>
 
           <div class="form-success" hidden tabindex="-1" data-form-success>
-            <svg class="success-mark" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="m20 33 8 8 16-17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <h3 class="display">Danke – <em>Ihre Anfrage ist entwickelt.</em></h3>
+            <svg class="success-mark" viewBox="0 0 150 100" preserveAspectRatio="none" aria-hidden="true"><use href="#g-loop"/></svg>
+            <h3 class="success-title">Danke – Ihre Anfrage liegt in der Entwicklerschale.</h3>
             <p class="success-demo"><strong>Demo – es wurde nichts gesendet.</strong> So würde die Bestätigung aussehen:</p>
             <dl class="success-sum" data-success-sum></dl>
-            <button class="btn btn--line-paper" type="button" data-form-reset>Neue Anfrage</button>
+            <button class="btn btn--line-paper" type="button" data-form-reset><span>Neue Anfrage</span></button>
           </div>
         </div>
       </div>
@@ -846,10 +900,7 @@
 
   <footer class="site-footer">
     <div class="wrap">
-      <div class="footer-top">
-        <p class="footer-word display">Licht<em>werk</em></p>
-        <p class="footer-claim">Hochzeitsfotografie Anna Weber · Dresden</p>
-      </div>
+      <p class="footer-word" aria-hidden="true">Lichtwerk</p>
       <div class="footer-cols">
         <div>
           <h2 class="footer-h">Atelier</h2>
@@ -882,7 +933,7 @@
     <a class="action-btn action-btn--primary" href="#verfuegbarkeit"><svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg>Datum prüfen</a>
   </nav>
 
-  <!-- ============ Lightbox ============ -->
+  <!-- ============ Lightbox / Leuchttisch ============ -->
   <dialog class="lb" aria-labelledby="lb-cap" tabindex="-1" data-lb>
     <div class="lb-inner">
       <div class="lb-top">
@@ -892,7 +943,7 @@
       <div class="lb-stage" data-lb-stage>
         <button class="lb-arrow lb-arrow--prev icon-btn icon-btn--night" type="button" data-lb-prev aria-label="Vorheriges Bild"><svg class="ico" aria-hidden="true"><use href="#i-left"/></svg></button>
         <figure class="lb-fig" data-lb-fig>
-          <div class="lb-imgwrap"><img class="lb-img" alt="" data-lb-img><span class="grain grain--live" aria-hidden="true"></span></div>
+          <div class="lb-imgwrap"><img class="lb-img" alt="" data-lb-img></div>
           <figcaption class="lb-cap" id="lb-cap" data-lb-cap></figcaption>
         </figure>
         <button class="lb-arrow lb-arrow--next icon-btn icon-btn--night" type="button" data-lb-next aria-label="Nächstes Bild"><svg class="ico" aria-hidden="true"><use href="#i-right"/></svg></button>
