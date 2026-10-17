@@ -204,11 +204,36 @@
   });
   matchMedia('(min-width: 900px)').addEventListener('change', e => { if (e.matches) closeMenu(false); });
 
-  /* ---------- Reveals ---------- */
-  const revealEls = $$('[data-reveal]');
+  /* ---------- Titel in Wörter teilen (Masken-Reveal), nur mit Bewegung ---------- */
+  if (motionOK) {
+    $$('[data-split]').forEach(h => {
+      let wi = 0;
+      const walk = node => {
+        Array.from(node.childNodes).forEach(n => {
+          if (n.nodeType === 3) {
+            const parts = n.textContent.split(/( +)/);
+            const frag = document.createDocumentFragment();
+            parts.forEach(p => {
+              if (!p) return;
+              if (/^ +$/.test(p)) { frag.appendChild(document.createTextNode(' ')); return; }
+              const w = document.createElement('span'); w.className = 'w';
+              const i = document.createElement('span'); i.textContent = p; i.style.setProperty('--wi', wi++);
+              w.appendChild(i); frag.appendChild(w);
+            });
+            n.replaceWith(frag);
+          } else if (n.nodeType === 1 && n.tagName !== 'BR') walk(n);
+        });
+      };
+      walk(h);
+      h.classList.add('is-split');
+    });
+  }
+
+  /* ---------- Reveals „Einrasten“ ---------- */
+  const revealEls = $$('[data-reveal], [data-split]');
   revealEls.forEach(el => {
     const sibs = Array.from(el.parentElement.children).filter(c => c.hasAttribute('data-reveal'));
-    el.style.setProperty('--i', Math.min(sibs.indexOf(el), 6));
+    el.style.setProperty('--i', Math.max(0, Math.min(sibs.indexOf(el), 6)));
   });
   if (root.classList.contains('motion-forced-off')) {
     revealEls.forEach(el => el.classList.add('in'));
@@ -217,7 +242,7 @@
       entries.forEach(en => {
         if (en.isIntersecting) { en.target.classList.add('in'); rio.unobserve(en.target); }
       });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
     revealEls.forEach(el => rio.observe(el));
   }
 
@@ -337,6 +362,185 @@
   }
 
   /* ======================================================================
+     Hero-Set-Piece: Explosionszeichnung der Radbaugruppe
+     Jedes Bauteil hängt an einer eigenen gedämpften Feder (schwere Teile
+     schwingen später und weiter nach). Ziel = Scrollfortschritt in der Lauf-Sektion.
+     ====================================================================== */
+  const xd = $('[data-xd]');
+  const xdRun = $('[data-xd-run]');
+  const xdStage = $('[data-xd-stage]');
+  const mqDesk = matchMedia('(min-width: 900px)');
+  const XP = $$('.xd-part', xd).map(g => {
+    const id = g.dataset.part;
+    const lead = $('[data-lead="' + id + '"]', xd);
+    const lbl = $('[data-lbl="' + id + '"]', xd);
+    const circ = $('.balloon', lbl), num = $('.balloon-n', lbl), t1 = $('.lbl-t', lbl), t2 = $('.lbl-s', lbl);
+    return {
+      g, id, lead, dot: $('[data-dot="' + id + '"]', xd), circ, num, t1, t2,
+      off: g.dataset.off.split(',').map(Number), anc: g.dataset.anchor.split(',').map(Number), mass: +g.dataset.mass,
+      lane: { x: +circ.getAttribute('cx'), y: +circ.getAttribute('cy') },
+      x: 0, v: 0
+    };
+  });
+  // Handy: engere Spreizung, eigene Beschriftungsspuren (nur Positionsnummern, Text steht in der Stückliste)
+  const LANES_M = { schrauben: [-330, -330], felge: [-110, -330], sattel: [140, -330], reifen: [-300, 330], scheibe: [40, 330], nabe: [290, 330] };
+  const XD = { P_REST: 0.68, spread: 1, rigX: 0, target: 0, running: false, last: 0, top: 0, len: 1, ready: false, mobile: false };
+  function xdLayout() {
+    XD.mobile = !mqDesk.matches;
+    XD.spread = XD.mobile ? 0.42 : 1;
+    XD.rigX = XD.mobile ? -80 : 0;
+    xd.setAttribute('viewBox', XD.mobile ? '-390 -380 780 760' : '-700 -360 1400 720');
+    XP.forEach(p => {
+      const [lx, ly] = XD.mobile ? LANES_M[p.id] : [p.lane.x, p.lane.y];
+      p.bx = lx; p.by = ly > 0 ? ly - 18 : ly + 18;
+      p.circ.setAttribute('cx', lx); p.circ.setAttribute('cy', ly);
+      p.num.setAttribute('x', lx); p.num.setAttribute('y', ly + 6);
+      p.t1.setAttribute('x', lx + 28); p.t2.setAttribute('x', lx + 28);
+    });
+    const r = xdRun.getBoundingClientRect();
+    XD.top = r.top + scrollY - (hdr ? hdr.offsetHeight : 0);
+    XD.len = Math.max(1, xdRun.offsetHeight - xdStage.offsetHeight);
+  }
+  function xdRender() {
+    XP.forEach(p => {
+      const tx = p.off[0] * p.x * XD.spread + XD.rigX, ty = p.off[1] * p.x * XD.spread;
+      p.g.setAttribute('transform', 'translate(' + tx.toFixed(1) + ' ' + ty.toFixed(1) + ')');
+      const ax = (p.anc[0] + tx).toFixed(1), ay = (p.anc[1] + ty).toFixed(1);
+      p.lead.setAttribute('d', 'M' + ax + ' ' + ay + 'L' + p.bx + ' ' + p.by);
+      p.dot.setAttribute('cx', ax); p.dot.setAttribute('cy', ay);
+    });
+  }
+  const xdProgress = () => XD.P_REST + (1 - XD.P_REST) * clamp((scrollY - XD.top) / XD.len, 0, 1);
+  function xdFrame() {
+    const now = performance.now();
+    const dt = Math.min(0.034, Math.max(0.004, (now - XD.last) / 1000));
+    XD.last = now;
+    XD.target = xdProgress();
+    let moving = false;
+    XP.forEach(p => {
+      const k = 150 / p.mass, c = 2 * Math.sqrt(k) * 0.5; // ζ = 0,5: sichtbares, kurzes Nachschwingen
+      p.v += (k * (XD.target - p.x) - c * p.v) * dt;
+      p.x += p.v * dt;
+      if (Math.abs(p.v) > 0.0006 || Math.abs(XD.target - p.x) > 0.0006) moving = true;
+    });
+    xdRender();
+    if (moving) requestAnimationFrame(xdFrame);
+    else { XD.running = false; XP.forEach(p => { p.x = XD.target; p.v = 0; }); xdRender(); }
+  }
+  function xdKick() {
+    if (!XD.ready || XD.running) return;
+    XD.running = true; XD.last = performance.now();
+    requestAnimationFrame(xdFrame);
+  }
+  xdLayout();
+  if (motionOK) {
+    addEventListener('scroll', xdKick, { passive: true });
+    // Intro: Linien zeichnen sich (CSS), dann fliegt die Baugruppe auseinander
+    const go = () => {
+      setTimeout(() => {
+        XD.ready = true;
+        xd.classList.remove('drawing');
+        xdKick();
+      }, Math.max(0, 720 - (performance.now() - (window.__heroGoAt || 0))));
+    };
+    if (root.classList.contains('hero-go')) go(); else document.addEventListener('berger:herogo', go, { once: true });
+  } else {
+    xd.classList.remove('drawing');
+    XP.forEach(p => { p.x = XD.P_REST; });
+    xdRender();
+  }
+  const xdRelayout = () => { xdLayout(); if (!motionOK || !XD.ready) { if (!motionOK) xdRender(); return; } xdKick(); };
+  addEventListener('resize', xdRelayout, { passive: true });
+  mqDesk.addEventListener('change', () => { xdLayout(); xdRender(); });
+  if ('ResizeObserver' in window) new ResizeObserver(() => xdLayout()).observe(xdRun);
+
+  /* ======================================================================
+     Laufband „Reifenspur“: Tempo und Richtung folgen der Scroll-Geschwindigkeit
+     ====================================================================== */
+  const tread = $('[data-tread]');
+  if (tread && motionOK) {
+    const TR = { x: 0, v: 0, y: scrollY, dir: 1, raf: 0, vis: false, half: 1 };
+    const measureTread = () => { TR.half = tread.scrollWidth / 2 || 1; };
+    measureTread();
+    addEventListener('resize', measureTread, { passive: true });
+    if (document.fonts) document.fonts.ready.then(measureTread);
+    const loop = () => {
+      TR.raf = 0;
+      if (!TR.vis || document.hidden) return;
+      const y = scrollY, dy = y - TR.y; TR.y = y;
+      if (Math.abs(dy) > 0.5) TR.dir = dy > 0 ? 1 : -1;
+      TR.v += (Math.abs(dy) * 1.1 - TR.v) * 0.12;
+      TR.x -= (0.45 + TR.v) * TR.dir;
+      if (TR.x <= -TR.half) TR.x += TR.half;
+      if (TR.x > 0) TR.x -= TR.half;
+      tread.style.transform = 'translate3d(' + TR.x.toFixed(1) + 'px,0,0) skewX(' + clamp(-TR.v * 0.35 * TR.dir, -10, 10).toFixed(2) + 'deg)';
+      TR.raf = requestAnimationFrame(loop);
+    };
+    new IntersectionObserver(([en]) => { TR.vis = en.isIntersecting; if (TR.vis && !TR.raf) { TR.y = scrollY; TR.raf = requestAnimationFrame(loop); } }).observe(tread.parentElement);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && TR.vis && !TR.raf) TR.raf = requestAnimationFrame(loop); });
+  }
+
+  /* ======================================================================
+     Mikro-Interaktionen (nur feiner Zeiger): Zeichen-Rollen, Magnet, CAD-Fadenkreuz
+     ====================================================================== */
+  if (fine && motionOK) {
+    $$('.nav a').forEach(a => {
+      const t = a.textContent;
+      a.setAttribute('aria-label', t);
+      a.textContent = '';
+      const r = document.createElement('span'); r.className = 'roll'; r.setAttribute('aria-hidden', 'true');
+      Array.from(t).forEach((ch, i) => { const s = document.createElement('span'); s.textContent = ch; s.style.setProperty('--c', i); r.appendChild(s); });
+      a.appendChild(r);
+    });
+    $$('[data-magnet]').forEach(b => {
+      b.addEventListener('pointermove', e => {
+        const r = b.getBoundingClientRect();
+        b.style.setProperty('--mx', ((e.clientX - r.left - r.width / 2) * 0.22).toFixed(1) + 'px');
+        b.style.setProperty('--my', ((e.clientY - r.top - r.height / 2) * 0.3).toFixed(1) + 'px');
+      });
+      b.addEventListener('pointerleave', () => { b.style.setProperty('--mx', '0px'); b.style.setProperty('--my', '0px'); });
+    });
+    const cur = document.createElement('div');
+    cur.className = 'cad-cursor'; cur.setAttribute('aria-hidden', 'true');
+    const curT = document.createElement('span'); cur.appendChild(curT);
+    document.body.appendChild(cur);
+    const C = { x: 0, y: 0, tx: 0, ty: 0, raf: 0, on: false, el: null };
+    const cLoop = () => {
+      C.x += (C.tx - C.x) * 0.28; C.y += (C.ty - C.y) * 0.28;
+      cur.style.transform = 'translate3d(' + C.x.toFixed(1) + 'px,' + C.y.toFixed(1) + 'px,0)';
+      C.raf = (C.on || Math.abs(C.tx - C.x) > 0.3) ? requestAnimationFrame(cLoop) : 0;
+    };
+    $$('[data-cad]').forEach(el => {
+      el.addEventListener('pointermove', e => {
+        if (e.target.closest('a, button, input, select, textarea, label')) { cur.classList.remove('on'); return; }
+        const r = el.getBoundingClientRect();
+        C.tx = e.clientX; C.ty = e.clientY;
+        if (!C.on) { C.on = true; C.x = C.tx; C.y = C.ty; }
+        cur.classList.add('on');
+        curT.textContent = 'X ' + String(Math.round((e.clientX - r.left) / r.width * 1000)).padStart(4, '0') + '  Y ' + String(Math.round((e.clientY - r.top) / r.height * 1000)).padStart(4, '0');
+        if (!C.raf) C.raf = requestAnimationFrame(cLoop);
+      });
+      el.addEventListener('pointerleave', () => { C.on = false; cur.classList.remove('on'); });
+    });
+  }
+
+  /* Karriere: Zahnkranz rastet beim Scrollen in 10°-Schritten weiter */
+  const jobs = $('#karriere');
+  if (jobs && motionOK) {
+    let jv = false, jr = 0;
+    new IntersectionObserver(([en]) => { jv = en.isIntersecting; }).observe(jobs);
+    addEventListener('scroll', () => {
+      if (!jv || jr) return;
+      jr = requestAnimationFrame(() => {
+        jr = 0;
+        const r = jobs.getBoundingClientRect();
+        const p = clamp(1 - (r.top + r.height) / (innerHeight + r.height), 0, 1);
+        jobs.style.setProperty('--ratchet', (Math.round(p * 18) * 10) + 'deg');
+      });
+    }, { passive: true });
+  }
+
+  /* ======================================================================
      5) Live-Werkstattstatus (simuliert, deterministisch pro Tag)
      ====================================================================== */
   function rng(seed) {
@@ -422,7 +626,7 @@
       ? 'Nächster freier Slot: ' + s.label + ' ' + hhmm(nextSlot.t) + nbsp + 'Uhr'
       : 'Heute ausgebucht – rufen Sie an, wir finden eine Lücke.';
     $('[data-st-cars]').textContent = s.cars;
-    $$('[data-st-fleet] li').forEach((li, i) => li.classList.toggle('avail', i < s.cars));
+    $$('[data-st-fleet] li').forEach((li, i) => { li.style.setProperty('--k', i); li.classList.toggle('avail', i < s.cars); });
     $('[data-st-clock]').textContent = 'Stand ' + String(s.now.getHours()).padStart(2, '0') + ':' + String(s.now.getMinutes()).padStart(2, '0');
 
     // Hebebühnen
@@ -503,6 +707,7 @@
     if (!ind || !tab) return;
     ind.style.transform = 'translateX(' + tab.offsetLeft + 'px) scaleX(' + (tab.offsetWidth / 100) + ')';
   }
+  let onPartSelect = null;
   function selectPart(part, focus, noMeasure) {
     tabs.forEach(t => {
       const on = t.dataset.part === part;
@@ -517,6 +722,7 @@
     });
     hots.forEach(h => h.classList.toggle('is-active', h.dataset.part === part));
     car.dataset.active = part;
+    if (onPartSelect) onPartSelect(part);
     const selT = tabs.find(t => t.dataset.part === part);
     if (selOut && selT) selOut.textContent = selT.textContent;
   }
@@ -599,6 +805,17 @@
     };
     PT.raf = requestAnimationFrame(step);
   }
+  // Stempel „Richtwert“ setzt bei jeder Änderung neu auf (Feder mit Nachschwingen)
+  const stamp = $('[data-co-stamp]');
+  let stampN = 0;
+  const thump = getComputedStyle(root).getPropertyValue('--ease-thump').trim() || 'ease-out';
+  function stampIt(r) {
+    if (!motionOK || !stamp.animate || !r.lines.length || !stampN++) return;
+    stamp.animate([
+      { transform: 'rotate(-17deg) scale(1.5)', opacity: 0 },
+      { transform: 'rotate(-11deg) scale(1)', opacity: 0.82 }
+    ], { duration: 560, easing: thump });
+  }
   function renderCalc() {
     const r = computeCalc();
     lastCalc = r;
@@ -623,6 +840,7 @@
     co.sheet.classList.toggle('is-empty', !r.lines.length);
     takeBtn.setAttribute('aria-disabled', r.lines.length ? 'false' : 'true');
     tweenPrice(r);
+    stampIt(r);
     const aPct = clamp(r.min / PRICE_SCALE_MAX, 0, 1) * 100;
     const w = r.lines.length ? Math.max(0.012, clamp((r.max - r.min) / PRICE_SCALE_MAX, 0, 1 - aPct / 100)) : 0;
     co.bar.style.setProperty('--a', aPct.toFixed(2) + '%');
@@ -747,6 +965,21 @@
     }
     tickHU();
   }
+  // Tage als Zählwerk: jede Ziffer rollt auf ihren Wert (nur mit Bewegung)
+  function setOdo(el, txt) {
+    if (!motionOK) { el.textContent = txt; return; }
+    if (el.dataset.odo !== String(txt.length)) {
+      el.textContent = '';
+      for (let i = 0; i < txt.length; i++) {
+        const dg = document.createElement('span'); dg.className = 'd';
+        const col = document.createElement('span'); col.style.setProperty('--k', i);
+        for (let n = 0; n < 10; n++) { const s = document.createElement('span'); s.textContent = n; col.appendChild(s); }
+        dg.appendChild(col); el.appendChild(dg);
+      }
+      el.dataset.odo = String(txt.length);
+    }
+    Array.from(el.children).forEach((dg, i) => { dg.firstChild.style.transform = 'translateY(' + (-(+txt[i]) * 10) + '%)'; });
+  }
   function tickHU() {
     if (!huRes) return;
     let ms = Math.max(0, huRes.end - new Date());
@@ -754,7 +987,7 @@
     const h = Math.floor(ms / 36e5); ms -= h * 36e5;
     const m = Math.floor(ms / 6e4); ms -= m * 6e4;
     const s = Math.floor(ms / 1e3);
-    H.cd.d.textContent = String(d).padStart(3, '0');
+    setOdo(H.cd.d, String(d).padStart(3, '0'));
     H.cd.h.textContent = String(h).padStart(2, '0');
     H.cd.m.textContent = String(m).padStart(2, '0');
     H.cd.s.textContent = String(s).padStart(2, '0');
@@ -805,90 +1038,176 @@
   });
 
   /* ======================================================================
-     Ablauf – Schaltkulisse
+     Set Piece: Diagnose-Scan über die Seitenansicht
+     Beim ersten Erscheinen fährt ein Prüfbalken über das Auto und hakt die
+     Prüfpunkte im Protokoll ab; danach rastet er (Feder) am gewählten Bauteil ein.
      ====================================================================== */
-  const flow = $('[data-flow]');
-  const knob = $('[data-knob]'), knobRing = $('[data-knob-ring]');
-  const gateLabels = $$('.gate-n text');
-  const gearOut = $('[data-shift-gear]');
-  const steps = $$('.step', flow);
-  const GATE = [[40, 40], [40, 200], [100, 40], [100, 200], [160, 40], [160, 200]];
-  function pathPoints(k) {
-    const a = GATE[k], b = GATE[k + 1];
-    return a[0] === b[0] ? [a, b] : [a, [a[0], 120], [b[0], 120], b];
+  const SCAN_POS = { licht: 0.113, klima: 0.45, motor: 0.25, bremsen: 0.274, reifen: 0.762 };   // Lage im Zeichnungsrahmen (0–1)
+  const SCAN_LOG = [['licht', 0.11], ['klima', 0.15], ['motor', 0.22], ['bremsen', 0.28], ['reifen', 0.77], ['licht-r', 0.9]];
+  const scanLog = $('[data-scan-log]');
+  const logItems = new Map($$('li', scanLog).map(li => [li.dataset.log, li]));
+  const beamEl = document.createElement('i');
+  beamEl.className = 'scan-beam'; beamEl.setAttribute('aria-hidden', 'true');
+  carBox.appendChild(beamEl);
+  const SC = { x: -0.1, v: 0, target: -0.1, raf: 0, done: false, last: 0, w: 1 };
+  const placeBeam = () => { beamEl.style.transform = 'translate3d(' + (SC.x * SC.w).toFixed(1) + 'px,0,0)'; };
+  const measureScan = () => { SC.w = carBox.clientWidth; placeBeam(); };
+  function flashPart(part) {
+    $$('.p-' + part, car).forEach(el => { el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 420); });
   }
-  function along(pts, t) {
-    const segs = []; let total = 0;
-    for (let i = 0; i < pts.length - 1; i++) { const l = Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]); segs.push(l); total += l; }
-    let d = t * total;
-    for (let i = 0; i < segs.length; i++) {
-      if (d <= segs[i] || i === segs.length - 1) { const f = segs[i] ? clamp(d / segs[i], 0, 1) : 0; return [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f]; }
-      d -= segs[i];
-    }
-    return pts[pts.length - 1];
+  function lockFrame() {
+    const now = performance.now(), dt = Math.min(0.034, Math.max(0.004, (now - SC.last) / 1000)); SC.last = now;
+    const k = 120, c = 2 * Math.sqrt(k) * 0.45;
+    SC.v += (k * (SC.target - SC.x) - c * SC.v) * dt; SC.x += SC.v * dt;
+    placeBeam();
+    if (Math.abs(SC.v) > 0.0004 || Math.abs(SC.target - SC.x) > 0.0004) SC.raf = requestAnimationFrame(lockFrame);
+    else { SC.raf = 0; SC.x = SC.target; placeBeam(); }
   }
-  let lastGearIdx = -1;
-  function updateShifter(p) {
-    const s = clamp(p, 0, 1) * 5;
-    const k = Math.min(4, Math.floor(s));
-    const t = s - k;
-    const e = clamp((t - 0.3) / 0.4, 0, 1);
-    const tt = e * e * (3 - 2 * e);
-    const [x, y] = along(pathPoints(k), tt);
-    knob.setAttribute('cx', x.toFixed(1)); knob.setAttribute('cy', y.toFixed(1));
-    knobRing.setAttribute('cx', x.toFixed(1)); knobRing.setAttribute('cy', y.toFixed(1));
-    const gi = clamp(Math.round(s), 0, 5);
-    if (gi !== lastGearIdx) {
-      lastGearIdx = gi;
-      gearOut.textContent = gi + 1;
-      gateLabels.forEach((l, i) => l.classList.toggle('on', i === gi));
-      steps.forEach((st, i) => st.classList.toggle('on', i === gi));
-    }
+  function lockOn(part) {
+    if (!SC.done || !motionOK) return;
+    SC.target = SCAN_POS[part] != null ? SCAN_POS[part] : 0.5;
+    logItems.forEach((li, k) => li.classList.toggle('sel', k === part || (part === 'licht' && k === 'licht-r')));
+    carBox.classList.add('is-locked');
+    if (!SC.raf) { SC.last = performance.now(); SC.raf = requestAnimationFrame(lockFrame); }
   }
-  updateShifter(0);
+  function runScan() {
+    measureScan();
+    carBox.classList.add('is-scanning');
+    const t0 = performance.now(), dur = 1700;
+    let li = 0;
+    const step = now => {
+      const p = clamp((now - t0) / dur, 0, 1);
+      const e = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+      SC.x = -0.1 + e * 1.2;
+      placeBeam();
+      while (li < SCAN_LOG.length && SC.x >= SCAN_LOG[li][1]) {
+        const [k] = SCAN_LOG[li];
+        const item = logItems.get(k); if (item) item.classList.add('done');
+        flashPart(k === 'licht-r' ? 'licht' : k);
+        li++;
+      }
+      if (p < 1) requestAnimationFrame(step);
+      else {
+        carBox.classList.remove('is-scanning');
+        SC.done = true; SC.v = 0;
+        lockOn(car.dataset.active || 'motor');
+      }
+    };
+    requestAnimationFrame(step);
+  }
+  if (motionOK) {
+    const sio = new IntersectionObserver(([en]) => { if (en.isIntersecting) { sio.disconnect(); runScan(); } }, { threshold: 0.55 });
+    sio.observe(carBox);
+    addEventListener('resize', measureScan, { passive: true });
+  } else {
+    logItems.forEach(li => li.classList.add('done'));
+  }
+  onPartSelect = lockOn;
 
   /* ======================================================================
-     Ablauf auf dem Handy: Wisch-Karussell mit Gang-Anzeige
+     Set Piece: Ablauf als Oszilloskop-Spur
+     Jeder Schritt hat seine eigene Signalform (Klingeln, ruhiges Gespräch,
+     unruhige Messwerte, Freigabe-Sprung, Arbeitstakt, ausschwingende Übergabe).
+     Desktop: horizontale Strecke in einer hohen Sektion (position: sticky),
+     Handy/ohne Bewegung: Wisch-Schiene mit derselben Spur.
      ====================================================================== */
+  const flow = $('[data-flow]');
   const flowTrack = $('[data-flow-track]');
+  const steps = $$('.step', flow);
+  const gearOut = $('[data-shift-gear]');
+  const traceP = $('[data-trace]'), ghostP = $('[data-trace-ghost]');
+  const scopeEl = $('[data-scope]'), liveEl = $('[data-scope-live]'), beamDot = $('[data-beam]');
   const pager = $('[data-flow-pager]');
   const fpBtns = $$('button', pager);
   const fpN = $('[data-fp-n]');
   const mqMobile = matchMedia('(max-width: 899px)');
+  const SCOPE = { W: 1, H: 160, mid: 80, amp: 60, segs: [], idx: -1 };
+  // Signalformen je Schritt, u = 0…1 innerhalb des Schritts, Rückgabe −1…1
+  const WAVES = [
+    u => Math.exp(-Math.pow((u - 0.42) / 0.045, 2)) * Math.sin(u * 140) * 0.95,                               // Termin: das Telefon klingelt
+    u => Math.sin(u * Math.PI * 4) * 0.42,                                                                     // Dialogannahme: ruhiges Gespräch
+    u => (Math.sin(u * 61) * 0.35 + Math.sin(u * 23 + 1.3) * 0.3 + Math.sin(u * 137) * 0.18) * (0.6 + 0.4 * Math.sin(u * 9)), // Diagnose: Messrauschen
+    u => { const s = 1 / (1 + Math.exp(-(u - 0.38) * 60)); return 0.35 - s * 1.0 + (u > 0.38 ? Math.exp(-(u - 0.38) * 22) * Math.sin((u - 0.38) * 70) * 0.25 : 0); }, // Freigabe: Sprung
+    u => -0.65 + (((u * 9) % 1) < 0.5 ? 0.0 : 0.9) * 1,                                                        // Reparatur: Arbeitstakt
+    u => -0.65 * Math.exp(-u * 5) * Math.cos(u * Math.PI * 9)                                                  // Übergabe: schwingt aus
+  ];
+  const yAt = x => {
+    for (let i = 0; i < SCOPE.segs.length; i++) {
+      const [a, b] = SCOPE.segs[i];
+      if (x >= a && x < b) {
+        const u = (x - a) / (b - a);
+        const edge = Math.min(1, u / 0.06, (1 - u) / 0.06); // weiche Übergänge zwischen den Schritten
+        return WAVES[i](u) * clamp(edge, 0, 1);
+      }
+    }
+    return 0;
+  };
+  function buildScope() {
+    const tr = flowTrack.getBoundingClientRect();
+    const sl = flow.classList.contains('is-rail') ? flowTrack.scrollLeft : 0;
+    SCOPE.W = Math.max(flowTrack.scrollWidth, flowTrack.offsetWidth);
+    SCOPE.H = flow.classList.contains('is-rail') ? 120 : clamp(innerHeight * 0.2, 130, 200);
+    SCOPE.mid = SCOPE.H / 2; SCOPE.amp = SCOPE.H * 0.4;
+    flow.style.setProperty('--scope-h', SCOPE.H + 'px');
+    scopeEl.style.setProperty('--scope-w', SCOPE.W + 'px');
+    SCOPE.segs = steps.map((st, i) => {
+      const r = st.getBoundingClientRect();
+      const a = r.left - tr.left + sl;
+      const nx = steps[i + 1] ? steps[i + 1].getBoundingClientRect().left - tr.left + sl : a + r.width + 40;
+      return [a, nx];
+    });
+    let d = '';
+    for (let x = 0; x <= SCOPE.W; x += 3) d += (x ? 'L' : 'M') + x + ' ' + (SCOPE.mid - yAt(x) * SCOPE.amp).toFixed(1);
+    [traceP, ghostP].forEach(p => { const s = p.ownerSVGElement; s.setAttribute('viewBox', '0 0 ' + SCOPE.W + ' ' + SCOPE.H); s.setAttribute('preserveAspectRatio', 'none'); p.setAttribute('d', d); });
+  }
+  function setBeam(bx) {
+    bx = clamp(bx, 0, SCOPE.W);
+    liveEl.style.setProperty('--beam', bx.toFixed(1) + 'px');
+    beamDot.style.transform = 'translate3d(' + bx.toFixed(1) + 'px,' + (SCOPE.mid - yAt(bx) * SCOPE.amp).toFixed(1) + 'px,0)';
+    let idx = 0;
+    SCOPE.segs.forEach(([a], i) => { if (bx >= a + 30) idx = i; });
+    if (idx !== SCOPE.idx) {
+      SCOPE.idx = idx;
+      if (gearOut) gearOut.textContent = idx + 1;
+      steps.forEach((st, k) => st.classList.toggle('on', k === idx));
+    }
+  }
+
+  /* Wisch-Schiene (Handy, oder ohne Bewegung) */
   let fpIdx = -1, fpRaf = 0;
-  function fpUpdate() {
+  function railUpdate() {
     fpRaf = 0;
     const max = flowTrack.scrollWidth - flowTrack.clientWidth;
     const step = steps[1] ? steps[1].offsetLeft - steps[0].offsetLeft : 1;
-    // am rechten Rand zählt die letzte Karte, auch wenn sie nicht ganz links einrastet
     const i = flowTrack.scrollLeft >= max - 4 ? steps.length - 1 : clamp(Math.round(flowTrack.scrollLeft / step), 0, steps.length - 1);
+    setBeam(motionOK ? flowTrack.scrollLeft + flowTrack.clientWidth * 0.78 : SCOPE.W);
     if (i === fpIdx) return;
     fpIdx = i;
     fpN.textContent = i + 1;
     fpBtns.forEach((b, k) => { if (k === i) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
-    steps.forEach((st, k) => st.classList.toggle('on', k === i));
   }
-  function fpSetup() {
-    const on = mqMobile.matches;
+  function railSetup(on) {
+    flow.classList.toggle('is-rail', on);
     pager.hidden = !on;
     if (on) {
       flowTrack.tabIndex = 0;
       flowTrack.setAttribute('aria-label', 'Ablauf in sechs Schritten – seitlich wischen');
-      fpIdx = -1;
-      if (!fpRaf) fpRaf = requestAnimationFrame(fpUpdate);
+      fpIdx = -1; SCOPE.idx = -1;
+      buildScope();
+      railUpdate();
     } else {
       flowTrack.removeAttribute('tabindex');
       flowTrack.removeAttribute('aria-label');
-      if (!flow.classList.contains('is-h')) steps.forEach(st => st.classList.remove('on'));
     }
   }
-  flowTrack.addEventListener('scroll', () => { if (!fpRaf && mqMobile.matches) fpRaf = requestAnimationFrame(fpUpdate); }, { passive: true });
+  flowTrack.addEventListener('scroll', () => { if (!fpRaf && flow.classList.contains('is-rail')) fpRaf = requestAnimationFrame(railUpdate); }, { passive: true });
   fpBtns.forEach((b, k) => b.addEventListener('click', () => {
-    const left = steps[k].offsetLeft - steps[0].offsetLeft;
-    flowTrack.scrollTo({ left, behavior: motionOK ? 'smooth' : 'auto' });
+    flowTrack.scrollTo({ left: steps[k].offsetLeft, behavior: motionOK ? 'smooth' : 'auto' });
   }));
-  mqMobile.addEventListener('change', fpSetup);
-  fpSetup();
+  const wantsH = () => hasGSAP && motionOK && !mqMobile.matches;
+  if (!wantsH()) railSetup(true);
+  mqMobile.addEventListener('change', () => { if (!wantsH()) railSetup(true); });
+  addEventListener('resize', () => { if (flow.classList.contains('is-rail')) { buildScope(); railUpdate(); } }, { passive: true });
 
   /* ======================================================================
      GSAP-Choreografie – erst nach dem Hero-Intro und in kleinen Häppchen
@@ -897,57 +1216,45 @@
   if (hasGSAP && motionOK) {
     const mm = gsap.matchMedia();
 
-    // Ablauf: horizontale Strecke (nur Desktop). Statt GSAP-Pin (position: fixed → Layout-Shifts/CLS)
+    // Ablauf: horizontale Strecke (nur Desktop). Statt GSAP-Pin (position: fixed → CLS)
     // hält CSS `position: sticky` die Bühne; die Sektion bekommt die nötige Scrollhöhe.
     const initFlow = () => mm.add('(min-width: 900px)', () => {
+      railSetup(false);
       flow.classList.add('is-h');
-      const track = $('[data-flow-track]');
       const view = $('.flow-view', flow);
-      const padL = () => parseFloat(getComputedStyle(view).paddingLeft) || 0; // Auslaufzone links gehört nicht zur Strecke
-      const dist = () => Math.max(0, track.scrollWidth - (view.clientWidth - padL()));
-      const setH = () => { flow.style.height = Math.round(innerHeight + dist() * 1.15 + innerHeight * 0.25) + 'px'; };
-      setH();
+      const dist = () => Math.max(0, flowTrack.scrollWidth - view.clientWidth);
+      const setH = () => { flow.style.height = Math.round(innerHeight + dist() * 1.1 + innerHeight * 0.2) + 'px'; };
+      const rebuild = () => { buildScope(); setBeam(-(gsap.getProperty(flowTrack, 'x') || 0) + view.clientWidth * 0.62); };
+      setH(); buildScope();
       ScrollTrigger.addEventListener('refreshInit', setH);
-      const tw = gsap.to(track, {
+      ScrollTrigger.addEventListener('refresh', rebuild);
+      const tw = gsap.to(flowTrack, {
         x: () => -dist(), ease: 'none',
-        scrollTrigger: {
-          trigger: flow, start: 'top top', end: 'bottom bottom',
-          scrub: 0.7, invalidateOnRefresh: true,
-          onUpdate: self => updateShifter(self.progress)
-        }
+        onUpdate: () => setBeam(-gsap.getProperty(flowTrack, 'x') + view.clientWidth * 0.62),
+        scrollTrigger: { trigger: flow, start: 'top top', end: 'bottom bottom', scrub: 0.8, invalidateOnRefresh: true }
       });
+      setBeam(view.clientWidth * 0.62);
       return () => {
         ScrollTrigger.removeEventListener('refreshInit', setH);
+        ScrollTrigger.removeEventListener('refresh', rebuild);
         tw.scrollTrigger && tw.scrollTrigger.kill(); tw.kill();
         flow.classList.remove('is-h'); flow.style.height = '';
-        gsap.set(track, { clearProps: 'transform' }); updateShifter(0); fpSetup();
+        gsap.set(flowTrack, { clearProps: 'transform' });
+        railSetup(true);
       };
     });
 
-    // Fahrzeug: Explosionszeichnung setzt sich beim Scrollen zusammen
-    const initCar = () => mm.add('(min-width: 0px)', () => {
-      const parts = { engine: [0, -120], clima: [-120, -30], 'light-f': [-80, -24], 'light-r': [80, -24], 'wheel-f': [-50, 70], 'wheel-r': [50, 70] };
-      carBox.classList.add('exploded');
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: carBox, start: 'top 85%', end: 'center 58%', scrub: 0.8,
-          onUpdate: self => carBox.classList.toggle('exploded', self.progress < 0.97),
-          onRefresh: self => carBox.classList.toggle('exploded', self.progress < 0.97)
-        }
+    // Auftragszettel läuft beim Hereinscrollen aus dem Druckerschlitz
+    const initFeed = () => mm.add('(min-width: 0px)', () => {
+      const sheet = $('.co-sheet');
+      const tw = gsap.fromTo(sheet, { yPercent: -62 }, {
+        yPercent: 0, ease: 'none',
+        scrollTrigger: { trigger: '.calc-out', start: 'top 92%', end: 'top 45%', scrub: 0.9 }
       });
-      Object.keys(parts).forEach(k => {
-        const el = $('[data-x="' + k + '"]', car);
-        if (el) tl.from(el, { x: parts[k][0], y: parts[k][1], ease: 'power2.out', duration: 1 }, 0);
-      });
-      return () => { carBox.classList.remove('exploded'); };
+      return () => { tw.scrollTrigger && tw.scrollTrigger.kill(); tw.kill(); gsap.set(sheet, { clearProps: 'transform' }); };
     });
 
-    // Hero: Foto leicht parallax, Tacho bleibt ruhig
-    const initHero = () => mm.add('(min-width: 900px)', () => {
-      gsap.to('[data-hero-photo]', { yPercent: -10, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
-    });
-
-    const queue = [initFlow, initCar, initHero];
+    const queue = [initFlow, initFeed];
     const idle = window.requestIdleCallback ? cb => requestIdleCallback(cb, { timeout: 900 }) : cb => setTimeout(cb, 120);
     const pump = () => {
       const f = queue.shift();
@@ -956,7 +1263,6 @@
       else if (document.readyState === 'complete') ScrollTrigger.refresh();
       else addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
     };
-    // nach dem Großteil des Hero-Intros starten (oder sofort, wenn schon gescrollt/gewischt wird)
     let started = false;
     const start = () => {
       if (started) return;

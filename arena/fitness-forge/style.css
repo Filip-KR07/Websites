@@ -1444,15 +1444,17 @@ html.has-laps .lap.is-on { opacity: 1; }
 .faq details { border-bottom: 1px solid var(--line-strong); counter-increment: q; }
 .faq summary {
   list-style: none; cursor: pointer; display: flex; align-items: center; gap: 1.1rem;
-  padding: 1.1rem 0; font-weight: 600; font-size: clamp(1.02rem, .4vw + .9rem, 1.2rem);
+  padding: 1.05rem 0; font-family: var(--ff-display); font-weight: 800; text-transform: uppercase;
+  font-size: clamp(1.3rem, 1.1vw + 1rem, 2.05rem); line-height: 1.02; letter-spacing: .01em; text-wrap: balance;
   transition: color 180ms ease;
 }
-.faq summary::before { content: counter(q, decimal-leading-zero); flex: none; width: 2.6rem; font-family: var(--ff-display); font-weight: 800; font-size: 1.7rem; line-height: 1; color: transparent; -webkit-text-stroke: 1px var(--grau); font-variant-numeric: tabular-nums; transition: color 180ms ease, -webkit-text-stroke-color 180ms ease; }
+.faq details[open] summary { color: var(--glut); }
+.faq summary::before { content: counter(q, decimal-leading-zero); flex: none; font-family: var(--ff-display); font-weight: 800; font-size: clamp(1.7rem, 1.4vw + 1.1rem, 2.6rem); line-height: .9; color: transparent; -webkit-text-stroke: 1px var(--grau); width: 3.2rem; align-self: flex-start; font-variant-numeric: tabular-nums; transition: color 180ms ease, -webkit-text-stroke-color 180ms ease; }
 .faq details[open] summary::before { color: var(--glut); -webkit-text-stroke-color: var(--glut); }
 .faq summary::-webkit-details-marker { display: none; }
 .faq summary::after { color: var(--glut); margin-left: auto; }
 @media (hover: hover) and (pointer: fine) { .faq summary:hover { color: var(--glut); } }
-.faq__a { padding: 0 2.5rem 1.35rem 3.7rem; color: var(--grau); max-width: 46rem; }
+.faq__a { padding: 0 2.5rem 1.35rem 4.3rem; color: var(--grau); max-width: 46rem; }
 .faq details[open] .faq__a { animation: faqIn 260ms var(--ease-out); }
 @keyframes faqIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 @media (max-width: 520px) { .faq__a { padding-left: 0; padding-right: 0; } }
@@ -1705,4 +1707,20 @@ html.motion-off *, html.motion-off *::before, html.motion-off *::after { animati
   .disclaimer, .disclaimer strong { color: #000 !important; }
   .meter i { border: .5pt solid #000; }
   .meter i.on { background: #000 !important; }
+}
+
+/* Coaches: Hinweis als angeklebter Aushang statt Absatz neben der Headline */
+@media (min-width: 1000px) {
+  .crew__head .h2 { font-size: clamp(3.4rem, 6.6vw, 7.6rem); }
+  .crew__head p {
+    position: relative; justify-self: end; max-width: 21rem; margin-bottom: .6rem;
+    padding: 1.15rem 1.3rem 1.05rem; background: var(--kreide); color: #2B2D31;
+    font-size: .92rem; line-height: 1.45; transform: rotate(1.6deg);
+    box-shadow: 0 14px 30px -18px rgba(0, 0, 0, .8);
+  }
+  .crew__head p::before {
+    content: ""; position: absolute; top: -12px; left: 1.2rem; width: 84px; height: 24px;
+    transform: rotate(-5deg); background: rgba(255, 59, 47, .88);
+    clip-path: polygon(0 12%, 4px 0, 100% 0, calc(100% - 4px) 40%, 100% 100%, 0 100%, 3px 60%);
+  }
 }

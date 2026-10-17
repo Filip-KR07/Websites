@@ -889,6 +889,22 @@ html.js .q:not(.is-active) { visibility: hidden; }
 @keyframes qLegendBack { from { opacity: 0; transform: translateY(-24px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes qOpt { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @keyframes qOptBack { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
+/* Große Schrittziffer (römisch, wie die Kapitel) im freien Raum unter der Frage – nur Desktop.
+   Sie hebt sich beim Schrittwechsel wie ein zurückgeschlagenes Tuch von unten frei. */
+@media (min-width: 900px) {
+  .quiz-stage { counter-reset: qstep; }
+  html.js .q { position: relative; counter-increment: qstep; }
+  html.js .q::before {
+    content: counter(qstep, upper-roman);
+    position: absolute; left: -.04em; bottom: -.12em; z-index: -1;
+    font-family: var(--font-display); font-style: italic; font-size: clamp(6rem, 11vw, 11.5rem); line-height: 1;
+    color: transparent; -webkit-text-stroke: 1px rgba(132, 70, 90, .42);
+    pointer-events: none; user-select: none;
+  }
+  .q.is-enter::before { animation: qNum 1.2s var(--ease-silk) both; }
+  .q.is-enter-back::before { animation: qNum .9s var(--ease-silk) both; }
+}
+@keyframes qNum { from { clip-path: inset(100% 0 0 0); transform: translateY(18px); } to { clip-path: inset(-10% 0 -10% 0); transform: none; } }
 
 /* Ergebnis als handgeschriebene Pflegekarte */
 .quiz-result { animation: qLegend .9s var(--ease-silk) both; }

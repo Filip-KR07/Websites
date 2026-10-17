@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Trattoria Nonna Rosa · Modell „Tavola“
+   Trattoria Nonna Rosa · Modell „Tavola“ – „der gedeckte Tisch“
    Ohne Build-Schritt. Optional: GSAP + ScrollTrigger, Lenis (lokal unter assets/vendor).
    Alle Inhalte, die sich häufig ändern (Tafel, Weine, Reservierungsregeln), stehen
    als Konstanten direkt hier oben.
@@ -318,52 +318,104 @@
     update();
     setInterval(update, 60000);
   }
+  /** Wein im Glas: Farbe, Füllhöhe (y der Oberfläche im Glas-SVG, kleiner = voller), perlend */
+  var WINE = {
+    vitello: { c: '#E3C964', lvl: 132 }, vongole: { c: '#E8D27A', lvl: 134 }, cacio: { c: '#EAD88C', lvl: 136 },
+    tortelli: { c: '#7E1630', lvl: 126 }, ragu: { c: '#5A0D1C', lvl: 124 }, saltimbocca: { c: '#741325', lvl: 126 },
+    tiramisu: { c: '#EED985', lvl: 150, sp: true }
+  };
+  var GLASS_EMPTY = 236;
 
   /* ------------------------------------------------------------------
-     6 · Hero: Auftakt, Parallaxe (Scroll + Maus mit Lerp)
+     6 · Hero: gedeckter Tisch – Feder-Physik, Lampe folgt der Maus
      ------------------------------------------------------------------ */
   function initHero() {
-    qsa('.hero-title .line-in').forEach(function (el, i) { el.style.setProperty('--i', i); });
-    qsa('[data-hero-fade]').forEach(function (el, i) { el.style.setProperty('--i', i); });
-    qsa('.hero-art .ill').forEach(function (el, i) { el.style.setProperty('--delay', (0.95 + i * 0.12) + 's'); });
-
-    // Tagesgericht im Hero-Zettel
+    // Tagesgericht auf Nonnas Zettel
     var n = berlinNow();
     var dow = n.dow === 1 ? 2 : n.dow;
     var dish = TAFEL[dow];
     var dishEl = qs('[data-hero-dish]');
     if (dishEl && dish) dishEl.textContent = dish.l1 + ' ' + dish.l2;
-    if (n.dow === 1) { var k = qs('.hero-note-k'); if (k) k.textContent = 'morgen an der Tafel:'; }
+    if (n.dow === 1) { var k = qs('[data-slip-k]'); if (k) k.textContent = 'morgen an der Tafel:'; }
 
     if (reduced()) return;
-    var art = qs('[data-hero-art]');
-    if (!art) return;
-    var items = qsa('[data-par]', art).map(function (el) { return { el: el, d: parseFloat(el.getAttribute('data-par')) || 1 }; });
-    var mx = 0, my = 0, cx = 0, cy = 0, lastSy = -1, active = false, raf = null;
-    var kick = function () { if (active && !raf) raf = requestAnimationFrame(frame); };
+    var table = qs('[data-table]');
+    if (!table) return;
+    var items = qsa('[data-depth]', table).map(function (el) {
+      var sh = qs('.obj-sh, .card-sh', el);
+      var isCard = el.classList.contains('card');
+      return { el: el, d: parseFloat(el.getAttribute('data-depth')) || 1, sh: sh, base: isCard ? [8, 18] : [10, 16], scale: isCard ? '' : ' scale(1.05)',
+        repel: el.hasAttribute('data-repel'), x: 0, y: 0, r: 0, vx: 0, vy: 0, vr: 0, sx: 0, sy: 0, cx: 0, cy: 0 };
+    });
+    var px = 0, py = 0, mx = -9999, my = -9999, hasPointer = false, active = false, raf = null, last = 0;
+    function measure() {
+      var sy = window.scrollY;
+      items.forEach(function (it) { var r = it.el.getBoundingClientRect(); it.cx = r.left + r.width / 2; it.cy = r.top + sy + r.height / 2; });
+    }
+    measure();
+    window.addEventListener('resize', measure);
+    var kick = function () { if (active && !raf) { last = 0; raf = requestAnimationFrame(frame); } };
     if (finePointer) {
-      window.addEventListener('pointermove', function (e) {
-        mx = (e.clientX / window.innerWidth) * 2 - 1;
-        my = (e.clientY / window.innerHeight) * 2 - 1;
+      table.addEventListener('pointermove', function (e) {
+        var r = table.getBoundingClientRect();
+        px = clamp((e.clientX - r.left) / r.width * 2 - 1, -1, 1);
+        py = clamp((e.clientY - r.top) / r.height * 2 - 1, -1, 1);
+        mx = e.clientX; my = e.clientY + window.scrollY; hasPointer = true;
         kick();
       }, { passive: true });
+      table.addEventListener('pointerleave', function () { px = 0; py = 0; mx = my = -9999; kick(); });
     }
     window.addEventListener('scroll', kick, { passive: true });
-    // Läuft nur, solange sich etwas bewegt (Maus nachziehen oder Scrollen) – im Ruhezustand kein Dauer-rAF
-    function frame() {
+
+    // Feder je Objekt (halbimplizites Euler): Teller schwer, Kräuter leicht
+    var K = 120, D = 15;
+    function frame(now) {
       raf = null;
       if (!active) return;
-      cx = lerp(cx, mx, 0.07); cy = lerp(cy, my, 0.07);
+      var dt = last ? Math.min(0.034, (now - last) / 1000) : 0.016; last = now;
       var sy = Math.min(window.scrollY, window.innerHeight * 1.2);
-      var settled = Math.abs(mx - cx) < 0.002 && Math.abs(my - cy) < 0.002 && sy === lastSy;
-      lastSy = sy;
+      var moving = false;
       items.forEach(function (it) {
-        var x = cx * 10 * it.d, y = cy * 8 * it.d - sy * 0.06 * (it.d - 0.6);
-        it.el.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0)';
+        var tx = px * 12 * it.d, ty = py * 9 * it.d - sy * 0.1 * (it.d - 0.3), tr = 0;
+        if (it.repel && hasPointer) {
+          var dx = it.cx - mx, dy = it.cy - my, dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          if (dist < 260) { var f = Math.pow(1 - dist / 260, 2) * 34; tx += dx / dist * f; ty += dy / dist * f; tr = (dx > 0 ? 1 : -1) * f * 0.35; }
+        }
+        it.vx += (K * (tx - it.x) - D * it.vx) * dt; it.x += it.vx * dt;
+        it.vy += (K * (ty - it.y) - D * it.vy) * dt; it.y += it.vy * dt;
+        it.vr += (K * (tr - it.r) - D * it.vr) * dt; it.r += it.vr * dt;
+        if (Math.abs(tx - it.x) > 0.05 || Math.abs(ty - it.y) > 0.05 || Math.abs(it.vx) + Math.abs(it.vy) > 0.05 || Math.abs(tr - it.r) > 0.05) moving = true;
+        it.el.style.transform = 'translate3d(' + it.x.toFixed(2) + 'px,' + it.y.toFixed(2) + 'px,0) rotate(' + it.r.toFixed(2) + 'deg)';
+        if (it.sh) {
+          // Licht kommt vom Zeiger: Schatten fällt weg davon – je höher das Objekt, desto weiter
+          var sx = it.base[0] - px * 16 * it.d, syy = it.base[1] - py * 14 * it.d;
+          it.sh.style.transform = 'translate(' + sx.toFixed(1) + 'px,' + syy.toFixed(1) + 'px)' + it.scale;
+        }
       });
-      if (!settled) raf = requestAnimationFrame(frame);
+      if (moving) raf = requestAnimationFrame(frame);
     }
-    visibilityGate(art, function (on) { active = on; kick(); }, '0px');
+    visibilityGate(table, function (on) { active = on; kick(); }, '0px');
+  }
+
+  /** Magnetische Buttons (nur feiner Zeiger) – nutzt `translate`, damit :active (transform) unberührt bleibt */
+  function initMagnet() {
+    if (!finePointer || reduced()) return;
+    qsa('[data-magnet]').forEach(function (el) {
+      var x = 0, y = 0, vx = 0, vy = 0, tx = 0, ty = 0, raf = null, last = 0;
+      function frame(now) {
+        var dt = last ? Math.min(0.034, (now - last) / 1000) : 0.016; last = now;
+        vx += (170 * (tx - x) - 16 * vx) * dt; x += vx * dt;
+        vy += (170 * (ty - y) - 16 * vy) * dt; y += vy * dt;
+        el.style.translate = x.toFixed(2) + 'px ' + y.toFixed(2) + 'px';
+        if (Math.abs(tx - x) + Math.abs(ty - y) + Math.abs(vx) + Math.abs(vy) > 0.05) raf = requestAnimationFrame(frame); else { raf = null; last = 0; }
+      }
+      var go = function () { if (!raf) raf = requestAnimationFrame(frame); };
+      el.addEventListener('pointermove', function (e) {
+        var r = el.getBoundingClientRect();
+        tx = (e.clientX - (r.left + r.width / 2)) * 0.22; ty = (e.clientY - (r.top + r.height / 2)) * 0.3; go();
+      });
+      el.addEventListener('pointerleave', function () { tx = 0; ty = 0; go(); });
+    });
   }
 
   /* ------------------------------------------------------------------
@@ -371,37 +423,243 @@
      ------------------------------------------------------------------ */
   function initReveals() {
     var els = qsa('[data-reveal]');
-    if (motionOff || !('IntersectionObserver' in window)) { els.forEach(function (el) { el.classList.add('is-in'); }); return; }
+    if (!doc.classList.contains('anim') || !('IntersectionObserver' in window)) { els.forEach(function (el) { el.classList.add('is-in'); }); return; }
     var io = new IntersectionObserver(function (entries) {
       var batch = entries.filter(function (e) { return e.isIntersecting; }).sort(function (a, b) { return a.boundingClientRect.top - b.boundingClientRect.top || a.boundingClientRect.left - b.boundingClientRect.left; });
       batch.forEach(function (en, i) {
         var el = en.target;
-        if (!el.style.getPropertyValue('--d')) el.style.setProperty('--d', Math.min(i * 70, 420) + 'ms');
+        if (!el.style.getPropertyValue('--d')) el.style.setProperty('--d', Math.min(i * 60, 360) + 'ms');
         el.classList.add('is-in');
         io.unobserve(el);
       });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
     els.forEach(function (el) { io.observe(el); });
 
-    // Laufband nur animieren, wenn sichtbar
-    var mq = qs('[data-marquee]');
-    if (mq) visibilityGate(mq, function (on) { mq.classList.toggle('is-paused', !on); }, '0px');
-
-    // Karte: Route + Pin
     var map = qs('[data-map]');
     if (map) new IntersectionObserver(function (en, o) { if (en[0].isIntersecting) { map.classList.add('is-in'); o.disconnect(); } }, { threshold: 0.3 }).observe(map);
 
-    // Bewertung hochzählen
     var num = qs('[data-count-to]');
-    if (num && !reduced()) {
+    if (num) {
       var target = parseFloat(num.getAttribute('data-count-to'));
       new IntersectionObserver(function (en, o) {
         if (!en[0].isIntersecting) return;
         o.disconnect();
-        tween(1200, easeOut, function (p) { num.textContent = (target * p).toFixed(1).replace('.', ','); });
+        tween(1200, easeOut, function (p) { num.textContent = (3 + (target - 3) * p).toFixed(1).replace('.', ','); });
       }, { threshold: 0.6 }).observe(num);
     }
   }
+
+  /* ------------------------------------------------------------------
+     11 · Wein-Pairing: Radar + Glas, das sich füllt
+     ------------------------------------------------------------------ */
+  function initPairing() {
+    var root = qs('[data-pairing]');
+    if (!root) return;
+    var shape = qs('[data-radar-shape]', root), dotsG = qs('[data-radar-dots]', root), title = qs('[data-radar-title]', root);
+    var info = qs('.pair-info', root), live = qs('[data-pair-live]', root), bars = qs('[data-pair-bars]', root);
+    var F = { name: qs('[data-pair-name]', root), origin: qs('[data-pair-origin]', root), why: qs('[data-pair-why]', root), price: qs('[data-pair-price]', root), temp: qs('[data-pair-temp]', root) };
+    var glass = qs('[data-glass]', root), liquid = qs('[data-liquid]', root), tilt = qs('[data-tilt]', root), wine = qs('[data-wine]', root), stream = qs('[data-stream]', root), note = qs('[data-glass-note]', root);
+    var CX = 180, CY = 170, R = 112, NS = 'http://www.w3.org/2000/svg';
+    var cur = PAIRING.vitello.vals.slice(), token = null, swapTimer = null, key = 'vitello';
+
+    function pt(i, v) { var a = -Math.PI / 2 + i * 2 * Math.PI / 6, r = R * (0.1 + 0.9 * v / 5); return [CX + r * Math.cos(a), CY + r * Math.sin(a)]; }
+    var dots = AXES.map(function () { var c = document.createElementNS(NS, 'circle'); c.setAttribute('r', '4.5'); dotsG.appendChild(c); return c; });
+    function draw(vals) {
+      var pts = vals.map(function (v, i) { return pt(i, v); });
+      shape.setAttribute('points', pts.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' '));
+      pts.forEach(function (p, i) { dots[i].setAttribute('cx', p[0].toFixed(1)); dots[i].setAttribute('cy', p[1].toFixed(1)); });
+    }
+    var barItems = AXES.map(function (ax) {
+      var li = document.createElement('li'), lab = document.createElement('span'), dd = document.createElement('span'), is = [];
+      lab.textContent = ax; dd.className = 'dots';
+      for (var i = 0; i < 5; i++) { var d = document.createElement('i'); dd.appendChild(d); is.push(d); }
+      li.appendChild(lab); li.appendChild(dd); bars.appendChild(li);
+      return is;
+    });
+    function setBars(vals) { vals.forEach(function (v, i) { barItems[i].forEach(function (d, j) { d.classList.toggle('on', j < v); }); }); }
+    function setInfo(p) {
+      F.name.textContent = p.wine; F.origin.textContent = p.origin; F.why.textContent = p.why;
+      F.price.textContent = p.price + ' €'; F.temp.textContent = p.temp + ' °C';
+      if (note) note.textContent = p.wine.split(' ')[0].replace('’', '’') + ', ' + p.temp + ' °C';
+      var desc = AXES.map(function (a, i) { return a + ' ' + p.vals[i]; }).join(', ');
+      if (title) title.textContent = 'Geschmacksprofil ' + p.wine + ': ' + desc + ' von 5';
+      return 'Zu ' + p.dish + ' empfiehlt Giulia ' + p.wine + ' (' + p.origin.split(' · ')[1] + '). Profil: ' + desc + ' von 5.';
+    }
+
+    // --- Glas
+    var level = GLASS_EMPTY, pourF = 0, ang = 0, angV = 0, angT = 0, sloshRaf = null, lastT = 0;
+    function setWine(k) {
+      var w = WINE[k];
+      root.style.setProperty('--wine', w.c);
+      if (glass) glass.classList.toggle('is-sparkling', !!w.sp);
+    }
+    function render(streamOn) {
+      liquid.setAttribute('transform', 'translate(0 ' + level.toFixed(1) + ')');
+      stream.setAttribute('height', streamOn ? Math.max(0, level + 40).toFixed(1) : '0');
+    }
+    function slosh(now) {
+      var dt = lastT ? Math.min(0.034, (now - lastT) / 1000) : 0.016; lastT = now;
+      angV += (90 * (angT - ang) - 7 * angV) * dt; ang += angV * dt; angT *= 0.9;
+      wine.setAttribute('transform', 'translate(' + (ang * 4).toFixed(2) + ' 0)');
+      tilt.setAttribute('transform', 'rotate(' + ang.toFixed(2) + ' 120 ' + (40).toFixed(0) + ')');
+      if (Math.abs(ang) + Math.abs(angV) + Math.abs(angT) > 0.02) sloshRaf = requestAnimationFrame(slosh); else { sloshRaf = null; lastT = 0; }
+    }
+    function nudge(a) { angT = clamp(angT + a, -7, 7); if (!sloshRaf && !reduced()) sloshRaf = requestAnimationFrame(slosh); }
+    setWine(key);
+
+    var scrubbed = hasGSAP && !reduced();
+    if (scrubbed) {
+      level = GLASS_EMPTY; render(false);
+      ScrollTrigger.create({
+        trigger: root, start: 'top 82%', end: 'top 22%', scrub: 0.6,
+        onUpdate: function (self) {
+          pourF = self.progress;
+          level = lerp(GLASS_EMPTY, WINE[key].lvl, easeOut(pourF));
+          render(pourF > 0.02 && pourF < 0.97);
+          nudge(clamp(self.getVelocity() * 0.0012, -2.5, 2.5));
+        }
+      });
+    } else { pourF = 1; level = WINE[key].lvl; render(false); }
+
+    draw(cur); setBars(cur);
+    qsa('input[name="gericht"]', root).forEach(function (r) {
+      r.addEventListener('change', function () {
+        if (!r.checked) return;
+        var p = PAIRING[r.value];
+        if (!p) return;
+        key = r.value;
+        if (token) token.cancelled = true;
+        var tok = token = { cancelled: false };
+        var from = cur.slice(), to = p.vals.slice();
+        if (reduced()) { cur = to; draw(cur); setBars(cur); setWine(key); level = WINE[key].lvl; render(false); live.textContent = setInfo(p); return; }
+        tween(700, easeInOut, function (t) { cur = from.map(function (v, i) { return lerp(v, to[i], t); }); draw(cur); }, function () { cur = to; }, tok);
+        setBars(to);
+        clearTimeout(swapTimer);
+        info.classList.add('is-swapping');
+        swapTimer = setTimeout(function () { live.textContent = setInfo(p); info.classList.remove('is-swapping'); }, 220);
+        // Glas: austrinken (kurz), neue Farbe, neu einschenken – mit Strahl
+        pourF = 1;
+        var l0 = level, target = WINE[key].lvl;
+        nudge(5);
+        tween(340, easeInOut, function (t) { level = lerp(l0, 214, t); render(false); }, function () {
+          setWine(key);
+          tween(760, easeOut, function (t) { level = lerp(214, target, t); render(t < 0.92); }, function () { render(false); nudge(-3); }, tok);
+        }, tok);
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     12 · Set Piece: Teig wird ausgerollt (sticky + Scrub, kein Pin)
+     ------------------------------------------------------------------ */
+  function initDough() {
+    var sec = qs('[data-dough]');
+    if (!sec || !hasGSAP || reduced()) return;
+    var surf = qs('.kb-surface', sec), mound = qs('.kb-mound', sec), ball = qs('.kb-ball', sec), sheet = qs('[data-sheet]', sec);
+    var strips = qsa('span', sheet), cuts = qsa('[data-cuts] path', sec), pin = qs('.kb-pin', sec), grain = qs('[data-grain]', sec);
+    var wheel = qs('.kb-wheel', sec), label = qs('.kb-label', sec), steps = qsa('.recipe-step', sec);
+    sec.classList.add('is-scrub');
+    var G = {};
+    function geo() {
+      var W = surf.offsetWidth, H = surf.offsetHeight, pw = pin.getBoundingClientRect().width || H * 1.06 * 96 / 520, ww = wheel.offsetWidth || W * 0.07;
+      G = { W: W, H: H, pw: pw, ww: ww, sl: W * 0.07, sr: W * 0.93, st: H * 0.12, sb: H * 0.88 };
+    }
+    geo();
+    var pinX = function (f) { return G.sl + (G.sr - G.sl) * f - G.pw / 2; };
+    var tl = gsap.timeline({ defaults: { ease: 'none' },
+      scrollTrigger: { trigger: sec, start: 'top top', end: 'bottom bottom', scrub: 0.6, invalidateOnRefresh: true, onRefreshInit: geo,
+        onUpdate: function (self) {
+          var p = self.progress, s = p < 0.1 ? 0 : p < 0.27 ? 1 : p < 0.68 ? 2 : 3;
+          steps.forEach(function (el, i) { el.classList.toggle('is-on', i === s); el.classList.toggle('is-done', i < s); });
+          var x = gsap.getProperty(pin, 'x') || 0;
+          grain.setAttribute('transform', 'translate(' + (-((x * 0.5) % 60 + 60) % 60).toFixed(1) + ' 0)');
+        } } });
+    tl.set(mound, { opacity: 1, scale: 1, transformOrigin: '50% 50%' }, 0)
+      .set(ball, { opacity: 0, scale: 0.6, x: 0, rotation: 0 }, 0)
+      .set(sheet, { clipPath: 'inset(0% 100% 0% 0% round 40px)' }, 0)
+      .set(strips, { scaleX: 1 }, 0)
+      .set(cuts, { strokeDasharray: 1, strokeDashoffset: 1 }, 0)
+      .set(pin, { x: function () { return -G.pw * 1.4; }, y: 0, opacity: 1 }, 0)
+      .set(wheel, { opacity: 0, x: 0, y: 0 }, 0)
+      .set(label, { opacity: 0, y: 10 }, 0);
+    // 1 · Mehl und Eier → Teigkugel
+    tl.to(mound, { opacity: 0, scale: 0.72, duration: 0.08 }, 0.02)
+      .to(ball, { opacity: 1, scale: 1, duration: 0.08 }, 0.03);
+    // 2 · Kneten (gedrückt, gedreht, gedrückt)
+    tl.to(ball, { scaleX: 1.22, scaleY: 0.84, rotation: 40, duration: 0.04 }, 0.11)
+      .to(ball, { scaleX: 0.9, scaleY: 1.1, rotation: 80, duration: 0.04 }, 0.15)
+      .to(ball, { scaleX: 1.16, scaleY: 0.88, rotation: 130, duration: 0.04 }, 0.19)
+      .to(ball, { scaleX: 1, scaleY: 1, rotation: 160, duration: 0.03 }, 0.23);
+    // 3 · Ausrollen: Nudelholz fährt über das Brett, die Platte wächst mit
+    tl.to(pin, { x: function () { return pinX(0); }, duration: 0.05, ease: 'power2.out' }, 0.25)
+      .to(pin, { x: function () { return pinX(1); }, duration: 0.36 }, 0.3)
+      .to(sheet, { clipPath: 'inset(0% 0% 0% 0% round 40px)', duration: 0.36 }, 0.3)
+      .to(ball, { x: function () { return G.W * 0.18; }, scaleX: 0.25, scaleY: 1.3, opacity: 0, duration: 0.14 }, 0.3)
+      .to(pin, { y: function () { return -G.H * 1.25; }, duration: 0.06, ease: 'power1.in' }, 0.67);
+    // 4 · Schneiden mit dem Teigrad
+    tl.to(wheel, { opacity: 1, duration: 0.01 }, 0.7);
+    cuts.forEach(function (c, i) {
+      var t0 = 0.7 + i * 0.03;
+      var cx = function () { return G.sl + (G.sr - G.sl) * (i + 1) / 9 - G.ww / 2; };
+      tl.set(wheel, { x: cx, y: function () { return G.st - G.ww * 0.45; } }, t0)
+        .to(wheel, { y: function () { return G.sb - G.ww * 0.45; }, duration: 0.028 }, t0)
+        .to(c, { strokeDashoffset: 0, duration: 0.028 }, t0);
+    });
+    tl.to(wheel, { opacity: 0, duration: 0.02 }, 0.95)
+      .to(strips, { scaleX: 0.84, duration: 0.03, stagger: 0.002 }, 0.95)
+      .to(label, { opacity: 1, y: 0, duration: 0.03 }, 0.97);
+  }
+
+  /* ------------------------------------------------------------------
+     13 · Set Piece: Fotoalbum blättert beim Scrollen (sticky, kein Pin)
+     ------------------------------------------------------------------ */
+  function initAlbum() {
+    var sec = qs('[data-family]');
+    if (!sec) return;
+    var leaves = qsa('.leaf', sec);
+    function verticalReveal() {
+      if (!doc.classList.contains('anim') || !('IntersectionObserver' in window)) { leaves.forEach(function (it) { it.classList.add('is-in'); }); return; }
+      var io = new IntersectionObserver(function (en) { en.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } }); }, { threshold: 0.2 });
+      leaves.forEach(function (it) { io.observe(it); });
+    }
+    if (!hasGSAP || reduced()) { verticalReveal(); return; }
+    sec.classList.add('is-book');
+    var N = leaves.length, FL = N - 1;
+    var pols = leaves.map(function (l) { return qs('.pol', l); });
+    var years = qsa('[data-years] li', sec), marker = qs('[data-marker]', sec), strip = qs('[data-years] ol', sec);
+    var lastKey = '';
+    function polIn(i, q) {
+      var el = pols[i]; if (!el) return;
+      q = clamp(q, 0, 1);
+      var e = 1 - Math.pow(1 - q, 3);
+      el.style.transform = q >= 1 ? '' : 'translate(' + ((1 - e) * 70).toFixed(1) + 'px,' + ((1 - e) * -50).toFixed(1) + 'px) rotate(' + ((1 - e) * 14).toFixed(2) + 'deg)';
+      el.style.opacity = q >= 1 ? '' : Math.min(1, q * 1.6).toFixed(3);
+    }
+    function render(p, enter) {
+      var f = clamp(p * FL, 0, FL);
+      var key = f.toFixed(3) + '|' + enter.toFixed(3);
+      if (key === lastKey) return; lastKey = key;
+      leaves.forEach(function (leaf, i) {
+        if (i >= FL) { leaf.style.zIndex = 1; return; }
+        var local = clamp(f - i, 0, 1), e = easeInOut(local);
+        leaf.style.transform = 'rotateY(' + (-180 * e).toFixed(2) + 'deg)';
+        leaf.style.zIndex = local > 0 && local < 1 ? 60 : (local >= 1 ? 10 + i : 40 - i);
+        polIn(i + 1, (local - 0.3) / 0.6);
+      });
+      polIn(0, enter);
+      var idx = Math.round(f);
+      years.forEach(function (y, i) { y.classList.toggle('is-on', i === idx); });
+      if (marker && strip) {
+        var w = strip.offsetWidth - marker.offsetWidth;
+        marker.style.transform = 'translateX(' + (w * f / FL).toFixed(1) + 'px)';
+      }
+    }
+    var enterP = 0, mainP = 0;
+    ScrollTrigger.create({ trigger: sec, start: 'top 75%', end: 'top top', scrub: 0.5, onUpdate: function (s) { enterP = s.progress; render(mainP, enterP); } });
+    ScrollTrigger.create({ trigger: sec, start: 'top top', end: 'bottom bottom', scrub: 0.6, onUpdate: function (s) { mainP = s.progress; render(mainP, enterP); }, onRefresh: function (s) { mainP = s.progress; lastKey = ''; render(mainP, enterP); } });
+    render(0, 0);
+  }
+
 
   /** Karte: auf schmalen Bildschirmen auf die Innenstadt zoomen (größere Beschriftung) */
   function initMap() {
@@ -652,7 +910,6 @@
       Promise.all([document.fonts.load('700 40px Caveat'), document.fonts.load('500 40px Caveat')]).then(ready, ready);
     } else ready();
   }
-
   /* ------------------------------------------------------------------
      10 · Speisekarte: Tabs (Pfeiltasten) + Ernährungs-/Allergenfilter
      ------------------------------------------------------------------ */
@@ -661,14 +918,18 @@
     if (!root) return;
     var tabs = qsa('[role="tab"]', root);
     var panels = qsa('[role="tabpanel"]', root);
-    var clip = qs('[data-tabclip]', root), list = qs('[data-tablist]', root);
+    var ring = qs('[data-tab-ring]', root), list = qs('[data-tablist]', root);
     var current = 0;
 
     function placeClip() {
-      if (!clip) return;
-      var t = tabs[current], W = list.offsetWidth, H = list.offsetHeight;
-      var l = t.offsetLeft, tp = t.offsetTop, w = t.offsetWidth, h = t.offsetHeight;
-      clip.style.clipPath = 'inset(' + tp + 'px ' + (W - l - w) + 'px ' + (H - tp - h) + 'px ' + l + 'px round 999px)';
+      if (!ring) return;
+      var t = tabs[current];
+      ring.style.width = (t.offsetWidth + 22) + 'px'; ring.style.height = (t.offsetHeight + 14) + 'px';
+      ring.style.transform = 'translate(' + (t.offsetLeft - 11) + 'px,' + (t.offsetTop - 7) + 'px)';
+    }
+    function drawRing() {
+      if (!ring || reduced()) return;
+      ring.classList.remove('is-drawing'); ring.getBoundingClientRect(); ring.classList.add('is-drawing');
     }
     function select(i, focus) {
       current = i;
@@ -680,7 +941,7 @@
       });
       var p = panels[i];
       p.classList.remove('is-entering'); void p.offsetWidth; p.classList.add('is-entering');
-      placeClip();
+      placeClip(); drawRing();
       if (focus) tabs[i].focus();
     }
     tabs.forEach(function (t, i) {
@@ -695,7 +956,7 @@
       });
     });
     select(0, false);
-    requestAnimationFrame(function () { placeClip(); requestAnimationFrame(function () { if (clip) clip.classList.add('is-ready'); }); });
+    requestAnimationFrame(function () { placeClip(); requestAnimationFrame(function () { if (ring) ring.classList.add('is-ready'); }); });
     if ('ResizeObserver' in window) new ResizeObserver(placeClip).observe(list);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeClip);
 
@@ -743,184 +1004,6 @@
       dietInputs[0].focus();
     });
     apply();
-  }
-
-  /* ------------------------------------------------------------------
-     11 · Wein-Pairing mit Radar (SVG)
-     ------------------------------------------------------------------ */
-  function initPairing() {
-    var root = qs('[data-pairing]');
-    if (!root) return;
-    var shape = qs('[data-radar-shape]', root), dotsG = qs('[data-radar-dots]', root), title = qs('[data-radar-title]', root);
-    var info = qs('.pair-info', root), live = qs('[data-pair-live]', root), bars = qs('[data-pair-bars]', root);
-    var F = { name: qs('[data-pair-name]', root), origin: qs('[data-pair-origin]', root), why: qs('[data-pair-why]', root), price: qs('[data-pair-price]', root), temp: qs('[data-pair-temp]', root) };
-    var CX = 180, CY = 170, R = 112, NS = 'http://www.w3.org/2000/svg';
-    var cur = PAIRING.vitello.vals.slice(), token = null, swapTimer = null;
-
-    function pt(i, v) {
-      var a = -Math.PI / 2 + i * 2 * Math.PI / 6, r = R * (0.1 + 0.9 * v / 5);
-      return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
-    }
-    var dots = AXES.map(function () { var c = document.createElementNS(NS, 'circle'); c.setAttribute('r', '4.5'); dotsG.appendChild(c); return c; });
-    function draw(vals) {
-      var pts = vals.map(function (v, i) { return pt(i, v); });
-      shape.setAttribute('points', pts.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' '));
-      pts.forEach(function (p, i) { dots[i].setAttribute('cx', p[0].toFixed(1)); dots[i].setAttribute('cy', p[1].toFixed(1)); });
-    }
-    // Balkenliste (Punkte)
-    var barItems = AXES.map(function (ax) {
-      var li = document.createElement('li');
-      var lab = document.createElement('span'); lab.textContent = ax;
-      var dd = document.createElement('span'); dd.className = 'dots';
-      var is = [];
-      for (var i = 0; i < 5; i++) { var d = document.createElement('i'); dd.appendChild(d); is.push(d); }
-      li.appendChild(lab); li.appendChild(dd); bars.appendChild(li);
-      return is;
-    });
-    function setBars(vals) { vals.forEach(function (v, i) { barItems[i].forEach(function (d, j) { d.classList.toggle('on', j < v); }); }); }
-
-    function setInfo(p) {
-      F.name.textContent = p.wine; F.origin.textContent = p.origin; F.why.textContent = p.why;
-      F.price.textContent = p.price + ' €'; F.temp.textContent = p.temp + ' °C';
-      var desc = AXES.map(function (a, i) { return a + ' ' + p.vals[i]; }).join(', ');
-      if (title) title.textContent = 'Geschmacksprofil ' + p.wine + ': ' + desc + ' von 5';
-      return 'Zu ' + p.dish + ' empfiehlt Giulia ' + p.wine + ' (' + p.origin.split(' · ')[1] + '). Profil: ' + desc + ' von 5.';
-    }
-    draw(cur); setBars(cur);
-
-    qsa('input[name="gericht"]', root).forEach(function (r) {
-      r.addEventListener('change', function () {
-        if (!r.checked) return;
-        var p = PAIRING[r.value];
-        if (!p) return;
-        if (token) token.cancelled = true;
-        var tok = token = { cancelled: false };
-        var from = cur.slice(), to = p.vals.slice();
-        if (reduced()) { cur = to; draw(cur); setBars(cur); live.textContent = setInfo(p); return; }
-        tween(700, easeInOut, function (t) { cur = from.map(function (v, i) { return lerp(v, to[i], t); }); draw(cur); }, function () { cur = to; }, tok);
-        setBars(to);
-        clearTimeout(swapTimer);
-        info.classList.add('is-swapping');
-        swapTimer = setTimeout(function () { live.textContent = setInfo(p); info.classList.remove('is-swapping'); }, 220);
-      });
-    });
-  }
-
-  /* ------------------------------------------------------------------
-     12 · Familiengeschichte: Wäscheleine mit Polaroids
-     ------------------------------------------------------------------ */
-  function initTimeline() {
-    var tl = qs('[data-tl]'), track = qs('[data-tl-track]');
-    if (!tl || !track) return;
-    var items = qsa('.tl-item', tl);
-
-    function verticalReveal() {
-      if (motionOff || !('IntersectionObserver' in window)) { items.forEach(function (it) { it.classList.add('is-in'); }); return null; }
-      var io = new IntersectionObserver(function (en) {
-        en.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } });
-      }, { threshold: 0.22, rootMargin: '0px 0px -6% 0px' });
-      items.forEach(function (it) { io.observe(it); });
-      return io;
-    }
-
-    if (!hasGSAP || reduced()) { verticalReveal(); return; }
-
-    var mm = gsap.matchMedia();
-    mm.add({ desk: '(min-width: 900px) and (min-height: 560px)', mob: '(max-width: 899px), (max-height: 559px)' }, function (c) {
-      if (c.conditions.mob) {
-        var io = verticalReveal();
-        return function () { if (io) io.disconnect(); };
-      }
-      items.forEach(function (it) { it.classList.add('is-in'); });
-      doc.classList.add('tl-h');
-      var rail = qs('.tl-rail', tl), linePath = qs('[data-tl-line] path', tl), lineSvg = qs('[data-tl-line]', tl);
-      var swings = items.map(function (it, i) { return { el: qs('.pol-swing', it), a: 0, v: 0, f: 0.8 + (i % 3) * 0.18 }; });
-
-      // Leine als Folge durchhängender Bögen; Polaroids hängen genau auf der Linie
-      function layoutLine() {
-        items.forEach(function (it) { it.style.marginTop = '0px'; });
-        var W = rail.scrollWidth, P = Math.max(520, window.innerWidth * 0.42), SAG = Math.min(56, window.innerHeight * 0.06);
-        var yOf = function (x) { var u = ((x % P) + P) % P / P; return 30 + SAG * 4 * u * (1 - u); };
-        var railLeft = rail.getBoundingClientRect().left;
-        var xs = items.map(function (it) { var pin = qs('.pol-clip', it).getBoundingClientRect(); return pin.left + pin.width / 2 - railLeft; });
-        items.forEach(function (it, i) { it.style.marginTop = (yOf(xs[i]) - 30) + 'px'; });
-        var d = 'M0 ' + yOf(0).toFixed(1);
-        for (var x = 16; x <= W; x += 16) d += 'L' + x + ' ' + yOf(x).toFixed(1);
-        linePath.setAttribute('d', d);
-        lineSvg.setAttribute('viewBox', '0 0 ' + W + ' 90');
-        lineSvg.style.width = W + 'px';
-      }
-      layoutLine();
-
-      // Die Strecke steht per CSS (position: sticky) – der Abschnitt bekommt die Höhe Bildschirm + Laufweg.
-      // Anders als ein GSAP-Pin schaltet sticky nie auf position:fixed um: keine Layout-Shifts (CLS), kein Ruckeln.
-      var section = tl.parentElement;
-      var dist = function () { return Math.max(0, track.scrollWidth - window.innerWidth); };
-      var sizeSection = function () { section.style.height = (tl.offsetHeight + dist()) + 'px'; };
-      sizeSection();
-      ScrollTrigger.addEventListener('refreshInit', sizeSection);
-      var move = gsap.to(track, {
-        x: function () { return -dist(); }, ease: 'none',
-        scrollTrigger: {
-          trigger: section, start: 'top top', end: function () { return '+=' + dist(); }, scrub: 0.6, invalidateOnRefresh: true,
-          onRefreshInit: function () { gsap.set(track, { x: 0 }); },
-          onRefresh: layoutLine,
-          onToggle: function (self) { running = self.isActive; if (running) { gsap.ticker.remove(tick); gsap.ticker.add(tick); } }
-        }
-      });
-
-      // Polaroids gleiten herein (abhängig von der horizontalen Bewegung)
-      var startVisible = [];
-      items.forEach(function (it, i) {
-        var drop = qs('.pol-drop', it), text = qs('.tl-text', it);
-        var left = it.getBoundingClientRect().left;
-        var dir = i % 2 ? 1 : -1;
-        if (left < window.innerWidth * 0.9) { startVisible.push({ drop: drop, text: text, dir: dir }); return; }
-        gsap.fromTo(drop, { yPercent: -125, rotation: 14 * dir, autoAlpha: 0 }, {
-          yPercent: 0, rotation: 0, autoAlpha: 1, ease: 'none',
-          scrollTrigger: { trigger: it, containerAnimation: move, start: 'left 102%', end: 'left 74%', scrub: 0.5 }
-        });
-        gsap.fromTo(text, { autoAlpha: 0, y: 24 }, {
-          autoAlpha: 1, y: 0, ease: 'none',
-          scrollTrigger: { trigger: it, containerAnimation: move, start: 'left 94%', end: 'left 70%', scrub: 0.5 }
-        });
-      });
-      if (startVisible.length) {
-        var intro = gsap.timeline({ scrollTrigger: { trigger: section, start: 'top 82%', end: 'top 12%', scrub: 0.6 } });
-        startVisible.forEach(function (s, i) {
-          intro.fromTo(s.drop, { yPercent: -125, rotation: 14 * s.dir, autoAlpha: 0 }, { yPercent: 0, rotation: 0, autoAlpha: 1, ease: 'power2.out', duration: 1 }, i * 0.25);
-          intro.fromTo(s.text, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.8 }, i * 0.25 + 0.3);
-        });
-      }
-
-      // Pendeln: Feder, angetrieben von der Geschwindigkeit der Leine
-      var running = false, lastX = 0, lastT = 0;
-      function tick(time, deltaMs) {
-        var dt = Math.min(0.05, (deltaMs || 16) / 1000);
-        var x = gsap.getProperty(track, 'x') || 0;
-        var vx = (x - lastX) / dt; lastX = x;
-        var target = clamp(vx * 0.0065, -11, 11);
-        var still = true;
-        swings.forEach(function (s) {
-          var acc = -55 * (s.a - target * s.f) - 6.5 * s.v;
-          s.v += acc * dt; s.a += s.v * dt;
-          if (Math.abs(s.a) > 0.02 || Math.abs(s.v) > 0.02) still = false;
-          s.el.style.transform = 'rotate(' + s.a.toFixed(2) + 'deg)';
-        });
-        if (!running && still) gsap.ticker.remove(tick);
-        lastT = time;
-      }
-
-      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
-      return function () {
-        doc.classList.remove('tl-h');
-        ScrollTrigger.removeEventListener('refreshInit', sizeSection);
-        section.style.height = '';
-        gsap.ticker.remove(tick);
-        items.forEach(function (it) { it.style.marginTop = ''; });
-        swings.forEach(function (s) { s.el.style.transform = ''; });
-      };
-    });
   }
 
   /* ------------------------------------------------------------------
@@ -1179,9 +1262,8 @@
 
     renderCal(); renderSlots(); setPersons(persons.value);
   }
-
   /* ------------------------------------------------------------------
-     14 · Start
+     16 · Start in Etappen
      ------------------------------------------------------------------ */
   function start() {
     window.__rosaReady = true;
@@ -1190,28 +1272,21 @@
     safe('header', initHeader);
     safe('status', initStatus);
     safe('hero', initHero);
-    safe('reveals', initReveals);
-    // Danach je Modul ein eigener Task, damit der Main-Thread zwischendurch frei wird (Eingaben, Hero-Auftakt)
-    var queue = [['map', initMap], ['offer', initOffer], ['board', initBoard], ['menu', initMenu], ['pairing', initPairing], ['timeline', initTimeline], ['reservation', initReservation]];
+    // Danach je Modul ein eigener Task, damit der Main-Thread zwischendurch frei wird
+    var queue = [['reveals', initReveals], ['magnet', initMagnet], ['map', initMap], ['offer', initOffer], ['dough', initDough], ['board', initBoard], ['menu', initMenu], ['pairing', initPairing], ['album', initAlbum], ['reservation', initReservation]];
     var yieldTask = function (fn) {
-      if (window.scheduler && typeof window.scheduler.postTask === 'function') window.scheduler.postTask(fn, { priority: 'user-visible' });
-      else setTimeout(fn, 0);
+      if (window.scheduler && typeof window.scheduler.postTask === 'function') window.scheduler.postTask(fn, { priority: 'background' });
+      else setTimeout(fn, 16);
     };
     (function next() {
       var job = queue.shift();
-      if (!job) return;
+      if (!job) {
+        if (hasGSAP) { ScrollTrigger.refresh(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); }); }
+        return;
+      }
       safe(job[0], job[1]);
       yieldTask(next);
     })();
-
-    var reveal = function () {
-      requestAnimationFrame(function () { requestAnimationFrame(function () { doc.classList.remove('is-loading'); }); });
-      if (hasGSAP) setTimeout(function () { ScrollTrigger.refresh(); }, 300);
-    };
-    if (reduced()) { reveal(); return; }
-    var fired = false, go = function () { if (!fired) { fired = true; reveal(); } };
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(go);
-    setTimeout(go, 900);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);

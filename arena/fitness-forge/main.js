@@ -1721,18 +1721,27 @@
       cur.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0)';
       raf = (Math.abs(x - tx) > 0.3 || Math.abs(y - ty) > 0.3) ? requestAnimationFrame(loop) : 0;
     }
-    document.addEventListener('pointermove', function (e) {
-      if (e.pointerType && e.pointerType !== 'mouse') return;
-      var t = e.target, label = '';
-      if (!shown) { x = e.clientX; y = e.clientY; }
-      tx = e.clientX; ty = e.clientY;
+    var seen = false, sRaf = 0;
+    function pick(t) {
+      var label = '';
       if (t && t.closest && !t.closest('input, select, textarea, .form, dialog')) {
         for (var i = 0; i < LABELS.length; i++) if (t.closest(LABELS[i][0])) { label = LABELS[i][1]; break; }
       }
       if (label && label !== tag.textContent) tag.textContent = label;
       if (!!label !== !!shown) cur.classList.toggle('is-on', !!label);
       shown = label;
+    }
+    document.addEventListener('pointermove', function (e) {
+      if (e.pointerType && e.pointerType !== 'mouse') return;
+      if (!shown) { x = e.clientX; y = e.clientY; }
+      tx = e.clientX; ty = e.clientY; seen = true;
+      pick(e.target);
       if (!raf) raf = requestAnimationFrame(loop);
+    }, { passive: true });
+    /* Beim Scrollen wandert der Inhalt unter dem ruhenden Zeiger: Etikett neu bestimmen (max. einmal pro Frame) */
+    window.addEventListener('scroll', function () {
+      if (!seen || sRaf) return;
+      sRaf = requestAnimationFrame(function () { sRaf = 0; pick(document.elementFromPoint(tx, ty)); });
     }, { passive: true });
     document.addEventListener('pointerleave', function () { cur.classList.remove('is-on'); shown = ''; });
   }

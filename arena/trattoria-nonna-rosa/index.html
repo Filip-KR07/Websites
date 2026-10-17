@@ -14,22 +14,19 @@
   <meta property="og:site_name" content="Trattoria Nonna Rosa">
   <meta property="og:title" content="Trattoria Nonna Rosa – Pasta, die heute Morgen noch Mehl war">
   <meta property="og:description" content="Familien-Trattoria in Stuttgart-Mitte: täglich frische Pasta, Sugo mit Zeit und Weine von Familienweingütern. (Demo, fiktiver Betrieb)">
-  <link rel="preload" href="/arena/trattoria-nonna-rosa/assets/fonts/playfair-display-latin-wght-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/arena/trattoria-nonna-rosa/assets/fonts/playfair-display-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/arena/trattoria-nonna-rosa/assets/fonts/karla-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/arena/trattoria-nonna-rosa/assets/img/plate-a-508.webp" as="image" type="image/webp" imagesrcset="/arena/trattoria-nonna-rosa/assets/img/plate-a-254.webp 254w, /arena/trattoria-nonna-rosa/assets/img/plate-a-508.webp 508w" imagesizes="(min-width: 900px) 30vw, 64vw" fetchpriority="high">
   <link rel="stylesheet" href="/arena/trattoria-nonna-rosa/style.css">
   <script>
     (function () {
       var d = document.documentElement, q = location.search;
-      d.classList.add('js', 'is-loading');
+      d.classList.add('js');
       if (/[?&]motion=off\b/.test(q)) d.classList.add('motion-off');
       else if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('reduced');
-      // Hero-Auftakt startet, sobald die vorgeladenen Schriften da sind – unabhängig von main.js
-      // (GSAP/Lenis werden später geparst; so bremst JS den ersten Eindruck nicht aus).
-      var go = function () { if (go.done) return; go.done = 1; requestAnimationFrame(function () { requestAnimationFrame(function () { d.classList.remove('is-loading'); }); }); };
-      if (document.fonts && document.fonts.load) Promise.all([document.fonts.load('italic 500 1em "Playfair Display"'), document.fonts.load('400 1em Karla')]).then(go, go);
-      setTimeout(go, 700);
-      // Sicherheitsnetz: Falls main.js nicht startet, alles sichtbar machen.
-      setTimeout(function () { if (!window.__rosaReady) d.classList.remove('js', 'is-loading'); }, 4000);
+      else d.classList.add('anim');
+      // Sicherheitsnetz: Falls main.js nicht startet, alle Ausgangszustände aufheben.
+      setTimeout(function () { if (!window.__rosaReady) d.classList.remove('js', 'anim'); }, 4000);
     })();
   </script>
   <script src="/arena/trattoria-nonna-rosa/assets/vendor/gsap.min.js" defer></script>
@@ -90,33 +87,38 @@
 <body>
   <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
 
-  <!-- SVG-Sprite: Illustrationen (Riso-Stil: Farbfläche leicht versetzt zur Tuschelinie) und Icons -->
+  <!-- SVG-Sprite: Illustrationen im Riso-Stil (Farbfläche leicht versetzt zur Tuschelinie) und Icons -->
   <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <path id="lf" d="M0 0C12-9 34-10 48 0 34 10 12 9 0 0z"/>
       <path id="lfv" d="M5 0h36"/>
+      <filter id="grit" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="2" seed="4" result="n"/>
+        <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.6 1.75" result="m"/>
+        <feComposite in="SourceGraphic" in2="m" operator="in"/>
+      </filter>
     </defs>
     <symbol id="i-tomato" viewBox="0 0 120 120">
-      <path class="ill-fill" fill="#C8321E" transform="translate(4 4)" d="M60 34c24 0 44 14 44 38 0 24-19 40-44 40S16 96 16 72c0-24 20-38 44-38z"/>
-      <path class="ill-ink" fill="none" stroke="#23241C" stroke-width="2.6" stroke-linecap="round" d="M53 35C33 37 16 51 16 72c0 23 19 40 44 40s44-16 44-40c0-20-14-34-35-37"/>
-      <path class="ill-ink" fill="none" stroke="#23241C" stroke-width="1.5" stroke-linecap="round" opacity=".5" d="M45 41c-8 10-10 26-6 40M79 41c7 11 9 25 5 38"/>
+      <path fill="#C8321E" transform="translate(4 4)" d="M60 34c24 0 44 14 44 38 0 24-19 40-44 40S16 96 16 72c0-24 20-38 44-38z"/>
+      <path fill="none" stroke="#23241C" stroke-width="2.6" stroke-linecap="round" d="M53 35C33 37 16 51 16 72c0 23 19 40 44 40s44-16 44-40c0-20-14-34-35-37"/>
+      <path fill="none" stroke="#23241C" stroke-width="1.5" stroke-linecap="round" opacity=".5" d="M45 41c-8 10-10 26-6 40M79 41c7 11 9 25 5 38"/>
       <path fill="none" stroke="#FAF6EE" stroke-width="3.4" stroke-linecap="round" d="M29 63c2-8 8-14 15-17"/>
-      <path class="ill-fill" fill="#3E6B3A" transform="translate(3 3)" d="M61 37 45 31l12-3-7-12 12 8 5-13 3 13 12-6-7 11 13 4-14 3z"/>
-      <path class="ill-ink" fill="none" stroke="#23241C" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round" d="M61 37 45 31l12-3-7-12 12 8 5-13 3 13 12-6-7 11 13 4-14 3zM64 27c0-8 3-13 9-16"/>
+      <path fill="#3E6B3A" transform="translate(3 3)" d="M61 37 45 31l12-3-7-12 12 8 5-13 3 13 12-6-7 11 13 4-14 3z"/>
+      <path fill="none" stroke="#23241C" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round" d="M61 37 45 31l12-3-7-12 12 8 5-13 3 13 12-6-7 11 13 4-14 3zM64 27c0-8 3-13 9-16"/>
+    </symbol>
+    <symbol id="i-basil" viewBox="0 0 90 90">
+      <path fill="#3E6B3A" transform="translate(4 3)" d="M10 80C10 40 40 10 82 8c-2 42-30 72-72 72z"/>
+      <path fill="none" stroke="#23241C" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" d="M10 80C10 40 40 10 82 8c-2 42-30 72-72 72zM10 80C32 58 52 36 76 14M30 58l-2-16M44 44l-1-17M58 32l-1-12M30 58l17 1M44 44l17 0M58 32l14-1"/>
     </symbol>
     <symbol id="i-olive" viewBox="0 0 240 100">
-      <g class="ill-fill" fill="#3E6B3A" transform="translate(3 3)">
-        <use href="#lf" transform="translate(28 74) rotate(-38)"/>
-        <use href="#lf" transform="translate(44 72) rotate(26)"/>
-        <use href="#lf" transform="translate(84 63) rotate(-52)"/>
-        <use href="#lf" transform="translate(100 59) rotate(18)"/>
-        <use href="#lf" transform="translate(134 49) rotate(-56)"/>
-        <use href="#lf" transform="translate(152 42) rotate(12)"/>
-        <use href="#lf" transform="translate(190 27) rotate(-42)"/>
-        <use href="#lf" transform="translate(204 21) rotate(6)"/>
+      <g fill="#3E6B3A" transform="translate(3 3)">
+        <use href="#lf" transform="translate(28 74) rotate(-38)"/><use href="#lf" transform="translate(44 72) rotate(26)"/>
+        <use href="#lf" transform="translate(84 63) rotate(-52)"/><use href="#lf" transform="translate(100 59) rotate(18)"/>
+        <use href="#lf" transform="translate(134 49) rotate(-56)"/><use href="#lf" transform="translate(152 42) rotate(12)"/>
+        <use href="#lf" transform="translate(190 27) rotate(-42)"/><use href="#lf" transform="translate(204 21) rotate(6)"/>
       </g>
-      <path class="ill-ink" fill="none" stroke="#23241C" stroke-width="2.4" stroke-linecap="round" d="M6 80C60 71 110 59 160 41s56-26 72-30"/>
-      <g class="ill-ink" fill="none" stroke="#23241C" stroke-width="1.9" stroke-linejoin="round">
+      <path fill="none" stroke="#23241C" stroke-width="2.4" stroke-linecap="round" d="M6 80C60 71 110 59 160 41s56-26 72-30"/>
+      <g fill="none" stroke="#23241C" stroke-width="1.9" stroke-linejoin="round">
         <use href="#lf" transform="translate(28 74) rotate(-38)"/><use href="#lfv" transform="translate(28 74) rotate(-38)"/>
         <use href="#lf" transform="translate(44 72) rotate(26)"/><use href="#lfv" transform="translate(44 72) rotate(26)"/>
         <use href="#lf" transform="translate(84 63) rotate(-52)"/><use href="#lfv" transform="translate(84 63) rotate(-52)"/>
@@ -126,28 +128,17 @@
         <use href="#lf" transform="translate(190 27) rotate(-42)"/><use href="#lfv" transform="translate(190 27) rotate(-42)"/>
         <use href="#lf" transform="translate(204 21) rotate(6)"/><use href="#lfv" transform="translate(204 21) rotate(6)"/>
       </g>
-      <path class="ill-ink" fill="none" stroke="#23241C" stroke-width="1.6" d="M66 70l-2 9M120 56l2 10M176 36l-1 9"/>
       <ellipse cx="62" cy="89" rx="7.5" ry="9.5" fill="#23241C" transform="rotate(-16 62 89)"/>
       <ellipse cx="123" cy="76" rx="7.5" ry="9.5" fill="#556B2F" stroke="#23241C" stroke-width="1.8" transform="rotate(12 123 76)"/>
       <ellipse cx="174" cy="55" rx="7" ry="9" fill="#23241C" transform="rotate(-8 174 55)"/>
-      <path fill="none" stroke="#FAF6EE" stroke-width="1.8" stroke-linecap="round" d="M59 85c1-2 2-3 4-4M120 72c1-2 2-3 4-3M171 51c1-2 2-3 4-3"/>
-    </symbol>
-    <symbol id="i-basil" viewBox="0 0 90 90">
-      <path class="ill-fill" fill="#3E6B3A" transform="translate(4 3)" d="M10 80C10 40 40 10 82 8c-2 42-30 72-72 72z"/>
-      <path class="ill-ink" fill="none" stroke="#23241C" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" d="M10 80C10 40 40 10 82 8c-2 42-30 72-72 72zM10 80C32 58 52 36 76 14M30 58l-2-16M44 44l-1-17M58 32l-1-12M30 58l17 1M44 44l17 0M58 32l14-1"/>
-    </symbol>
-    <symbol id="i-glass" viewBox="0 0 100 160">
-      <path class="ill-fill" fill="#F2D54B" transform="translate(4 3)" d="M23 42h54c0 24-10 38-27 38S23 66 23 42z"/>
-      <path class="ill-ink" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M21 10h58c4 40-6 70-29 72C26 80 17 50 21 10zM50 82v54M27 142c10-7 36-7 46 0M23 42h54"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".5" d="M30 22c-1 10 0 20 3 28"/>
     </symbol>
     <symbol id="i-clothespin" viewBox="0 0 22 56">
       <rect x="3" y="1.5" width="16" height="53" rx="3" fill="currentColor" stroke="#23241C" stroke-width="1.6"/>
       <path d="M11 3v50" stroke="#23241C" stroke-width="1.2"/>
-      <circle cx="11" cy="21" r="4.6" fill="none" stroke="#23241C" stroke-width="1.6"/>
     </symbol>
+    <symbol id="i-squiggle" viewBox="0 0 120 12"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M2 7c9-6 15 4 24-1s14-5 23 0 15 5 24 0 14-5 23 0 13 4 22-1"/></symbol>
     <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M5.5 3.5h3.2l1.8 4.6-2.3 1.4a11 11 0 0 0 6.3 6.3l1.4-2.3 4.6 1.8v3.2a2 2 0 0 1-2.1 2A16.5 16.5 0 0 1 3.5 5.6a2 2 0 0 1 2-2.1z"/></symbol>
-    <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15M13.5 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5c5-.6 10-.4 15-.4M13.5 6.2c2 2.2 4 4 6 5.9-2.1 1.8-4 3.7-6 6"/></symbol>
     <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.6l2.8 6 6.5.7-4.8 4.5 1.3 6.4L12 17l-5.8 3.2 1.3-6.4L2.7 9.3l6.5-.7z"/></symbol>
     <symbol id="i-leaf" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="M5 19C5 10 11 4.5 20 4c0 9-5.5 15-15 15zM5 19l8.5-8.5"/></symbol>
     <symbol id="i-chev-l" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M14.5 6l-6 6 6 6"/></symbol>
@@ -157,7 +148,6 @@
     <symbol id="i-close" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M12 7.5V12l3 2"/></symbol>
-    <symbol id="i-pin" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
     <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
     <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M3.5 7l8.5 6.5L20.5 7"/></symbol>
   </svg>
@@ -165,23 +155,23 @@
   <div class="progress" aria-hidden="true"><span data-progress></span></div>
 
   <header class="site-header" data-header>
-    <div class="wrap header-inner">
+    <div class="header-inner">
       <a class="brand" href="#top" aria-label="Trattoria Nonna Rosa – zum Seitenanfang">
         <svg class="brand-mark" aria-hidden="true"><use href="#i-tomato"/></svg>
-        <span class="brand-text"><span class="brand-small">Trattoria</span><span class="brand-name">Nonna Rosa</span></span>
+        <span class="brand-name">Nonna Rosa</span>
       </a>
       <nav class="main-nav" aria-label="Hauptnavigation">
         <ul>
-          <li><a href="#tagesgericht">Pasta des Tages</a></li>
-          <li><a href="#karte">Speisekarte</a></li>
-          <li><a href="#wein">Wein</a></li>
-          <li><a href="#familie">Familie</a></li>
-          <li><a href="#anfahrt">Anfahrt</a></li>
+          <li><a href="#tagesgericht" data-roll="Pasta des Tages"><span>Pasta des Tages</span></a></li>
+          <li><a href="#karte" data-roll="Speisekarte"><span>Speisekarte</span></a></li>
+          <li><a href="#wein" data-roll="Wein"><span>Wein</span></a></li>
+          <li><a href="#familie" data-roll="Familie"><span>Familie</span></a></li>
+          <li><a href="#anfahrt" data-roll="Anfahrt"><span>Anfahrt</span></a></li>
         </ul>
       </nav>
       <div class="header-actions">
         <a class="header-phone" href="tel:+497115554620"><svg class="ico" aria-hidden="true"><use href="#i-phone"/></svg><span>0711&nbsp;555&nbsp;46&nbsp;20</span></a>
-        <a class="btn btn-primary btn-sm" href="#reservieren">Reservieren</a>
+        <a class="btn btn-primary btn-sm" href="#reservieren" data-magnet>Reservieren</a>
         <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-open>
           <span class="menu-toggle-lines" aria-hidden="true"><span></span><span></span></span>
           <span class="sr-only">Menü öffnen</span>
@@ -215,132 +205,211 @@
   </div>
 
   <main id="inhalt">
-    <!-- ============ HERO ============ -->
+    <!-- ============ HERO: der gedeckte Tisch, von oben ============ -->
     <section class="hero" id="top" aria-labelledby="hero-title">
-      <div class="wrap hero-grid">
-        <div class="hero-copy">
-          <p class="hero-eyebrow" data-hero-fade style="--i:0">
-            <span class="status" data-status><span class="status-dot" aria-hidden="true"></span><span data-status-text>Di–Sa 12–14:30 &amp; 17:30–22:30&nbsp;Uhr · So 12–21&nbsp;Uhr</span></span>
-            <span class="hero-place">Stuttgart-Mitte · seit 1987</span>
-          </p>
-          <h1 class="hero-title" id="hero-title">
-            <span class="line"><span class="line-in" style="--i:0">Pasta, die</span></span>
-            <span class="line"><span class="line-in" style="--i:1"><em>heute Morgen</em></span></span>
-            <span class="line"><span class="line-in" style="--i:2">noch Mehl war.</span></span>
-          </h1>
-          <p class="hero-lead" data-hero-fade style="--i:1">Marco Esposito rollt den Teig jeden Tag ab sieben Uhr von Hand aus – nach dem Rezeptheft seiner Großmutter Rosa. Mittags und abends landet er auf Ihrem Teller, mit einem Ragù, das seit gestern zieht.</p>
-          <div class="hero-cta" data-hero-fade style="--i:2">
-            <a class="btn btn-primary btn-lg" href="#reservieren">Tisch reservieren<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-            <a class="btn btn-ghost btn-lg" href="#karte">Zur Speisekarte</a>
-          </div>
-          <ul class="hero-trust" data-hero-fade style="--i:3">
-            <li><span class="stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span><span><strong>4,8</strong> aus 640&nbsp;Bewertungen</span></li>
-            <li><span><strong>6 Pastasorten</strong>, täglich frisch</span></li>
-            <li><span>Familie Esposito, <strong>3 Generationen</strong></span></li>
-          </ul>
+      <div class="table" data-table>
+        <div class="cloth" aria-hidden="true"><span class="runner"></span><span class="flour"></span></div>
+
+        <!-- Wein-Ring auf der Decke -->
+        <svg class="stain" viewBox="0 0 200 200" aria-hidden="true"><path d="M100 22c44 0 78 34 78 76 0 46-36 80-80 80-40 0-74-32-76-74" /><path d="M32 72c10-26 34-46 64-50" /></svg>
+
+        <!-- Nudelholz (Illustration, zeichnet sich) -->
+        <div class="obj obj--pin" data-depth="0.55" aria-hidden="true">
+          <svg class="ill" viewBox="0 0 520 96">
+            <g class="fill"><path fill="#F2D54B" d="M74 18h372c8 0 13 6 13 13v32c0 7-5 13-13 13H74c-8 0-13-6-13-13V31c0-7 5-13 13-13z" transform="translate(5 5)"/><path fill="#E2C232" d="M8 36c0-6 5-9 12-9h41v40H20c-7 0-12-3-12-9zM459 27h41c7 0 12 3 12 9v22c0 6-5 9-12 9h-41z" transform="translate(5 5)"/></g>
+            <path class="ink" pathLength="1" d="M74 18h372c8 0 13 6 13 13v32c0 7-5 13-13 13H74c-8 0-13-6-13-13V31c0-7 5-13 13-13z"/>
+            <path class="ink" pathLength="1" d="M61 29H20c-7 0-12 3-12 9v18c0 6 5 9 12 9h41M459 29h41c7 0 12 3 12 9v18c0 6-5 9-12 9h-41"/>
+            <path class="ink ink--thin" pathLength="1" d="M96 34c60-6 122 5 182-1s112-6 150 1M110 55c52 4 112-4 172 2s96 4 136-2M300 44c8-5 18-5 26 0-8 5-18 5-26 0"/>
+          </svg>
         </div>
 
-        <div class="hero-art" data-hero-art>
-          <div class="napkin" data-par="0.35" aria-hidden="true"></div>
-          <div class="arch-outline" data-par="0.7" aria-hidden="true"></div>
-          <figure class="arch" data-par="0.5">
-            <img src="/arena/trattoria-nonna-rosa/assets/img/bogen-520.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/bogen-300.webp 300w, /arena/trattoria-nonna-rosa/assets/img/bogen-520.webp 520w" sizes="(min-width: 900px) 360px, 62vw" width="520" height="640" fetchpriority="high" decoding="async" alt="Hände mit Mehl ziehen frisch geschnittene Tagliatelle aus der Nudelmaschine">
-          </figure>
-          <div class="plate-wrap" data-par="1">
-            <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
-              <defs><path id="ring-path" d="M100 100m-84 0a84 84 0 1 1 168 0a84 84 0 1 1-168 0"/></defs>
-              <g class="ring-spin"><text><textPath href="#ring-path" textLength="522" lengthAdjust="spacing">PASTA FRESCA · FATTA A MANO · OGNI MATTINA ·</textPath></text></g>
-            </svg>
-            <figure class="plate">
-              <img src="/arena/trattoria-nonna-rosa/assets/img/teller-570.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/teller-285.webp 285w, /arena/trattoria-nonna-rosa/assets/img/teller-570.webp 570w" sizes="(min-width: 900px) 220px, 36vw" width="570" height="570" decoding="async" alt="Teller mit Pappardelle, Pilzen und Salbei">
-            </figure>
+        <!-- Teller Pappardelle, angeschnitten am Tischrand -->
+        <div class="obj obj--plate2" data-depth="0.8">
+          <span class="obj-sh" aria-hidden="true"></span>
+          <img class="obj-img" src="/arena/trattoria-nonna-rosa/assets/img/plate-p-746.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/plate-p-373.webp 373w, /arena/trattoria-nonna-rosa/assets/img/plate-p-746.webp 746w" sizes="(min-width: 900px) 34vw, 70vw" width="746" height="700" decoding="async" alt="Teller mit Pappardelle, Pilzen und Salbei, von oben">
+        </div>
+
+        <!-- Hauptteller -->
+        <div class="obj obj--plate" data-depth="1">
+          <span class="obj-sh" aria-hidden="true"></span>
+          <img class="obj-img" src="/arena/trattoria-nonna-rosa/assets/img/plate-a-508.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/plate-a-254.webp 254w, /arena/trattoria-nonna-rosa/assets/img/plate-a-508.webp 508w" sizes="(min-width: 900px) 30vw, 64vw" width="508" height="508" fetchpriority="high" decoding="async" alt="Teller Spaghetti mit Burrata, Schinken und Kräutern, von oben fotografiert">
+        </div>
+
+        <!-- Besteck -->
+        <div class="obj obj--cutlery" data-depth="0.7" aria-hidden="true">
+          <svg class="ill" viewBox="0 0 120 310">
+            <g class="fill"><path fill="#E4DCCB" transform="translate(4 4)" d="M10 6V62c0 18 10 26 16 30l1 32c-4 26-6 106-4 166 1 7 13 7 14 0 2-60 0-140-4-166l1-32c6-4 16-12 16-30V6z"/><path fill="#E4DCCB" transform="translate(4 4)" d="M88 8c12-2 20 22 20 62l-2 58c2 12 2 22 1 32-1 50-1 90-2 128-1 8-13 8-14 0-1-38-2-78-3-128-1-10-1-22 0-32z"/></g>
+            <path class="ink" pathLength="1" d="M10 6V62c0 18 10 26 16 30l1 32c-4 26-6 106-4 166 1 7 13 7 14 0 2-60 0-140-4-166l1-32c6-4 16-12 16-30V6M20.5 6v52M30 6v54M39.5 6v52"/>
+            <path class="ink" pathLength="1" d="M88 8c12-2 20 22 20 62l-2 58c2 12 2 22 1 32-1 50-1 90-2 128-1 8-13 8-14 0-1-38-2-78-3-128-1-10-1-22 0-32zM92 22c4 30 4 70 2 104"/>
+          </svg>
+        </div>
+
+        <!-- Weinglas von oben -->
+        <div class="obj obj--glass" data-depth="1.5" aria-hidden="true">
+          <span class="obj-sh obj-sh--glass"></span>
+          <svg class="ill" viewBox="0 0 200 200">
+            <defs><radialGradient id="wineTop" cx="42%" cy="40%" r="62%"><stop offset="0" stop-color="#9B1B2A"/><stop offset=".7" stop-color="#6A0F1C"/><stop offset="1" stop-color="#4A0A14"/></radialGradient></defs>
+            <circle cx="100" cy="100" r="86" fill="rgba(255,253,248,.35)"/>
+            <circle class="fill-c" cx="100" cy="100" r="56" fill="url(#wineTop)"/>
+            <path class="ink ink--thin" pathLength="1" d="M100 14c48 0 86 38 86 86s-38 86-86 86-86-38-86-86 38-86 86-86z"/>
+            <path class="ink" pathLength="1" d="M100 38c35 0 62 27 62 62s-27 62-62 62-62-27-62-62 27-62 62-62z"/>
+            <path fill="none" stroke="#FFFDF8" stroke-width="5" stroke-linecap="round" opacity=".75" d="M64 74c10-16 28-26 46-26"/>
+          </svg>
+        </div>
+
+        <!-- Basilikum-Zweig -->
+        <div class="obj obj--basil" data-depth="1.1" data-repel aria-hidden="true">
+          <svg class="ill" viewBox="0 0 220 200">
+            <g class="fill" fill="#3E6B3A">
+              <path transform="translate(104 92) rotate(-58) translate(3 3)" d="M0 0C14-17 46-19 66 0 46 19 14 17 0 0z"/>
+              <path transform="translate(100 104) rotate(28) translate(3 3)" d="M0 0C14-17 46-19 66 0 46 19 14 17 0 0z"/>
+              <path transform="translate(70 128) rotate(-104) translate(3 3)" d="M0 0C12-14 38-16 54 0 38 16 12 14 0 0z"/>
+              <path transform="translate(66 138) rotate(150) translate(3 3)" d="M0 0C12-14 38-16 54 0 38 16 12 14 0 0z"/>
+              <path transform="translate(118 66) rotate(-12) translate(3 3)" d="M0 0C10-12 30-13 44 0 30 13 10 12 0 0z"/>
+            </g>
+            <path class="ink" pathLength="1" d="M30 186c18-30 40-62 70-90 18-16 30-26 48-36"/>
+            <g class="ink-g">
+              <path class="ink" pathLength="1" transform="translate(104 92) rotate(-58)" d="M0 0C14-17 46-19 66 0 46 19 14 17 0 0zM4 0h56"/>
+              <path class="ink" pathLength="1" transform="translate(100 104) rotate(28)" d="M0 0C14-17 46-19 66 0 46 19 14 17 0 0zM4 0h56"/>
+              <path class="ink" pathLength="1" transform="translate(70 128) rotate(-104)" d="M0 0C12-14 38-16 54 0 38 16 12 14 0 0zM4 0h44"/>
+              <path class="ink" pathLength="1" transform="translate(66 138) rotate(150)" d="M0 0C12-14 38-16 54 0 38 16 12 14 0 0zM4 0h44"/>
+              <path class="ink" pathLength="1" transform="translate(118 66) rotate(-12)" d="M0 0C10-12 30-13 44 0 30 13 10 12 0 0zM4 0h34"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Tomaten -->
+        <div class="obj obj--tomatoes" data-depth="1.25" data-repel aria-hidden="true">
+          <svg class="ill ill--use" viewBox="0 0 260 200">
+            <use href="#i-tomato" x="0" y="40" width="130" height="130"/>
+            <use href="#i-tomato" x="96" y="70" width="120" height="120" transform="rotate(18 156 130)"/>
+            <use href="#i-tomato" x="130" y="0" width="110" height="110" transform="rotate(-24 185 55)"/>
+          </svg>
+        </div>
+
+        <!-- Speisekarte mit der Hauptaussage -->
+        <div class="card" data-depth="0.35">
+          <span class="card-sh" aria-hidden="true"></span>
+          <div class="card-paper">
+            <p class="card-head"><span>Trattoria</span><span class="status" data-status><span class="status-dot" aria-hidden="true"></span><span data-status-text>Di–Sa 12–14:30 &amp; 17:30–22:30&nbsp;Uhr · So 12–21&nbsp;Uhr</span></span></p>
+            <h1 class="hero-title" id="hero-title">Pasta, die heute Morgen noch Mehl war.</h1>
+            <p class="hand-note hand-note--h1" aria-hidden="true"><svg viewBox="0 0 60 40"><path d="M56 6C40 4 20 10 10 30M4 22l6 9 10-5"/></svg>Semola aus Apulien!</p>
+            <p class="hero-lead">Marco Esposito rollt den Teig jeden Tag ab sieben Uhr von Hand aus – nach dem Rezeptheft seiner Großmutter Rosa. Mittags und abends landet er auf Ihrem Teller, mit einem Ragù, das seit gestern zieht.</p>
+            <div class="card-actions">
+              <a class="btn btn-primary btn-lg" href="#reservieren" data-magnet>Tisch reservieren<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+              <a class="hand-link" href="#karte">oder erst die Karte lesen</a>
+            </div>
+            <div class="stamp" aria-hidden="true">
+              <svg viewBox="0 0 200 200">
+                <defs><path id="stamp-ring" d="M100 100m-74 0a74 74 0 1 1 148 0a74 74 0 1 1-148 0"/></defs>
+                <g filter="url(#grit)">
+                  <circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" stroke-width="4"/>
+                  <circle cx="100" cy="100" r="60" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                  <text class="stamp-ring"><textPath href="#stamp-ring" textLength="462" lengthAdjust="spacing">FAMILIE ESPOSITO · SEIT 1987 · 640 STIMMEN ·</textPath></text>
+                  <text class="stamp-num" x="100" y="108" text-anchor="middle">4,8</text>
+                  <text class="stamp-sub" x="100" y="136" text-anchor="middle">★★★★★</text>
+                </g>
+              </svg>
+            </div>
+            <p class="sr-only">4,8 von 5 Sternen aus 640 Bewertungen. Familie Esposito, drei Generationen, seit 1987 in Stuttgart-Mitte.</p>
           </div>
-          <svg class="ill ill-tomato" data-par="1.4" aria-hidden="true" style="--delay:.95s"><use href="#i-tomato"/></svg>
-          <svg class="ill ill-olive" data-par="1.15" aria-hidden="true" style="--delay:1.07s"><use href="#i-olive"/></svg>
-          <svg class="ill ill-basil" data-par="0.9" aria-hidden="true" style="--delay:1.19s"><use href="#i-basil"/></svg>
-          <a class="hero-note" href="#tagesgericht" data-par="0.8">
-            <span class="hero-note-k">heute an der Tafel:</span>
-            <span class="hero-note-dish" data-hero-dish>Pappardelle al ragù bianco</span>
-            <svg class="hero-note-arrow" viewBox="0 0 120 80" aria-hidden="true"><path pathLength="1" d="M8 10c30 2 62 14 78 40 4 7 6 14 7 22M80 60l13 13 9-17"/></svg>
+        <!-- Nonnas Zettel -->
+          <a class="slip" href="#tagesgericht">
+            <span class="slip-tape" aria-hidden="true"></span>
+            <span class="slip-k" data-slip-k>heute an der Tafel:</span>
+            <span class="slip-dish" data-hero-dish>Pappardelle al ragù bianco</span>
+            <svg class="slip-arrow" viewBox="0 0 120 80" aria-hidden="true"><path pathLength="1" d="M10 12c30 0 60 10 74 34 4 8 6 15 6 22M78 58l12 12 10-16"/></svg>
           </a>
+        </div>
+
+
+      </div>
+    </section>
+
+    <!-- ============ SET PIECE 1: Teig wird ausgerollt ============ -->
+    <section class="dough" id="pasta" aria-labelledby="dough-title" data-dough>
+      <div class="dough-stage">
+        <div class="dough-copy">
+          <h2 class="h2 dough-title" id="dough-title">Ab sieben Uhr wird gerollt.</h2>
+          <p class="dough-lead">Sechs Sorten am Tag, alle aus demselben Teig. Rosas Rezept passt auf eine Karteikarte:</p>
+          <ol class="recipe" data-recipe>
+            <li class="recipe-step"><span class="recipe-no" aria-hidden="true">1</span><span class="recipe-t">Ein Ei auf hundert Gramm Mehl. Nicht mehr, nicht weniger.</span></li>
+            <li class="recipe-step"><span class="recipe-no" aria-hidden="true">2</span><span class="recipe-t">Kneten, bis der Teig glänzt – zehn Minuten.</span></li>
+            <li class="recipe-step"><span class="recipe-no" aria-hidden="true">3</span><span class="recipe-t">Ausrollen, bis man die Hand durchsieht.</span></li>
+            <li class="recipe-step"><span class="recipe-no" aria-hidden="true">4</span><span class="recipe-t">Schneiden: Tagliatelle, sieben Millimeter.</span></li>
+          </ol>
+        </div>
+        <div class="kb" aria-hidden="true">
+          <div class="kb-surface">
+            <svg class="kb-mound" viewBox="0 0 300 200"><ellipse cx="150" cy="108" rx="138" ry="84" fill="#FFFDF8"/><ellipse cx="150" cy="108" rx="138" ry="84" fill="none" stroke="#23241C" stroke-width="2" stroke-dasharray="3 7" opacity=".35"/><ellipse cx="150" cy="104" rx="62" ry="40" fill="#F2E8D2" stroke="#23241C" stroke-width="2"/><circle cx="138" cy="102" r="20" fill="#F2B632" stroke="#23241C" stroke-width="2"/><circle cx="166" cy="110" r="17" fill="#F2B632" stroke="#23241C" stroke-width="2"/><path d="M130 94c3-4 7-6 11-6" stroke="#FFFDF8" stroke-width="3" stroke-linecap="round" fill="none"/></svg>
+            <div class="kb-ball"></div>
+            <div class="kb-sheet" data-sheet>
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <svg class="kb-cuts" viewBox="0 0 900 400" preserveAspectRatio="none" data-cuts>
+              <path pathLength="1" d="M100 0V400"/><path pathLength="1" d="M200 0V400"/><path pathLength="1" d="M300 0V400"/><path pathLength="1" d="M400 0V400"/><path pathLength="1" d="M500 0V400"/><path pathLength="1" d="M600 0V400"/><path pathLength="1" d="M700 0V400"/><path pathLength="1" d="M800 0V400"/>
+            </svg>
+            <svg class="kb-pin" viewBox="0 0 96 520">
+              <path fill="#E2C232" d="M28 8h40v60H28zM28 452h40v60H28z" transform="translate(4 4)"/>
+              <path fill="#F2D54B" d="M18 64h60v392H18z" transform="translate(4 4)"/>
+              
+              <defs><clipPath id="pin-body"><path d="M18 64h60v392H18z"/></clipPath></defs><g clip-path="url(#pin-body)"><g class="kb-grain" data-grain fill="none" stroke="#23241C" stroke-width="1.5" stroke-linecap="round" opacity=".55"><path d="M34 64c-4 60 6 120 0 180s-6 120 2 212M58 64c6 70-6 130 0 190s8 120-2 202M46 140c-5 8-5 18 0 26 5-8 5-18 0-26z"/><path d="M94 64c-4 60 6 120 0 180s-6 120 2 212M118 64c6 70-6 130 0 190s8 120-2 202M106 300c-5 8-5 18 0 26 5-8 5-18 0-26z"/></g></g><path fill="none" stroke="#23241C" stroke-width="2.6" stroke-linejoin="round" d="M30 8h36c4 0 6 3 6 7v49H24V15c0-4 2-7 6-7zM24 456h48v49c0 4-2 7-6 7H30c-4 0-6-3-6-7zM18 64h60v392H18z"/>
+            </svg>
+            <svg class="kb-wheel" viewBox="0 0 80 160"><path fill="none" stroke="#23241C" stroke-width="2.4" stroke-linecap="round" d="M40 50V150"/><rect x="33" y="96" width="14" height="60" rx="6" fill="#C8321E" stroke="#23241C" stroke-width="2.2"/><circle cx="40" cy="34" r="28" fill="#E4DCCB" stroke="#23241C" stroke-width="2.4"/><circle cx="40" cy="34" r="5" fill="#23241C"/><path d="M40 8v52M14 34h52" stroke="#23241C" stroke-width="1.2" opacity=".4"/></svg>
+            <p class="kb-label">Tagliatelle</p>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- ============ LAUFBAND ============ -->
-    <div class="marquee" data-marquee>
-      <p class="sr-only">Aus der Küche: Tagliatelle al ragù, Cacio e pepe, Tortelli di zucca, Spaghetti alle vongole, Saltimbocca, Tiramisù della Nonna.</p>
-      <div class="marquee-track" aria-hidden="true">
-        <div class="marquee-group">
-          <span>Tagliatelle al ragù</span><svg><use href="#i-tomato"/></svg>
-          <span>Cacio e pepe</span><svg><use href="#i-basil"/></svg>
-          <span>Tortelli di zucca</span><svg><use href="#i-tomato"/></svg>
-          <span>Spaghetti alle vongole</span><svg><use href="#i-basil"/></svg>
-          <span>Saltimbocca</span><svg><use href="#i-tomato"/></svg>
-          <span>Tiramisù della Nonna</span><svg><use href="#i-basil"/></svg>
-        </div>
-        <div class="marquee-group">
-          <span>Tagliatelle al ragù</span><svg><use href="#i-tomato"/></svg>
-          <span>Cacio e pepe</span><svg><use href="#i-basil"/></svg>
-          <span>Tortelli di zucca</span><svg><use href="#i-tomato"/></svg>
-          <span>Spaghetti alle vongole</span><svg><use href="#i-basil"/></svg>
-          <span>Saltimbocca</span><svg><use href="#i-tomato"/></svg>
-          <span>Tiramisù della Nonna</span><svg><use href="#i-basil"/></svg>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============ ANGEBOT ============ -->
+    <!-- ============ ANGEBOT: Index mit Vorschau ============ -->
     <section class="section offer" id="angebot" aria-labelledby="offer-title">
       <div class="wrap">
-        <header class="sec-head sec-head--split">
-          <div>
-            <p class="kicker" data-reveal>la casa</p>
-            <h2 class="h2" id="offer-title" data-reveal>Was bei uns <em>auf den Tisch</em> kommt</h2>
-          </div>
-          <p class="sec-lead" data-reveal>Eine kleine Karte, die jeden Tag frisch gekocht wird: keine Fertigsoßen, keine Pasta aus dem Tiefkühler. Was ausverkauft ist, ist aus – dafür steht morgen etwas Neues an der Tafel.</p>
+        <header class="offer-head">
+          <h2 class="h2 offer-title" id="offer-title" data-reveal>Was bei uns auf den Tisch kommt</h2>
+          <p class="offer-lead" data-reveal>Eine kleine Karte, die jeden Tag frisch gekocht wird: keine Fertigsoßen, keine Pasta aus dem Tiefkühler. Was ausverkauft ist, ist aus – dafür steht morgen etwas Neues an der Tafel.</p>
         </header>
         <ol class="offer-list" data-offer>
           <li class="offer-row" data-reveal data-img="pastateig">
-            <span class="offer-no" aria-hidden="true">01</span>
+            <span class="offer-no" aria-hidden="true">1</span>
             <div class="offer-main">
-              <h3 class="offer-name">Pasta fresca, <em>jeden Morgen</em></h3>
+              <h3 class="offer-name">Pasta fresca, jeden Morgen</h3>
               <p class="offer-text">Hartweizengrieß aus Apulien, Eier vom Hof Bühler im Remstal, ein Nudelholz so lang wie der Tisch. Sechs Sorten von Tagliatelle bis Tortelli – und eine, die nur an der Tafel steht.</p>
             </div>
             <p class="offer-meta">ab 7&nbsp;Uhr in der Küche</p>
             <img class="offer-thumb" src="/arena/trattoria-nonna-rosa/assets/img/pastateig-480.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/pastateig-480.webp 480w, /arena/trattoria-nonna-rosa/assets/img/pastateig-960.webp 960w" sizes="(min-width: 900px) 320px, 30vw" width="480" height="320" loading="lazy" decoding="async" alt="Frische Tagliatelle werden von Hand aus der Maschine gezogen">
           </li>
           <li class="offer-row" data-reveal data-img="kochtopf">
-            <span class="offer-no" aria-hidden="true">02</span>
+            <span class="offer-no" aria-hidden="true">2</span>
             <div class="offer-main">
-              <h3 class="offer-name">Mittagstisch, <em>Di–Sa</em></h3>
+              <h3 class="offer-name">Mittagstisch, Di–Sa</h3>
               <p class="offer-text">Die Pasta des Tages mit kleinem Salat und Espresso für 14,50&nbsp;€. Nach spätestens 25&nbsp;Minuten steht sie vor Ihnen – auch wenn die Mittagspause kurz ist.</p>
             </div>
             <p class="offer-meta">12–14:30&nbsp;Uhr</p>
             <img class="offer-thumb" src="/arena/trattoria-nonna-rosa/assets/img/kochtopf-480.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/kochtopf-480.webp 480w, /arena/trattoria-nonna-rosa/assets/img/kochtopf-960.webp 960w" sizes="(min-width: 900px) 320px, 30vw" width="480" height="320" loading="lazy" decoding="async" alt="Spaghetti werden in einen Topf mit kochendem Wasser gegeben">
           </li>
           <li class="offer-row" data-reveal data-img="forno">
-            <span class="offer-no" aria-hidden="true">03</span>
+            <span class="offer-no" aria-hidden="true">3</span>
             <div class="offer-main">
-              <h3 class="offer-name">Abends <em>à la carte</em></h3>
+              <h3 class="offer-name">Abends à la carte</h3>
               <p class="offer-text">Antipasti zum Teilen, Secondi aus dem Holzofen, Tiramisù nach Rosas Rezept. Dazu 32&nbsp;Weine von Familienweingütern, neun davon im offenen Ausschank.</p>
             </div>
             <p class="offer-meta">17:30–22:30&nbsp;Uhr</p>
             <img class="offer-thumb" src="/arena/trattoria-nonna-rosa/assets/img/forno-480.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/forno-480.webp 480w, /arena/trattoria-nonna-rosa/assets/img/forno-960.webp 960w" sizes="(min-width: 900px) 320px, 30vw" width="480" height="320" loading="lazy" decoding="async" alt="Fladenbrot auf der Schaufel vor dem brennenden Holzofen">
           </li>
           <li class="offer-row" data-reveal data-img="kerzen">
-            <span class="offer-no" aria-hidden="true">04</span>
+            <span class="offer-no" aria-hidden="true">4</span>
             <div class="offer-main">
-              <h3 class="offer-name">La Cantina <em>für Feiern</em></h3>
+              <h3 class="offer-name">La Cantina für Feiern</h3>
               <p class="offer-text">Unser Gewölbekeller für 12 bis 24 Gäste: Geburtstage, Taufen, Firmenessen. Menüs ab 42&nbsp;€ pro Person, die Weinbegleitung stellt Giulia passend zusammen.</p>
             </div>
             <p class="offer-meta">auf Anfrage</p>
             <img class="offer-thumb" src="/arena/trattoria-nonna-rosa/assets/img/kerzen-480.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/kerzen-480.webp 480w, /arena/trattoria-nonna-rosa/assets/img/kerzen-960.webp 960w" sizes="(min-width: 900px) 320px, 30vw" width="480" height="320" loading="lazy" decoding="async" alt="Zwei Kerzen, eine Flasche Rotwein und zwei gefüllte Gläser auf einem Tisch">
           </li>
           <li class="offer-row" data-reveal data-img="tagliolini">
-            <span class="offer-no" aria-hidden="true">05</span>
+            <span class="offer-no" aria-hidden="true">5</span>
             <div class="offer-main">
-              <h3 class="offer-name">Pasta &amp; Sugo <em>zum Mitnehmen</em></h3>
+              <h3 class="offer-name">Pasta &amp; Sugo zum Mitnehmen</h3>
               <p class="offer-text">Frische Pasta roh, 500&nbsp;g ab 7,50&nbsp;€, Ragù im Glas für 9,50&nbsp;€. Bis 11&nbsp;Uhr telefonisch bestellen, ab 16&nbsp;Uhr abholen – Kochzeit steht auf dem Etikett.</p>
             </div>
             <p class="offer-meta">mit Vorbestellung</p>
@@ -355,19 +424,18 @@
     <section class="section daily" id="tagesgericht" aria-labelledby="daily-title">
       <div class="wrap daily-grid">
         <div class="daily-copy">
-          <p class="kicker kicker--light" data-reveal>pasta del giorno</p>
-          <h2 class="h2" id="daily-title" data-reveal>Was heute <em>an der Tafel</em> steht</h2>
+          <h2 class="h2" id="daily-title" data-reveal>Was heute an der Tafel steht</h2>
           <p class="daily-text" data-reveal>Jeden Morgen schreibt Marco die Pasta des Tages an die Tafel neben der Küchentür – meistens mit dem, was am Vortag auf dem Großmarkt am besten aussah. Mittags gibt es sie als Menü mit kleinem Salat und Espresso für 14,50&nbsp;€.</p>
           <fieldset class="days" data-reveal data-days>
-            <legend>Wochenplan ansehen</legend>
+            <legend>Wochenplan</legend>
             <div class="days-row">
               <span class="day day--off" aria-hidden="true"><span class="day-k">Mo</span><span class="day-s">Ruhetag</span></span>
-              <label class="day"><input type="radio" name="tafel-tag" value="2" checked><span class="day-k">Di</span><span class="day-s" data-day-sub>Pappardelle</span></label>
-              <label class="day"><input type="radio" name="tafel-tag" value="3"><span class="day-k">Mi</span><span class="day-s" data-day-sub>Tortelli</span></label>
-              <label class="day"><input type="radio" name="tafel-tag" value="4"><span class="day-k">Do</span><span class="day-s" data-day-sub>Tagliolini</span></label>
-              <label class="day"><input type="radio" name="tafel-tag" value="5"><span class="day-k">Fr</span><span class="day-s" data-day-sub>Linguine</span></label>
-              <label class="day"><input type="radio" name="tafel-tag" value="6"><span class="day-k">Sa</span><span class="day-s" data-day-sub>Lasagne</span></label>
-              <label class="day"><input type="radio" name="tafel-tag" value="0"><span class="day-k">So</span><span class="day-s" data-day-sub>Gnocchi</span></label>
+              <label class="day"><input type="radio" name="tafel-tag" value="2" checked><span class="day-k">Di</span><span class="day-s">Pappardelle</span><svg class="day-ring" viewBox="0 0 100 60" aria-hidden="true"><path pathLength="1" d="M60 6C30 2 6 14 6 30s22 26 46 26 44-10 44-26S74 6 46 8"/></svg></label>
+              <label class="day"><input type="radio" name="tafel-tag" value="3"><span class="day-k">Mi</span><span class="day-s">Tortelli</span><svg class="day-ring" viewBox="0 0 100 60" aria-hidden="true"><path pathLength="1" d="M60 6C30 2 6 14 6 30s22 26 46 26 44-10 44-26S74 6 46 8"/></svg></label>
+              <label class="day"><input type="radio" name="tafel-tag" value="4"><span class="day-k">Do</span><span class="day-s">Tagliolini</span><svg class="day-ring" viewBox="0 0 100 60" aria-hidden="true"><path pathLength="1" d="M60 6C30 2 6 14 6 30s22 26 46 26 44-10 44-26S74 6 46 8"/></svg></label>
+              <label class="day"><input type="radio" name="tafel-tag" value="5"><span class="day-k">Fr</span><span class="day-s">Linguine</span><svg class="day-ring" viewBox="0 0 100 60" aria-hidden="true"><path pathLength="1" d="M60 6C30 2 6 14 6 30s22 26 46 26 44-10 44-26S74 6 46 8"/></svg></label>
+              <label class="day"><input type="radio" name="tafel-tag" value="6"><span class="day-k">Sa</span><span class="day-s">Lasagne</span><svg class="day-ring" viewBox="0 0 100 60" aria-hidden="true"><path pathLength="1" d="M60 6C30 2 6 14 6 30s22 26 46 26 44-10 44-26S74 6 46 8"/></svg></label>
+              <label class="day"><input type="radio" name="tafel-tag" value="0"><span class="day-k">So</span><span class="day-s">Gnocchi</span><svg class="day-ring" viewBox="0 0 100 60" aria-hidden="true"><path pathLength="1" d="M60 6C30 2 6 14 6 30s22 26 46 26 44-10 44-26S74 6 46 8"/></svg></label>
             </div>
           </fieldset>
           <p class="daily-note" data-reveal>Allergene und Zutaten erklärt Ihnen der Service gern – die Tafel hat nur Platz für das Wichtigste.</p>
@@ -419,25 +487,23 @@
             </svg>
             <canvas class="board-dust" aria-hidden="true" data-board-dust></canvas>
           </div>
-          <figure class="daily-plate">
-            <img src="/arena/trattoria-nonna-rosa/assets/img/sugo-480.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/sugo-480.webp 480w, /arena/trattoria-nonna-rosa/assets/img/sugo-960.webp 960w" sizes="(min-width: 900px) 240px, 34vw" width="480" height="320" loading="lazy" decoding="async" alt="Pfanne mit Tomaten, Paprika, Zwiebeln und Penne, daneben frisches Basilikum">
-          </figure>
+          <p class="board-chalk-note" aria-hidden="true">← jeden Tag neu</p>
         </div>
       </div>
     </section>
 
     <!-- ============ SPEISEKARTE ============ -->
     <section class="section menu" id="karte" aria-labelledby="menu-title">
-      <div class="gingham-edge" aria-hidden="true"></div>
       <div class="wrap">
-        <header class="sec-head sec-head--carte">
-          <p class="kicker" data-reveal>la carta</p>
-          <h2 class="h2" id="menu-title" data-reveal>Die <em>Speisekarte</em></h2>
-          <span class="carte-rule" data-reveal aria-hidden="true"><svg><use href="#i-basil"/></svg></span>
-          <p class="sec-lead" data-reveal>Preise in Euro inklusive Mehrwertsteuer. Allergene stehen als Buchstaben nach der Lebensmittelinformationsverordnung am Gericht – filtern Sie, was Sie nicht essen möchten.</p>
-        </header>
+        <div class="menu-sheet" data-menu>
+          <header class="menu-head">
+            <p class="menu-house" aria-hidden="true">Trattoria Nonna Rosa · Stuttgart</p>
+            <h2 class="menu-title" id="menu-title" data-reveal>La Carta</h2>
+            <p class="menu-sub">Die Speisekarte</p>
+            <span class="menu-rule" aria-hidden="true"><svg><use href="#i-basil"/></svg></span>
+            <p class="menu-lead">Preise in Euro inklusive Mehrwertsteuer. Allergene stehen als Buchstaben nach der Lebensmittelinformationsverordnung am Gericht – filtern Sie, was Sie nicht essen möchten.</p>
+          </header>
 
-        <div class="menu-card" data-reveal data-menu>
           <div class="menu-filter js-only" data-menu-filter>
             <fieldset class="seg">
               <legend class="filter-legend">Ernährung</legend>
@@ -465,18 +531,12 @@
 
           <div class="tabs js-only" data-tabs>
             <div class="tablist" role="tablist" aria-label="Kategorien der Speisekarte" data-tablist>
-              <button class="tab" type="button" role="tab" id="tab-antipasti" aria-controls="panel-antipasti" aria-selected="true">Antipasti<span class="tab-count" data-count="antipasti">7</span></button>
-              <button class="tab" type="button" role="tab" id="tab-primi" aria-controls="panel-primi" aria-selected="false" tabindex="-1">Primi<span class="tab-count" data-count="primi">8</span></button>
-              <button class="tab" type="button" role="tab" id="tab-secondi" aria-controls="panel-secondi" aria-selected="false" tabindex="-1">Secondi<span class="tab-count" data-count="secondi">5</span></button>
-              <button class="tab" type="button" role="tab" id="tab-dolci" aria-controls="panel-dolci" aria-selected="false" tabindex="-1">Dolci<span class="tab-count" data-count="dolci">6</span></button>
-              <button class="tab" type="button" role="tab" id="tab-vini" aria-controls="panel-vini" aria-selected="false" tabindex="-1">Vini<span class="tab-count" data-count="vini">10</span></button>
-            </div>
-            <div class="tablist tablist--clip" aria-hidden="true" data-tabclip>
-              <span class="tab">Antipasti<span class="tab-count" data-count="antipasti">7</span></span>
-              <span class="tab">Primi<span class="tab-count" data-count="primi">8</span></span>
-              <span class="tab">Secondi<span class="tab-count" data-count="secondi">5</span></span>
-              <span class="tab">Dolci<span class="tab-count" data-count="dolci">6</span></span>
-              <span class="tab">Vini<span class="tab-count" data-count="vini">10</span></span>
+              <button class="tab" type="button" role="tab" id="tab-antipasti" aria-controls="panel-antipasti" aria-selected="true">Antipasti<sup class="tab-count" data-count="antipasti">7</sup></button>
+              <button class="tab" type="button" role="tab" id="tab-primi" aria-controls="panel-primi" aria-selected="false" tabindex="-1">Primi<sup class="tab-count" data-count="primi">8</sup></button>
+              <button class="tab" type="button" role="tab" id="tab-secondi" aria-controls="panel-secondi" aria-selected="false" tabindex="-1">Secondi<sup class="tab-count" data-count="secondi">5</sup></button>
+              <button class="tab" type="button" role="tab" id="tab-dolci" aria-controls="panel-dolci" aria-selected="false" tabindex="-1">Dolci<sup class="tab-count" data-count="dolci">6</sup></button>
+              <button class="tab" type="button" role="tab" id="tab-vini" aria-controls="panel-vini" aria-selected="false" tabindex="-1">Vini<sup class="tab-count" data-count="vini">10</sup></button>
+              <svg class="tab-ring" viewBox="0 0 160 70" preserveAspectRatio="none" aria-hidden="true" data-tab-ring><path pathLength="1" d="M98 8C52 2 8 16 8 36s34 28 76 28 70-12 70-30S120 6 70 9"/></svg>
             </div>
           </div>
 
@@ -690,67 +750,88 @@
       </div>
     </section>
 
-    <!-- ============ WEIN-PAIRING ============ -->
+    <!-- ============ SET PIECE 3: WEIN-PAIRING, das Glas füllt sich ============ -->
     <section class="section pairing" id="wein" aria-labelledby="pair-title">
       <div class="wrap">
-        <header class="sec-head sec-head--split">
-          <div>
-            <p class="kicker kicker--lemon" data-reveal>abbinamento</p>
-            <h2 class="h2" id="pair-title" data-reveal>Welcher Wein <em>zu Ihrem Gericht?</em></h2>
-          </div>
-          <p class="sec-lead" data-reveal>Giulia Esposito hat zu jedem Gericht einen Wein aus unserer Karte ausgesucht. Wählen Sie ein Gericht – das Geschmacksprofil zeigt, warum die beiden zusammenpassen.</p>
+        <header class="pair-head">
+          <h2 class="h2" id="pair-title" data-reveal>Welcher Wein zu Ihrem Gericht?</h2>
+          <p class="pair-lead" data-reveal>Giulia Esposito hat zu jedem Gericht einen Wein aus unserer Karte ausgesucht. Wählen Sie ein Gericht – das Geschmacksprofil zeigt, warum die beiden zusammenpassen.</p>
         </header>
 
         <div class="pair-grid js-only" data-pairing>
-          <fieldset class="pair-dishes" data-reveal>
-            <legend class="pair-legend">1&nbsp;· Gericht wählen</legend>
-            <label class="pair-opt"><input type="radio" name="gericht" value="vitello" checked><span class="pair-course">Antipasto</span><span class="pair-name">Vitello tonnato</span></label>
-            <label class="pair-opt"><input type="radio" name="gericht" value="vongole"><span class="pair-course">Primo</span><span class="pair-name">Spaghetti alle vongole</span></label>
-            <label class="pair-opt"><input type="radio" name="gericht" value="cacio"><span class="pair-course">Primo</span><span class="pair-name">Cacio e pepe</span></label>
-            <label class="pair-opt"><input type="radio" name="gericht" value="tortelli"><span class="pair-course">Primo</span><span class="pair-name">Tortelli di zucca</span></label>
-            <label class="pair-opt"><input type="radio" name="gericht" value="ragu"><span class="pair-course">Primo</span><span class="pair-name">Tagliatelle al ragù</span></label>
-            <label class="pair-opt"><input type="radio" name="gericht" value="saltimbocca"><span class="pair-course">Secondo</span><span class="pair-name">Saltimbocca alla romana</span></label>
-            <label class="pair-opt"><input type="radio" name="gericht" value="tiramisu"><span class="pair-course">Dolce</span><span class="pair-name">Tiramisù della Nonna</span></label>
+          <fieldset class="pair-dishes">
+            <legend class="pair-legend">Ihr Gericht</legend>
+            <div class="pair-rail">
+              <label class="pair-opt"><input type="radio" name="gericht" value="vitello" checked><span class="pair-course">Antipasto</span><span class="pair-name">Vitello tonnato</span></label>
+              <label class="pair-opt"><input type="radio" name="gericht" value="vongole"><span class="pair-course">Primo</span><span class="pair-name">Spaghetti alle vongole</span></label>
+              <label class="pair-opt"><input type="radio" name="gericht" value="cacio"><span class="pair-course">Primo</span><span class="pair-name">Cacio e pepe</span></label>
+              <label class="pair-opt"><input type="radio" name="gericht" value="tortelli"><span class="pair-course">Primo</span><span class="pair-name">Tortelli di zucca</span></label>
+              <label class="pair-opt"><input type="radio" name="gericht" value="ragu"><span class="pair-course">Primo</span><span class="pair-name">Tagliatelle al ragù</span></label>
+              <label class="pair-opt"><input type="radio" name="gericht" value="saltimbocca"><span class="pair-course">Secondo</span><span class="pair-name">Saltimbocca alla romana</span></label>
+              <label class="pair-opt"><input type="radio" name="gericht" value="tiramisu"><span class="pair-course">Dolce</span><span class="pair-name">Tiramisù della Nonna</span></label>
+            </div>
           </fieldset>
 
-          <div class="pair-card" data-reveal>
-            <p class="pair-legend">2&nbsp;· Giulias Empfehlung</p>
-            <div class="pair-card-grid">
-              <div class="pair-radar">
-                <svg class="radar" viewBox="0 0 360 330" role="img" aria-labelledby="radar-title" data-radar>
-                  <title id="radar-title" data-radar-title>Geschmacksprofil Vermentino di Gallura: Frucht 3, Säure 4, Tannin 0, Körper 2, Süße 1, Mineralik 5 von 5</title>
-                  <g class="radar-grid">
-                    <polygon points="180.0,138.6 207.2,154.3 207.2,185.7 180.0,201.4 152.8,185.7 152.8,154.3"/>
-                    <polygon points="180.0,118.5 224.6,144.2 224.6,195.8 180.0,221.5 135.4,195.8 135.4,144.2"/>
-                    <polygon points="180.0,98.3 242.1,134.2 242.1,205.8 180.0,241.7 117.9,205.8 117.9,134.2"/>
-                    <polygon points="180.0,78.2 259.5,124.1 259.5,215.9 180.0,261.8 100.5,215.9 100.5,124.1"/>
-                    <polygon class="radar-outer" points="180.0,58.0 277.0,114.0 277.0,226.0 180.0,282.0 83.0,226.0 83.0,114.0"/>
-                    <path d="M180 170V58M180 170l97-56M180 170l97 56M180 170v112M180 170l-97 56M180 170l-97-56"/>
+          <div class="pair-glass" aria-hidden="true" data-glass>
+            <svg viewBox="0 0 240 430">
+              <defs>
+                <clipPath id="bowl-in"><path d="M55 44C47 122 53 198 120 228 187 198 193 122 185 44z"/></clipPath>
+              </defs>
+              <rect class="glass-stream" x="117.5" y="-40" width="5" height="0" rx="2.5" data-stream/>
+              <g clip-path="url(#bowl-in)">
+                <g class="glass-liquid" data-liquid>
+                  <g class="glass-tilt" data-tilt>
+                    <path class="glass-wine" data-wine d="M-60 0c20-7 40-7 60 0s40 7 60 0 40-7 60 0 40 7 60 0 40-7 60 0 40 7 60 0V260H-60z"/>
+                    <g class="glass-bubbles" data-bubbles><circle cx="96" cy="60" r="2.4"/><circle cx="128" cy="90" r="1.8"/><circle cx="112" cy="40" r="2"/><circle cx="140" cy="54" r="1.6"/></g>
                   </g>
-                  <g class="radar-labels">
-                    <text x="180" y="40" text-anchor="middle">Frucht</text>
-                    <text x="290" y="104" text-anchor="start">Säure</text>
-                    <text x="290" y="244" text-anchor="start">Tannin</text>
-                    <text x="180" y="308" text-anchor="middle">Körper</text>
-                    <text x="70" y="244" text-anchor="end">Süße</text>
-                    <text x="70" y="104" text-anchor="end">Mineralik</text>
-                  </g>
-                  <polygon class="radar-shape" points="180.0,98.3 259.5,124.1 189.7,175.6 180.0,221.5 152.8,185.7 83.0,114.0" data-radar-shape/>
-                  <g class="radar-dots" data-radar-dots></g>
-                </svg>
-              </div>
-              <div class="pair-info">
-                <svg class="pair-glass" aria-hidden="true"><use href="#i-glass"/></svg>
-                <h3 class="pair-wine" data-pair-name>Vermentino di Gallura</h3>
-                <p class="pair-origin" data-pair-origin>DOCG · Sardinien · Rebsorte Vermentino</p>
-                <p class="pair-why" data-pair-why>Salzige Mineralik und frische Säure halten die cremige Thunfischsauce leicht. Ohne Tannin – das würde mit dem Fisch metallisch schmecken.</p>
-                <dl class="pair-facts">
-                  <div><dt>Glas 0,1&nbsp;l</dt><dd data-pair-price>7,50&nbsp;€</dd></div>
-                  <div><dt>Trinktemperatur</dt><dd data-pair-temp>8–10&nbsp;°C</dd></div>
-                </dl>
-                <ul class="pair-bars" data-pair-bars aria-hidden="true"></ul>
-              </div>
+                </g>
+              </g>
+              <g class="glass-ink" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path pathLength="1" d="M52 40C44 122 50 200 120 232 190 200 196 122 188 40"/>
+                <ellipse cx="120" cy="40" rx="68" ry="9"/>
+                <path pathLength="1" d="M120 232V376"/>
+                <path pathLength="1" d="M58 386c10-10 34-14 62-14s52 4 62 14c-10 8-34 12-62 12s-52-4-62-12z"/>
+              </g>
+              <path class="glass-hi" d="M70 72c-4 46 2 94 26 124" fill="none" stroke-linecap="round"/>
+            </svg>
+            <p class="glass-note" data-glass-note>Vermentino, 8–10&nbsp;°C</p>
+          </div>
+
+          <div class="pair-card">
+            <p class="pair-legend">Giulias Empfehlung</p>
+            <div class="pair-info">
+              <h3 class="pair-wine" data-pair-name>Vermentino di Gallura</h3>
+              <p class="pair-origin" data-pair-origin>DOCG · Sardinien · Rebsorte Vermentino</p>
+              <p class="pair-why" data-pair-why>Salzige Mineralik und frische Säure halten die cremige Thunfischsauce leicht. Ohne Tannin – das würde mit dem Fisch metallisch schmecken.</p>
+              <dl class="pair-facts">
+                <div><dt>Glas 0,1&nbsp;l</dt><dd data-pair-price>7,50&nbsp;€</dd></div>
+                <div><dt>Trinktemperatur</dt><dd data-pair-temp>8–10&nbsp;°C</dd></div>
+              </dl>
             </div>
+            <div class="pair-radar">
+              <svg class="radar" viewBox="0 0 360 330" role="img" aria-labelledby="radar-title" data-radar>
+                <title id="radar-title" data-radar-title>Geschmacksprofil Vermentino di Gallura: Frucht 3, Säure 4, Tannin 0, Körper 2, Süße 1, Mineralik 5 von 5</title>
+                <g class="radar-grid">
+                  <polygon points="180.0,138.6 207.2,154.3 207.2,185.7 180.0,201.4 152.8,185.7 152.8,154.3"/>
+                  <polygon points="180.0,118.5 224.6,144.2 224.6,195.8 180.0,221.5 135.4,195.8 135.4,144.2"/>
+                  <polygon points="180.0,98.3 242.1,134.2 242.1,205.8 180.0,241.7 117.9,205.8 117.9,134.2"/>
+                  <polygon points="180.0,78.2 259.5,124.1 259.5,215.9 180.0,261.8 100.5,215.9 100.5,124.1"/>
+                  <polygon class="radar-outer" points="180.0,58.0 277.0,114.0 277.0,226.0 180.0,282.0 83.0,226.0 83.0,114.0"/>
+                  <path d="M180 170V58M180 170l97-56M180 170l97 56M180 170v112M180 170l-97 56M180 170l-97-56"/>
+                </g>
+                <g class="radar-labels">
+                  <text x="180" y="40" text-anchor="middle">Frucht</text>
+                  <text x="290" y="104" text-anchor="start">Säure</text>
+                  <text x="290" y="244" text-anchor="start">Tannin</text>
+                  <text x="180" y="308" text-anchor="middle">Körper</text>
+                  <text x="70" y="244" text-anchor="end">Süße</text>
+                  <text x="70" y="104" text-anchor="end">Mineralik</text>
+                </g>
+                <polygon class="radar-shape" points="180.0,98.3 259.5,124.1 189.7,175.6 180.0,221.5 152.8,185.7 83.0,114.0" data-radar-shape/>
+                <g class="radar-dots" data-radar-dots></g>
+              </svg>
+            </div>
+            <ul class="pair-bars" data-pair-bars aria-hidden="true"></ul>
             <p class="sr-only" aria-live="polite" data-pair-live></p>
           </div>
         </div>
@@ -767,22 +848,24 @@
       </div>
     </section>
 
-    <!-- ============ FAMILIENGESCHICHTE (WÄSCHELEINE) ============ -->
-    <section class="section family" id="familie" aria-labelledby="family-title">
-      <div class="tl" data-tl>
-        <div class="tl-track" data-tl-track>
-          <div class="tl-intro">
-            <p class="kicker" data-reveal>la famiglia</p>
-            <h2 class="h2" id="family-title" data-reveal>Von Neapel in die <em>Hauptstätter Straße</em></h2>
-            <p class="tl-lead" data-reveal>Ein Rezeptheft, zwei Koffer und drei Generationen am Nudelholz. Die Geschichte der Familie Esposito – so, wie sie bei uns an der Wäscheleine im Flur hängt.</p>
-            <p class="tl-hint" aria-hidden="true"><span>weiterscrollen</span><svg class="ico"><use href="#i-arrow"/></svg></p>
+    <!-- ============ SET PIECE 2: FAMILIENGESCHICHTE als Fotoalbum, das beim Scrollen blättert ============ -->
+    <section class="family" id="familie" aria-labelledby="family-title" data-family>
+      <div class="album-stage">
+        <header class="album-head">
+          <h2 class="h2" id="family-title" data-reveal>Von Neapel in die Hauptstätter Straße</h2>
+          <p class="album-lead" data-reveal>Ein Rezeptheft, zwei Koffer und drei Generationen am Nudelholz. Die Geschichte der Familie Esposito – so, wie sie in Rosas Fotoalbum klebt.</p>
+        </header>
+        <div class="album" data-album>
+          <div class="album-left" aria-hidden="true">
+            <p class="album-dedic">Per i miei nipoti –<br>damit ihr wisst, woher der Teig kommt.</p>
+            <p class="album-sign">Rosa</p>
+            <svg class="album-doodle"><use href="#i-olive"/></svg>
           </div>
-          <div class="tl-rail">
-            <svg class="tl-line" aria-hidden="true" data-tl-line><path d=""/></svg>
-            <ol class="tl-list">
-              <li class="tl-item">
-                <div class="pol-drop"><div class="pol-swing"><figure class="pol" style="--tilt:-4deg">
-                  <svg class="pol-clip" aria-hidden="true" style="color:#F2D54B"><use href="#i-clothespin"/></svg>
+          <ol class="album-pages tl-list" data-pages>
+            <li class="leaf tl-item">
+              <div class="leaf-front">
+                <figure class="pol" style="--tilt:-4deg">
+                  <span class="pol-corners" aria-hidden="true"></span>
                   <div class="pol-img pol-img--draw">
                     <svg viewBox="0 0 240 240" role="img" aria-label="Zeichnung: Golf von Neapel mit dem Vesuv">
                       <rect width="240" height="240" fill="#EFE2C6"/>
@@ -798,16 +881,19 @@
                     </svg>
                   </div>
                   <figcaption class="pol-cap">Napoli, 1958</figcaption>
-                </figure></div></div>
-                <div class="tl-text">
+                </figure>
+                <div class="leaf-text">
                   <p class="tl-year">1958</p>
                   <h3 class="tl-title">Vico Lungo, Neapel</h3>
                   <p>Rosa, 14&nbsp;Jahre alt, lernt in der Küche ihrer Tante, Pasta zu ziehen – mit Mehl, Eiern und einem Nudelholz, das fast so lang ist wie sie selbst.</p>
                 </div>
-              </li>
-              <li class="tl-item">
-                <div class="pol-drop"><div class="pol-swing"><figure class="pol" style="--tilt:3deg">
-                  <svg class="pol-clip" aria-hidden="true" style="color:#C8321E"><use href="#i-clothespin"/></svg>
+              </div>
+              <div class="leaf-back" aria-hidden="true"><p class="leaf-note">Zia Carmela: „Dünner, Rosa!“</p></div>
+            </li>
+            <li class="leaf tl-item">
+              <div class="leaf-front">
+                <figure class="pol" style="--tilt:3deg">
+                  <span class="pol-corners" aria-hidden="true"></span>
                   <div class="pol-img pol-img--draw">
                     <svg viewBox="0 0 240 240" role="img" aria-label="Zeichnung: Bahnhofsturm in Stuttgart mit zwei Koffern davor">
                       <rect width="240" height="240" fill="#EADCC0"/>
@@ -820,75 +906,95 @@
                     </svg>
                   </div>
                   <figcaption class="pol-cap">Stuttgart Hbf, 1971</figcaption>
-                </figure></div></div>
-                <div class="tl-text">
+                </figure>
+                <div class="leaf-text">
                   <p class="tl-year">1971</p>
                   <h3 class="tl-title">Ankunft in Stuttgart</h3>
                   <p>Rosa und Gennaro kommen mit zwei Koffern und dem Rezeptheft. Gennaro arbeitet bei einem Zulieferer in Feuerbach, Rosa kocht sonntags für die halbe Nachbarschaft in Heslach.</p>
                 </div>
-              </li>
-              <li class="tl-item">
-                <div class="pol-drop"><div class="pol-swing"><figure class="pol" style="--tilt:-2deg">
-                  <svg class="pol-clip" aria-hidden="true" style="color:#F2D54B"><use href="#i-clothespin"/></svg>
-                  <div class="pol-img"><img src="/arena/trattoria-nonna-rosa/assets/img/pol-terrasse-600.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/pol-terrasse-300.webp 300w, /arena/trattoria-nonna-rosa/assets/img/pol-terrasse-600.webp 600w" sizes="(min-width: 900px) 236px, 60vw" width="600" height="600" loading="lazy" decoding="async" alt="Verblasstes Foto: Tische mit karierten Decken vor einem Restaurant"></div>
+              </div>
+              <div class="leaf-back" aria-hidden="true"><p class="leaf-note">Zwei Koffer. Einer nur mit Mehl und Tomaten.</p></div>
+            </li>
+            <li class="leaf tl-item">
+              <div class="leaf-front">
+                <figure class="pol" style="--tilt:-2deg">
+                  <span class="pol-corners" aria-hidden="true"></span>
+                  <div class="pol-img"><img src="/arena/trattoria-nonna-rosa/assets/img/pol-terrasse-600.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/pol-terrasse-300.webp 300w, /arena/trattoria-nonna-rosa/assets/img/pol-terrasse-600.webp 600w" sizes="(min-width: 900px) 240px, 46vw" width="600" height="600" loading="lazy" decoding="async" alt="Verblasstes Foto: Tische mit karierten Decken vor einem Restaurant"></div>
                   <figcaption class="pol-cap">Eröffnung, 1987</figcaption>
-                </figure></div></div>
-                <div class="tl-text">
+                </figure>
+                <div class="leaf-text">
                   <p class="tl-year">1987</p>
                   <h3 class="tl-title">Hauptstätter Straße&nbsp;57</h3>
                   <p>Eröffnung mit acht Tischen, karierten Decken und einer Karte, die auf eine Tafel passte. Die Tafel hängt bis heute neben der Küchentür.</p>
                 </div>
-              </li>
-              <li class="tl-item">
-                <div class="pol-drop"><div class="pol-swing"><figure class="pol" style="--tilt:4deg">
-                  <svg class="pol-clip" aria-hidden="true" style="color:#C8321E"><use href="#i-clothespin"/></svg>
-                  <div class="pol-img"><img src="/arena/trattoria-nonna-rosa/assets/img/pol-forno-600.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/pol-forno-300.webp 300w, /arena/trattoria-nonna-rosa/assets/img/pol-forno-600.webp 600w" sizes="(min-width: 900px) 236px, 60vw" width="600" height="600" loading="lazy" decoding="async" alt="Fladenbrot auf der Schaufel vor dem Feuer im Holzofen"></div>
+              </div>
+              <div class="leaf-back" aria-hidden="true"><p class="leaf-note">Acht Tische. Drei davon wackeln bis heute.</p></div>
+            </li>
+            <li class="leaf tl-item">
+              <div class="leaf-front">
+                <figure class="pol" style="--tilt:4deg">
+                  <span class="pol-corners" aria-hidden="true"></span>
+                  <div class="pol-img"><img src="/arena/trattoria-nonna-rosa/assets/img/pol-forno-600.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/pol-forno-300.webp 300w, /arena/trattoria-nonna-rosa/assets/img/pol-forno-600.webp 600w" sizes="(min-width: 900px) 240px, 46vw" width="600" height="600" loading="lazy" decoding="async" alt="Fladenbrot auf der Schaufel vor dem Feuer im Holzofen"></div>
                   <figcaption class="pol-cap">il forno, 1996</figcaption>
-                </figure></div></div>
-                <div class="tl-text">
+                </figure>
+                <div class="leaf-text">
                   <p class="tl-year">1996</p>
                   <h3 class="tl-title">Der Holzofen</h3>
                   <p>Gennaro mauert den Ofen selbst, mit Ziegeln aus einem Abbruchhaus in Bad Cannstatt. Seitdem kommen Focaccia, Branzino und die Sonntags-Gnocchi aus dem Feuer.</p>
                 </div>
-              </li>
-              <li class="tl-item">
-                <div class="pol-drop"><div class="pol-swing"><figure class="pol" style="--tilt:-3deg">
-                  <svg class="pol-clip" aria-hidden="true" style="color:#F2D54B"><use href="#i-clothespin"/></svg>
-                  <div class="pol-img"><img src="/arena/trattoria-nonna-rosa/assets/img/pol-pastateig-600.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/pol-pastateig-300.webp 300w, /arena/trattoria-nonna-rosa/assets/img/pol-pastateig-600.webp 600w" sizes="(min-width: 900px) 236px, 60vw" width="600" height="600" loading="lazy" decoding="async" alt="Hände mit Mehl ziehen frische Tagliatelle aus der Nudelmaschine"></div>
+              </div>
+              <div class="leaf-back" aria-hidden="true"><p class="leaf-note">Gennaro, 400 Ziegel, ein ganzer Sommer.</p></div>
+            </li>
+            <li class="leaf tl-item">
+              <div class="leaf-front">
+                <figure class="pol" style="--tilt:-3deg">
+                  <span class="pol-corners" aria-hidden="true"></span>
+                  <div class="pol-img"><img src="/arena/trattoria-nonna-rosa/assets/img/pol-pastateig-600.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/pol-pastateig-300.webp 300w, /arena/trattoria-nonna-rosa/assets/img/pol-pastateig-600.webp 600w" sizes="(min-width: 900px) 240px, 46vw" width="600" height="600" loading="lazy" decoding="async" alt="Hände mit Mehl ziehen frische Tagliatelle aus der Nudelmaschine"></div>
                   <figcaption class="pol-cap">Marco, 2009</figcaption>
-                </figure></div></div>
-                <div class="tl-text">
+                </figure>
+                <div class="leaf-text">
                   <p class="tl-year">2009</p>
                   <h3 class="tl-title">Marco übernimmt die Küche</h3>
                   <p>Nach Lehrjahren in Bologna und Mailand kommt der Enkel zurück. Seine erste Entscheidung: Die Pasta wird wieder jeden Morgen frisch gemacht – wie früher.</p>
                 </div>
-              </li>
-              <li class="tl-item">
-                <div class="pol-drop"><div class="pol-swing"><figure class="pol" style="--tilt:2deg">
-                  <svg class="pol-clip" aria-hidden="true" style="color:#C8321E"><use href="#i-clothespin"/></svg>
-                  <div class="pol-img"><img src="/arena/trattoria-nonna-rosa/assets/img/pol-kerzen-600.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/pol-kerzen-300.webp 300w, /arena/trattoria-nonna-rosa/assets/img/pol-kerzen-600.webp 600w" sizes="(min-width: 900px) 236px, 60vw" width="600" height="600" loading="lazy" decoding="async" alt="Kerzen und Rotwein auf einem gedeckten Tisch"></div>
+              </div>
+              <div class="leaf-back" aria-hidden="true"><p class="leaf-note">„Nonna, ab morgen wieder alles frisch.“</p></div>
+            </li>
+            <li class="leaf tl-item">
+              <div class="leaf-front">
+                <figure class="pol" style="--tilt:2deg">
+                  <span class="pol-corners" aria-hidden="true"></span>
+                  <div class="pol-img"><img src="/arena/trattoria-nonna-rosa/assets/img/pol-kerzen-600.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/pol-kerzen-300.webp 300w, /arena/trattoria-nonna-rosa/assets/img/pol-kerzen-600.webp 600w" sizes="(min-width: 900px) 240px, 46vw" width="600" height="600" loading="lazy" decoding="async" alt="Kerzen und Rotwein auf einem gedeckten Tisch"></div>
                   <figcaption class="pol-cap">La Cantina, 2017</figcaption>
-                </figure></div></div>
-                <div class="tl-text">
+                </figure>
+                <div class="leaf-text">
                   <p class="tl-year">2017</p>
                   <h3 class="tl-title">La Cantina</h3>
                   <p>Im Gewölbekeller entsteht ein Raum für Feiern bis 24&nbsp;Personen – und Giulias Weinkeller mit Flaschen von 18&nbsp;Familienweingütern.</p>
                 </div>
-              </li>
-              <li class="tl-item">
-                <div class="pol-drop"><div class="pol-swing"><figure class="pol" style="--tilt:-2deg">
-                  <svg class="pol-clip" aria-hidden="true" style="color:#F2D54B"><use href="#i-clothespin"/></svg>
-                  <div class="pol-img"><img src="/arena/trattoria-nonna-rosa/assets/img/pol-tavolata-600.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/pol-tavolata-300.webp 300w, /arena/trattoria-nonna-rosa/assets/img/pol-tavolata-600.webp 600w" sizes="(min-width: 900px) 236px, 60vw" width="600" height="600" loading="lazy" decoding="async" alt="Drei Teller Pasta und zwei Gläser Rotwein auf weißer Tischdecke, von oben"></div>
+              </div>
+              <div class="leaf-back" aria-hidden="true"><p class="leaf-note">18 Weingüter. Giulia kennt jede Familie.</p></div>
+            </li>
+            <li class="leaf tl-item">
+              <div class="leaf-front">
+                <figure class="pol" style="--tilt:-2deg">
+                  <span class="pol-corners" aria-hidden="true"></span>
+                  <div class="pol-img"><img src="/arena/trattoria-nonna-rosa/assets/img/pol-tavolata-600.webp" srcset="/arena/trattoria-nonna-rosa/assets/img/pol-tavolata-300.webp 300w, /arena/trattoria-nonna-rosa/assets/img/pol-tavolata-600.webp 600w" sizes="(min-width: 900px) 240px, 46vw" width="600" height="600" loading="lazy" decoding="async" alt="Drei Teller Pasta und zwei Gläser Rotwein auf weißer Tischdecke, von oben"></div>
                   <figcaption class="pol-cap">oggi, 2026</figcaption>
-                </figure></div></div>
-                <div class="tl-text">
+                </figure>
+                <div class="leaf-text">
                   <p class="tl-year">heute</p>
                   <h3 class="tl-title">Sonntags kommt Nonna</h3>
                   <p>Rosa ist 82, macht sonntags das Tiramisù und probiert jeden Ragù. Wenn sie nickt, ist er gut. Wenn nicht, kocht Marco ihn noch eine Stunde länger.</p>
                 </div>
-              </li>
-            </ol>
-          </div>
+              </div>
+              <div class="leaf-back" aria-hidden="true"><p class="leaf-note">Fortsetzung folgt.</p></div>
+            </li>
+          </ol>
+        </div>
+        <div class="album-years" aria-hidden="true" data-years>
+          <ol><li>1958</li><li>1971</li><li>1987</li><li>1996</li><li>2009</li><li>2017</li><li>heute</li></ol>
+          <span class="album-marker" data-marker></span>
         </div>
       </div>
     </section>
@@ -896,41 +1002,38 @@
     <!-- ============ TEAM ============ -->
     <section class="section team" id="team" aria-labelledby="team-title">
       <div class="wrap">
-        <header class="sec-head sec-head--split">
-          <div>
-            <p class="kicker" data-reveal>chi siamo</p>
-            <h2 class="h2" id="team-title" data-reveal>Wer heute <em>für Sie kocht</em></h2>
-          </div>
-          <p class="sec-lead" data-reveal>Vierzehn Leute in Küche und Service, davon drei mit dem Nachnamen Esposito. Wer bei uns isst, wird meistens von jemandem bedient, der das Gericht selbst schon gekocht hat.</p>
+        <header class="team-head">
+          <h2 class="h2 team-title" id="team-title" data-reveal>Wer heute für Sie kocht</h2>
+          <p class="team-lead" data-reveal>Vierzehn Leute in Küche und Service, davon drei mit dem Nachnamen Esposito. Wer bei uns isst, wird meistens von jemandem bedient, der das Gericht selbst schon gekocht hat.</p>
         </header>
-        <ul class="team-grid">
-          <li class="person" data-reveal style="--d:0ms">
-            <span class="mono mono--tomato" aria-hidden="true">R<i>E</i></span>
+        <ul class="team-list">
+          <li class="person" data-reveal style="--ink:#C8321E;--rot:-8deg">
+            <span class="mono" aria-hidden="true"><svg viewBox="0 0 120 120"><g filter="url(#grit)"><circle cx="60" cy="60" r="55" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="60" cy="60" r="47" fill="none" stroke="currentColor" stroke-width="1.2"/><text x="60" y="74" text-anchor="middle">RE</text></g></svg></span>
             <h3 class="person-name">Rosa Esposito</h3>
             <p class="person-role">Nonna &amp; Gründerin</p>
             <p class="person-text">Hüterin des Rezepthefts. Macht sonntags das Tiramisù und hat bei jedem Ragù das letzte Wort.</p>
           </li>
-          <li class="person" data-reveal style="--d:60ms">
-            <span class="mono mono--basil" aria-hidden="true">M<i>E</i></span>
+          <li class="person" data-reveal style="--ink:#3E6B3A;--rot:6deg">
+            <span class="mono" aria-hidden="true"><svg viewBox="0 0 120 120"><g filter="url(#grit)"><circle cx="60" cy="60" r="55" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="60" cy="60" r="47" fill="none" stroke="currentColor" stroke-width="1.2"/><text x="60" y="74" text-anchor="middle">ME</text></g></svg></span>
             <h3 class="person-name">Marco Esposito</h3>
             <p class="person-role">Küchenchef</p>
             <p class="person-text">Gelernt in Bologna und Mailand, seit 2009 am Nudelholz. Steht jeden Morgen ab sieben in der Küche.</p>
           </li>
-          <li class="person" data-reveal style="--d:120ms">
-            <span class="mono mono--lemon" aria-hidden="true">G<i>E</i></span>
+          <li class="person" data-reveal style="--ink:#23241C;--rot:-3deg">
+            <span class="mono" aria-hidden="true"><svg viewBox="0 0 120 120"><g filter="url(#grit)"><circle cx="60" cy="60" r="55" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="60" cy="60" r="47" fill="none" stroke="currentColor" stroke-width="1.2"/><text x="60" y="74" text-anchor="middle">GE</text></g></svg></span>
             <h3 class="person-name">Giulia Esposito</h3>
             <p class="person-role">Gastgeberin &amp; Sommelière</p>
             <p class="person-text">Führt den Service und den Keller. Kennt die 18&nbsp;Winzerfamilien persönlich – und jeden Stammgast beim Namen.</p>
           </li>
-          <li class="person" data-reveal style="--d:180ms">
-            <span class="mono mono--olive" aria-hidden="true">L<i>B</i></span>
+          <li class="person" data-reveal style="--ink:#A8281A;--rot:10deg">
+            <span class="mono" aria-hidden="true"><svg viewBox="0 0 120 120"><g filter="url(#grit)"><circle cx="60" cy="60" r="55" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="60" cy="60" r="47" fill="none" stroke="currentColor" stroke-width="1.2"/><text x="60" y="74" text-anchor="middle">LB</text></g></svg></span>
             <h3 class="person-name">Luca Brandt</h3>
             <p class="person-role">Sous-Chef</p>
             <p class="person-text">Stuttgarter, seit 2015 dabei. Verantwortlich für Holzofen und Secondi – und für die besten Cantucci der Stadt.</p>
           </li>
         </ul>
         <aside class="jobs" data-reveal aria-labelledby="jobs-title">
-          <p class="jobs-k">Wir suchen</p>
+          <p class="jobs-k">Tisch 0 · Küche · Bon Nr. 2026</p>
           <h3 class="jobs-title" id="jobs-title">Köchin oder Koch (m/w/d) für die Pasta-Station</h3>
           <p>Vollzeit, Frühdienst ab 7&nbsp;Uhr, montags immer frei. Sie lernen bei Marco das Ziehen von Hand – Erfahrung mit frischer Pasta ist schön, aber kein Muss.</p>
           <a class="btn btn-dark" href="mailto:ciao@nonna-rosa.de?subject=Bewerbung%20Pasta-Station"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>Per E-Mail bewerben</a>
@@ -938,36 +1041,31 @@
       </div>
     </section>
 
-    <!-- ============ STIMMEN ============ -->
+    <!-- ============ GÄSTEBUCH ============ -->
     <section class="section voices" id="stimmen" aria-labelledby="voices-title">
       <div class="wrap">
         <div class="voices-head">
-          <div>
-            <p class="kicker kicker--lemon" data-reveal>dicono di noi</p>
-            <h2 class="h2" id="voices-title" data-reveal>Was unsere <em>Gäste sagen</em></h2>
-          </div>
+          <h2 class="h2" id="voices-title" data-reveal>Aus dem Gästebuch</h2>
           <div class="score" data-reveal>
             <p class="score-num"><span data-count-to="4.8">4,8</span></p>
-            <div>
-              <span class="stars stars--lg" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>
-              <p class="score-text">von 5 Sternen, aus 640&nbsp;Bewertungen</p>
-            </div>
+            <p class="score-text">von 5 Sternen, aus 640&nbsp;Bewertungen</p>
+            <svg class="score-ring" viewBox="0 0 200 200" aria-hidden="true"><defs><path id="score-path" d="M100 100m-82 0a82 82 0 1 1 164 0a82 82 0 1 1-164 0"/></defs><g filter="url(#grit)"><circle cx="100" cy="100" r="96" fill="none" stroke="currentColor" stroke-width="3"/><text><textPath href="#score-path" textLength="510" lengthAdjust="spacing">★ ★ ★ ★ ★ · GRAZIE MILLE · ★ ★ ★ ★ ★ · GRAZIE MILLE ·</textPath></text></g></svg>
           </div>
         </div>
         <ul class="voice-list">
-          <li class="voice" data-reveal style="--d:0ms;--r:-1.5deg">
+          <li class="voice" data-reveal style="--r:-1.5deg">
             <blockquote><p>„Die Tagliatelle al ragù schmecken wie bei meiner Schwiegermutter in Modena. Ein größeres Kompliment kann ich nicht machen.“</p></blockquote>
             <p class="voice-by">Annette K. <span>Stuttgart-Süd</span></p>
           </li>
-          <li class="voice" data-reveal style="--d:70ms;--r:1deg">
+          <li class="voice" data-reveal style="--r:1deg">
             <blockquote><p>„Wir haben in La Cantina den 70. meines Vaters gefeiert, 22&nbsp;Leute, drei Gänge. Zu jedem Gang gab es einen passenden Wein, und niemand musste lange warten.“</p></blockquote>
             <p class="voice-by">Thomas R. <span>Esslingen</span></p>
           </li>
-          <li class="voice" data-reveal style="--d:140ms;--r:-.5deg">
+          <li class="voice" data-reveal style="--r:-.5deg">
             <blockquote><p>„Mittagstisch in 25&nbsp;Minuten, ohne dass es nach Kantine schmeckt. Ich gehe jeden Donnerstag – wegen der Tagliolini al limone.“</p></blockquote>
             <p class="voice-by">Mehmet A. <span>arbeitet um die Ecke</span></p>
           </li>
-          <li class="voice" data-reveal style="--d:210ms;--r:1.5deg">
+          <li class="voice" data-reveal style="--r:1.5deg">
             <blockquote><p>„Unsere Tochter isst kein Ei. Marco hat ihr Pasta aus Hartweizen und Wasser gemacht, ohne dass wir lange erklären mussten.“</p></blockquote>
             <p class="voice-by">Familie Weber <span>Degerloch</span></p>
           </li>
@@ -977,14 +1075,11 @@
 
     <!-- ============ RESERVIERUNG ============ -->
     <section class="section reserve" id="reservieren" aria-labelledby="res-title">
-      <div class="gingham-edge" aria-hidden="true"></div>
       <div class="wrap">
-        <header class="sec-head sec-head--split">
-          <div>
-            <p class="kicker" data-reveal>prenotazione</p>
-            <h2 class="h2" id="res-title" data-reveal>Einen Tisch <em>reservieren</em></h2>
-          </div>
-          <p class="sec-lead" data-reveal>Wählen Sie Tag, Uhrzeit und Personenzahl. Wir bestätigen innerhalb von zwei Stunden während der Öffnungszeiten. Für heute rufen Sie am besten an: <a class="text-link" href="tel:+497115554620">0711&nbsp;555&nbsp;46&nbsp;20</a>.</p>
+        <header class="res-head">
+          <h2 class="h2" id="res-title" data-reveal>Einen Tisch reservieren</h2>
+          <p class="res-lead" data-reveal>Wählen Sie Tag, Uhrzeit und Personenzahl. Wir bestätigen innerhalb von zwei Stunden während der Öffnungszeiten. Für heute rufen Sie am besten an: <a class="text-link" href="tel:+497115554620">0711&nbsp;555&nbsp;46&nbsp;20</a>.</p>
+          <p class="hand-note hand-note--res" aria-hidden="true">Freitags lieber früh dran sein!</p>
         </header>
 
         <div class="res-shell" data-res-shell>
@@ -1130,8 +1225,7 @@
     <section class="section visit" id="anfahrt" aria-labelledby="visit-title">
       <div class="wrap visit-grid">
         <div class="visit-copy">
-          <p class="kicker" data-reveal>dove siamo</p>
-          <h2 class="h2" id="visit-title" data-reveal>Mitten in Stuttgart, <em>vier Minuten vom Rathaus</em></h2>
+          <h2 class="h2" id="visit-title" data-reveal>Mitten in Stuttgart, vier Minuten vom Rathaus</h2>
           <address class="visit-address" data-reveal>
             Trattoria Nonna Rosa<br>Hauptstätter Straße&nbsp;57<br>70178 Stuttgart-Mitte
           </address>
@@ -1222,8 +1316,7 @@
     <section class="section faq" id="faq" aria-labelledby="faq-title">
       <div class="wrap faq-grid">
         <div class="faq-head">
-          <p class="kicker" data-reveal>domande</p>
-          <h2 class="h2" id="faq-title" data-reveal>Häufige <em>Fragen</em></h2>
+          <h2 class="h2" id="faq-title" data-reveal>Häufige Fragen</h2>
           <p class="faq-lead" data-reveal>Nicht dabei? Giulia beantwortet Ihre Frage gern am Telefon – am besten zwischen 15 und 17&nbsp;Uhr, wenn es in der Küche ruhig ist.</p>
           <a class="btn btn-ghost" href="tel:+497115554620" data-reveal><svg class="ico" aria-hidden="true"><use href="#i-phone"/></svg>0711&nbsp;555&nbsp;46&nbsp;20</a>
         </div>
@@ -1264,9 +1357,9 @@
   <footer class="site-footer">
     <div class="wrap">
       <div class="footer-top">
-        <p class="footer-claim">A presto – <em>bis bald am Tisch.</em></p>
+        <p class="footer-claim">A presto. Der Tisch ist gedeckt.</p>
         <div class="footer-cta">
-          <a class="btn btn-lemon btn-lg" href="#reservieren">Tisch reservieren<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn-lemon btn-lg" href="#reservieren" data-magnet>Tisch reservieren<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
           <a class="footer-phone" href="tel:+497115554620">0711&nbsp;555&nbsp;46&nbsp;20</a>
         </div>
       </div>

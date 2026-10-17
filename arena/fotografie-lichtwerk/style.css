@@ -112,7 +112,7 @@ strong { font-weight: 620; }
 /* Fettstift-Spuren: ziehen sich wie von Hand */
 .gm, .ht-mark, .g-ink, .sign-line, .success-mark, .g-mark, .day-mark {
   fill: none; stroke: var(--grease); stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round;
-  stroke-dasharray: 1; stroke-dashoffset: 0; overflow: visible; pointer-events: none;
+  stroke-dasharray: 1 2; stroke-dashoffset: 0; overflow: visible; pointer-events: none;
 }
 
 
@@ -369,9 +369,9 @@ html.motion .ht-line:nth-child(2) { animation-delay: 220ms; }
 html.motion .ht-line:nth-child(3) { animation-delay: 320ms; }
 html.motion .hero-lead, html.motion .hero-ctas, html.motion .timer { animation: developIn var(--dur-scene) var(--ease-out) 380ms backwards; }
 @keyframes developIn { from { opacity: .02; filter: blur(6px); } to { opacity: 1; filter: none; } }
-html.motion .ht-mark { stroke-dashoffset: 1; }
+html.motion .ht-mark { stroke-dashoffset: 1.04; }
 html.motion .hero.is-lit .ht-mark { stroke-dashoffset: 0; transition: stroke-dashoffset .9s var(--ease-out) .5s; }
-html.motion .sheet .gm { stroke-dashoffset: 1; }
+html.motion .sheet .gm { stroke-dashoffset: 1.04; }
 html.motion .hero.is-lit .sheet .gm { stroke-dashoffset: 0; transition: stroke-dashoffset .8s var(--ease-out) .25s; }
 html.motion .hero.is-lit .sheet .gm--x { transition-delay: .7s; }
 html.motion .hero.is-lit .sheet .gm--tick { transition-delay: 1s; }
@@ -453,7 +453,7 @@ html.motion .statement.is-scrub .w.is-on { opacity: 1; filter: none; }
 .sign-role { font-size: .82rem; letter-spacing: .08em; color: var(--mute); }
 .sign-line { grid-column: 1 / -1; width: 13rem; height: 1.4rem; margin-top: .3rem; stroke-width: 2.2; }
 html.motion .statement.is-scrub .statement-sign { opacity: 0; transition: opacity .6s ease; }
-html.motion .statement.is-scrub .sign-line { stroke-dashoffset: 1; transition: stroke-dashoffset 1s var(--ease-out) .25s; }
+html.motion .statement.is-scrub .sign-line { stroke-dashoffset: 1.04; transition: stroke-dashoffset 1s var(--ease-out) .25s; }
 html.motion .statement.is-scrub.is-signed .statement-sign { opacity: 1; }
 html.motion .statement.is-scrub.is-signed .sign-line { stroke-dashoffset: 0; }
 /* Lichtleck: rötlich-oranger Einfall vom Filmrand */
@@ -491,7 +491,7 @@ html.motion .statement.is-scrub.is-signed .sign-line { stroke-dashoffset: 0; }
 .g-ink { position: absolute; left: 0; bottom: .5rem; width: 100px; height: 12px; transform-origin: left; stroke-width: 3; transform: translateX(var(--x, 0px)) scaleX(var(--s, 1)); }
 .g-ink.is-moving { transition: transform 420ms var(--ease-drawer); }
 .g-ink.is-redraw { animation: inkDraw 520ms var(--ease-out) both; }
-@keyframes inkDraw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes inkDraw { from { stroke-dashoffset: 1.04; } to { stroke-dashoffset: 0; } }
 
 .g-grid { display: flex; flex-wrap: wrap; gap: clamp(8px, 1vw, 14px); }
 .g-item { flex: none; width: calc(var(--ar) * 15rem); max-width: 100%; }
@@ -500,7 +500,7 @@ html.motion .statement.is-scrub.is-signed .sign-line { stroke-dashoffset: 0; }
 .g-img { position: relative; display: block; aspect-ratio: var(--ar); overflow: hidden; background: var(--paper-3); }
 .g-img img { width: 100%; height: 100%; object-fit: cover; transition: scale 900ms var(--ease-out), filter var(--dur-develop) var(--ease-in-out), opacity var(--dur-develop) var(--ease-out); }
 .g-edge { display: flex; justify-content: space-between; gap: .8rem; padding-top: .45rem; font-size: .7rem; letter-spacing: .1em; color: var(--mute); text-transform: uppercase; }
-.g-mark { position: absolute; z-index: 2; inset: -10px -10px auto; width: calc(100% + 20px); height: calc(100% - 1.4rem + 20px); stroke-dashoffset: 1; stroke-width: 3; transition: stroke-dashoffset 380ms var(--ease-out); }
+.g-mark { position: absolute; z-index: 2; inset: -10px -10px auto; width: calc(100% + 20px); height: calc(100% - 1.4rem + 20px); stroke-dashoffset: 1.04; stroke-width: 3; transition: stroke-dashoffset 380ms var(--ease-out); }
 .g-open:focus-visible { outline-offset: 6px; }
 @media (hover: hover) and (pointer: fine) {
   .g-open:hover .g-img img { scale: 1.035; }
@@ -550,7 +550,7 @@ html.motion .lb.is-closing::backdrop { animation: fadeOut 260ms var(--ease-out) 
 .lb-thumb:active { scale: .96; }
 .lb-thumb[aria-current="true"] { opacity: 1; }
 .lb-thumb-no { position: absolute; left: 4px; bottom: -13px; font-size: .55rem; letter-spacing: .1em; color: #E7D2B4; }
-.lb-mark { position: absolute; inset: -6px; width: calc(100% + 12px); height: calc(100% + 12px); fill: none; stroke: var(--grease); stroke-width: 2.4; stroke-dasharray: 1; stroke-dashoffset: 1; pointer-events: none; }
+.lb-mark { position: absolute; inset: -6px; width: calc(100% + 12px); height: calc(100% + 12px); fill: none; stroke: var(--grease); stroke-width: 2.4; stroke-dasharray: 1 2; stroke-dashoffset: 1.04; pointer-events: none; }
 .lb-thumb[aria-current="true"] .lb-mark { stroke-dashoffset: 0; transition: stroke-dashoffset 420ms var(--ease-out); }
 @media (hover: hover) and (pointer: fine) { .lb-thumb:hover { opacity: .9; } }
 @media (max-width: 899px) {
@@ -615,7 +615,7 @@ html.story-h .story-outro-text { font-size: clamp(1.7rem, 2.4vw, 2.5rem); }
 html.story-h .story-can { display: block; position: absolute; right: calc(var(--gutter) * .5); top: calc(37% - min(31vh, 42vw * .66) * .2); height: calc(min(31vh, 42vw * .66) * 1.45 + 68px); z-index: 3; filter: drop-shadow(-18px 18px 30px rgba(0, 0, 0, .6)); }
 html.story-h .story-can svg { height: 100%; width: auto; }
 /* Rechts der Dose verschwindet der Film in der Patrone */
-html.story-h .story-mask { display: block; position: absolute; z-index: 2; right: 0; top: 37%; bottom: 0; left: calc(100% - var(--gutter) * .5 - (min(31vh, 42vw * .66) * 1.45 + 68px) * .7059 * .45); background: var(--night); }
+html.story-h .story-mask { display: block; position: absolute; z-index: 2; right: 0; top: 37%; bottom: 0; left: calc(100% - var(--gutter) * .5 - (min(31vh, 42vw * .66) * 1.45 + 68px) * .7059 * .45 - 6rem); background: linear-gradient(90deg, transparent, var(--night) 6rem); }
 .can-word { font-family: var(--font-display); font-size: 17.5px; fill: #111; letter-spacing: .02em; }
 .can-small { font-family: var(--font-text); font-size: 8.5px; font-weight: 650; letter-spacing: .14em; fill: #111; }
 .can-big { font-family: var(--font-display); font-size: 34px; fill: #111; }
@@ -1038,7 +1038,9 @@ html.motion .faq-item[open] .faq-body { animation: develop 500ms var(--ease-out)
 .form-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; margin-top: .4rem; }
 .form-note { font-size: .8rem; color: var(--on-night-mute); }
 .form-success { position: relative; outline: none; }
-.success-mark { width: 7rem; height: 4.6rem; margin-bottom: 1.2rem; stroke: var(--rose); stroke-width: 2.6; animation: inkDraw 900ms var(--ease-out) both; }
+.success-pick { position: relative; display: block; width: 6.6rem; margin: .4rem 0 1.6rem .6rem; padding: 5px 4px; background: var(--film, #1b1714); box-shadow: 0 0 0 1px rgba(255,255,255,.06); }
+.success-pick img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; filter: sepia(.25) contrast(1.05); }
+.success-mark { position: absolute; inset: -.7rem -.8rem; width: calc(100% + 1.6rem); height: calc(100% + 1.4rem); stroke: var(--grease); stroke-width: 2.8; animation: inkDraw 900ms var(--ease-out) .15s both; }
 .success-title { font-family: var(--font-display); font-size: clamp(1.9rem, 3vw, 2.6rem); line-height: 1.05; margin-bottom: 1rem; }
 .success-demo { color: var(--on-night-mute); margin-bottom: 1.2rem; }
 .success-sum { display: grid; gap: .1rem; margin-bottom: 1.6rem; }

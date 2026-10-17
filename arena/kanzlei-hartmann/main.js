@@ -115,6 +115,16 @@
   function finePointer() { return window.matchMedia('(hover: hover) and (pointer: fine)').matches; }
   function headH() { var h = $('.site-head'); return h ? h.offsetHeight : 64; }
   function el(tag, cls, text) { var e = d.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  // Blocksatz nur mit Silbentrennung: Kann der Browser kein Deutsch trennen,
+  // wird schmaler Spaltensatz zum Flattersatz (sonst klaffen Wortlücken).
+  (function hyphProbe() {
+    var t = el('span', null, 'Rechtsschutzversicherung');
+    t.lang = 'de';
+    t.style.cssText = 'position:absolute;left:-9999px;top:0;display:block;width:3em;font-size:16px;line-height:20px;hyphens:auto;-webkit-hyphens:auto;visibility:hidden';
+    d.body.appendChild(t);
+    if (t.offsetHeight < 30) root.classList.add('no-hyph');
+    d.body.removeChild(t);
+  })();
   var refreshT = 0;
   function softRefresh(ms) {
     if (!window.ScrollTrigger) return;

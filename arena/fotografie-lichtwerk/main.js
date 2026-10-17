@@ -983,9 +983,11 @@
       var measure = function () {
         var sw = stage.clientWidth || window.innerWidth;
         var canLeft = can.offsetLeft || sw * 0.8;
-        startX = canLeft - 70;
-        var outroCenter = outro.offsetLeft + outro.offsetWidth / 2;
-        endX = sw * 0.4 - outroCenter;
+        // Bild 1 liegt schon belichtet vor der Dose, davor die angeschnittene Filmzunge
+        var f0 = frames[0];
+        startX = Math.min(canLeft - 70, canLeft + 24 - (f0.offsetLeft + f0.offsetWidth));
+        // Ende: letztes Bild und Abspann liegen nebeneinander vor der Dose
+        endX = Math.min(canLeft - 40, sw * 0.86) - (outro.offsetLeft + outro.offsetWidth);
         section.style.setProperty('--story-h', Math.round((window.innerHeight) + (startX - endX) * 1.05) + 'px');
       };
       measure();
@@ -1008,6 +1010,10 @@
           clipPath: 'inset(0% 0% 0% 100%)', ease: 'none',
           scrollTrigger: { trigger: fr, containerAnimation: tween, start: 'left 74%', end: 'center 46%', scrub: true }
         });
+        // Bildunterschrift erst, wenn das Bild aus der Dose ist
+        var cap = $('.sf-cap', fr);
+        if (cap && i > 0) gsap.fromTo(cap, { opacity: 0, x: 18 }, { opacity: 1, x: 0, ease: 'none',
+          scrollTrigger: { trigger: fr, containerAnimation: tween, start: 'center 84%', end: 'right 74%', scrub: true } });
         ScrollTrigger.create({ trigger: fr, containerAnimation: tween, start: 'left 60%', end: 'right 60%', onToggle: function (self) { if (self.isActive) odo.set(pad(i + 1)); } });
       });
       return function () {
@@ -1016,6 +1022,7 @@
         root.classList.remove('story-h'); section.classList.remove('is-strecke');
         gsap.set(track, { clearProps: 'transform' });
         negs.forEach(function (n) { gsap.set(n, { clearProps: 'clipPath' }); });
+        gsap.set($$('.sf-cap', section), { clearProps: 'opacity,transform' });
       };
     });
   }

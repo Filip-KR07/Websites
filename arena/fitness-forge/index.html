@@ -809,6 +809,7 @@
             <p class="woche__leer" hidden>Kein passender Kurs an diesem Tag.</p>
           </div>
         </div>
+        <script>/* Handy: nur den heutigen Tag schon vor dem ersten Layout zeigen (spart ~550 Knoten Layout); main.js übernimmt danach */(function(){try{if(matchMedia('(min-width: 900px)').matches)return;var w=document.querySelector('[data-woche]'),d=(new Date().getDay()+6)%7,m=/[?&]jetzt=(Mo|Di|Mi|Do|Fr|Sa|So)/.exec(location.search);if(m)d=['Mo','Di','Mi','Do','Fr','Sa','So'].indexOf(m[1]);w.classList.add('is-tabbed');w.children[d].classList.add('is-active');}catch(e){}})();</script>
         <p class="legend"><span><b>STR</b> Strength</span><span><b>CON</b> Conditioning</span><span><b>BOX</b> Boxing</span><span><b>MOB</b> Mobility</span><span class="legend__live"><i aria-hidden="true"></i> läuft jetzt</span></p>
       </div>
     </section>
