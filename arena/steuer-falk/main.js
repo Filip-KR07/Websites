@@ -105,8 +105,7 @@
   /* ------------------------------------------------------------------
      Smooth Scroll (Lenis) + ScrollTrigger + Anker
      ------------------------------------------------------------------ */
-  function initScroll() {
-    if (hasGSAP) gsap.registerPlugin(ScrollTrigger);
+  function initLenis() {
     if (motionOk && window.Lenis) {
       lenis = new window.Lenis({ lerp: 0.1, smoothWheel: true, anchors: false });
       window.__lenis = lenis;
@@ -118,6 +117,13 @@
         var raf = function (t) { lenis.raf(t); requestAnimationFrame(raf); };
         requestAnimationFrame(raf);
       }
+    }
+  }
+  function initScroll() {
+    if (hasGSAP) {
+      gsap.registerPlugin(ScrollTrigger);
+      /* Aktualisieren übernimmt der Start selbst (nach dem Aufbau) – nicht zusätzlich bei DOMContentLoaded/load */
+      ScrollTrigger.config({ autoRefreshEvents: 'visibilitychange,resize' });
     }
     document.addEventListener('click', function (e) {
       var a = e.target.closest && e.target.closest('a[href^="#"]');
@@ -141,12 +147,18 @@
       if (!f.hasAttribute('tabindex') && !/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(f.tagName)) f.setAttribute('tabindex', '-1');
       try { f.focus({ preventScroll: true }); } catch (e) { f.focus(); }
     };
-    var y = target.id === 'main' ? 0 : target.getBoundingClientRect().top + window.scrollY - headerOffset() - 8;
+    var yOf = function () { return target.id === 'main' ? 0 : Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset() - 8); };
+    var y = yOf();
     if (lenis) {
-      lenis.scrollTo(Math.max(0, y), { duration: 1.25, easing: easeInOut, onComplete: focus });
+      /* Abschnitte mit content-visibility werden unterwegs erst gerendert – Ziel danach nachjustieren */
+      lenis.scrollTo(y, { duration: 1.25, easing: easeInOut, onComplete: function () {
+        var y2 = yOf();
+        if (Math.abs(y2 - window.scrollY) > 6) lenis.scrollTo(y2, { duration: 0.45, easing: easeInOut, onComplete: focus });
+        else focus();
+      } });
     } else {
-      window.scrollTo({ top: Math.max(0, y), behavior: reduced() ? 'auto' : 'smooth' });
-      setTimeout(focus, reduced() ? 0 : 700);
+      window.scrollTo({ top: y, behavior: reduced() ? 'auto' : 'smooth' });
+      setTimeout(function () { var y2 = yOf(); if (Math.abs(y2 - window.scrollY) > 6) window.scrollTo({ top: y2, behavior: 'auto' }); focus(); }, reduced() ? 30 : 750);
     }
   }
   function scrollToY(y) {
@@ -1469,9 +1481,9 @@
   safe('wegweiser', initWegweiser);
   safe('actionbar', initActionbar);
 
-  /* Danach in kleinen Häppchen (je max. ~20 ms), damit der Hauptthread nicht lange blockiert.
+  /* Danach in kleinen Häppchen (praktisch ein Baustein je Task), damit der Hauptthread nicht lange blockiert.
      Fristen zuerst – sie füllen die „nächste Steuerfrist“ in der Kontenzeile. */
-  var later = [['reveal', initReveal], ['magnet', initMagnet], ['fristen', initFristen], ['flow', initFlow], ['ledger', initLedger],
+  var later = [['lenis', initLenis], ['reveal', initReveal], ['magnet', initMagnet], ['fristen', initFristen], ['flow', initFlow], ['ledger', initLedger],
     ['checklist', initChecklist], ['binder', initBinder], ['parallax', initParallax], ['open', initOpenStatus], ['form', initForm], ['map', initMap]];
   var laterDone = false, loaded = document.readyState === 'complete', afterBoot = [];
   var whenBooted = function (fn) { if (laterDone && loaded) fn(); else afterBoot.push(fn); };
@@ -1479,7 +1491,7 @@
   var idle = window.requestIdleCallback ? function (fn) { window.requestIdleCallback(fn, { timeout: 120 }); } : function (fn) { setTimeout(fn, 0); };
   var step = function () {
     var t0 = Date.now();
-    while (later.length && Date.now() - t0 < 20) { var job = later.shift(); safe(job[0], job[1]); }
+    while (later.length && Date.now() - t0 < 8) { var job = later.shift(); safe(job[0], job[1]); }
     if (later.length) idle(step); else { laterDone = true; flushBoot(); }
   };
   setTimeout(step, 0);

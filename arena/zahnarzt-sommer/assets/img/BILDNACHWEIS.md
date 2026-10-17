@@ -26,3 +26,7 @@ convert original.webp -colorspace gray -auto-level -sigmoidal-contrast 3,52% clu
 ```
 
 Eigene Fotos lassen sich mit denselben zwei Befehlen angleichen.
+
+## Eigene Grafiken
+
+`pano-ansicht.svg` und `pano-roentgen.svg` (Panorama-Aufnahme im Hero) sind eigens für die Demo gezeichnete, schematische Grafiken – keine echten Röntgenbilder, keine Fremdquelle.

@@ -693,8 +693,10 @@
   function createRitualFx(canvas, frame) {
     var noop = { time: function () {}, active: function () {}, resize: function () {} };
     if (!canvas || !frame || !canvas.getContext) return noop;
-    var ctx = canvas.getContext('2d');
-    var W = 0, H = 0, dpr = 1, fx0 = 0, fy0 = 0, fw = 1, fh = 1;
+    /* Zwei Ebenen: weiche Dinge (Dampf, Schaumkörper, Nebel) in halber Auflösung, scharfe (Bläschen, Klinge) normal */
+    var soft = canvas.cloneNode(false); soft.removeAttribute('data-ritual-fx'); canvas.parentNode.insertBefore(soft, canvas);
+    var ctx = canvas.getContext('2d'), sctx = soft.getContext('2d');
+    var W = 0, H = 0, dpr = 1, sdpr = 0.5, fx0 = 0, fy0 = 0, fw = 1, fh = 1;
     var T = 0, Tt = 0, on = false, visible = false, raf = 0, last = 0, lastDraw = 0, lastInput = 0, warm = false;
     var rnd = mulberry(20140211);
     var steamS = sprite(128, function (c, s) { var g = c.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2); g.addColorStop(0, 'rgba(239,232,220,1)'); g.addColorStop(0.42, 'rgba(239,232,220,.38)'); g.addColorStop(1, 'rgba(239,232,220,0)'); c.fillStyle = g; c.fillRect(0, 0, s, s); });
@@ -704,7 +706,14 @@
       c.beginPath(); c.arc(s / 2, s / 2, r, 0, Math.PI * 2); c.fillStyle = g; c.fill(); c.lineWidth = 1; c.strokeStyle = 'rgba(140,128,112,.45)'; c.stroke();
       c.beginPath(); c.arc(s * 0.37, s * 0.35, r * 0.18, 0, Math.PI * 2); c.fillStyle = 'rgba(255,255,255,1)'; c.fill();
     });
-    var bladeS = sprite(256, function (c, s) { /* Wechselklinge, gebürsteter Stahl */
+    var bladeS = sprite(256, function (c, s) { /* Wechselklinge, gebürsteter Stahl – Schatten eingebacken */
+      var blade = document.createElement('canvas'); blade.width = blade.height = s; var bc0 = blade.getContext('2d');
+      paintBlade(bc0, s);
+      c.save(); c.filter = 'blur(7px)'; c.globalAlpha = 0.55; c.drawImage(blade, 0, 9); c.restore();
+      c.save(); c.globalCompositeOperation = 'source-atop'; c.fillStyle = '#000'; c.fillRect(0, 0, s, s); c.restore();
+      c.drawImage(blade, 0, 0);
+    });
+    function paintBlade(c, s) {
       var w = s, h = s * 44 / 120, y0 = (s - h) / 2;
       var g = c.createLinearGradient(0, y0, 0, y0 + h); g.addColorStop(0, '#8D8A86'); g.addColorStop(0.18, '#F2EFEA'); g.addColorStop(0.5, '#B9B5AE'); g.addColorStop(0.82, '#EDE9E2'); g.addColorStop(1, '#7E7A74');
       c.fillStyle = g; c.fillRect(2, y0, w - 4, h);
@@ -714,43 +723,44 @@
       c.beginPath(); c.moveTo(0, y0 + 19 * k); c.lineTo(13 * k, y0 + 19 * k); c.lineTo(16.5 * k, y0 + 22 * k); c.lineTo(13 * k, y0 + 25 * k); c.lineTo(0, y0 + 25 * k); c.fill();
       c.beginPath(); c.moveTo(w, y0 + 19 * k); c.lineTo(w - 13 * k, y0 + 19 * k); c.lineTo(w - 16.5 * k, y0 + 22 * k); c.lineTo(w - 13 * k, y0 + 25 * k); c.lineTo(w, y0 + 25 * k); c.fill();
       c.globalCompositeOperation = 'source-over'; c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(2, y0 + 5.5 * k, w - 4, 1); c.fillRect(2, y0 + h - 6.5 * k, w - 4, 1);
-    });
+    }
     // Dampf: zeitbasierter Emitter
-    var steam = []; for (var i = 0; i < 44; i++) steam.push({ a: false });
+    var steam = []; for (var i = 0; i < 24; i++) steam.push({ a: false });
     var acc = 0;
     // Schaum: deterministisch (rückwärts scrollen ergibt dasselbe Bild)
     var foam = [];
-    for (var j = 0; j < 240; j++) {
+    for (var j = 0; j < 160; j++) {
       var ang = rnd() * Math.PI * 2, rr = Math.pow(rnd(), 0.75);
       var bx = 0.46 + Math.cos(ang) * rr * 0.3, by = 0.52 + Math.sin(ang) * rr * 0.23;
-      foam.push({ x: bx, y: by, s: 0.005 + rnd() * rnd() * 0.024, b: clamp(rr * 0.78 + rnd() * 0.2, 0, 0.98), ph: rnd() * 6.28, dir: rnd() < 0.5 ? -1 : 1, k: bx + 0.36 * by });
+      foam.push({ x: bx, y: by, s: 0.006 + rnd() * rnd() * 0.026, b: clamp(rr * 0.78 + rnd() * 0.2, 0, 0.98), ph: rnd() * 6.28, dir: rnd() < 0.5 ? -1 : 1, k: bx + 0.36 * by });
     }
     // Schaumkörper: weiche, cremige Basis unter den Bläschen
-    var lather = []; for (var la = 0; la < 26; la++) { var a2 = rnd() * 6.28, r2 = Math.pow(rnd(), 0.8); lather.push({ x: 0.46 + Math.cos(a2) * r2 * 0.22, y: 0.52 + Math.sin(a2) * r2 * 0.16, s: 0.16 + rnd() * 0.14, b: r2 * 0.7, k: 0 }); lather[la].k = lather[la].x + 0.36 * lather[la].y; }
+    var lather = []; for (var la = 0; la < 16; la++) { var a2 = rnd() * 6.28, r2 = Math.pow(rnd(), 0.8); lather.push({ x: 0.46 + Math.cos(a2) * r2 * 0.22, y: 0.52 + Math.sin(a2) * r2 * 0.16, s: 0.16 + rnd() * 0.14, b: r2 * 0.7, k: 0 }); lather[la].k = lather[la].x + 0.36 * lather[la].y; }
     // kalter Nebel / Funkeln (Akt IV)
-    var mist = []; for (var m = 0; m < 34; m++) mist.push({ x: rnd(), y: rnd(), vx: (rnd() - 0.5) * 0.012, vy: 0.008 + rnd() * 0.016, s: 10 + rnd() * 26, ph: rnd() * 6.28 });
+    var mist = []; for (var m = 0; m < 22; m++) mist.push({ x: rnd(), y: rnd(), vx: (rnd() - 0.5) * 0.012, vy: 0.008 + rnd() * 0.016, s: 10 + rnd() * 26, ph: rnd() * 6.28 });
 
     function resize() {
       var r = canvas.getBoundingClientRect(), f = frame.getBoundingClientRect();
       if (!r.width) return;
       W = r.width; H = r.height; dpr = dprMax(1.5);
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+      soft.width = Math.round(W * sdpr); soft.height = Math.round(H * sdpr);
       fx0 = f.left - r.left; fy0 = f.top - r.top; fw = f.width; fh = f.height;
     }
     function spawnSteam(p) {
       p.a = true; p.life = 0; p.max = 3.4 + rnd() * 2.4;
       p.x = fx0 + fw * (0.3 + rnd() * 0.42); p.y = fy0 + fh * (0.42 + rnd() * 0.3);
-      p.vy = fh * (0.13 + rnd() * 0.1); p.s = fw * (0.07 + rnd() * 0.06); p.g = fw * (0.06 + rnd() * 0.06); p.ph = rnd() * 6.28;
+      p.vy = fh * (0.13 + rnd() * 0.1); p.s = fw * (0.07 + rnd() * 0.05); p.g = fw * (0.04 + rnd() * 0.035); p.ph = rnd() * 6.28;
     }
     function draw(now, dt, sim) {
-      if (!sim) { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); }
+      if (!sim) { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); sctx.setTransform(sdpr, 0, 0, sdpr, 0, 0); sctx.clearRect(0, 0, W, H); }
       var w1 = 1 - smooth(0.7, 1.25, T);
       var foamP = smooth(0.85, 1.85, T);
       var bladeP = clamp((T - 2.0) / 0.85, 0, 1);
       var w4 = smooth(2.75, 3.3, T);
       var sec = now / 1000;
       // Dampf
-      acc += dt * 15 * w1;
+      acc += dt * 9 * w1;
       for (var i = 0; i < steam.length; i++) {
         var p = steam[i];
         if (!p.a) { if (acc >= 1) { acc -= 1; spawnSteam(p); } else continue; }
@@ -759,8 +769,8 @@
         p.y -= p.vy * dt; p.x += Math.sin(sec * 0.7 + p.ph) * fw * 0.012 * dt; p.s += p.g * dt;
         if (sim) continue;
         var lf = p.life / p.max;
-        ctx.globalAlpha = Math.sin(Math.PI * lf) * 0.2 * (0.4 + 0.6 * w1);
-        ctx.drawImage(steamS, p.x - p.s / 2, p.y - p.s / 2, p.s, p.s);
+        sctx.globalAlpha = Math.sin(Math.PI * lf) * 0.2 * (0.4 + 0.6 * w1);
+        sctx.drawImage(steamS, p.x - p.s / 2, p.y - p.s / 2, p.s, p.s);
       }
       if (acc > 2) acc = 2;
       if (sim) return;
@@ -772,8 +782,8 @@
           var la2 = clamp((foamP - L2.b) / 0.25, 0, 1) * 0.42;
           if (bladeP > 0 && L2.k < line) la2 *= 1 - clamp((line - L2.k) / 0.12, 0, 1);
           if (la2 <= 0.01) continue;
-          var ls = L2.s * fw; ctx.globalAlpha = la2;
-          ctx.drawImage(steamS, fx0 + L2.x * fw - ls / 2, fy0 + L2.y * fh - ls / 2, ls, ls);
+          var ls = L2.s * fw; sctx.globalAlpha = la2;
+          sctx.drawImage(steamS, fx0 + L2.x * fw - ls / 2, fy0 + L2.y * fh - ls / 2, ls, ls);
         }
         for (var k = 0; k < foam.length; k++) {
           var b = foam[k];
@@ -795,7 +805,6 @@
           ctx.save();
           ctx.globalAlpha = smooth(0, 0.08, bladeP) * (1 - smooth(0.9, 1, bladeP));
           ctx.translate(fx0 + bc * fw, fy0 + fh * 0.5); ctx.rotate(ang);
-          ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 8;
           ctx.drawImage(bladeS, -bl / 2, -bl / 2, bl, bl);
           ctx.restore();
         }
@@ -805,18 +814,17 @@
         for (var n = 0; n < mist.length; n++) {
           var q = mist[n];
           var mx = fx0 + (((q.x + sec * q.vx) % 1 + 1) % 1) * fw, my = fy0 + (((q.y + sec * q.vy) % 1 + 1) % 1) * fh;
-          ctx.globalAlpha = w4 * (0.2 + 0.16 * Math.sin(sec * 2.2 + q.ph));
-          ctx.drawImage(steamS, mx - q.s / 2, my - q.s / 2, q.s, q.s);
+          sctx.globalAlpha = w4 * (0.2 + 0.16 * Math.sin(sec * 2.2 + q.ph));
+          sctx.drawImage(steamS, mx - q.s / 2, my - q.s / 2, q.s, q.s);
         }
       }
-      ctx.globalAlpha = 1;
+      ctx.globalAlpha = 1; sctx.globalAlpha = 1;
     }
     function tick(t) {
       raf = 0;
       if (!on || !visible) return;
       raf = requestAnimationFrame(tick);
-      var calm = t - lastInput > 250;
-      if (calm && t - lastDraw < 33) return; // ohne Scroll: 30 fps genügen für Dampf
+      if (t - lastDraw < 32) return; // 30 fps genügen für Dampf und Schaum
       var dt = last ? Math.min(0.05, (t - last) / 1000) : 0.016; last = t; lastDraw = t;
       T += (Tt - T) * (1 - Math.exp(-dt * 7));
       if (!warm) { warm = true; for (var s = 0; s < 90; s++) draw(t - (90 - s) * 33, 0.033, true); }
@@ -826,7 +834,7 @@
     visibilityGate(frame, function (v) { visible = v; if (v) { resize(); wake(); } }, '0px');
     return {
       time: function (t) { Tt = t; if (!warm) T = t; lastInput = performance.now(); wake(); },
-      active: function (a) { on = a; if (a) { resize(); wake(); } else { ctx.clearRect(0, 0, canvas.width, canvas.height); } },
+      active: function (a) { on = a; if (a) { resize(); wake(); } else { ctx.clearRect(0, 0, canvas.width, canvas.height); sctx.clearRect(0, 0, soft.width, soft.height); } },
       resize: resize
     };
   }
@@ -1732,17 +1740,13 @@
 
 
   function start() {
-    // sofort: alles, was im ersten Bildschirm sichtbar ist oder Eingaben annimmt
+    // sofort: Scrollen, Header und Menü (nehmen Eingaben an)
     safe('scroll', initScroll);
     safe('header', initHeader);
     safe('menu', initMenu);
-    safe('roll', initRoll);
-    safe('hero', initHero);
-    safe('pole', initPole);
-    safe('status', initOpenStatus);
-    // danach in kleinen Häppchen
+    // danach in kleinen Häppchen – zuerst der erste Bildschirm, dann der Rest
     var queue = [
-      ['magnet', initMagnet], ['chapters', initChapters], ['cuts', initCuts], ['statement', initStatement], ['services', initServices],
+      ['status', initOpenStatus], ['hero', initHero], ['pole', initPole], ['roll', initRoll], ['magnet', initMagnet], ['chapters', initChapters], ['cuts', initCuts], ['statement', initStatement], ['services', initServices],
       ['ritual', initRitual], ['mirror', initMirror], ['prices', initPrices], ['beard', initBeard], ['gallery', initGallery],
       ['team', initTeam], ['booking', initBooking], ['deeplinks', initDeepLinks], ['gold', initGold]
     ];

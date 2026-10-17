@@ -20,3 +20,7 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 | `selbststaendig` | 960x640 | Man Smiling | https://stocksnap.io/photo/man-smiling-M56YIGPICM |
 | `verein` | 960x640 | Team Meeting | https://stocksnap.io/photo/team-meeting-VQXYE2ZEHC |
 | `zahlen` | 960x640 | Calculator Numbers | https://stocksnap.io/photo/calculator-numbers-Y2GUBQIPXD |
+
+## Duoton-Fassungen
+
+Die Dateien `name-duo-960.webp` / `name-duo-480.webp` sind aus denselben Fotos abgeleitet (Graustufen, Kontrastkurve, Tönung Tannengrün → Papier per ImageMagick) und werden auf der Seite verwendet. Gleiche Quelle, gleiche Lizenz (CC0).

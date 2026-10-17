@@ -137,8 +137,9 @@ a { color: inherit; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; background: none; border: 0; }
 ul, ol { list-style: none; }
-h1, h2, h3, h4 { font-weight: 650; line-height: 1.08; text-wrap: balance; }
-p { text-wrap: pretty; }
+h1, h2, h3, h4 { font-weight: 650; line-height: 1.08; }
+/* Ausgleich nur für die großen Überschriften – auf allen Elementen kostet er bei 4-facher CPU-Drossel zu viel Layout-Zeit */
+.h-xl, .route__title, .calm__title, .cost__title, .breath__title { text-wrap: balance; }
 abbr[title] { text-decoration: none; }
 b, strong { font-weight: 680; }
 ::selection { background: var(--coral); color: var(--ink); }
@@ -337,7 +338,7 @@ html[data-tone-bg="petrol"] .atmo { opacity: 1; }
   container-type: inline-size;
 }
 .pano__img { position: absolute; inset: 0; overflow: hidden; border-block: 1px solid var(--fg); background: var(--paper); }
-.pano__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pano__svg { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: 50% 50%; user-select: none; -webkit-user-drag: none; }
 .pano__win {
   position: absolute; top: 0; bottom: 0; left: 0; width: var(--win, clamp(120px, 15vw, 230px));
   overflow: hidden; transform: translateX(56cqw); will-change: transform;
@@ -350,34 +351,7 @@ html[data-tone-bg="petrol"] .atmo { opacity: 1; }
 }
 .pano__tag { position: absolute; top: 10px; left: 0; right: 0; display: flex; justify-content: center; pointer-events: none; }
 .pano__tag span { padding: 3px 7px; background: var(--mint); color: var(--ink); font-size: var(--t-label); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
-/* Zeichnung „Ansicht“ */
-.pano__gumbase { fill: var(--paper); }
-.pano__gum { fill: url(#pano-hatch); stroke: var(--petrol); stroke-width: 1.1; vector-effect: non-scaling-stroke; }
-.pano__hatch { stroke: var(--petrol); stroke-width: .7; opacity: .3; }
-.pano__crown { fill: var(--white); stroke: var(--petrol); stroke-width: 1.25; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-.pano__shine { fill: none; stroke: var(--petrol); stroke-width: .8; opacity: .35; stroke-linecap: round; }
-.pano__occl { fill: none; stroke: var(--coral); stroke-width: 1; stroke-dasharray: 2 6; }
-.pano__mid { stroke: var(--petrol); stroke-width: .8; stroke-dasharray: 3 5; opacity: .5; }
-.pano__ticks { stroke: var(--petrol); stroke-width: .9; opacity: .65; }
-.pano__nums text { font: 650 12px var(--f-sans); fill: var(--petrol); text-anchor: middle; opacity: .75; font-variant-numeric: tabular-nums; }
-/* Ebene „Röntgen“ */
-.xr__bone { fill: none; stroke: #3d6d67; stroke-width: 14; opacity: .35; stroke-linecap: round; }
-.xr__bone--soft { stroke-width: 6; }
-.xr__sinus { fill: #0a1e1d; stroke: #3a6a64; stroke-width: 1.5; opacity: .8; }
-.xr__root { fill: url(#pano-dent); opacity: .92; }
-.xr__root--back { opacity: .45; }
-.xr__enamel { fill: #d6efe8; }
-.xr__dentin { fill: #8fbcb2; }
-.xr__pulp { fill: #173b38; }
-.xr__canal { fill: none; stroke: #1d4643; stroke-width: 2.6; stroke-linecap: round; }
-.xr__rcf { fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; }
-.xr__fill, .xr__ceramic { fill: #fbfffe; }
-.xr__impl { fill: #e9f7f2; }
-.xr__thread { stroke: #0c2524; stroke-width: 1.6; }
-.xr__nums text { font: 650 12px var(--f-sans); fill: var(--mint); text-anchor: middle; paint-order: stroke; stroke: #0b2322; stroke-width: 4px; font-variant-numeric: tabular-nums; }
-.xr__lead { fill: none; stroke: var(--mint); stroke-width: 1; opacity: .8; }
-.xr__dot { fill: var(--coral); }
-.xr__labels text { font: 650 13px var(--f-sans); fill: #fff; letter-spacing: .02em; }
+/* Zeichnung „Ansicht“ und Ebene „Röntgen“: assets/img/pano-ansicht.svg und pano-roentgen.svg (Farben im SVG) */
 /* Bildbeschriftung wie auf einer Röntgenaufnahme */
 .pano__meta { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .pano__m {
@@ -889,6 +863,9 @@ html:not(.motion-ok) .tour__count { display: none; }
 .voices__more .quote { padding-top: 16px; border-top: 1px solid var(--line-2); }
 .voices__more .quote p { font-family: var(--f-serif); font-style: italic; font-size: 1.2rem; line-height: 1.35; text-indent: -.42em; }
 
+/* Abschnitte nach der letzten scroll-gesteuerten Szene: erst rendern, wenn sie in die Nähe kommen (spart Layout beim Start) */
+.book, .visit, .faq, .ftr { content-visibility: auto; contain-intrinsic-size: auto 1200px; }
+
 /* ---------- TERMIN ---------- */
 .book { position: relative; padding: clamp(90px, 11vw, 170px) 0 clamp(80px, 9vw, 140px); background: var(--bg-2); }
 .book__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gap); align-items: start; }
@@ -1020,7 +997,7 @@ html.js .bstep + .bstep { margin-top: 0; padding-top: 0; border-top: 0; }
 .map .crop { inset: -9px -9px -9px auto; width: 30px; }
 .map svg { width: 100%; height: auto; }
 .map__bg { fill: var(--white); }
-.map__park { fill: url(#pano-hatch); }
+.map__park { fill: var(--paper-2); }
 .map__trees circle { fill: none; stroke: var(--ink); stroke-opacity: .3; stroke-width: 1; }
 .map__lake { fill: var(--mint); }
 .map__roads path { fill: none; stroke: var(--ink); stroke-opacity: .28; stroke-width: 1; }
@@ -1131,7 +1108,7 @@ html.motion-ok .qa[open] .qa__a { animation: qa-in 260ms var(--ease-out); }
    Responsiv
    ========================================================================== */
 @media (min-width: 900px) {
-  .demo-pill--inline { display: none; }
+  .ftr .demo-pill--inline { display: none; }
 }
 @media (max-width: 1240px) {
   .nav { display: none; }
