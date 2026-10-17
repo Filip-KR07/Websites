@@ -687,6 +687,6 @@ const CL_KEY = 'zugvogel-checkliste-v1';
   let rz = 0;
   addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(layoutStops, 200); });
 
-  function boot() { layoutStops(); schedule(runQueue); }
+  function boot() { queue.unshift(function initStops() { layoutStops(); }); schedule(runQueue); }
   if (d.readyState === 'complete') boot(); else addEventListener('load', boot, { once: true });
 })();
