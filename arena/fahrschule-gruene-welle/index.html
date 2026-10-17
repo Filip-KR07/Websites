@@ -96,6 +96,8 @@
   <symbol id="i-plus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-replay" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/></symbol>
   <!-- Fahrzeug-Silhouetten (Klasse B wird mehrfach genutzt) -->
+  <symbol id="td-car" viewBox="0 0 84 40"><rect x="5" y="7" width="80" height="34" rx="11" fill="#000" opacity=".38"/><rect x="2" y="3" width="80" height="34" rx="11" fill="currentColor"/><rect x="51" y="0" width="6" height="5" rx="2" fill="currentColor"/><rect x="51" y="35" width="6" height="5" rx="2" fill="currentColor"/><path d="M49 8.5h8q6 .5 7 5.5v12q-1 5-7 5.5h-8q2.2-11.5 0-23Z" fill="#14171A" opacity=".88"/><rect x="23" y="8.5" width="25" height="23" rx="5" fill="#fff" opacity=".16"/><path d="M13 10.5q4-1.5 8-1.5v22q-4 0-8-1.5q-1.6-9.5 0-19Z" fill="#14171A" opacity=".8"/><rect x="77.5" y="6" width="3.4" height="7.5" rx="1.6" fill="#FFF4C2"/><rect x="77.5" y="26.5" width="3.4" height="7.5" rx="1.6" fill="#FFF4C2"/><rect x="2.6" y="6.5" width="2.6" height="7" rx="1.2" fill="#E5322D"/><rect x="2.6" y="26.5" width="2.6" height="7" rx="1.2" fill="#E5322D"/></symbol>
+  <symbol id="td-school" viewBox="0 0 84 40"><use href="#td-car" color="#00B26B"/><rect x="30" y="11" width="9" height="18" rx="2" fill="#fff"/><path d="M34.5 13.5v13" stroke="#00B26B" stroke-width="2.4"/><path d="M32.3 15.5h4.4M32.3 24.5h4.4" stroke="#1A1D1F" stroke-width="1.4"/></symbol>
   <symbol id="v-wheel" viewBox="-30 -30 60 60" overflow="visible"><circle r="28" fill="#1A1D1F"/><circle r="16" fill="#D3DBD8"/><g stroke="#1A1D1F" stroke-width="3.2" stroke-linecap="round"><path d="M0-14V-4M13.3-4.3 3.8-1.2M8.2 11.3l-2.4-3.2M-8.2 11.3l2.4-3.2M-13.3-4.3l9.5 3.1"/></g><circle r="4" fill="#1A1D1F"/></symbol>
   <symbol id="v-bikewheel" viewBox="-40 -40 80 80" overflow="visible"><circle r="36" fill="none" stroke="#1A1D1F" stroke-width="10"/><circle r="29" fill="none" stroke="#D3DBD8" stroke-width="2"/><circle r="15" fill="none" stroke="#5E676B" stroke-width="4"/><g stroke="#1A1D1F" stroke-width="3" stroke-linecap="round"><path d="M0-30V-6M26-15 5.2-3M16 25 3 5.2M-16 25-3 5.2M-26-15-5.2-3"/></g><circle r="6" fill="#1A1D1F"/></symbol>
   <defs>
@@ -176,61 +178,80 @@
     </g>
   </svg>
 
-  <!-- ============================== HERO ============================== -->
-  <section class="hero" id="start" data-lane-start aria-labelledby="hero-title">
-    <div class="hero__grain" aria-hidden="true"></div>
+  <!-- ============================== HERO: Übungsplatz von oben ============================== -->
+  <section class="hero" id="start" data-lane-start aria-labelledby="hero-title" data-signal="green">
     <div class="hero__in wrap">
+      <h1 class="hero__title" id="hero-title" data-hero-title>
+        <span class="hl"><span class="hl__in">Grüne Welle</span></span>
+        <span class="hl"><span class="hl__in">bis zum</span></span>
+        <span class="hl"><span class="hl__in">Führer&shy;schein.</span></span>
+      </h1>
       <div class="hero__copy">
-        <p class="eyebrow eyebrow--light hero__eyebrow" data-hero-fade>Fahrschule in Essen-Rüttenscheid · seit 2009</p>
-        <div class="hero__headrow">
-          <h1 class="hero__title" id="hero-title" data-hero-title>
-            <span class="hl"><span class="hl__in">Grüne Welle</span></span>
-            <span class="hl"><span class="hl__in">bis zum</span></span>
-            <span class="hl"><span class="hl__in hl__in--green">Führer&shy;schein.</span></span>
-          </h1>
-          <button class="ampel" type="button" data-ampel data-state="green" aria-label="Ampel neu schalten">
-            <span class="ampel__visor" aria-hidden="true"></span>
-            <span class="ampel__body" aria-hidden="true">
-              <span class="ampel__light ampel__light--r"></span>
-              <span class="ampel__light ampel__light--y"></span>
-              <span class="ampel__light ampel__light--g"></span>
-            </span>
-            <span class="ampel__pole" aria-hidden="true"></span>
-          </button>
-        </div>
-        <p class="ampel-status" data-hero-fade aria-hidden="true"><span class="ampel-status__dot"></span><span data-ampel-status>Grün – los geht’s</span></p>
-        <p class="hero__lede" data-hero-fade>Theorie montags und mittwochs um 18:30&nbsp;Uhr, Intensivkurse in den Ferien, Fahrstunden ab 7&nbsp;Uhr mit Abholung in Rüttenscheid. Klassen B, BE, A, A2 und AM – mit sieben Fahrlehrerinnen und Fahrlehrern, die Prüfungsangst ernst nehmen.</p>
-        <div class="hero__ctas" data-hero-fade>
+        <p class="hero__lede" data-hero-fade style="--d:80">Theorie montags und mittwochs um 18:30&nbsp;Uhr, Intensivkurse in den Ferien, Fahrstunden ab 7&nbsp;Uhr mit Abholung in Rüttenscheid. Klassen B, BE, A, A2 und AM. Sieben Fahrlehrerinnen und Fahrlehrer, die Prüfungsangst ernst nehmen.</p>
+        <div class="hero__ctas" data-hero-fade style="--d:160">
           <a class="btn btn--green" href="#kosten">Kosten berechnen<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
           <a class="btn btn--ghost-light" href="#quiz">Theorie-Quiz starten</a>
         </div>
-        <ul class="hero__trust" data-hero-fade>
-          <li><b><span class="stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>4,9</b><span>aus 472 Bewertungen</span></li>
-          <li><b>91&nbsp;%</b><span>Theorie im ersten Anlauf*</span></li>
-          <li><b>7</b><span>Fahrlehrer&shy;innen &amp; Fahrlehrer</span></li>
-        </ul>
-        <p class="hero__note" data-hero-fade>* Fiktiver Wert der Demo-Fahrschule, Theorieprüfungen 2025.</p>
-      </div>
-
-      <div class="hero__visual" data-hero-fade>
-        <figure class="hero__frame">
-          <img src="/arena/fahrschule-gruene-welle/assets/img/fahrstunde-960.webp"
-               srcset="/arena/fahrschule-gruene-welle/assets/img/fahrstunde-480.webp 480w, /arena/fahrschule-gruene-welle/assets/img/fahrstunde-960.webp 960w"
-               sizes="(min-width: 900px) 40vw, 92vw" width="960" height="640" fetchpriority="high" decoding="async"
-               alt="Fahrschüler am Steuer eines Kompaktwagens, beide Hände am Lenkrad, Blick nach vorn auf die Straße">
-          <figcaption class="sr-only">Fahrstunde im Kompaktwagen</figcaption>
-        </figure>
-        <a class="next-course" href="#kurse" data-next-course>
-          <span class="next-course__label">Nächster Intensivkurs B</span>
-          <b class="next-course__date" data-next-date>Alle zwei Wochen, Mo–Fr</b>
-          <span class="chip chip--signal" data-next-seats><i class="sig sig--g" aria-hidden="true"></i>Plätze frei</span>
-        </a>
-        <div class="hero__plate" aria-hidden="true"><span class="plate plate--sm"><span class="plate__eu">D</span><span class="plate__txt">E<span class="plate__seals"><i></i><i></i></span>GW 160</span></span></div>
       </div>
     </div>
-    <div class="hero__road" aria-hidden="true">
-      <div class="hero__stopline"></div>
-      <div class="hero__dashes" data-hero-dashes></div>
+
+    <!-- Kreuzung: Querstraße (Band) mit einmündender Längsstraße -->
+    <div class="xing" data-xing>
+      <div class="vroad" aria-hidden="true">
+        <i class="zebra zebra--n"></i><i class="zebra zebra--s"></i>
+        <i class="stop stop--n"></i><i class="stop stop--s"></i>
+        <svg class="arrow arrow--s" viewBox="0 0 24 70"><path d="M8 0h8v46h8L12 70 0 46h8Z"/></svg>
+        <svg class="arrow arrow--n" viewBox="0 0 24 70"><path d="M8 0h8v46h8L12 70 0 46h8Z"/></svg>
+      </div>
+      <div class="band" aria-hidden="true">
+        <i class="band__marks"></i>
+        <i class="zebra zebra--w"></i><i class="zebra zebra--e"></i>
+        <i class="stop stop--w"></i><i class="stop stop--e"></i>
+        <svg class="arrow arrow--e" viewBox="0 0 24 70"><path d="M8 0h8v46h8L12 70 0 46h8Z"/></svg>
+        <svg class="arrow arrow--w" viewBox="0 0 24 70"><path d="M8 0h8v46h8L12 70 0 46h8Z"/></svg>
+        <span class="paintword">Spur halten</span>
+        <i class="car car--e1"><svg viewBox="0 0 84 40"><use href="#td-school"/></svg></i>
+        <i class="car car--e2"><svg viewBox="0 0 84 40"><use href="#td-car"/></svg></i>
+        <i class="car car--w1"><svg viewBox="0 0 84 40"><use href="#td-car"/></svg></i>
+      </div>
+      <div class="vcars" aria-hidden="true">
+        <i class="car car--s1"><svg viewBox="0 0 84 40"><use href="#td-car"/></svg></i>
+        <i class="car car--n1"><svg viewBox="0 0 84 40"><use href="#td-car"/></svg></i>
+      </div>
+      <span class="head head--e" aria-hidden="true"><i class="l-r"></i><i class="l-y"></i><i class="l-g"></i></span>
+      <span class="head head--w" aria-hidden="true"><i class="l-r"></i><i class="l-y"></i><i class="l-g"></i></span>
+      <span class="head head--s" aria-hidden="true"><i class="l-r"></i><i class="l-y"></i><i class="l-g"></i></span>
+      <span class="head head--n" aria-hidden="true"><i class="l-r"></i><i class="l-y"></i><i class="l-g"></i></span>
+
+      <div class="corner">
+        <button class="ampel" type="button" data-ampel data-state="green" aria-label="Ampel neu schalten">
+          <span class="ampel__body" aria-hidden="true">
+            <span class="ampel__light ampel__light--r"></span>
+            <span class="ampel__light ampel__light--y"></span>
+            <span class="ampel__light ampel__light--g"></span>
+          </span>
+          <span class="ampel__pole" aria-hidden="true"></span>
+        </button>
+        <p class="ampel-status" aria-hidden="true"><span class="ampel-status__dot"></span><span data-ampel-status>Grün – los geht’s</span></p>
+      </div>
+
+      <a class="detour" href="#kurse" data-next-course data-hero-fade style="--d:260">
+        <span class="detour__label">Nächster Intensivkurs B</span>
+        <b class="detour__date" data-next-date>Alle zwei Wochen, Mo–Fr</b>
+        <span class="detour__seats" data-next-seats><i class="sig sig--g" aria-hidden="true"></i>Plätze frei</span>
+        <svg class="detour__arrow" aria-hidden="true" viewBox="0 0 40 24"><path d="M0 9h26V2l14 10-14 10v-7H0Z"/></svg>
+      </a>
+    </div>
+
+    <!-- Parkbuchten: Vertrauenszahlen als Bodenmarkierung -->
+    <div class="bays-wrap wrap" data-hero-fade style="--d:240">
+      <ul class="bays">
+        <li class="bay"><b><span class="bay__star" aria-hidden="true">★</span>4,9</b><span>aus 472 Bewertungen</span></li>
+        <li class="bay"><b>91&nbsp;%</b><span>Theorie im ersten Anlauf*</span></li>
+        <li class="bay"><b>7</b><span>Fahrlehrkräfte, eine Haltung: Geduld</span></li>
+        <li class="bay bay--res" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="3"/><path d="M14 30V10h7a6 6 0 0 1 0 12h-7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linejoin="round"/></svg><span>Fahrschule</span></li>
+      </ul>
+      <p class="hero__note">* Fiktiver Wert der Demo-Fahrschule, Theorieprüfungen 2025.</p>
     </div>
   </section>
 

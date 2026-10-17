@@ -148,6 +148,7 @@
   }
   function scrollToEl(target, opts) {
     opts = opts || {};
+    doc.classList.add('cv-all'); /* Ziel exakt berechnen: übersprungene Abschnitte einmal rendern */
     var y = Math.max(0, target.getBoundingClientRect().top + window.scrollY - hdrH() - (opts.gap == null ? 14 : opts.gap));
     var done = function () { if (opts.focus !== false) focusNoScroll(opts.focusEl || target); };
     if (lenis) {
@@ -527,8 +528,27 @@
   function initTrail() {
     var box = qs('[data-trail]'), main = qs('#main'), hero = qs('[data-hero]');
     if (!box || !main) return;
-    var NS = 'http://www.w3.org/2000/svg', BAND = 1400;
-    var paws = [], ys = [], shown = -1, heads = [], tick = false, mainTop = 0;
+    var NS = 'http://www.w3.org/2000/svg', BAND = 420, SC = 2 / 3;
+    var bands = [], pts = [], tick = false, mainTop = 0, headEl = null, lastK = -2;
+    /* Pfote (#paw, 12 px breit) als absoluter Pfad: Ballen (Bézier) + vier Zehen (Ellipsenbögen) */
+    var PAD = [[0, -0.8], [2.7, -0.8], [4.4, 1.3], [5.8, 3.4], [7.1, 5.4], [6.5, 7.4], [4.2, 7.4], [2.6, 7.4], [1.6, 6.5], [0, 6.5], [-1.6, 6.5], [-2.6, 7.4], [-4.2, 7.4], [-6.5, 7.4], [-7.1, 5.4], [-5.8, 3.4], [-4.4, 1.3], [-2.7, -0.8], [0, -0.8]];
+    var TOES = [[-6.3, -2.6, 1.85, 2.45, -24], [-2.3, -6.2, 2, 2.7, -8], [2.3, -6.2, 2, 2.7, 8], [6.3, -2.6, 1.85, 2.45, 24]];
+    function pawD(ox, oy, deg) {
+      var r = deg * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r);
+      var T = function (x, y) { x *= SC; y = y * SC + 0.5; return (ox + x * c - y * sn).toFixed(1) + ' ' + (oy + x * sn + y * c).toFixed(1); };
+      var d = 'M' + T(PAD[0][0], PAD[0][1]);
+      for (var i = 1; i < PAD.length; i += 3) d += 'C' + T(PAD[i][0], PAD[i][1]) + ' ' + T(PAD[i + 1][0], PAD[i + 1][1]) + ' ' + T(PAD[i + 2][0], PAD[i + 2][1]);
+      d += 'Z';
+      TOES.forEach(function (t) {
+        var phi = t[4] + deg, pr = phi * Math.PI / 180, rx = (t[2] * SC).toFixed(2), ry = (t[3] * SC).toFixed(2);
+        var cx = t[0] * SC, cy = t[1] * SC + 0.5;
+        var gx = ox + cx * c - cy * sn, gy = oy + cx * sn + cy * c;
+        var ux = Math.cos(pr) * t[2] * SC, uy = Math.sin(pr) * t[2] * SC;
+        var a = (gx - ux).toFixed(1) + ' ' + (gy - uy).toFixed(1), b = (gx + ux).toFixed(1) + ' ' + (gy + uy).toFixed(1);
+        d += 'M' + a + 'A' + rx + ' ' + ry + ' ' + phi.toFixed(0) + ' 1 0 ' + b + 'A' + rx + ' ' + ry + ' ' + phi.toFixed(0) + ' 1 0 ' + a + 'Z';
+      });
+      return d;
+    }
     function build() {
       var W = main.clientWidth, Hm = main.scrollHeight;
       var y0 = hero ? hero.offsetTop + hero.offsetHeight + 24 : 40, y1 = Hm - 50;
@@ -536,57 +556,83 @@
       var narrow = W < 640;
       var edge = narrow ? 10 : clamp((W - 1320) / 2 * 0.5 + 22, 24, 120);
       var A = (W - 2 * edge) / 2, mid = W / 2, period = narrow ? 1600 : 2400;
-      var dark = qsa('.er, .team').map(function (s) { return [s.offsetTop, s.offsetTop + s.offsetHeight]; });
+      var dark = qsa('.er, .team').map(function (s) { return [s.offsetTop + 110, s.offsetTop + s.offsetHeight]; });
       var X = function (y) { return mid + A * clamp(Math.sin((y - y0) / period * Math.PI * 2 - Math.PI / 2) * 1.9, -1, 1); };
-      var bands = {}, step = narrow ? 30 : 36, acc = 0, side = 1, px = X(y0), py = y0;
-      ys = [];
+      var html = {}, step = narrow ? 28 : 34, acc = 0, side = 1, px = X(y0), py = y0;
+      pts = [];
       for (var y = y0 + 2; y <= y1; y += 2) {
         var x = X(y);
         acc += Math.hypot(x - px, y - py);
         if (acc >= step) {
           acc = 0;
-          var ang = Math.atan2(y - py, x - px);
+          var ang = Math.atan2(y - py, x - px) * 180 / Math.PI + 90;
           side = -side;
-          var ox = x + Math.cos(ang + Math.PI / 2) * 6 * side, oy = y + Math.sin(ang + Math.PI / 2) * 6 * side;
-          var dk = dark.some(function (r) { return oy > r[0] && oy < r[1]; });
+          var r = (ang - 90) * Math.PI / 180;
+          var ox = x + Math.cos(r + Math.PI / 2) * 6 * side, oy = y + Math.sin(r + Math.PI / 2) * 6 * side;
+          var dk = dark.some(function (d) { return oy > d[0] && oy < d[1]; });
           var bi = Math.floor(oy / BAND);
-          (bands[bi] = bands[bi] || []).push('<use href="#paw" x="-6" y="-6.5" width="12" height="13" data-k="' + ys.length + '" transform="translate(' + ox.toFixed(1) + ' ' + (oy - bi * BAND).toFixed(1) + ') rotate(' + (ang * 180 / Math.PI + 90).toFixed(1) + ')"' + (dk ? ' class="d"' : '') + '/>');
-          ys.push(oy);
+          var hb = html[bi] = html[bi] || { l: [], d: [], x0: 1e9, x1: -1e9 };
+          hb.x0 = Math.min(hb.x0, ox); hb.x1 = Math.max(hb.x1, ox);
+          hb[dk ? 'd' : 'l'].push(pawD(ox, oy - bi * BAND, ang));
+          pts.push([ox, oy, ang]);
         }
         px = x; py = y;
       }
-      /* In Bändern zu je 1400 px: Klassenwechsel invalidieren nur ein kleines SVG */
+      /* Statische Bänder à 1200 px; sichtbar wird per clip-path bis zum Spurkopf – pro Frame ändert sich höchstens ein Band */
       box.textContent = '';
-      paws = new Array(ys.length);
-      Object.keys(bands).forEach(function (bi) {
+      bands = Object.keys(html).map(function (bi) {
         var s = document.createElementNS(NS, 'svg');
-        s.setAttribute('viewBox', '0 0 ' + W + ' ' + BAND);
-        s.setAttribute('width', W); s.setAttribute('height', BAND);
+        /* Band nur so breit wie seine Pfoten: Clip-Änderungen invalidieren eine kleine Fläche */
+        var x0 = Math.max(0, Math.floor(html[bi].x0 - 12)), bw = Math.min(W, Math.ceil(html[bi].x1 + 12)) - x0;
+        s.setAttribute('viewBox', x0 + ' 0 ' + bw + ' ' + BAND);
+        s.setAttribute('width', bw); s.setAttribute('height', BAND);
         s.style.top = (bi * BAND) + 'px';
-        s.innerHTML = bands[bi].join('');
+        s.style.left = x0 + 'px';
+        [['l', ''], ['d', 'd']].forEach(function (k) {
+          if (!html[bi][k[0]].length) return;
+          var path = document.createElementNS(NS, 'path');
+          path.setAttribute('d', html[bi][k[0]].join(''));
+          if (k[1]) path.setAttribute('class', k[1]);
+          s.appendChild(path);
+        });
         box.appendChild(s);
-        Array.prototype.forEach.call(s.children, function (u) { paws[+u.getAttribute('data-k')] = u; });
+        return { el: s, top: bi * BAND, st: '' };
       });
-      shown = -1; heads = [];
+      headEl = document.createElementNS(NS, 'svg');
+      headEl.setAttribute('class', 'trail__head');
+      headEl.setAttribute('viewBox', '0 0 18 19');
+      headEl.innerHTML = '<use href="#paw"/>';
+      box.appendChild(headEl);
       mainTop = main.getBoundingClientRect().top + window.scrollY;
-      if (reduced()) { paws.forEach(function (p) { p.classList.add('on'); }); return; }
+      lastK = -2;
       update();
     }
     function update() {
       tick = false;
-      if (!paws.length || reduced()) return;
-      var head = window.scrollY + window.innerHeight * 0.72 - mainTop;
-      var lo = 0, hi = ys.length;
-      while (lo < hi) { var m = (lo + hi) >> 1; if (ys[m] <= head) lo = m + 1; else hi = m; }
-      var n = lo, i;
-      if (n === shown) return;
-      if (shown < 0) { for (i = 0; i < n; i++) paws[i].classList.add('on'); }
-      else if (n > shown) { for (i = shown; i < n; i++) paws[i].classList.add('on'); }
-      else { for (i = n; i < shown; i++) paws[i].classList.remove('on'); }
-      heads.forEach(function (p) { p.classList.remove('h'); });
-      heads = paws.slice(Math.max(0, n - 2), n);
-      heads.forEach(function (p) { p.classList.add('h'); });
-      shown = n;
+      if (!bands.length) return;
+      var head = reduced() ? 1e9 : window.scrollY + window.innerHeight * 0.72 - mainTop;
+      var lo = 0, hi = pts.length;
+      while (lo < hi) { var m = (lo + hi) >> 1; if (pts[m][1] <= head) lo = m + 1; else hi = m; }
+      var k = lo - 1;
+      if (k === lastK) return;
+      lastK = k;
+      /* sichtbar bis knapp unter die zuletzt gesetzte Pfote – Änderung nur, wenn eine neue Pfote dazukommt */
+      var edgeY = k < 0 ? -1e9 : (lo >= pts.length ? 1e9 : pts[k][1] + 9);
+      bands.forEach(function (b) {
+        var st = edgeY >= b.top + BAND ? 'full' : (edgeY <= b.top ? 'none' : 'part');
+        if (st === 'part') {
+          b.el.style.clipPath = 'inset(0 0 ' + Math.round(b.top + BAND - edgeY) + 'px 0)';
+          b.el.style.visibility = '';
+        } else if (st !== b.st) {
+          b.el.style.clipPath = st === 'full' ? '' : 'inset(0 0 100% 0)';
+          b.el.style.visibility = st === 'none' ? 'hidden' : '';
+        }
+        b.st = st;
+      });
+      if (headEl) {
+        if (k < 0 || reduced() || lo >= pts.length) headEl.style.opacity = '0';
+        else { headEl.style.opacity = ''; headEl.style.transform = 'translate(' + (pts[k][0] - 7).toFixed(1) + 'px,' + (pts[k][1] - 7.5).toFixed(1) + 'px) rotate(' + pts[k][2].toFixed(1) + 'deg)'; }
+      }
     }
     var req = function () { if (!tick) { tick = true; requestAnimationFrame(update); } };
     window.addEventListener('scroll', req, { passive: true });
@@ -1769,9 +1815,13 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh);
     window.addEventListener('load', refresh);
   }
-  (function run(i) {
+  function run(i) {
     BOOT[i].forEach(function (b) { safe(b[0], b[1]); });
     if (i + 1 < BOOT.length) setTimeout(function () { run(i + 1); }, 0);
     else bootDone();
-  })(0);
+  }
+  /* eigener Task statt im Skript-Auswerten (gsap/ScrollTrigger laufen im selben Task) */
+  setTimeout(function () { run(0); }, 0);
+  /* Unterer Seitenteil (content-visibility: auto): sobald gerendert, ScrollTrigger und Spur nachziehen */
+  if (hasGSAP) document.addEventListener('contentvisibilityautostatechange', function () { refresh(); }, true);
 })();

@@ -49,16 +49,19 @@
   var reduced = function () { return motionOff || mqReduce.matches; };
   var mqDesktop = window.matchMedia('(min-width: 900px)');
   var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-  var hasGSAP = !!(window.gsap && window.ScrollTrigger);
-  var enhanced = hasGSAP && !reduced();
-  if (enhanced) doc.classList.add('enhanced');
+  // GSAP, ScrollTrigger und Lenis werden erst nach dem ersten Bild nachgeladen (siehe „Start“) –
+  // so blockiert ihre Auswertung nicht den ersten Task.
+  var hasGSAP = false, enhanced = false;
+  function setupMotionEnv() {
+    hasGSAP = !!(window.gsap && window.ScrollTrigger);
+    enhanced = hasGSAP && !reduced();
+    doc.classList.toggle('enhanced', enhanced);
+  }
   var lenis = null;
   var live = qs('#sr-live');
 
   function safe(name, fn) {
-    var t0 = performance.now();
     try { fn(); } catch (err) { if (window.console) console.warn('[Seeblick] ' + name + ':', err); }
-    (window.__seeblickT = window.__seeblickT || []).push(name + ' ' + Math.round(performance.now() - t0));
   }
   function announce(text) {
     if (!live) return;
@@ -260,8 +263,8 @@
     setInterval(function () { if (heroState.live && !document.hidden) { render(berlinHour()); } }, 60000);
 
     var now = berlinHour();
-    if (enhanced) { render(now - 1.2); tweenTo(now, 2600, function (t) { return 1 - Math.pow(1 - t, 3); }); }
-    else render(now);
+    // Kein Überblenden beim Start: der erste Bildschirm rechnet nur einmal (die Buchstaben steigen per CSS auf).
+    render(now);
     setPressed();
   }
 
@@ -308,7 +311,7 @@
     addShapes('.scene-land .hotel .wall', 'wall', HOTEL); addShapes('.scene-land .hotel .roof', 'roof', HOTEL); addShapes('.scene-land .hotel .lit rect', 'lit', HOTEL);
     var letters = qsa('.ht-l', hero);
     var st = { w: 0, h: 0, s: 1, ox: 0, oy: 0, hz: 0, lh: 1, dpr: 1, pal: null, L: null, ink: '#14262F', dirty: true, vis: true, ready: false };
-    var raf = 0, lastDraw = 0, still = reduced(), q = 0, ema = 0, frames = 0;
+    var raf = 0, lastDraw = 0, lastOff = -1e4, still = reduced(), q = 0, ema = 0, frames = 0;
     var Q = function () { return LAKE.LEVELS[q]; };
 
     function rgb(c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + (a == null ? 1 : a.toFixed(3)) + ')'; }
@@ -324,20 +327,27 @@
       cv.style.top = st.hz.toFixed(1) + 'px'; cv.style.height = st.lh + 'px';
       cv.width = Math.round(st.w * st.dpr); cv.height = Math.round(st.lh * st.dpr);
       off.width = Math.round(st.w * st.dpr); off.height = Math.max(1, Math.round(st.hz * st.dpr));
-      letters.forEach(function (el) { el.__fs = parseFloat(getComputedStyle(el).fontSize) || 100; });
+      // Lage der Buchstaben einmal aus dem Layout lesen (offset* ignoriert Transforms) – im Zeichen-Loop keine DOM-Lesezugriffe
+      var title = qs('.hero-title', hero), bleed = (st.w - hero.clientWidth) / 2;
+      letters.forEach(function (el) {
+        el.__fs = parseFloat(getComputedStyle(el).fontSize) || 100;
+        var x = el.offsetLeft, y = el.offsetTop;
+        for (var a = el.offsetParent; a && a !== title; a = a.offsetParent) { x += a.offsetLeft; y += a.offsetTop; }
+        el.__x = title.offsetLeft + bleed + x + el.offsetWidth / 2; el.__y = title.offsetTop + y; el.__h = el.offsetHeight;
+      });
       st.dirty = true;
     }
     function drawText() {
-      var lr = land.getBoundingClientRect();
+      var m = heroMotion, ox = (m.tx_title || 0) - (m.tx_land || 0), oy = (m.ty_title || 0) - (m.ty_land || 0);
       octx.setTransform(st.dpr, 0, 0, st.dpr, 0, 0);
       octx.fillStyle = st.ink; octx.textAlign = 'center'; octx.textBaseline = 'alphabetic';
       letters.forEach(function (el) {
-        var r = el.getBoundingClientRect(), top = r.top - lr.top;
+        var top = el.__y + oy;
         if (top > st.hz) return;
         octx.font = el.__fs + 'px Marcellus, Georgia, serif';
         var m = octx.measureText(el.textContent);
         var fa = m.fontBoundingBoxAscent || el.__fs * 0.93, fd = m.fontBoundingBoxDescent || el.__fs * 0.27;
-        octx.fillText(el.textContent, r.left - lr.left + r.width / 2, top + (r.height - fa - fd) / 2 + fa);
+        octx.fillText(el.textContent, el.__x + ox, top + (el.__h - fa - fd) / 2 + fa);
       });
     }
     function renderOff() {
@@ -365,7 +375,8 @@
     }
     function draw(now) {
       if (!st.pal || !st.w) return;
-      if (st.dirty) { renderOff(); st.dirty = false; }
+      // Offscreen-Ebene höchstens ~12-mal pro Sekunde neu zeichnen (z. B. während der Licht-Überblendung)
+      if (st.dirty && (now - lastOff > 80 || !st.ready)) { renderOff(); st.dirty = false; lastOff = now; }
       var t0 = performance.now(), step = Q().step;
       var p = st.pal, d = st.dpr, ts = (still || !Q().fps) ? 0 : now / 1000;
       var amp = st.w < 640 ? LAKE.AMP_SMALL : LAKE.AMP;
@@ -397,14 +408,14 @@
       if (!st.vis || document.hidden) return;
       stepMotion();
       var fps = still ? 0 : Q().fps;
-      if (st.dirty || (fps && now - lastDraw > 1000 / fps - 2)) { lastDraw = now; draw(now); }
-      if (fps || heroMotion.busy) raf = requestAnimationFrame(loop);
+      var wasDirty = st.dirty;
+      if ((wasDirty && now - lastOff > 80) || (fps && now - lastDraw > 1000 / fps - 2)) { lastDraw = now; draw(now); }
+      if (fps || heroMotion.busy || st.dirty) raf = requestAnimationFrame(loop);
     }
     function kick() { if (!raf && st.vis && !document.hidden) raf = requestAnimationFrame(loop); }
     lake.setLight = function (pal, L, ink) { st.pal = pal; st.L = L; st.ink = ink; st.dirty = true; kick(); };
     lake.dirty = function () { st.dirty = true; kick(); };
     lake.kick = kick;
-    window.__seeblickLake = lake;
     measure();
     window.addEventListener('resize', function () { measure(); kick(); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { measure(); kick(); });
@@ -427,7 +438,9 @@
     var titleShift = Math.abs(p - m.p) * H > 0.5 || moving;
     m.p = p;
     m.layers.forEach(function (l) {
-      l.el.style.transform = 'translate3d(' + (m.px * l.x).toFixed(2) + 'px,' + (p * H * l.y + m.py * l.x * 0.35).toFixed(2) + 'px,0)';
+      var x = m.px * l.x, y = p * H * l.y + m.py * l.x * 0.35;
+      l.el.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0)';
+      if (l.key) { m['tx_' + l.key] = x; m['ty_' + l.key] = y; }
     });
     if (m.copy) m.copy.style.translate = '0 ' + (-p * H * 0.14).toFixed(1) + 'px';
     if (m.ring) m.ring.style.transform = 'rotate(' + (p * 160).toFixed(1) + 'deg)';
@@ -435,8 +448,8 @@
   }
   function initHeroMotion() {
     if (!hero || reduced()) return;
-    var L = function (sel, x, y) { var el = qs(sel, hero); return el ? { el: el, x: x, y: y } : null; };
-    heroMotion.layers = [L('.scene-sky', -6, 0.1), L('.hero-title', -13, 0.3), L('.scene-land', -20, 0.08), L('.scene-lake', -20, 0.08), L('.scene-front', -32, 0.08)].filter(Boolean);
+    var L = function (sel, x, y, key) { var el = qs(sel, hero); return el ? { el: el, x: x, y: y, key: key } : null; };
+    heroMotion.layers = [L('.scene-sky', -6, 0.1), L('.hero-title', -13, 0.3, 'title'), L('.scene-land', -20, 0.08, 'land'), L('.scene-lake', -20, 0.08), L('.scene-front', -32, 0.08)].filter(Boolean);
     heroMotion.copy = qs('.hero-copy', hero);
     heroMotion.ring = qs('.seal-ring', hero);
     heroMotion.force = true;
@@ -873,7 +886,7 @@
     var lastH = -1;
     function update(p) {
       // auf Minuten runden: Scrub-Nachlauf ohne sichtbare Änderung kostet so keine Neuberechnung
-      var h = Math.round(hourAt(p) * 60) / 60;
+      var h = Math.round(hourAt(p) * 12) / 12;
       if (h === lastH) return;
       lastH = h;
       setHour(h); if (setCap(h)) measureCopy();
@@ -1636,14 +1649,23 @@
   /* ------------------------------------------------------------------
      Start
      ------------------------------------------------------------------ */
-  // Sofort: alles, was im ersten Bildschirm sichtbar oder bedienbar ist.
-  safe('scroll', initScroll);
+  // Sofort: nur das Licht der Szene. Kopfzeile und Menü im nächsten Task, die Bibliotheken danach.
   safe('hero', initHero);
-  safe('header', initHeader);
-  safe('menu', initMenu);
-  safe('reveals', initReveals);
+  setTimeout(function () { safe('header', initHeader); safe('menu', initMenu); }, 0);
+  var VENDOR = ['gsap.min.js', 'ScrollTrigger.min.js', 'lenis.min.js'];
+  function loadVendors(done) {
+    var left = VENDOR.length, finished = false;
+    var fin = function () { if (!finished) { finished = true; done(); } };
+    VENDOR.forEach(function (f) {
+      var sc = document.createElement('script');
+      sc.src = '/arena/hotel-seeblick/assets/vendor/' + f; sc.async = false;
+      sc.onload = sc.onerror = function () { if (--left === 0) setTimeout(fin, 0); };
+      document.head.appendChild(sc);
+    });
+    setTimeout(fin, 6000); // Fallback: ohne Bibliotheken weiter
+  }
   // Danach in eigenen kleinen Tasks (nach dem ersten Frame), damit der Start keinen langen Block erzeugt.
-  var later = [['lake', initLake], ['heroMotion', initHeroMotion], ['micro', initMicro], ['rooms', initRooms], ['spa', initSpa], ['pano', initPano], ['planner', initPlanner],
+  var later = [['reveals', initReveals], ['lake', initLake], ['heroMotion', initHeroMotion], ['micro', initMicro], ['rooms', initRooms], ['spa', initSpa], ['pano', initPano], ['planner', initPlanner],
     ['booking', initBooking], ['inquiry', initInquiry], ['quotes', initQuotes], ['map', initMap]];
   var settled = false;
   function refreshST() { if (hasGSAP && settled) window.ScrollTrigger.refresh(); }
@@ -1655,10 +1677,19 @@
   }
   var started = false;
   function startLater() { if (started) return; started = true; runLater(); }
-  requestAnimationFrame(function () { setTimeout(startLater, 0); });
-  setTimeout(startLater, 1200); // Fallback, falls kein Frame kommt (z. B. Hintergrund-Tab)
-  if (hasGSAP) {
-    window.addEventListener('load', refreshST);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshST);
+  function boot() {
+    loadVendors(function () {
+      setupMotionEnv();
+      safe('scroll', initScroll);
+      setTimeout(startLater, 0);
+      if (hasGSAP) {
+        if (document.readyState === 'complete') setTimeout(refreshST, 0); else window.addEventListener('load', refreshST);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshST);
+      }
+    });
   }
+  var booted = false;
+  var bootOnce = function () { if (!booted) { booted = true; boot(); } };
+  requestAnimationFrame(function () { setTimeout(bootOnce, 0); });
+  setTimeout(bootOnce, 600); // Fallback, falls kein Frame kommt (z. B. Hintergrund-Tab)
 })();

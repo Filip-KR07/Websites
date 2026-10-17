@@ -195,7 +195,7 @@ h1, h2, h3, h4 {
 h2 { font-size: clamp(2rem, 1.35rem + 2.1vw, 3.35rem); letter-spacing: -.025em; line-height: 1.06; }
 h3 { font-weight: 700; }
 p, ul, ol, dl, dd, figure, blockquote { margin: 0; }
-p { text-wrap: pretty; }
+.sec-lead, .hero__lead, .facts__text, .about__quote p, .voice__q p { text-wrap: pretty; }
 a { color: var(--accent); text-decoration-thickness: .08em; text-underline-offset: .2em; }
 strong { font-weight: 700; }
 button, input, select, textarea { font: inherit; color: inherit; }
@@ -1845,10 +1845,18 @@ blockquote p { hanging-punctuation: first; }
 .step:nth-child(even) .step__n { rotate: 5deg; }
 html[data-contrast="high"] .step { border: 0; }
 
-/* Leistung: Kapitel ganz unten erst rendern, wenn sie in die Nähe kommen (keine Scroll-Trigger dahinter) */
+/* Leistung: Kapitel erst rendern, wenn sie in die Nähe kommen. Ändert sich dadurch die Seitenhöhe,
+   rechnet main.js die Scroll-Trigger neu (ResizeObserver auf <main>). */
 @supports (content-visibility: auto) {
+  .leistungen { content-visibility: auto; contain-intrinsic-size: auto 1650px; }
+  .pg { content-visibility: auto; contain-intrinsic-size: auto 1250px; }
+  .voices { content-visibility: auto; contain-intrinsic-size: auto 1150px; }
   .career { content-visibility: auto; contain-intrinsic-size: auto 2700px; }
   .faq { content-visibility: auto; contain-intrinsic-size: auto 1100px; }
   .contact { content-visibility: auto; contain-intrinsic-size: auto 1900px; }
   .foot { content-visibility: auto; contain-intrinsic-size: auto 600px; }
+  html.cv-all .leistungen, html.cv-all .pg, html.cv-all .voices, html.cv-all .career, html.cv-all .faq, html.cv-all .contact, html.cv-all .foot { content-visibility: visible; }
 }
+.on-dark .note { color: #F6D6A8; }
+html[data-contrast="high"] .on-dark .note { color: #fff; }
+.career__note { margin: 1rem 0 .5rem; rotate: -2.5deg; width: fit-content; }

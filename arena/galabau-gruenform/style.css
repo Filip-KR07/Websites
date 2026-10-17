@@ -300,49 +300,6 @@ html.menu-open .progress { opacity: 0; }
 .section-head--split { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); align-items: end; column-gap: clamp(2rem, 5vw, 6rem); }
 .section-head--split > div:first-child { display: grid; gap: 1.1rem; }
 
-/* ---------- Hero ---------- */
-.hero {
-  position: relative; display: flex; align-items: center; min-height: 100vh; min-height: 100svh; overflow: clip;
-  padding-top: calc(var(--header-h) + clamp(1rem, 3vh, 2.5rem)); padding-bottom: clamp(2.5rem, 6vh, 4.5rem);
-}
-.hero-contours { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 1; transition: opacity 1.2s ease; }
-html.js:not(.is-loaded) .hero-contours { opacity: 0; }
-.hero-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr); align-items: center; gap: clamp(2rem, 5vw, 5.5rem); }
-.hero-copy { container-type: inline-size; min-width: 0; }
-.hero-eyebrow { margin-bottom: 0; flex-wrap: nowrap; align-items: flex-start; }
-.hero-eyebrow .dot { flex: none; margin-top: .3em; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent); transition: background-color .9s ease, box-shadow .9s ease; }
-.hero-title {
-  font-family: var(--f-display); font-weight: 650; font-size: clamp(2.7rem, 15.2cqi, 7.1rem); line-height: .98;
-  letter-spacing: -.028em; margin: 1.35rem 0 1.6rem; font-optical-sizing: auto;
-}
-.hero-title .ln { display: block; overflow: hidden; padding: .12em .1em .17em 0; margin: -.12em 0 -.17em; }
-.hero-title .ln > span { display: inline-block; }
-.hero-lead { font-size: clamp(1.05rem, .98rem + .36vw, 1.26rem); line-height: 1.55; color: var(--ink-2); max-width: 34rem; }
-.hero-ctas { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 2rem; }
-.hero-trust {
-  display: flex; flex-wrap: wrap; gap: .7rem 1.7rem; margin-top: 2.3rem; padding-top: 1.4rem; border-top: 1px solid var(--line);
-  font-size: .92rem; color: var(--ink-2);
-}
-.hero-trust li { display: flex; align-items: center; gap: .5rem; }
-.hero-trust strong { color: var(--ink); font-weight: 700; }
-.stars { display: inline-flex; gap: 1px; color: var(--accent); transition: color .9s ease; }
-.stars svg { width: 14px; height: 14px; }
-
-.hero-stage { position: relative; display: flex; flex-direction: column; align-items: center; min-width: 0; }
-.hero-scene {
-  position: relative; width: min(100%, 560px, calc((100svh - var(--header-h) - 7rem) * .8333)); aspect-ratio: 600 / 720;
-  border-radius: 50% 50% 18px 18px / 41.67% 41.67% 18px 18px; overflow: hidden; background: var(--sky-b);
-  box-shadow: 0 40px 70px -40px rgba(42, 34, 27, .55), 0 0 0 1px rgba(31, 38, 25, .08);
-  isolation: isolate;
-}
-.scene { width: 100%; height: 100%; }
-.scene-tag {
-  position: absolute; left: 50%; top: 8.5%; transform: translateX(-50%); z-index: 2; display: inline-flex; align-items: center; gap: .45rem;
-  padding: .38rem .85rem; border-radius: 999px; background: rgba(244, 241, 232, .84); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-  font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; color: var(--ink);
-}
-.scene-tag svg { width: 1rem; height: 1rem; color: var(--accent-ink); }
-
 .season-switch {
   position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 999px;
   padding: 4px; background: var(--karte); box-shadow: 0 14px 30px -18px rgba(42, 34, 27, .45); min-width: 0;
@@ -365,166 +322,6 @@ html.js:not(.is-loaded) .hero-contours { opacity: 0; }
 .season-switch:has(input[value="herbst"]:checked) .season-switch-thumb { transform: translateX(200%); }
 .season-switch:has(input[value="winter"]:checked) .season-switch-thumb { transform: translateX(300%); }
 @media (hover: hover) and (pointer: fine) { .season-switch input:not(:checked):hover + span { color: var(--ink); } }
-
-.hero-tip {
-  position: absolute; left: -1.5rem; top: 30%; z-index: 3; width: 15.5rem; padding: 1rem 1.15rem 1.05rem; border-radius: 14px;
-  background: var(--karte); border: 1px solid var(--line); box-shadow: 0 24px 40px -26px rgba(42, 34, 27, .5);
-}
-.hero-tip-k { display: flex; align-items: center; gap: .5rem; font-size: .7rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-ink); }
-.hero-tip-k::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-.hero-tip-t { margin-top: .4rem; font-family: var(--f-display); font-weight: 500; font-size: 1.04rem; line-height: 1.35; }
-.hero-tip-t.is-swapping { opacity: 0; filter: blur(2px); }
-.hero-tip-t { transition: opacity .25s ease, filter .25s ease; }
-.hero-tip-a { display: inline-flex; align-items: center; gap: .35rem; margin-top: .6rem; font-size: .84rem; font-weight: 600; color: var(--moos-d); text-decoration: none; }
-.hero-tip-a svg { width: .95rem; height: .95rem; transition: transform .25s var(--ease-out); }
-@media (hover: hover) and (pointer: fine) { .hero-tip-a:hover svg { transform: translateX(3px); } }
-
-.hero-photo {
-  position: absolute; right: -1rem; bottom: 15%; z-index: 3; width: clamp(150px, 15vw, 210px); padding: 6px 6px 0; border-radius: 120px 120px 12px 12px;
-  background: var(--karte); box-shadow: 0 24px 44px -24px rgba(42, 34, 27, .55); transform: rotate(3deg);
-}
-.hero-photo img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 114px 114px 8px 8px; }
-.hero-photo figcaption { padding: .4rem .3rem .5rem; font-size: .72rem; font-weight: 600; color: var(--ink-2); text-align: center; line-height: 1.3; }
-.hero-scroll {
-  position: absolute; left: var(--gutter); bottom: 1.4rem; display: inline-flex; align-items: center; gap: .55rem; font-size: .78rem; font-weight: 600;
-  letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); text-decoration: none;
-}
-.hero-scroll svg { width: 1rem; height: 1rem; animation: nudge 2.4s var(--ease-in-out) infinite; }
-@keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
-
-/* Hero-Intro */
-html.js .hero-title .ln > span { transform: translateY(112%); transition: transform 1s var(--ease-out); }
-html.js .hero-title .ln:nth-child(2) > span { transition-delay: 70ms; }
-html.js .hero-title .ln:nth-child(3) > span { transition-delay: 140ms; }
-html.js.is-loaded .hero-title .ln > span { transform: none; }
-/* Kennzeile und Einleitungstext stehen ab dem ersten Bild (größtes Textelement → schnelles LCP); nur Titel, Aktionen und Szene laufen ein. */
-html.js .hero-ctas, html.js .hero-trust, html.js .hero-scene, html.js .hero-stage .season-switch, html.js .hero-tip, html.js .hero-photo {
-  opacity: 0; transition: opacity .9s var(--ease-out), transform 1s var(--ease-out);
-}
-html.js .hero-ctas, html.js .hero-trust { transform: translateY(14px); }
-html.js .hero-scene { transform: translateY(20px) scale(.985); }
-html.js .hero-tip { transform: translateX(-12px); }
-html.js .hero-photo { transform: rotate(3deg) translateY(16px); }
-html.js.is-loaded .hero-ctas { opacity: 1; transform: none; transition-delay: .25s; }
-html.js.is-loaded .hero-trust { opacity: 1; transform: none; transition-delay: .33s; }
-html.js.is-loaded .hero-scene { opacity: 1; transform: none; transition-delay: .1s; }
-html.js.is-loaded .hero-stage .season-switch { opacity: 1; transition-delay: .55s; }
-html.js.is-loaded .hero-tip { opacity: 1; transform: none; transition-delay: .7s; }
-html.js.is-loaded .hero-photo { opacity: 1; transform: rotate(3deg); transition-delay: .8s; }
-
-/* ---------- Hero-Szene (SVG) ---------- */
-.scene .st-sky-a { stop-color: var(--sky-a); transition: stop-color 1s ease; }
-.scene .st-sky-b { stop-color: var(--sky-b); transition: stop-color 1s ease; }
-.scene .st-water-a { stop-color: var(--water-a); transition: stop-color 1s ease; }
-.scene .st-water-b { stop-color: var(--water-b); transition: stop-color 1s ease; }
-.sc-sky { fill: url(#sc-sky); }
-.sc-sun { transform: translateY(var(--sun-dy)); transition: transform 1.3s var(--ease-in-out); }
-.sc-sun-disc { fill: var(--sun); transition: fill 1s ease; }
-.sc-sun-glow { fill: var(--sun); opacity: var(--sun-glow); transition: fill 1s ease, opacity 1s ease; }
-.sc-birds path { fill: none; stroke: #4A5240; stroke-width: 1.6; stroke-linecap: round; transition: opacity .6s ease; }
-.sc-hill-b { fill: var(--hill-b); transition: fill 1s ease; }
-.sc-hill-a { fill: var(--hill-a); transition: fill 1s ease; }
-.sc-hill-lines path { fill: none; stroke: var(--hill-line); stroke-width: 1.2; }
-.sc-hedge rect { fill: var(--hedge); transition: fill 1s ease; }
-.sc-hedge-tex circle { fill: rgba(255, 255, 255, .13); }
-.sc-soil-1 { fill: var(--soil-1); }
-.sc-soil-2 { fill: var(--soil-2); }
-.sc-stones ellipse { fill: rgba(30, 22, 16, .22); }
-.sc-soil-dots circle { fill: rgba(255, 238, 214, .16); }
-.sc-worm { fill: none; stroke: #C98779; stroke-width: 3.2; stroke-linecap: round; }
-.sc-roots path { fill: none; stroke: var(--root); stroke-linecap: round; opacity: .82; stroke-dasharray: 1; stroke-dashoffset: 0; }
-html.js .sc-roots path { stroke-dashoffset: 1; }
-html.js.is-loaded .sc-roots path { stroke-dashoffset: 0; transition: stroke-dashoffset 1.8s var(--ease-out) calc(.5s + var(--i) * 16ms); }
-.sc-pond { fill: url(#sc-water); }
-.sc-liner { fill: none; stroke: #2B2620; stroke-width: 2.4; }
-.sc-ripples path { stroke: rgba(255, 255, 255, .42); stroke-width: 1.5; stroke-linecap: round; transition: opacity .6s ease; }
-.sc-ice { opacity: 0; transition: opacity .8s ease; }
-.sc-ice-sheet { fill: #EAF1F3; }
-.sc-ice-crack { fill: none; stroke: #9DB6C0; stroke-width: 1.2; }
-.sc-lily ellipse { fill: #5F7A45; }
-.sc-lily-flower { fill: var(--blossom); }
-.sc-lily { transition: opacity .6s ease; }
-.sc-shore ellipse { fill: #A9A393; }
-.sc-reed { fill: none; stroke: var(--reed); stroke-width: 2.2; stroke-linecap: round; transition: stroke 1s ease; }
-.sc-cattail { fill: #6B4F3A; }
-.sc-lawn { fill: none; stroke: var(--lawn); stroke-width: 1.6; stroke-linecap: round; transition: stroke 1s ease; }
-.sc-fallen ellipse { fill: var(--leaf-a); }
-.sc-fallen { opacity: 0; transition: opacity .8s ease .3s; }
-.sc-trunk { fill: #5A4334; }
-.sc-branches path { fill: none; stroke: #5A4334; stroke-linecap: round; }
-.sc-twigs { fill: none; stroke: #5A4334; stroke-width: 1.6; stroke-linecap: round; }
-.sc-snow-branch path { fill: none; stroke: #fff; stroke-width: 3.4; stroke-linecap: round; }
-.sc-snow-branch, .sc-capsnow, .sc-snow-ground { opacity: 0; transition: opacity .8s ease; }
-.lf { transform-box: fill-box; transform-origin: center; transition: fill .9s ease, opacity .6s ease calc(var(--i) * 7ms), transform .8s var(--ease-out) calc(var(--i) * 7ms); }
-.lf-a { fill: var(--leaf-a); }
-.lf-b { fill: var(--leaf-b); }
-.lf-c { fill: var(--leaf-c); }
-.sc-blossom circle { fill: var(--blossom); opacity: 0; transform-box: fill-box; transform-origin: center; transform: scale(.3); transition: opacity .5s ease calc(var(--i) * 9ms), transform .7s var(--ease-out) calc(var(--i) * 9ms); }
-.sc-stem { fill: none; stroke: var(--stem); stroke-width: 1.8; stroke-linecap: round; transition: stroke 1s ease; }
-.sc-bloom { transition: fill 1s ease; }
-.sc-bloom-0 { fill: var(--bloom-0); }
-.sc-bloom-1 { fill: var(--bloom-1); }
-.sc-bloom-2 { fill: var(--bloom-2); }
-.sc-capsnow { fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; }
-.sc-grass { fill: none; stroke: var(--grass); stroke-width: 1.8; stroke-linecap: round; transition: stroke 1s ease; }
-.sc-t-frost { fill: #B9AE96; }
-.sc-t-frost-tex circle { fill: #91866F; }
-.sc-t-base { fill: #9B968B; }
-.sc-t-base-tex rect { fill: #6F6A60; }
-.sc-t-bed { fill: #D1C8B4; }
-.sc-slabs rect { fill: #D9D3C3; stroke: #A9A291; stroke-width: 1; }
-.sc-curb { fill: #8D8A82; }
-.sc-t-line { stroke: rgba(0, 0, 0, .25); stroke-dasharray: 3 3; fill: none; }
-.sc-chair path { fill: none; stroke: #3B3229; stroke-width: 4.2; stroke-linecap: round; stroke-linejoin: round; }
-.sc-table path { fill: none; stroke: #3B3229; stroke-width: 3.4; stroke-linecap: round; }
-.sc-mug { fill: var(--accent); transition: fill 1s ease; }
-.sc-pot { fill: #8C7C66; }
-.sc-pot-grass { fill: none; stroke: var(--grass); stroke-width: 1.8; stroke-linecap: round; transition: stroke 1s ease; }
-.sc-ground { stroke: #3B3229; stroke-width: 1.5; }
-.sc-snow-ground { fill: none; stroke: #fff; stroke-width: 5; stroke-linecap: round; }
-.sc-anno path { fill: none; stroke: rgba(244, 241, 232, .55); stroke-width: 1; }
-.sc-anno text { fill: rgba(244, 241, 232, .9); font-family: var(--f-sans); font-weight: 700; font-size: 12.5px; letter-spacing: .1em; text-transform: uppercase; }
-.sc-fx { display: none; }
-.sc-fx .p { animation: fall var(--dur) linear var(--delay) infinite; }
-.fx-fruehling .p { fill: var(--blossom); }
-.fx-sommer .p { fill: var(--fx); opacity: .85; animation-name: rise; }
-.fx-herbst .p { fill: var(--leaf-a); }
-.fx-herbst .p:nth-child(3n) { fill: var(--leaf-c); }
-.fx-winter .p { fill: #fff; }
-@keyframes fall {
-  from { transform: translate(var(--x), -20px) rotate(0deg); }
-  to { transform: translate(calc(var(--x) + var(--drift)), 450px) rotate(300deg); }
-}
-@keyframes rise {
-  0% { transform: translate(var(--x), 430px); opacity: 0; }
-  20% { opacity: .9; }
-  100% { transform: translate(calc(var(--x) + var(--drift)), 120px); opacity: 0; }
-}
-.hero.is-paused .sc-fx .p, .hero.is-paused .hero-scroll svg { animation-play-state: paused; }
-
-html[data-season="fruehling"] .lf { transform: scale(.8); }
-html[data-season="fruehling"] .sc-blossom circle { opacity: 1; transform: none; }
-html[data-season="fruehling"] .fx-fruehling,
-html[data-season="sommer"] .fx-sommer,
-html[data-season="herbst"] .fx-herbst,
-html[data-season="winter"] .fx-winter { display: inline; }
-html[data-season="herbst"] .lf-c { opacity: 0; transform: translateY(28px) scale(.7); }
-html[data-season="herbst"] .sc-fallen { opacity: 1; }
-html[data-season="winter"] .lf { opacity: 0; transform: scale(.4); }
-html[data-season="winter"] .sc-snow-branch, html[data-season="winter"] .sc-capsnow, html[data-season="winter"] .sc-snow-ground { opacity: .95; }
-html[data-season="winter"] .sc-ice { opacity: 1; }
-html[data-season="winter"] .sc-lily, html[data-season="winter"] .sc-ripples, html[data-season="winter"] .sc-birds { opacity: 0; }
-html[data-season="herbst"] .sc-birds { opacity: .5; }
-
-/* ---------- Kennzahlen ---------- */
-.facts { border-block: 1px solid var(--line); }
-.facts-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.fact { container-type: inline-size; padding: clamp(1.6rem, 3vw, 2.6rem) clamp(1rem, 2vw, 2rem); border-left: 1px solid var(--line); min-width: 0; }
-.fact:first-child { border-left: 0; padding-left: 0; }
-.fact-n { font-family: var(--f-display); font-weight: 600; font-size: clamp(2.2rem, 27cqi, 4.8rem); line-height: 1; letter-spacing: -.035em; white-space: nowrap; }
-.fact-u { font-size: .42em; letter-spacing: 0; color: var(--ink-2); margin-left: .08em; }
-.fact-t { margin-top: .7rem; font-size: .93rem; line-height: 1.5; color: var(--ink-2); max-width: 17rem; }
-
 /* ---------- Leistungen ---------- */
 .svc-layout { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: clamp(2rem, 6vw, 7rem); align-items: start; }
 .svc-media { position: sticky; top: calc(var(--header-h) + 2.5rem); }
@@ -1190,7 +987,6 @@ html.js .quote[data-reveal]:nth-child(2), html.js .quote[data-reveal]:nth-child(
   .pl-tool-price { font-size: .72rem; }
 }
 @media (max-width: 1100px) {
-  .hero-tip { left: -1rem; top: auto; bottom: 26%; width: 13.5rem; }
   .process-list { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 2rem; }
   .abo { grid-template-columns: minmax(0, 1fr); }
 }
@@ -1206,27 +1002,6 @@ html.js .quote[data-reveal]:nth-child(2), html.js .quote[data-reveal]:nth-child(
   .brand-word { font-size: 1.25rem; }
   .section-head--split { grid-template-columns: minmax(0, 1fr); }
 
-  .hero { min-height: auto; padding-top: calc(var(--header-h) + 1.25rem); }
-  /* Handy/Tablet: Titel → Illustration mit Jahreszeiten-Umschalter → Text. Der Signature-Moment steht so im ersten Bildschirm;
-     die Szene wird so groß, dass sie samt Umschalter über der Aktionsleiste endet. */
-  .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .hero-copy { display: contents; }
-  .hero-eyebrow { order: 1; }
-  .hero-title { order: 2; font-size: clamp(2.6rem, 13.2vw, 4.75rem); margin: 1rem 0 1.3rem; }
-  .hero-stage { order: 3; --sw: clamp(240px, calc((100svh - 27rem) * .8333), min(100vw - 2 * var(--gutter), 440px)); padding-bottom: .5rem; }
-  .hero-scene { width: var(--sw); }
-  .hero-tip { position: relative; left: auto; top: auto; bottom: auto; width: min(100%, 460px); margin-top: 1rem; }
-  .hero-photo { --pw: clamp(92px, calc(var(--sw) * .3), 128px); right: max(0px, calc(50% - var(--sw) / 2 - 14px)); bottom: auto; top: calc(var(--sw) * 1.2 - 40px - var(--pw) * 1.3333); width: var(--pw); padding-bottom: 6px; }
-  .hero-lead { order: 4; margin-top: 2.2rem; }
-  .hero-ctas { order: 5; }
-  .hero-trust { order: 6; }
-  .hero-photo figcaption { display: none; }
-  .hero-scroll { display: none; }
-
-  .facts-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .fact { padding: 1.5rem 1rem; }
-  .fact:nth-child(odd) { border-left: 0; padding-left: 0; }
-  .fact:nth-child(n+3) { border-top: 1px solid var(--line); }
 
   .svc-layout { grid-template-columns: minmax(0, 1fr); }
   .svc-media { display: none; }
@@ -1295,7 +1070,6 @@ html.js .quote[data-reveal]:nth-child(2), html.js .quote[data-reveal]:nth-child(
   .seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: 20px; }
   .pe-count { margin-left: 0; }
   .season-switch label > span { padding: .45rem .35rem; font-size: .82rem; gap: .3rem; }
-  .hero-trust { gap: .55rem 1.2rem; }
   .ba-label { top: .6rem; left: .6rem; font-size: .64rem; padding: .3rem .6rem; }
   .ba-pane--after .ba-label { right: .6rem; }
   .ba-grip { width: 42px; height: 42px; }
@@ -1327,7 +1101,6 @@ html.js .quote[data-reveal]:nth-child(2), html.js .quote[data-reveal]:nth-child(
   .season-switch svg { display: none; }
   .pe-intro { grid-template-columns: minmax(0, 1fr); }
   .pe-photo { display: none; }
-  .sc-anno { display: none; }
 }
 
 /* ==========================================================================
@@ -1336,24 +1109,13 @@ html.js .quote[data-reveal]:nth-child(2), html.js .quote[data-reveal]:nth-child(
 @media (prefers-reduced-motion: reduce) {
   html.js [data-reveal] { transform: none; transition: opacity .6s ease; }
   html.js .quote[data-reveal]:nth-child(2), html.js .quote[data-reveal]:nth-child(4) { transform: translateY(2rem); }
-  html.js .hero-title .ln > span, html.js .hero-lead, html.js .hero-ctas, html.js .hero-trust, html.js .hero-scene, html.js .hero-tip { transform: none; }
-  html.js .hero-photo { transform: rotate(3deg); }
-  .sc-fx, .hero-scroll svg { display: none !important; }
   .mh-pulse { animation: none; }
   html.js .soil-layer { transform: none; }
-  .lf, .sc-blossom circle { transition: fill .6s ease, opacity .6s ease; }
-  html[data-season] .lf, html[data-season] .sc-blossom circle { transform: none; }
   .svc-frame img { transition: clip-path .01s linear, opacity .5s ease; transform: none; }
-  .sc-sun { transition: none; }
   .pl-tile.pop, .pe-fav.beat svg, html.js .yr-panel.is-active { animation: none; }
 }
 html.motion-off *, html.motion-off *::before, html.motion-off *::after { animation: none !important; transition: none !important; }
-html.motion-off [data-reveal], html.motion-off .hero-eyebrow, html.motion-off .hero-lead, html.motion-off .hero-ctas, html.motion-off .hero-trust,
 html.motion-off .hero-scene, html.motion-off .hero-stage .season-switch, html.motion-off .hero-tip, html.motion-off .hero-contours { opacity: 1 !important; transform: none !important; }
-html.motion-off .hero-photo { opacity: 1 !important; transform: rotate(3deg) !important; }
-html.motion-off .hero-title .ln > span { transform: none !important; }
-html.motion-off .sc-roots path { stroke-dashoffset: 0 !important; }
-html.motion-off .sc-fx { display: none !important; }
 html.motion-off .soil-layer, html.motion-off .soil-num { opacity: 1 !important; transform: none !important; }
 html.motion-off .soil-step { opacity: 1 !important; }
 html.motion-off .soil-meter span { transform: none !important; }

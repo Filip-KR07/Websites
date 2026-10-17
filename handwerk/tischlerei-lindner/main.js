@@ -236,142 +236,351 @@
   }
 
   /* ------------------------------------------------------------------
-     Hero: generative Holzmaserung (Höhenlinien eines Fladerschnitts)
+     Hero: Stammscheibe (Hirnholz) – einmal gezeichnet, danach nur noch
+     per CSS-Transform bewegt. Jahresringe folgen der Rinde, die Markröhre
+     sitzt exzentrisch, Trockenrisse, Markstrahlen, Sägespuren.
      ------------------------------------------------------------------ */
-  function initGrain() {
-    var canvas = qs('[data-grain]');
-    if (!canvas || !canvas.getContext) return;
-    var ctx = canvas.getContext('2d');
-    var n1 = makeNoise(11), n2 = makeNoise(29), n3 = makeNoise(53);
-    var W = 0, H = 0, dpr = 1, fine = null, coarse = null;
-    var st = { cx: 0, cy: 0, tcx: 0, tcy: 0, intro: reduced() ? 1 : 0 };
-    var active = false, raf = 0, introStart = 0, dirty = true, rough = false;
-    var mobile = !mqDesktop.matches;
-    var INTRO_MS = 2200;
-
-    // Zwei Raster: fein für das ruhende Bild, grob (≈ halb so viele Zellen) während Bewegung –
-    // so bleibt jedes Animationsbild billig, das Standbild wird danach einmal scharf nachgezeichnet.
-    var grid = function (c) {
-      var gx = Math.ceil(W / c) + 1, gy = Math.ceil(H / c) + 1;
-      return { c: c, nx: gx, ny: gy, f: new Float32Array(gx * gy) };
+  function paintSlice(ctx, S) {
+    var cx = S / 2, cy = S / 2, R = S / 2 * 0.935, k = S / 1000;
+    var nA = makeNoise(7), nB = makeNoise(19), nC = makeNoise(41);
+    var rs = 90217;
+    var rnd = function () { rs = (rs * 16807) % 2147483647; return (rs - 1) / 2147483646; };
+    var N = 260, TAU = Math.PI * 2, i, j;
+    var P = { x: cx + R * 0.085, y: cy - R * 0.065 };
+    var B = [];
+    for (i = 0; i < N; i++) {
+      var th = i / N * TAU, c = Math.cos(th), s = Math.sin(th);
+      var b = R * (1 + 0.022 * nA(c * 1.3, s * 1.3) + 0.009 * nA(c * 4.2 + 3, s * 4.2));
+      B.push({ x: cx + c * b, y: cy + s * b, c: c, s: s });
+    }
+    var ringPath = function (sv, amp) {
+      var path = new Path2D();
+      for (var q = 0; q <= N; q++) {
+        var bq = B[q % N];
+        var w = 1 + amp * nB(bq.c * 1.6 + sv * 3.1, bq.s * 1.6 - sv * 2.3) + amp * 0.35 * nB(bq.c * 5 + sv * 9, bq.s * 5);
+        var x = P.x + (bq.x - P.x) * sv * w, y = P.y + (bq.y - P.y) * sv * w;
+        if (q === 0) path.moveTo(x, y); else path.lineTo(x, y);
+      }
+      path.closePath();
+      return path;
     };
-
-    function resize() {
-      var r = canvas.getBoundingClientRect();
-      var w = Math.max(1, Math.round(r.width)), hh = Math.max(1, Math.round(r.height));
-      if (w === W && hh === H) return;
-      W = w; H = hh; dpr = dprMax();
-      mobile = !mqDesktop.matches;
-      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-      fine = grid(W < 520 ? 5 : 6);
-      coarse = grid(W < 520 ? 8 : 9);
-      dirty = true;
-      draw(true);
+    var disc = ringPath(1, 0);
+    // Rinde
+    var bark = new Path2D();
+    for (i = 0; i <= N; i++) {
+      var bi = B[i % N], bw = 1.035 + 0.02 * (nC(bi.c * 9, bi.s * 9) + 1) + 0.008 * nC(bi.c * 30, bi.s * 30);
+      var bx = P.x + (bi.x - P.x) * bw, by = P.y + (bi.y - P.y) * bw;
+      if (i === 0) bark.moveTo(bx, by); else bark.lineTo(bx, by);
     }
+    bark.closePath();
+    ctx.fillStyle = '#3F281A';
+    ctx.fill(bark);
+    ctx.save(); ctx.clip(bark);
+    ctx.strokeStyle = 'rgba(15, 8, 4, .55)'; ctx.lineCap = 'round';
+    for (i = 0; i < 180; i++) {
+      var bt = B[Math.floor(rnd() * N)], l0 = 1.0 + rnd() * 0.02, l1 = l0 + 0.015 + rnd() * 0.03;
+      ctx.lineWidth = (0.8 + rnd() * 1.6) * k;
+      ctx.beginPath(); ctx.moveTo(P.x + (bt.x - P.x) * l0, P.y + (bt.y - P.y) * l0); ctx.lineTo(P.x + (bt.x - P.x) * l1, P.y + (bt.y - P.y) * l1); ctx.stroke();
+    }
+    ctx.restore();
 
-    function compute(g) {
-      var e = easeOut(st.intro);
-      var pithX = W * (mobile ? 0.62 : 0.54) + st.cx;
-      var spacing = mobile ? 8 : 10.5;
-      var k = (mobile ? 0.16 : 0.1) * (0.55 + 0.45 * e);
-      var lift = (1 - e) * H * 0.35 + st.cy;
-      var i, j, x, y, dx, d, r, idx = 0, cell = g.c, field = g.f;
-      for (j = 0; j < g.ny; j++) {
-        y = j * cell;
-        var wob = n1(y * 0.0018, 0.37) * 22 + n1(y * 0.007, 4.1) * 4;
-        d = Math.max(0, H + lift - y) * k + 12;
-        for (i = 0; i < g.nx; i++) {
-          x = i * cell;
-          dx = x - pithX + wob;
-          r = Math.sqrt(dx * dx * 1.04 + d * d);
-          r += n2(x * 0.004, y * 0.0012) * 7;
-          field[idx++] = r / spacing + 0.35 * Math.sin(r * 0.05) + n3(r * 0.015, 0.5) * 0.55;
+    // Splint (hell) und Kern (dunkler)
+    ctx.fillStyle = '#DCC096'; ctx.fill(disc);
+    ctx.save(); ctx.clip(disc);
+    ctx.fillStyle = 'rgba(196, 146, 98, .5)'; ctx.fill(ringPath(0.76, 0.012));
+    ctx.fillStyle = '#C5935F'; ctx.fill(ringPath(0.72, 0.012));
+    var g = ctx.createRadialGradient(P.x, P.y, 0, P.x, P.y, R * 0.8);
+    g.addColorStop(0, 'rgba(150, 96, 52, .35)'); g.addColorStop(0.25, 'rgba(150, 96, 52, 0)'); g.addColorStop(1, 'rgba(150, 96, 52, 0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
+
+    // Jahresringe: Breiten wie echte Jahre – Folgen schmaler und breiter Jahre
+    var widths = [], sum = 0, run = 1;
+    for (i = 0; i < 64; i++) {
+      if (rnd() < 0.18) run = 0.45 + rnd() * 0.5; else if (rnd() < 0.25) run = 1 + rnd() * 0.6;
+      var wv = run * (0.75 + rnd() * 0.5) * (i < 8 ? 1.5 : 1);
+      widths.push(wv); sum += wv;
+    }
+    var acc = 0.012;
+    ctx.lineJoin = 'round';
+    for (i = 0; i < widths.length; i++) {
+      acc += widths[i] / sum * 0.985;
+      var sv = Math.min(acc, 0.996), heart = sv < 0.72;
+      var rp = ringPath(sv, 0.012 + sv * 0.008);
+      // Porenkranz (ringporig, Eiche) direkt nach der Jahresgrenze
+      ctx.setLineDash([0.9 * k, 2.4 * k]);
+      ctx.lineWidth = 1.4 * k;
+      ctx.strokeStyle = heart ? 'rgba(92, 52, 24, .32)' : 'rgba(120, 82, 46, .26)';
+      ctx.stroke(ringPath(Math.max(0.01, sv - widths[i] / sum * 0.86), 0.012 + sv * 0.008));
+      ctx.setLineDash([]);
+      ctx.lineWidth = (0.7 + widths[i] * 1.5) * k;
+      ctx.strokeStyle = heart ? 'rgba(98, 56, 26, ' + (0.42 + rnd() * 0.3).toFixed(2) + ')' : 'rgba(146, 100, 58, ' + (0.36 + rnd() * 0.28).toFixed(2) + ')';
+      ctx.stroke(rp);
+    }
+    // Markstrahlen („Spiegel“) – hell glänzende Radiallinien
+    ctx.lineCap = 'round';
+    for (i = 0; i < 420; i++) {
+      var bt2 = B[Math.floor(rnd() * N)], s0 = 0.05 + rnd() * 0.85, s1 = s0 + 0.02 + rnd() * 0.12;
+      ctx.lineWidth = (0.5 + rnd() * 1.1) * k;
+      ctx.strokeStyle = rnd() < 0.7 ? 'rgba(252, 236, 210, .32)' : 'rgba(90, 52, 24, .18)';
+      ctx.beginPath(); ctx.moveTo(P.x + (bt2.x - P.x) * s0, P.y + (bt2.y - P.y) * s0); ctx.lineTo(P.x + (bt2.x - P.x) * s1, P.y + (bt2.y - P.y) * s1); ctx.stroke();
+    }
+    // Sägespuren: flache Bögen eines großen Kreissägeblatts
+    for (i = 0; i < 90; i++) {
+      ctx.lineWidth = (1 + rnd() * 2.2) * k;
+      ctx.strokeStyle = i % 2 ? 'rgba(255, 248, 235, .05)' : 'rgba(60, 34, 14, .045)';
+      ctx.beginPath(); ctx.arc(-S * 0.9, S * 0.5, S * 1.25 + i * 9 * k, -0.6, 0.6); ctx.stroke();
+    }
+    // Trockenrisse
+    var cracks = [0.11, 0.3, 0.5];
+    var bAt = function (aa, sv) {
+      var f = ((aa / TAU) % 1 + 1) % 1 * N, i0 = Math.floor(f) % N, i1 = (i0 + 1) % N, fr = f - Math.floor(f);
+      var bx = B[i0].x + (B[i1].x - B[i0].x) * fr, by = B[i0].y + (B[i1].y - B[i0].y) * fr;
+      return [P.x + (bx - P.x) * sv, P.y + (by - P.y) * sv];
+    };
+    for (j = 0; j < cracks.length; j++) {
+      var a0 = cracks[j] * TAU + (rnd() - 0.5) * 0.2, depth = 0.5 + rnd() * 0.2, half = 0.006 + rnd() * 0.006;
+      var crack = new Path2D(), steps = 26, q2, side;
+      for (side = -1; side <= 1; side += 2) {
+        for (q2 = 0; q2 <= steps; q2++) {
+          var t = side < 0 ? q2 / steps : 1 - q2 / steps;
+          var sv2 = 1.01 - t * (1.01 - depth);
+          var aa = a0 + side * half * Math.pow(1 - t, 1.4) + nC(t * 3, j * 3) * 0.006;
+          var pt = bAt(aa, sv2), x2 = pt[0], y2 = pt[1];
+          if (side < 0 && q2 === 0) crack.moveTo(x2, y2); else crack.lineTo(x2, y2);
         }
       }
+      crack.closePath();
+      ctx.lineWidth = 2.4 * k; ctx.strokeStyle = 'rgba(70, 38, 16, .35)'; ctx.stroke(crack);
+      ctx.fillStyle = '#2A170B'; ctx.fill(crack);
     }
+    // Mark
+    ctx.fillStyle = 'rgba(70, 38, 16, .75)';
+    ctx.beginPath(); ctx.ellipse(P.x, P.y, 5 * k, 3.6 * k, 0.6, 0, TAU); ctx.fill();
+    // Korn: feines Rauschen, einmal als Muster
+    var tile = document.createElement('canvas'); tile.width = tile.height = 96;
+    var tc = tile.getContext('2d'), id = tc.createImageData(96, 96), d = id.data;
+    for (i = 0; i < d.length; i += 4) { var v = rnd(); d[i] = 60; d[i + 1] = 36; d[i + 2] = 18; d[i + 3] = v < 0.5 ? 0 : (v - 0.5) * 70; }
+    tc.putImageData(id, 0, 0);
+    ctx.fillStyle = ctx.createPattern(tile, 'repeat'); ctx.fillRect(0, 0, S, S);
+    // Kambium hell, Rand oxidiert, Licht von links oben
+    ctx.restore();
+    ctx.lineWidth = 2.2 * k; ctx.strokeStyle = 'rgba(244, 226, 196, .7)'; ctx.stroke(disc);
+    ctx.save(); ctx.clip(disc);
+    var g2 = ctx.createRadialGradient(cx, cy, R * 0.72, cx, cy, R * 1.02);
+    g2.addColorStop(0, 'rgba(90, 52, 22, 0)'); g2.addColorStop(1, 'rgba(90, 52, 22, .28)');
+    ctx.fillStyle = g2; ctx.fillRect(0, 0, S, S);
+    var g3 = ctx.createLinearGradient(0, 0, S, S);
+    g3.addColorStop(0, 'rgba(255, 250, 238, .14)'); g3.addColorStop(0.55, 'rgba(255, 250, 238, 0)'); g3.addColorStop(1, 'rgba(40, 20, 8, .16)');
+    ctx.fillStyle = g3; ctx.fillRect(0, 0, S, S);
+    ctx.restore();
+  }
 
-    // Ein Durchgang über alle Zellen (Marching Squares), Linien landen je nach Höhenlinie
-    // in einem hellen oder dunklen Pfad.
-    function contour(g, light, dark) {
-      var i, j, a, b, c, d2, mn, mx, L, x0, y0, xa, ya, xb, yb, cnt, s = g.c, nx = g.nx, field = g.f, path;
-      for (j = 0; j < g.ny - 1; j++) {
-        for (i = 0; i < nx - 1; i++) {
-          a = field[j * nx + i]; b = field[j * nx + i + 1]; c = field[(j + 1) * nx + i + 1]; d2 = field[(j + 1) * nx + i];
-          mn = Math.min(a, b, c, d2); mx = Math.max(a, b, c, d2);
-          for (L = Math.ceil(mn); L <= mx; L++) {
-            x0 = i * s; y0 = j * s; cnt = 0; xa = ya = xb = yb = 0;
-            if ((a < L) !== (b < L)) { xa = x0 + s * (L - a) / (b - a); ya = y0; cnt = 1; }
-            if ((b < L) !== (c < L)) { var px = x0 + s, py = y0 + s * (L - b) / (c - b); if (cnt) { xb = px; yb = py; cnt = 2; } else { xa = px; ya = py; cnt = 1; } }
-            if (cnt < 2 && (d2 < L) !== (c < L)) { var qx = x0 + s * (L - d2) / (c - d2), qy = y0 + s; if (cnt) { xb = qx; yb = qy; cnt = 2; } else { xa = qx; ya = qy; cnt = 1; } }
-            if (cnt < 2 && (a < L) !== (d2 < L)) { xb = x0; yb = y0 + s * (L - a) / (d2 - a); cnt = 2; }
-            if (cnt === 2) { path = (L & 3) === 0 ? dark : light; path.moveTo(xa, ya); path.lineTo(xb, yb); }
-          }
-        }
-      }
-    }
-
-    function draw(sharp) {
-      if (!fine) return;
-      var fade = smooth(0, 0.6, st.intro);
+  function initSlice() {
+    var wrap = qs('[data-slice-wrap]'), canvas = qs('[data-slice]'), hero = qs('.hero');
+    if (!wrap || !canvas || !canvas.getContext) return;
+    var ctx = canvas.getContext('2d'), size = 0;
+    var draw = function () {
+      var S = Math.round(wrap.getBoundingClientRect().width);
+      if (S < 20 || S === size) return;
+      size = S;
+      var dpr = Math.min(dprMax(), 1800 / S);
+      canvas.width = Math.round(S * dpr); canvas.height = Math.round(S * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, W, H);
-      dirty = false;
-      rough = !sharp;
-      if (fade <= 0) return;
-      var g = sharp ? fine : coarse;
-      compute(g);
-      var light = new Path2D(), dark = new Path2D();
-      contour(g, light, dark);
-      // Runde Linienenden nur fürs Standbild – bei tausenden Teilstücken kosten sie im Lauf zu viel.
-      ctx.lineCap = sharp ? 'round' : 'butt';
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = 'rgba(185,130,74,' + (0.62 * fade).toFixed(3) + ')';
-      ctx.stroke(light);
-      ctx.lineWidth = 1.25;
-      ctx.strokeStyle = 'rgba(43,29,20,' + (0.3 * fade).toFixed(3) + ')';
-      ctx.stroke(dark);
-    }
+      ctx.clearRect(0, 0, S, S);
+      paintSlice(ctx, S);
+      requestAnimationFrame(function () { wrap.classList.add('is-drawn'); });
+    };
+    draw();
+    var rt = 0;
+    window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(draw, 220); });
 
-    function loop(t) {
+    if (!hasGSAP || reduced()) return;
+    var stamp = qs('[data-stamp]'), print = qs('.hero-print');
+    gsap.to(wrap, { rotation: -22, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.8 } });
+    if (stamp) gsap.to(stamp, { rotation: 4, yPercent: -30, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.8 } });
+    if (print) gsap.to(print, { yPercent: -28, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.8 } });
+
+    // Streiflicht folgt der Maus mit Feder (nur feiner Zeiger)
+    var sheen = qs('[data-slice-sheen]');
+    if (!finePointer || !sheen) return;
+    var st = { x: 0, y: 0, tx: 0, ty: 0, vx: 0, vy: 0 }, raf = 0;
+    var tick = function () {
       raf = 0;
-      if (!active) return;
-      var moving = false;
-      if (st.intro < 1) {
-        if (!introStart) introStart = t;
-        st.intro = clamp((t - introStart) / INTRO_MS, 0, 1);
-        moving = st.intro < 1;
-      }
-      var ex = st.tcx - st.cx, ey = st.tcy - st.cy;
-      if (Math.abs(ex) > 0.05 || Math.abs(ey) > 0.05) {
-        st.cx += ex * 0.06; st.cy += ey * 0.06;
-        moving = true;
-      }
-      if (moving) { draw(false); raf = requestAnimationFrame(loop); }
-      else if (dirty || rough) draw(true);
-    }
-    function kick() { if (active && !raf) raf = requestAnimationFrame(loop); }
+      var ax = (st.tx - st.x) * 0.06, ay = (st.ty - st.y) * 0.06;
+      st.vx = (st.vx + ax) * 0.78; st.vy = (st.vy + ay) * 0.78;
+      st.x += st.vx; st.y += st.vy;
+      sheen.style.transform = 'translate3d(' + st.x.toFixed(1) + 'px,' + st.y.toFixed(1) + 'px,0)';
+      if (Math.abs(st.tx - st.x) + Math.abs(st.ty - st.y) + Math.abs(st.vx) + Math.abs(st.vy) > 0.3) raf = requestAnimationFrame(tick);
+    };
+    hero.addEventListener('pointermove', function (e) {
+      if (e.pointerType !== 'mouse') return;
+      var r = wrap.getBoundingClientRect(), sw = sheen.offsetWidth;
+      st.tx = e.clientX - r.left - sw / 2; st.ty = e.clientY - r.top - sw / 2;
+      hero.classList.add('is-lit');
+      if (!raf) raf = requestAnimationFrame(tick);
+    }, { passive: true });
+    hero.addEventListener('pointerleave', function () { hero.classList.remove('is-lit'); });
+  }
 
-    if (finePointer && !reduced()) {
-      window.addEventListener('pointermove', function (e) {
-        if (!active || e.pointerType !== 'mouse') return;
-        st.tcx = (e.clientX / window.innerWidth - 0.5) * 90;
-        st.tcy = (e.clientY / window.innerHeight - 0.5) * 140;
-        kick();
-      }, { passive: true });
+  /* ------------------------------------------------------------------
+     Hobelspäne: fliegen beim Scrollen aus dem Hobel-Foto. Vorgezeichnete
+     Sprites, Physik nur solange Späne in der Luft sind.
+     ------------------------------------------------------------------ */
+  function makeShaving(seed) {
+    var c = document.createElement('canvas'), Z = 120;
+    c.width = c.height = Z;
+    var x = c.getContext('2d'), rs = seed * 4813 + 17;
+    var rnd = function () { rs = (rs * 16807) % 2147483647; return (rs - 1) / 2147483646; };
+    var turns = 0.7 + rnd() * 0.8, r0 = 30 + rnd() * 16, w = 5 + rnd() * 9, ph = rnd() * 6, lift = 8 + rnd() * 16;
+    var prev = null, n = 70;
+    x.lineCap = 'round';
+    for (var i = 0; i <= n; i++) {
+      var t = i / n, a = t * turns * Math.PI * 2 + ph, r = r0 * (1 - 0.42 * t);
+      var px = Z / 2 + Math.cos(a) * r, py = Z / 2 + Math.sin(a) * r * 0.62 + (t - 0.5) * lift;
+      if (prev) {
+        var face = Math.abs(Math.cos(t * Math.PI * 1.7 + ph));
+        var lw = 1.4 + w * face * (1 - t * 0.45), L = 0.5 + 0.5 * face;
+        x.lineWidth = lw + 1.4; x.strokeStyle = 'rgba(150, 108, 64, .5)';
+        x.beginPath(); x.moveTo(prev[0], prev[1]); x.lineTo(px, py); x.stroke();
+        x.lineWidth = lw;
+        x.strokeStyle = 'rgba(' + Math.round(200 + 42 * L) + ',' + Math.round(166 + 58 * L) + ',' + Math.round(118 + 76 * L) + ',.92)';
+        x.beginPath(); x.moveTo(prev[0], prev[1]); x.lineTo(px, py); x.stroke();
+      }
+      prev = [px, py];
     }
+    return c;
+  }
 
-    if ('ResizeObserver' in window) new ResizeObserver(function () { resize(); kick(); }).observe(canvas);
-    else window.addEventListener('resize', function () { resize(); kick(); });
+  function initShavings() {
+    var canvas = qs('[data-shavings]'), hero = qs('.hero'), src = qs('.hero-photo');
+    if (!canvas || !hero || !src || reduced() || !canvas.getContext) return;
+    var ctx = canvas.getContext('2d');
+    var sprites = [0, 1, 2, 3, 4, 5, 6].map(makeShaving);
+    var W = 0, H = 0, dpr = 1, parts = [], raf = 0, last = 0, visible = true, budget = 0, lastY = window.scrollY;
+    var resize = function () {
+      var r = hero.getBoundingClientRect();
+      W = Math.round(r.width); H = Math.round(r.height); dpr = Math.min(dprMax(), 1.25);
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    };
     resize();
-    visibilityGate(canvas, function (v) {
-      active = v;
-      if (v) { if (reduced()) { st.intro = 1; draw(true); } else kick(); }
+    window.addEventListener('resize', resize);
+    var spawn = function (n, power) {
+      var hr = hero.getBoundingClientRect(), r = src.getBoundingClientRect();
+      for (var i = 0; i < n && parts.length < 46; i++) {
+        parts.push({
+          x: r.left - hr.left + r.width * (0.3 + Math.random() * 0.35),
+          y: r.top - hr.top + r.height * (0.3 + Math.random() * 0.3),
+          vx: (Math.random() * 2.4 - 0.5) * power, vy: -(1.6 + Math.random() * 3.6) * power,
+          rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.16,
+          s: 0.45 + Math.random() * 0.45, life: 0, max: 1.1 + Math.random() * 0.8,
+          img: sprites[(Math.random() * sprites.length) | 0]
+        });
+      }
+      if (!raf && visible) { last = 0; raf = requestAnimationFrame(loop); }
+    };
+    var loop = function (t) {
+      raf = 0;
+      var dt = last ? Math.min(0.05, (t - last) / 1000) : 0.016; last = t;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (var i = parts.length - 1; i >= 0; i--) {
+        var p = parts[i];
+        p.life += dt;
+        if (p.life > p.max) { parts.splice(i, 1); continue; }
+        p.vy += 9 * dt; p.vx *= 0.992; p.vy *= 0.992;
+        p.x += p.vx * dt * 60; p.y += p.vy * dt * 60; p.rot += p.vr;
+        var a = 1 - smooth(0.62, 1, p.life / p.max);
+        var c = Math.cos(p.rot) * p.s * dpr, s = Math.sin(p.rot) * p.s * dpr;
+        ctx.globalAlpha = a;
+        ctx.setTransform(c, s, -s, c, p.x * dpr, p.y * dpr);
+        ctx.drawImage(p.img, -60, -60);
+      }
+      ctx.globalAlpha = 1;
+      if (parts.length && visible) raf = requestAnimationFrame(loop);
+      else { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height); }
+    };
+    visibilityGate(hero, function (v) { visible = v; if (!v) { parts.length = 0; } });
+    var onScroll = function (y) {
+      var dy = y - lastY; lastY = y;
+      if (!visible || y > H * 0.9 || dy <= 0) return;
+      budget += Math.min(dy, 120) * 0.06;
+      if (budget >= 1) { var n = Math.min(4, Math.floor(budget)); budget -= n; spawn(n, 1 + Math.min(dy, 80) / 60); }
+    };
+    if (lenis) lenis.on('scroll', function (e) { onScroll(e.scroll); });
+    else window.addEventListener('scroll', function () { onScroll(window.scrollY); }, { passive: true });
+    // Erster Hobelzug: ein kleiner Schwall Späne, wenn das Foto liegt
+    if (mqDesktop.matches) setTimeout(function () { if (window.scrollY < 40) spawn(7, 1.2); }, 1150);
+    src.addEventListener('pointerdown', function () { spawn(6, 1.3); });
+  }
+
+  /* ------------------------------------------------------------------
+     Mikro-Interaktionen: Zeichen-Rollen in der Navigation, magnetische Knöpfe
+     ------------------------------------------------------------------ */
+  function initMicro() {
+    if (reduced() || !finePointer) return;
+    qsa('.main-nav a').forEach(function (a) {
+      var txt = a.textContent.trim();
+      var roll = document.createElement('span'); roll.className = 'roll'; roll.setAttribute('aria-hidden', 'true');
+      Array.from(txt).forEach(function (ch, i) {
+        var s = document.createElement('span'); s.textContent = ch; s.setAttribute('data-c', ch); s.style.setProperty('--i', i); roll.appendChild(s);
+      });
+      var sr = document.createElement('span'); sr.className = 'sr-only'; sr.textContent = txt;
+      a.textContent = ''; a.appendChild(roll); a.appendChild(sr);
     });
-    if (!reduced()) {
-      // Intro erst starten, wenn die Überschrift läuft
-      var go = function () { introStart = 0; kick(); };
-      if (doc.classList.contains('hero-in')) go(); else setTimeout(go, 300);
-    }
+    qsa('[data-magnetic], .header-cta, .pcard--end .btn, .ws-visit, [data-take-material]').forEach(function (el) {
+      var st = { x: 0, y: 0, tx: 0, ty: 0 }, raf = 0;
+      var tick = function () {
+        raf = 0;
+        st.x += (st.tx - st.x) * 0.18; st.y += (st.ty - st.y) * 0.18;
+        el.style.translate = st.x.toFixed(2) + 'px ' + st.y.toFixed(2) + 'px';
+        if (Math.abs(st.tx - st.x) + Math.abs(st.ty - st.y) > 0.05) raf = requestAnimationFrame(tick);
+      };
+      el.addEventListener('pointermove', function (e) {
+        if (e.pointerType !== 'mouse') return;
+        var r = el.getBoundingClientRect();
+        st.tx = (e.clientX - r.left - r.width / 2) * 0.22; st.ty = (e.clientY - r.top - r.height / 2) * 0.32;
+        if (!raf) raf = requestAnimationFrame(tick);
+      });
+      el.addEventListener('pointerleave', function () { st.tx = 0; st.ty = 0; if (!raf) raf = requestAnimationFrame(tick); });
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     Werkstatt-Zitat: Brennspur läuft Zeichen für Zeichen mit dem Scroll
+     ------------------------------------------------------------------ */
+  function initBurn() {
+    var lib = qs('[data-lib]');
+    if (lib && 'IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (en) { if (en[0].isIntersecting) { lib.classList.add('is-marked'); io.disconnect(); } }, { threshold: 0.35 });
+      io.observe(lib);
+    } else if (lib) lib.classList.add('is-marked');
+
+    var p = qs('[data-burn]');
+    if (!p || reduced() || !hasGSAP) return;
+    var text = p.textContent;
+    var sr = document.createElement('span'); sr.className = 'sr-only'; sr.textContent = text;
+    var vis = document.createElement('span'); vis.setAttribute('aria-hidden', 'true');
+    var chars = [];
+    text.split(/(\s+)/).forEach(function (part) {
+      if (!part) return;
+      if (/^\s+$/.test(part)) { vis.appendChild(document.createTextNode(' ')); return; }
+      var w = document.createElement('span'); w.style.whiteSpace = 'nowrap'; w.style.display = 'inline-block';
+      Array.from(part).forEach(function (c) { var s = document.createElement('span'); s.className = 'burn-ch'; s.textContent = c; w.appendChild(s); chars.push(s); });
+      vis.appendChild(w);
+    });
+    p.textContent = ''; p.appendChild(sr); p.appendChild(vis);
+    var lit = -1;
+    var set = function (pr) {
+      var n = Math.round(pr * (chars.length + 3));
+      if (n === lit) return;
+      for (var i = 0; i < chars.length; i++) {
+        chars[i].classList.toggle('is-lit', i < n - 3);
+        chars[i].classList.toggle('is-hot', i >= n - 3 && i < n);
+      }
+      lit = n;
+    };
+    set(0);
+    ScrollTrigger.create({ trigger: p, start: 'top 82%', end: 'bottom 48%', scrub: true, onUpdate: function (self) { set(self.progress); }, onLeave: function () { set(1); } });
   }
 
   /* ------------------------------------------------------------------
@@ -773,16 +982,18 @@
       section.classList.add('is-pinned');
       viewport.removeAttribute('tabindex');
       var dist = function () { return Math.max(0, track.scrollWidth - viewport.clientWidth); };
+      // Sticky statt GSAP-Pin: Abschnitt so hoch wie Bildschirm + Streckenlänge, die Bühne klebt per CSS.
+      var setH = function () { section.style.height = Math.round(window.innerHeight + dist()) + 'px'; };
+      setH();
+      ScrollTrigger.addEventListener('refreshInit', setH);
       var tween = gsap.to(track, {
         x: function () { return -dist(); },
         ease: 'none',
         scrollTrigger: {
-          trigger: pin,
+          trigger: section,
           start: 'top top',
           end: function () { return '+=' + dist(); },
-          pin: true,
           scrub: 0.6,
-          anticipatePin: 1,
           invalidateOnRefresh: true,
           onUpdate: function (self) { setProgress(self.progress); }
         }
@@ -793,13 +1004,37 @@
           scrollTrigger: { trigger: img.closest('.pcard'), containerAnimation: tween, start: 'left right', end: 'right left', scrub: true }
         });
       });
+      qsa('.pcard-sample', track).forEach(function (smp) {
+        gsap.fromTo(smp, { x: 28 }, {
+          x: -10, ease: 'none',
+          scrollTrigger: { trigger: smp.closest('.pcard'), containerAnimation: tween, start: 'left right', end: 'right left', scrub: true }
+        });
+      });
       return function () {
         section.classList.remove('is-pinned');
+        section.style.height = '';
+        ScrollTrigger.removeEventListener('refreshInit', setH);
         viewport.setAttribute('tabindex', '0');
         gsap.set(track, { clearProps: 'transform' });
         setProgress(0);
       };
     });
+  }
+
+  /* Holzmuster der Projekt-Kacheln – in kleinen Häppchen im Leerlauf gerendert */
+  function initSamples() {
+    var list = qsa('[data-wood-sample]');
+    var next = function () {
+      var el = list.shift();
+      if (!el) return;
+      var cv = qs('canvas', el), r = el.getBoundingClientRect();
+      var w = Math.max(40, Math.min(640, Math.round(r.width))), h = Math.max(20, Math.round(r.height));
+      cv.width = w; cv.height = h;
+      var job = woodJob(cv, w, h, el.getAttribute('data-wood-sample'), { seed: +el.getAttribute('data-seed') || 7, lamellae: 1, scale: 1.6 });
+      var go = function (deadline) { if (job.step(deadline)) { el.classList.add('is-ready'); idleTask(function (d) { next(); }); } else idleTask(go); };
+      idleTask(go);
+    };
+    next();
   }
 
   /* ------------------------------------------------------------------
@@ -853,17 +1088,38 @@
     var section = qs('#ablauf'), sketch = qs('.process-sketch');
     // Zwei aneinandergrenzende Strecken: Eingang (Blatt 1) und Hauptteil (Blatt 2–5).
     // Hauptteil: erstes Fünftel = Schritt 1 (Blatt 1 wird fertig), danach je Fünftel ein Blatt.
-    var mainMap = function (p) { return p < 0.2 ? ENTRY + (1 - ENTRY) * (p / 0.2) : 1 + (p - 0.2) * 5; };
+    // Letztes Stück der Strecke: Skizze → Werkstück. Das Foto wischt unter den Linien herein.
+    var PH = 0.16;
+    var photoG = qs('[data-sketch-photo]', svg), lines = qs('.sk-lines', svg), grid = qs('.sk-grid', svg), done = qs('.sk-done', svg);
+    var img = photoG && qs('image', photoG);
+    if (img && img.getAttribute('data-href')) img.setAttribute('href', img.getAttribute('data-href'));
+    var lastPh = -1;
+    var setPhoto = function (t) {
+      t = Math.round(clamp(t, 0, 1) * 200) / 200;
+      if (t === lastPh || !photoG) return;
+      lastPh = t;
+      var e = t * t * (3 - 2 * t);
+      photoG.style.clipPath = 'inset(0 ' + (100 - e * 100).toFixed(1) + '% 0 0)';
+      if (lines) lines.style.opacity = (1 - 0.62 * e).toFixed(3);
+      if (grid) grid.style.opacity = (1 - e).toFixed(3);
+      if (done) done.style.opacity = smooth(0.7, 1, t).toFixed(2);
+      sketch && sketch.classList.toggle('is-built', t > 0.98);
+    };
+    var mainMap = function (p) {
+      setPhoto((p - (1 - PH)) / PH);
+      p = Math.min(1, p / (1 - PH));
+      return p < 0.2 ? ENTRY + (1 - ENTRY) * (p / 0.2) : 1 + (p - 0.2) * 5;
+    };
     var pair = function (entryCfg, mainCfg) {
       var main = null, entry = null;
       main = ScrollTrigger.create(Object.assign(mainCfg, {
         onUpdate: function (self) {
-          if (self.progress <= 0 && entry && entry.progress < 1) { setProgress(entry.progress * ENTRY); return; }
+          if (self.progress <= 0 && entry && entry.progress < 1) { setPhoto(0); setProgress(entry.progress * ENTRY); return; }
           setProgress(mainMap(self.progress));
         }
       }));
       entry = ScrollTrigger.create(Object.assign(entryCfg, {
-        onUpdate: function (self) { if (!main || main.progress <= 0) setProgress(self.progress * ENTRY); }
+        onUpdate: function (self) { if (!main || main.progress <= 0) { setPhoto(0); setProgress(self.progress * ENTRY); } }
       }));
       setProgress(main.progress > 0 ? mainMap(main.progress) : entry.progress * ENTRY);
       return function () { entry.kill(); main.kill(); };
@@ -884,12 +1140,17 @@
       section.classList.add('is-pinned');
       lockSteps();
       ScrollTrigger.addEventListener('refreshInit', lockSteps);
+      // Sticky statt GSAP-Pin: Bühne klebt per CSS, der Abschnitt liefert die Scrollstrecke.
+      var setH = function () { section.style.height = Math.round(window.innerHeight * 4.1) + 'px'; };
+      setH();
+      ScrollTrigger.addEventListener('refreshInit', setH);
       var kill = pair(
-        { trigger: pin, start: 'top 70%', end: 'top top' },
-        { trigger: pin, start: 'top top', end: '+=260%', pin: true, anticipatePin: 1 }
+        { trigger: section, start: 'top 70%', end: 'top top' },
+        { trigger: section, start: 'top top', end: function () { return '+=' + Math.round(window.innerHeight * 3.1); } }
       );
       return function () {
-        kill(); section.classList.remove('is-pinned');
+        kill(); section.classList.remove('is-pinned'); section.style.height = '';
+        ScrollTrigger.removeEventListener('refreshInit', setH);
         ScrollTrigger.removeEventListener('refreshInit', lockSteps);
         stepsEl.style.minHeight = '';
       };
@@ -897,7 +1158,7 @@
     mm.add('(max-width: 899px)', function () {
       return pair(
         { trigger: sketch || stepsEl, start: 'top 92%', end: 'top 30%' },
-        { trigger: stepsEl, start: 'top 60%', end: 'bottom 55%' }
+        { trigger: stepsEl, start: 'top 60%', end: 'bottom 88%' }
       );
     });
   }
@@ -1296,8 +1557,8 @@
 
     // Danach in kleinen Häppchen (je Aufgabe ein eigener Task), Reihenfolge = Reihenfolge der Pins.
     var queue = [
-      ['grain', initGrain], ['library', initLibrary], ['projects', initProjects], ['process', initProcess],
-      ['rings', initRings], ['counters', initCounters], ['quotes', initQuotes], ['map', initMap], ['wizard', initWizard]
+      ['slice', initSlice], ['shavings', initShavings], ['micro', initMicro], ['library', initLibrary], ['projects', initProjects], ['samples', initSamples], ['process', initProcess],
+      ['rings', initRings], ['counters', initCounters], ['quotes', initQuotes], ['map', initMap], ['wizard', initWizard], ['burn', initBurn]
     ];
     var idle = window.requestIdleCallback ? function (fn) { requestIdleCallback(fn, { timeout: 300 }); } : function (fn) { setTimeout(fn, 16); };
     var finish = function () {

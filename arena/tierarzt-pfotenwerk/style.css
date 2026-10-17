@@ -1180,7 +1180,7 @@ body { background: var(--grain), var(--paper); font-feature-settings: "kern", "l
   align-items: end; padding-bottom: clamp(20px, 3.4vh, 40px);
 }
 .hero__title {
-  grid-area: title; container-type: inline-size;
+  grid-area: title;
   font: 400 clamp(2.6rem, 7.6vw, 8.4rem)/.93 var(--f-display); letter-spacing: -.035em; color: var(--ink);
 }
 .ln { display: block; overflow: clip; padding-bottom: .1em; margin-bottom: -.1em; }
@@ -1342,6 +1342,7 @@ body { background: var(--grain), var(--paper); font-feature-settings: "kern", "l
 @keyframes rabR { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(16deg); } 65% { transform: rotate(-5deg); } }
 @keyframes nose { from { transform: scale(1); } to { transform: scale(1.25, .85); } }
 
+@media (max-width: 1199px) { .scene__note { display: none; } }
 @media (max-width: 1099px) {
   .hero__top { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "lead" "cta"; }
   .room__sign { display: none; }
@@ -1679,11 +1680,9 @@ main#main { position: relative; isolation: isolate; }
 main > section > .wrap, main > section > .services__in { position: relative; z-index: 1; }
 .trail { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; color: var(--petrol); }
 .trail svg { position: absolute; left: 0; overflow: visible; }
-.trail use { opacity: 0; transition: opacity 240ms ease; }
-.trail use.on { opacity: .42; }
-.trail use.d { color: var(--sun); }
-.trail use.d.on { opacity: .34; }
-.trail use.h { opacity: .95; color: var(--apricot-d); }
+.trail path { fill: currentColor; opacity: .4; }
+.trail path.d { fill: var(--sun); opacity: .32; }
+.trail__head { position: absolute; left: 0; top: 0; width: 14px; height: 15px; color: var(--apricot-d); transform-origin: 7px 7.5px; transition: opacity 200ms ease; }
 html:not(.js) .trail { display: none; }
 
 /* ---------- Überschriften: Wort für Wort ---------- */
@@ -1701,3 +1700,8 @@ html:not(.js) .trail { display: none; }
   .svc, .pol, .vet, .story { transition-property: opacity, box-shadow !important; }
 }
 html.motion-off .trail use { transition: none; }
+
+/* Unterer Seitenteil: Layout erst beim Näherkommen (schnellerer Start) */
+.signup, .place, .faq { content-visibility: auto; contain-intrinsic-size: auto 1400px; position: relative; z-index: 1; } /* eigener Stapelkontext: Spur läuft darunter */
+.place, .faq { contain-intrinsic-size: auto 1000px; }
+html.cv-all .signup, html.cv-all .place, html.cv-all .faq { content-visibility: visible; }

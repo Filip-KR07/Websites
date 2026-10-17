@@ -15,7 +15,7 @@
 <meta property="og:site_name" content="Blitzblank Gebäudereinigung (Demo)">
 <link rel="icon" href="/arena/reinigung-blitzblank/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="/arena/reinigung-blitzblank/assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/arena/reinigung-blitzblank/assets/img/hero-960.webp" as="image" type="image/webp" imagesrcset="/arena/reinigung-blitzblank/assets/img/hero-480.webp 480w, /arena/reinigung-blitzblank/assets/img/hero-960.webp 960w" imagesizes="(min-width: 900px) 52vw, 92vw">
+<link rel="preload" href="/arena/reinigung-blitzblank/assets/img/hero-960.webp" as="image" type="image/webp" imagesrcset="/arena/reinigung-blitzblank/assets/img/hero-480.webp 480w, /arena/reinigung-blitzblank/assets/img/hero-960.webp 960w" imagesizes="(min-width: 900px) 42vw, 92vw" fetchpriority="high">
 <link rel="stylesheet" href="/arena/reinigung-blitzblank/style.css">
 <script>
   (function () {
@@ -24,8 +24,9 @@
     var forced = /[?&]motion=off\b/.test(q);
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     d.classList.add(forced || reduce ? 'motion-off' : 'motion-ok');
-    /* Sicherheitsnetz: falls main.js nicht lädt, nach 3 s alles sichtbar machen */
-    setTimeout(function () { if (!window.__glanzReady) d.classList.add('reveal-all'); }, 3000);
+    if (window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches) d.classList.add('has-hover');
+    /* Sicherheitsnetz: falls main.js nicht lädt, nach 2,5 s alles sichtbar machen */
+    setTimeout(function () { if (!window.__glanzReady) d.classList.add('reveal-all'); }, 2500);
   })();
 </script>
 <script type="application/ld+json">
@@ -79,22 +80,25 @@
 </head>
 <body>
 <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
-  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 0c.8 6.4 5.6 11.2 12 12-6.4.8-11.2 5.6-12 12-.8-6.4-5.6-11.2-12-12C6.4 11.2 11.2 6.4 12 0Z" fill="currentColor"/></symbol>
   <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6.6 3.5h2.6l1.5 4.2-2 1.4a12 12 0 0 0 6.2 6.2l1.4-2 4.2 1.5v2.6a2 2 0 0 1-2.2 2A16.6 16.6 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-5.5-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.6 12.9c1.9 1.3 3.3 2.8 4.6 4.7 2.6-4.6 5.6-8.3 10.2-11.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-mail" viewBox="0 0 24 24"><path d="M3.5 6.5h17v11h-17zM4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
   <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-6.2-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 14.8 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9.8" r="2.3" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
-  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2.8 2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9Z" fill="currentColor"/></symbol>
-  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 9h16M8 15h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   <symbol id="i-calc" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-  <symbol id="i-squeegee" viewBox="0 0 64 64"><rect x="29" y="22" width="6" height="38" rx="3" fill="#0B2545"/><rect x="8" y="15" width="48" height="8" rx="3" fill="#19C3D1"/><rect x="5" y="9" width="54" height="7" rx="3.5" fill="#0B2545"/></symbol>
-  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.4 3 8 7 9.5 4-1.5 7-5.1 7-9.5V6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m9 12 2.2 2.2L15.5 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="14" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m11 11 8-8m-3 3 2.5 2.5M14 8l2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
-  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14Zm0 0 7-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-  <symbol id="i-qr" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-blade" viewBox="0 0 24 24"><path d="M3 6.5h18M5 9.5h14M12 9.5v11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-qrcode" viewBox="-1 -1 23 23"><path fill="currentColor" d="M0 0h7v1h-7zM8 0h3v1h-3zM14 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM10 1h1v1h-1zM14 1h1v1h-1zM20 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM11 2h2v1h-2zM14 2h1v1h-1zM16 2h3v1h-3zM20 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h1v1h-1zM10 3h1v1h-1zM14 3h1v1h-1zM16 3h3v1h-3zM20 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM14 4h1v1h-1zM16 4h3v1h-3zM20 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM11 5h1v1h-1zM14 5h1v1h-1zM20 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h7v1h-7zM8 7h1v1h-1zM12 7h1v1h-1zM0 8h1v1h-1zM3 8h1v1h-1zM6 8h3v1h-3zM10 8h1v1h-1zM12 8h5v1h-5zM18 8h1v1h-1zM2 9h4v1h-4zM10 9h1v1h-1zM12 9h1v1h-1zM17 9h1v1h-1zM20 9h1v1h-1zM0 10h1v1h-1zM3 10h2v1h-2zM6 10h3v1h-3zM10 10h1v1h-1zM12 10h1v1h-1zM14 10h1v1h-1zM18 10h3v1h-3zM0 11h1v1h-1zM2 11h2v1h-2zM5 11h1v1h-1zM7 11h2v1h-2zM10 11h1v1h-1zM15 11h1v1h-1zM19 11h1v1h-1zM4 12h1v1h-1zM6 12h1v1h-1zM8 12h1v1h-1zM11 12h1v1h-1zM15 12h2v1h-2zM8 13h1v1h-1zM10 13h1v1h-1zM13 13h1v1h-1zM16 13h5v1h-5zM0 14h7v1h-7zM10 14h1v1h-1zM14 14h1v1h-1zM16 14h1v1h-1zM18 14h3v1h-3zM0 15h1v1h-1zM6 15h1v1h-1zM9 15h1v1h-1zM12 15h1v1h-1zM15 15h1v1h-1zM17 15h2v1h-2zM0 16h1v1h-1zM2 16h3v1h-3zM6 16h1v1h-1zM8 16h2v1h-2zM13 16h1v1h-1zM16 16h3v1h-3zM0 17h1v1h-1zM2 17h3v1h-3zM6 17h1v1h-1zM9 17h1v1h-1zM11 17h3v1h-3zM18 17h1v1h-1zM20 17h1v1h-1zM0 18h1v1h-1zM2 18h3v1h-3zM6 18h1v1h-1zM8 18h2v1h-2zM11 18h3v1h-3zM15 18h1v1h-1zM17 18h1v1h-1zM19 18h1v1h-1zM0 19h1v1h-1zM6 19h1v1h-1zM14 19h1v1h-1zM17 19h2v1h-2zM20 19h1v1h-1zM0 20h7v1h-7zM10 20h2v1h-2zM14 20h1v1h-1zM17 20h1v1h-1z"/></symbol>
+  <symbol id="i-squeegee" viewBox="0 0 120 120">
+    <path d="M54 40h12l2.5 66a6 6 0 0 1-6 6.4h-5a6 6 0 0 1-6-6.4Z" fill="#19C3D1"/>
+    <path d="M55.4 58h9.2M55.6 66h8.8M55.8 74h8.4M56 82h8" stroke="#0B2545" stroke-opacity=".35" stroke-width="2" stroke-linecap="round"/>
+    <rect x="48" y="32" width="24" height="10" rx="3" fill="#0B2545"/>
+    <rect x="8" y="22" width="104" height="12" rx="3" fill="#C9D6DE"/>
+    <rect x="8" y="22" width="104" height="4" rx="2" fill="#fff" fill-opacity=".8"/>
+    <rect x="4" y="14" width="112" height="9" rx="4.5" fill="#0B2545"/>
+  </symbol>
 </svg>
 
 <a class="skip-link" href="#main">Zum Inhalt springen</a>
@@ -107,17 +111,17 @@
     </a>
     <nav class="main-nav" aria-label="Hauptnavigation">
       <ul>
-        <li><a href="#leistungen">Leistungen</a></li>
-        <li><a href="#rechner">Preisrechner</a></li>
-        <li><a href="#checklisten">Checklisten</a></li>
-        <li><a href="#einsatzgebiet">Einsatzgebiet</a></li>
-        <li><a href="#karriere">Karriere</a></li>
-        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#leistungen" data-roll>Leistungen</a></li>
+        <li><a href="#rechner" data-roll>Preisrechner</a></li>
+        <li><a href="#checklisten" data-roll>Checklisten</a></li>
+        <li><a href="#einsatzgebiet" data-roll>Einsatzgebiet</a></li>
+        <li><a href="#karriere" data-roll>Karriere</a></li>
+        <li><a href="#faq" data-roll>FAQ</a></li>
       </ul>
     </nav>
     <div class="site-header__actions">
       <a class="header-phone" href="tel:+496215557080"><svg aria-hidden="true"><use href="#i-phone"/></svg><span>0621&nbsp;555&nbsp;70&nbsp;80</span></a>
-      <a class="btn btn--primary btn--sm" href="#kontakt"><span>Begehung anfragen</span></a>
+      <a class="btn btn--primary btn--sm" href="#kontakt" data-magnetic><span>Begehung anfragen</span></a>
       <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" data-menu-toggle>
         <svg aria-hidden="true"><use href="#i-menu"/></svg><span class="sr-only">Menü öffnen</span>
       </button>
@@ -132,8 +136,9 @@
       <span class="mobile-nav__title">Menü</span>
       <button class="menu-close" type="button" data-menu-close><svg aria-hidden="true"><use href="#i-close"/></svg><span class="sr-only">Menü schließen</span></button>
     </div>
-    <ul class="mobile-nav__list">
+    <ol class="mobile-nav__list">
       <li><a href="#leistungen">Leistungen</a></li>
+      <li><a href="#vorher-nachher">Vorher &amp; nachher</a></li>
       <li><a href="#rechner">Preisrechner</a></li>
       <li><a href="#checklisten">Checklisten</a></li>
       <li><a href="#ablauf">So arbeiten wir</a></li>
@@ -141,7 +146,7 @@
       <li><a href="#karriere">Karriere</a></li>
       <li><a href="#faq">FAQ</a></li>
       <li><a href="#kontakt">Kontakt</a></li>
-    </ul>
+    </ol>
     <div class="mobile-nav__foot">
       <a class="btn btn--primary" href="tel:+496215557080"><svg aria-hidden="true"><use href="#i-phone"/></svg><span>0621&nbsp;555&nbsp;70&nbsp;80</span></a>
       <p>Büro Mo–Fr 7–17&nbsp;Uhr</p>
@@ -151,163 +156,203 @@
 
 <main id="main">
 
-<!-- ============ HERO ============ -->
-<section class="hero" id="top" aria-labelledby="hero-title">
-  <div class="hero__bg" aria-hidden="true">
-    <span class="blob blob--a"></span><span class="blob blob--b"></span>
-    <span class="bubble" style="--x:6%;--s:46px;--d:13s;--t:-2s"></span>
-    <span class="bubble" style="--x:18%;--s:18px;--d:9s;--t:-5s"></span>
-    <span class="bubble" style="--x:31%;--s:28px;--d:11s;--t:-8s"></span>
-    <span class="bubble" style="--x:44%;--s:12px;--d:8s;--t:-1s"></span>
-    <span class="bubble" style="--x:58%;--s:36px;--d:14s;--t:-10s"></span>
-    <span class="bubble" style="--x:73%;--s:16px;--d:10s;--t:-4s"></span>
-    <span class="bubble" style="--x:86%;--s:24px;--d:12s;--t:-7s"></span>
-    <span class="bubble" style="--x:95%;--s:10px;--d:7s;--t:-3s"></span>
-  </div>
-  <div class="container hero__grid">
-    <div class="hero__copy">
-      <p class="eyebrow"><svg aria-hidden="true"><use href="#i-sparkle"/></svg><span class="eyebrow__pre">Gebäudereinigung ·</span>Mannheim &amp; Rhein-Neckar</p>
-      <h1 class="hero__title" id="hero-title">
-        <span class="hero__line"><span class="w-heavy" data-split>Sauber,</span></span>
-        <span class="hero__line"><span class="w-light" data-split>bevor Sie</span></span>
-        <span class="hero__line"><span class="w-light" data-split>kommen.</span></span>
-      </h1>
-      <p class="hero__lead" data-hero-in>Unterhalts-, Glas- und Praxisreinigung für Büros, Praxen und Wohnanlagen – mit festen Objektteams, schriftlichem Leistungsverzeichnis und einer Ansprechpartnerin, die zurückruft.</p>
-      <div class="hero__ctas" data-hero-in>
-        <a class="btn btn--primary" href="#rechner"><svg aria-hidden="true"><use href="#i-calc"/></svg><span>Monatspreis berechnen</span></a>
-        <a class="btn btn--ghost" href="tel:+496215557080"><svg aria-hidden="true"><use href="#i-phone"/></svg><span>0621&nbsp;555&nbsp;70&nbsp;80</span></a>
-      </div>
-      <ul class="hero__trust" data-hero-in>
-        <li><span class="stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span><span><strong>4,8</strong> aus 118&nbsp;Bewertungen</span></li>
-        <li><svg aria-hidden="true"><use href="#i-shield"/></svg><span>Meisterbetrieb seit 2011</span></li>
-        <li><svg aria-hidden="true"><use href="#i-key"/></svg><span>64&nbsp;Mitarbeitende, feste Teams</span></li>
-      </ul>
-    </div>
-
-    <figure class="pane" data-pane>
-      <div class="pane__frame" data-pane-frame>
-        <img class="pane__img" src="/arena/reinigung-blitzblank/assets/img/hero-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/hero-480.webp 480w, /arena/reinigung-blitzblank/assets/img/hero-960.webp 960w" sizes="(min-width: 900px) 52vw, 92vw" width="960" height="636" fetchpriority="high" decoding="async" alt="Frisch gereinigter Besprechungsraum mit spiegelnder weißer Tischplatte, Glaswand und Sprossenfenster">
-        <canvas class="pane__fog" data-fog aria-hidden="true"></canvas>
-        <canvas class="pane__fx" data-fx aria-hidden="true"></canvas>
-        <span class="pane__cursor" data-cursor aria-hidden="true"></span>
-        <svg class="pane__squeegee" data-squeegee aria-hidden="true"><use href="#i-squeegee"/></svg>
-        <span class="pane__tag" aria-hidden="true"><span class="dot"></span>Mo 06:40 · Besprechungsraum 3.12</span>
-        <span class="pane__hint" data-hint aria-hidden="true"><span class="pane__hint-hand"></span>Wischen Sie über die Scheibe</span>
-        <span class="pane__done" data-done aria-hidden="true"><svg><use href="#i-sparkle"/></svg>Blitzblank.</span>
-      </div>
-      <figcaption class="pane__bar">
-        <span class="pane__meter" aria-hidden="true"><span data-meter></span></span>
-        <span class="pane__status" data-status>So sieht Ihr Besprechungsraum aus, wenn wir gehen.</span>
-        <span class="pane__controls">
-          <button class="chip-btn" type="button" data-autowipe><svg aria-hidden="true"><use href="#i-sparkle"/></svg>Automatisch wischen</button>
-          <button class="chip-btn chip-btn--ghost" type="button" data-refog hidden>Neu beschlagen</button>
-        </span>
-        <span class="sr-only" aria-live="polite" data-live></span>
-      </figcaption>
+<!-- ============ HERO · Die Scheibe ============ -->
+<section class="hero" id="top" aria-labelledby="hero-title" data-hero>
+ <div class="hero__pane" data-pane>
+  <!-- hinter der Scheibe -->
+  <div class="hero__room">
+    <h1 class="hero__title" id="hero-title" data-glint>
+      <span class="hl hl--a">Sauber,</span>
+      <span class="hl hl--b">bevor Sie</span>
+      <span class="hl hl--c">kommen.</span>
+    </h1>
+    <figure class="hero__photo">
+      <img src="/arena/reinigung-blitzblank/assets/img/hero-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/hero-480.webp 480w, /arena/reinigung-blitzblank/assets/img/hero-960.webp 960w" sizes="(min-width: 900px) 42vw, 92vw" width="960" height="636" fetchpriority="high" decoding="async" alt="Frisch gereinigter Besprechungsraum mit spiegelnder weißer Tischplatte, Glaswand und Sprossenfenster">
     </figure>
   </div>
 
+  <!-- die Scheibe -->
+  <canvas class="hero__fog" data-fog aria-hidden="true"></canvas>
+  <canvas class="hero__fx" data-fx aria-hidden="true"></canvas>
+  <span class="hero__squeegee" data-squeegee aria-hidden="true"><svg viewBox="0 0 120 120"><use href="#i-squeegee"/></svg></span>
+
+  <!-- auf der Scheibe -->
+  <div class="hero__glass">
+    <p class="hero__lead">Unterhalts-, Glas- und Praxisreinigung in Mannheim und der Rhein-Neckar-Region. Feste Teams, jeder Einsatz per QR-Code quittiert, Rückruf innerhalb eines Werktags.</p>
+    <div class="hero__ctas">
+      <a class="btn btn--primary" href="#rechner" data-magnetic><svg aria-hidden="true"><use href="#i-calc"/></svg><span>Monatspreis berechnen</span></a>
+      <a class="btn btn--glass" href="tel:+496215557080"><svg aria-hidden="true"><use href="#i-phone"/></svg><span>0621&nbsp;555&nbsp;70&nbsp;80</span></a>
+    </div>
+
+    <div class="sticker" aria-hidden="true">
+      <svg class="sticker__qr"><use href="#i-qrcode"/></svg>
+      <span class="sticker__txt"><b>Quittiert</b>Mo 06:40 · Raum 3.12<br>Team Lindenhof</span>
+    </div>
+
+    <div class="seal" role="img" aria-label="Bewertet mit 4,8 von 5 Sternen aus 118 Bewertungen. Meisterbetrieb seit 2011, 64 Mitarbeitende in festen Teams.">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <defs><path id="seal-ring" d="M100 100m-74 0a74 74 0 1 1 148 0a74 74 0 1 1-148 0"/></defs>
+        <circle cx="100" cy="100" r="96" class="seal__bg"/>
+        <circle cx="100" cy="100" r="88" class="seal__line"/>
+        <circle cx="100" cy="100" r="58" class="seal__line"/>
+        <text class="seal__ring"><textPath href="#seal-ring" textLength="462">MEISTERBETRIEB SEIT 2011 · 64 MENSCHEN · FESTE TEAMS ·</textPath></text>
+        <text class="seal__num" x="100" y="108" text-anchor="middle">4,8</text>
+        <text class="seal__stars" x="100" y="128" text-anchor="middle">★★★★★</text>
+        <text class="seal__sub" x="100" y="143" text-anchor="middle">118 BEWERTUNGEN</text>
+      </svg>
+    </div>
+
+    <div class="hero__tools">
+      <span class="meter" aria-hidden="true"><span data-meter></span></span>
+      <span class="hero__status" data-status>So sieht Ihr Besprechungsraum aus, wenn wir gehen.</span>
+      <button class="chip" type="button" data-autowipe><svg aria-hidden="true"><use href="#i-blade"/></svg><span>Automatisch wischen</span></button>
+      <button class="chip chip--ghost" type="button" data-refog hidden><span>Neu beschlagen</span></button>
+      <span class="sr-only" aria-live="polite" data-live></span>
+    </div>
+  </div>
+ </div>
+</section>
+
+<!-- ============ Laufband: Protokoll von heute früh ============ -->
+<div class="ticker" data-ticker>
+  <p class="sr-only">Heute früh quittiert: Auszug aus dem Einsatzprotokoll.</p>
+  <div class="ticker__track" data-ticker-track>
+    <ul class="ticker__list">
+      <li><b>05:31</b> Kanzlei am Wasserturm<i>✓</i></li>
+      <li class="ticker__fact">190 Objekte zwischen Worms und Wiesloch</li>
+      <li><b>05:48</b> Praxis Bergheim · Flächendesinfektion<i>✓</i></li>
+      <li><b>06:12</b> Teeküche 2.&nbsp;OG · Lindenhof<i>✓</i></li>
+      <li class="ticker__fact">64 Menschen, feste Teams</li>
+      <li><b>06:40</b> Besprechungsraum 3.12<i>✓</i></li>
+      <li><b>07:02</b> Treppenhaus Neckarstadt, vier Etagen<i>✓</i></li>
+      <li class="ticker__fact">Festpreis zwei Werktage nach der Begehung</li>
+      <li><b>07:15</b> Schaufenster Möbelhaus Viernheim<i>✓</i></li>
+    </ul>
+    <ul class="ticker__list" aria-hidden="true">
+      <li><b>05:31</b> Kanzlei am Wasserturm<i>✓</i></li>
+      <li class="ticker__fact">190 Objekte zwischen Worms und Wiesloch</li>
+      <li><b>05:48</b> Praxis Bergheim · Flächendesinfektion<i>✓</i></li>
+      <li><b>06:12</b> Teeküche 2.&nbsp;OG · Lindenhof<i>✓</i></li>
+      <li class="ticker__fact">64 Menschen, feste Teams</li>
+      <li><b>06:40</b> Besprechungsraum 3.12<i>✓</i></li>
+      <li><b>07:02</b> Treppenhaus Neckarstadt, vier Etagen<i>✓</i></li>
+      <li class="ticker__fact">Festpreis zwei Werktage nach der Begehung</li>
+      <li><b>07:15</b> Schaufenster Möbelhaus Viernheim<i>✓</i></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ LEISTUNGEN · Index ============ -->
+<section class="svc" id="leistungen" aria-labelledby="svc-title" data-svc>
   <div class="container">
-    <dl class="stats" data-reveal-group>
-      <div class="stat" data-reveal><dt>Mitarbeitende in festen Objektteams</dt><dd><span data-count="64">64</span></dd></div>
-      <div class="stat" data-reveal><dt>betreute Objekte zwischen Worms und Wiesloch</dt><dd><span data-count="190">190</span></dd></div>
-      <div class="stat" data-reveal><dt>Durchschnitt aus 118 Bewertungen</dt><dd><span data-count="4.8" data-decimals="1">4,8</span><small>/5</small></dd></div>
-      <div class="stat" data-reveal><dt>Werktage von der Begehung bis zum Angebot</dt><dd><span data-count="2">2</span></dd></div>
-    </dl>
+    <header class="svc__head">
+      <h2 class="h2 h2--xl" id="svc-title" data-pull>Fünf Arten, sauber zu machen.</h2>
+      <p class="svc__intro">Ein festes Team pro Objekt. Was es tut, steht vorher im Leistungs&shy;verzeichnis und hinterher im Protokoll.</p>
+    </header>
+
+    <ol class="svc__list" data-svc-list>
+      <li class="svc-row" id="svc-buero">
+        <figure class="svc-row__media"><img src="/arena/reinigung-blitzblank/assets/img/konferenz-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/konferenz-480.webp 480w, /arena/reinigung-blitzblank/assets/img/konferenz-960.webp 960w" sizes="(min-width: 900px) 420px, 82vw" width="960" height="640" loading="lazy" decoding="async" alt="Leerer Konferenzraum mit langem Tisch, Lederstühlen und bodentiefen Fenstern"></figure>
+        <span class="svc-row__num" aria-hidden="true">01</span>
+        <h3 class="svc-row__title">Büro- &amp; Unterhalts&shy;reinigung</h3>
+        <div class="svc-row__body">
+          <p>Vor Arbeitsbeginn oder nach Feierabend: Ihr festes Team reinigt nach Leistungsverzeichnis – Arbeitsplätze, Teeküche, Sanitär, Böden. Was erledigt ist, steht im Protokoll.</p>
+          <ul class="svc-row__facts"><li>ab 14-täglich bis werktäglich</li><li>Früh- oder Abendschicht</li><li>Schlüssel codiert verwahrt</li></ul>
+          <a class="text-link" href="#checklisten" data-open-tab="buero">Checkliste Büro<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+      </li>
+      <li class="svc-row" id="svc-glas">
+        <figure class="svc-row__media"><img src="/arena/reinigung-blitzblank/assets/img/seil-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/seil-480.webp 480w, /arena/reinigung-blitzblank/assets/img/seil-960.webp 960w" sizes="(min-width: 900px) 420px, 82vw" width="960" height="1280" loading="lazy" decoding="async" alt="Zwei Fassadenreiniger hängen in Seilen an einer verglasten Hochhausfassade"></figure>
+        <span class="svc-row__num" aria-hidden="true">02</span>
+        <h3 class="svc-row__title">Glas- &amp; Fenster&shy;reinigung</h3>
+        <div class="svc-row__body">
+          <p>Streifenfrei innen und außen, Rahmen und Falze inklusive. An Fassaden arbeiten wir mit Hubsteiger oder Seilzugangstechnik – ohne Gerüst, ohne Baustellenstimmung.</p>
+          <ul class="svc-row__facts"><li>Rahmen &amp; Falze inklusive</li><li>Hubsteiger bis 30&nbsp;m</li><li>quartalsweise oder nach Plan</li></ul>
+          <a class="text-link" href="#checklisten" data-open-tab="glas">Checkliste Glas<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+      </li>
+      <li class="svc-row" id="svc-praxis">
+        <figure class="svc-row__media"><img src="/arena/reinigung-blitzblank/assets/img/praxis-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/praxis-480.webp 480w, /arena/reinigung-blitzblank/assets/img/praxis-960.webp 960w" sizes="(min-width: 900px) 420px, 82vw" width="960" height="640" loading="lazy" decoding="async" alt="Heller, aufgeräumter Arbeitsplatz mit weißer Tastatur und Maus auf weißem Tisch"></figure>
+        <span class="svc-row__num" aria-hidden="true">03</span>
+        <h3 class="svc-row__title">Praxis&shy;reinigung</h3>
+        <div class="svc-row__body">
+          <p>Nach dem Hygieneplan Ihrer Praxis, mit Farbcode-System und dokumentierter Flächendesinfektion: nach der letzten Sprechstunde, bevor die erste Patientin kommt.</p>
+          <ul class="svc-row__facts"><li>nach Ihrem Hygieneplan</li><li>Farbcode-Tücher je Bereich</li><li>auf Wunsch parfümfrei</li></ul>
+          <a class="text-link" href="#checklisten" data-open-tab="praxis">Checkliste Praxis<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+      </li>
+      <li class="svc-row" id="svc-treppe">
+        <figure class="svc-row__media"><img src="/arena/reinigung-blitzblank/assets/img/treppe-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/treppe-480.webp 480w, /arena/reinigung-blitzblank/assets/img/treppe-960.webp 960w" sizes="(min-width: 900px) 420px, 82vw" width="960" height="627" loading="lazy" decoding="async" alt="Blick von oben in ein helles Treppenhaus mit geschwungener Holztreppe und Kronleuchter"></figure>
+        <span class="svc-row__num" aria-hidden="true">04</span>
+        <h3 class="svc-row__title">Treppenhaus&shy;reinigung</h3>
+        <div class="svc-row__body">
+          <p>Für Hausverwaltungen und Eigentümergemeinschaften: Stufen, Handläufe, Briefkastenanlage, Aufzug. Mit Aushang im Haus und QR-Quittung pro Termin. Diskussionen im Hausflur erledigen sich.</p>
+          <ul class="svc-row__facts"><li>wöchentlich oder 14-täglich</li><li>QR-Quittung pro Einsatz</li><li>Keller &amp; Waschküche nach Plan</li></ul>
+          <a class="text-link" href="#checklisten" data-open-tab="treppe">Checkliste Treppenhaus<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+      </li>
+      <li class="svc-row" id="svc-bau">
+        <figure class="svc-row__media"><img src="/arena/reinigung-blitzblank/assets/img/leer-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/leer-480.webp 480w, /arena/reinigung-blitzblank/assets/img/leer-960.webp 960w" sizes="(min-width: 900px) 420px, 82vw" width="960" height="640" loading="lazy" decoding="async" alt="Weißer, leerer Raum mit schlichtem Schreibtisch und Stuhl – bezugsfertig"></figure>
+        <span class="svc-row__num" aria-hidden="true">05</span>
+        <h3 class="svc-row__title">Bauend&shy;reinigung</h3>
+        <div class="svc-row__body">
+          <p>Nach den Handwerkern, vor der Übergabe: Grob- und Feinreinigung, Fenster samt Silikon- und Aufkleberresten, Sanitär ohne Zementschleier. Termin passend zur Schlüsselübergabe.</p>
+          <ul class="svc-row__facts"><li>Grob- &amp; Feinreinigung</li><li>Endabnahme mit Fotoprotokoll</li><li>auch kurzfristig</li></ul>
+          <a class="text-link" href="#checklisten" data-open-tab="bau">Checkliste Bauendreinigung<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+      </li>
+    </ol>
+    <div class="svc__more">
+      <p class="svc__more-title">Was nicht auf der Liste steht?</p>
+      <p>Teppich-Tiefenreinigung, Grundreinigung von Hartböden, Sonderreinigung nach Wasserschaden oder vor dem Tag der offenen Tür. Fragen Sie einfach.</p>
+      <a class="btn btn--primary" href="#rechner" data-magnetic><svg aria-hidden="true"><use href="#i-calc"/></svg><span>Zum Preisrechner</span></a>
+    </div>
+  </div>
+  <div class="svc__preview" aria-hidden="true" data-svc-preview></div>
+</section>
+
+<!-- ============ VORHER / NACHHER ============ -->
+<section class="ba" id="vorher-nachher" aria-labelledby="ba-title" data-ba>
+  <div class="ba__stage" data-ba-stage>
+    <div class="container ba__grid">
+      <div class="ba__copy">
+        <p class="ba__clock" aria-hidden="true"><span data-ba-clock>05:58</span><small>Uhr</small></p>
+        <h2 class="h2" id="ba-title" data-pull>Montag früh. Die Teeküche nach dem Wochenende.</h2>
+        <ol class="ba__steps" data-ba-steps>
+          <li data-at="12"><span class="tick" aria-hidden="true"><svg><use href="#i-check"/></svg></span>Spüle entkalkt, Armatur poliert</li>
+          <li data-at="30"><span class="tick" aria-hidden="true"><svg><use href="#i-check"/></svg></span>Fronten und Griffe ohne Fingerabdrücke</li>
+          <li data-at="50"><span class="tick" aria-hidden="true"><svg><use href="#i-check"/></svg></span>Kaffeeränder von der Arbeitsplatte</li>
+          <li data-at="70"><span class="tick" aria-hidden="true"><svg><use href="#i-check"/></svg></span>Fenster innen streifenfrei</li>
+          <li data-at="88"><span class="tick" aria-hidden="true"><svg><use href="#i-check"/></svg></span>Boden feucht gewischt, Müll getrennt</li>
+        </ol>
+        <p class="ba__note">42&nbsp;Minuten, eine Reinigungskraft, quittiert um 06:40. Die Kanzlei öffnet um 08:00.</p>
+      </div>
+      <figure class="ba__media" data-ba-media>
+        <div class="ba__frame">
+          <img class="ba__after" src="/arena/reinigung-blitzblank/assets/img/fenster-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/fenster-480.webp 480w, /arena/reinigung-blitzblank/assets/img/fenster-960.webp 960w" sizes="(min-width: 900px) 56vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Teeküche mit Erkerfenster nach der Reinigung: klare Scheiben, glänzende Spüle und Arbeitsplatte">
+          <div class="ba__before" data-ba-before aria-hidden="true">
+            <img src="/arena/reinigung-blitzblank/assets/img/fenster-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/fenster-480.webp 480w, /arena/reinigung-blitzblank/assets/img/fenster-960.webp 960w" sizes="(min-width: 900px) 56vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="">
+            <canvas data-ba-grime></canvas>
+          </div>
+          <span class="ba__blade" data-ba-blade aria-hidden="true"><svg viewBox="0 0 120 120"><use href="#i-squeegee"/></svg></span>
+          <span class="ba__tag ba__tag--after" aria-hidden="true">06:40 · nachher</span>
+          <span class="ba__tag ba__tag--before" aria-hidden="true">05:58 · vorher</span>
+          <label class="sr-only" for="ba-range">Vorher-Nachher-Vergleich: Anteil der bereits gereinigten Fläche</label>
+          <input class="ba__range" id="ba-range" type="range" min="0" max="100" step="1" value="50" data-ba-range>
+        </div>
+        <figcaption>Schieben oder scrollen: Links ist schon gewischt, rechts noch Wochenende. Verschmutzung nachgestellt.</figcaption>
+      </figure>
+    </div>
   </div>
 </section>
 
-<!-- ============ LEISTUNGEN ============ -->
-<section class="services" id="leistungen" aria-labelledby="svc-title" data-services>
-  <div class="services__pin" data-services-pin>
-    <div class="container services__head">
-      <p class="eyebrow"><svg aria-hidden="true"><use href="#i-sparkle"/></svg>Leistungen</p>
-      <h2 class="h2" id="svc-title" data-reveal>Fünf Arten, sauber zu machen. <span class="light">Ein festes Team pro Objekt.</span></h2>
-      <div class="services__progress" aria-hidden="true"><span data-svc-progress></span></div>
-    </div>
-    <div class="services__viewport">
-      <ol class="services__track" data-services-track>
-        <li class="svc" id="svc-buero">
-          <div class="svc__media wipe" data-wipe>
-            <img src="/arena/reinigung-blitzblank/assets/img/konferenz-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/konferenz-480.webp 480w, /arena/reinigung-blitzblank/assets/img/konferenz-960.webp 960w" sizes="(min-width: 900px) 460px, (min-width: 700px) 45vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Leerer Konferenzraum mit langem Tisch, Lederstühlen und bodentiefen Fenstern">
-          </div>
-          <div class="svc__body">
-            <span class="svc__num">01</span>
-            <h3 class="svc__title">Büro- &amp; Unterhaltsreinigung</h3>
-            <p>Vor Arbeitsbeginn oder nach Feierabend: Ihr festes Team reinigt nach Leistungsverzeichnis – Arbeitsplätze, Teeküche, Sanitär, Böden. Was erledigt ist, steht im Protokoll.</p>
-            <ul class="svc__facts"><li>ab 14-täglich bis werktäglich</li><li>Früh- oder Abendschicht</li><li>Schlüssel codiert verwahrt</li></ul>
-            <a class="text-link" href="#checklisten" data-open-tab="buero">Checkliste Büro ansehen<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          </div>
-        </li>
-        <li class="svc" id="svc-glas">
-          <div class="svc__media svc__media--tall wipe" data-wipe>
-            <img src="/arena/reinigung-blitzblank/assets/img/seil-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/seil-480.webp 480w, /arena/reinigung-blitzblank/assets/img/seil-960.webp 960w" sizes="(min-width: 900px) 460px, (min-width: 700px) 45vw, 92vw" width="960" height="1280" loading="lazy" decoding="async" alt="Zwei Fassadenreiniger hängen in Seilen an einer verglasten Hochhausfassade">
-          </div>
-          <div class="svc__body">
-            <span class="svc__num">02</span>
-            <h3 class="svc__title">Glas- &amp; Fensterreinigung</h3>
-            <p>Streifenfrei innen und außen, Rahmen und Falze inklusive. An Fassaden arbeiten wir mit Hubsteiger oder Seilzugangstechnik – ohne Gerüst, ohne Baustellenstimmung.</p>
-            <ul class="svc__facts"><li>Rahmen &amp; Falze inklusive</li><li>Hubsteiger bis 30&nbsp;m</li><li>quartalsweise oder nach Plan</li></ul>
-            <a class="text-link" href="#checklisten" data-open-tab="glas">Checkliste Glas ansehen<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          </div>
-        </li>
-        <li class="svc" id="svc-praxis">
-          <div class="svc__media wipe" data-wipe>
-            <img src="/arena/reinigung-blitzblank/assets/img/praxis-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/praxis-480.webp 480w, /arena/reinigung-blitzblank/assets/img/praxis-960.webp 960w" sizes="(min-width: 900px) 460px, (min-width: 700px) 45vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Heller, aufgeräumter Arbeitsplatz mit weißer Tastatur und Maus auf weißem Tisch">
-          </div>
-          <div class="svc__body">
-            <span class="svc__num">03</span>
-            <h3 class="svc__title">Praxisreinigung</h3>
-            <p>Nach dem Hygieneplan Ihrer Praxis, mit Farbcode-System und dokumentierter Flächendesinfektion – nach der letzten Sprechstunde, bevor die erste Patientin kommt.</p>
-            <ul class="svc__facts"><li>nach Ihrem Hygieneplan</li><li>Farbcode-Tücher je Bereich</li><li>auf Wunsch parfümfrei</li></ul>
-            <a class="text-link" href="#checklisten" data-open-tab="praxis">Checkliste Praxis ansehen<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          </div>
-        </li>
-        <li class="svc" id="svc-treppe">
-          <div class="svc__media wipe" data-wipe>
-            <img src="/arena/reinigung-blitzblank/assets/img/treppe-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/treppe-480.webp 480w, /arena/reinigung-blitzblank/assets/img/treppe-960.webp 960w" sizes="(min-width: 900px) 460px, (min-width: 700px) 45vw, 92vw" width="960" height="627" loading="lazy" decoding="async" alt="Blick von oben in ein helles Treppenhaus mit geschwungener Holztreppe und Kronleuchter">
-          </div>
-          <div class="svc__body">
-            <span class="svc__num">04</span>
-            <h3 class="svc__title">Treppenhausreinigung</h3>
-            <p>Für Hausverwaltungen und Eigentümergemeinschaften: Stufen, Handläufe, Briefkastenanlage, Aufzug. Mit Aushang im Haus und QR-Quittung pro Termin – Diskussionen im Hausflur erledigen sich.</p>
-            <ul class="svc__facts"><li>wöchentlich oder 14-täglich</li><li>QR-Quittung pro Einsatz</li><li>Keller &amp; Waschküche nach Plan</li></ul>
-            <a class="text-link" href="#checklisten" data-open-tab="treppe">Checkliste Treppenhaus ansehen<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          </div>
-        </li>
-        <li class="svc" id="svc-bau">
-          <div class="svc__media wipe" data-wipe>
-            <img src="/arena/reinigung-blitzblank/assets/img/leer-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/leer-480.webp 480w, /arena/reinigung-blitzblank/assets/img/leer-960.webp 960w" sizes="(min-width: 900px) 460px, (min-width: 700px) 45vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Weißer, leerer Raum mit schlichtem Schreibtisch und Stuhl – bezugsfertig">
-          </div>
-          <div class="svc__body">
-            <span class="svc__num">05</span>
-            <h3 class="svc__title">Bauendreinigung</h3>
-            <p>Nach den Handwerkern, vor der Übergabe: Grob- und Feinreinigung, Fenster samt Silikon- und Aufkleberresten, Sanitär ohne Zementschleier. Termin passend zur Schlüsselübergabe.</p>
-            <ul class="svc__facts"><li>Grob- &amp; Feinreinigung</li><li>Endabnahme mit Fotoprotokoll</li><li>auch kurzfristig</li></ul>
-            <a class="text-link" href="#checklisten" data-open-tab="bau">Checkliste Bauendreinigung ansehen<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          </div>
-        </li>
-        <li class="svc svc--cta">
-          <div class="svc__cta">
-            <svg class="svc__cta-mark" aria-hidden="true"><use href="#i-sparkle"/></svg>
-            <h3 class="svc__title">Und alles dazwischen.</h3>
-            <p>Teppich-Tiefenreinigung, Grundreinigung von Hartböden, Sonderreinigung nach Wasserschaden oder vor dem Tag der offenen Tür – fragen Sie einfach.</p>
-            <a class="btn btn--primary" href="#rechner"><svg aria-hidden="true"><use href="#i-calc"/></svg><span>Zum Preisrechner</span></a>
-          </div>
-        </li>
-      </ol>
-    </div>
-  </div>
-</section>
-
-<!-- ============ RECHNER ============ -->
-<section class="section calc-section" id="rechner" aria-labelledby="calc-title">
+<!-- ============ RECHNER · Reinigungsplan ============ -->
+<section class="plan" id="rechner" aria-labelledby="calc-title">
   <div class="container">
-    <div class="section-head">
-      <p class="eyebrow"><svg aria-hidden="true"><use href="#i-sparkle"/></svg>Angebotsrechner</p>
-      <h2 class="h2" id="calc-title" data-reveal>Was kostet saubere Fläche? <span class="light">Rechnen Sie es aus.</span></h2>
-      <p class="section-lead" data-reveal>Ein monatlicher Richtwert in 30&nbsp;Sekunden – auf Basis üblicher Leistungswerte der Gebäudereinigung. Das verbindliche Angebot folgt nach der kostenlosen Begehung.</p>
-    </div>
+    <header class="plan__head">
+      <h2 class="h2 h2--xl" id="calc-title" data-pull>Was kostet saubere Fläche?</h2>
+      <p class="plan__lead">Stellen Sie Ihr Objekt ein. Rechts entsteht der Reinigungsplan mit Monatsrichtwert – auf Basis üblicher Leistungswerte der Gebäudereinigung. Den verbindlichen Festpreis gibt es nach der kostenlosen Begehung.</p>
+    </header>
 
     <form class="calc" data-calc novalidate aria-label="Angebotsrechner">
       <div class="calc__controls">
@@ -362,36 +407,58 @@
         <div class="calc-peek" data-calc-peek hidden>
           <span class="calc-peek__label" data-peek-label>Richtwert / Monat</span>
           <span class="calc-peek__price"><span data-peek-low>470</span>–<span data-peek-high>560</span>&nbsp;€</span>
-          <a class="calc-peek__go" href="#calc-ergebnis" aria-label="Zum Ergebnis des Rechners">Details<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="calc-peek__go" href="#calc-ergebnis" aria-label="Zum Reinigungsplan des Rechners">Plan<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
         </div>
       </div>
 
       <div class="calc__result" id="calc-ergebnis">
-        <div class="receipt" data-receipt>
-          <div class="receipt__shine" aria-hidden="true"></div>
-          <p class="receipt__label" data-r-label>Richtwert pro Monat (netto)</p>
-          <p class="receipt__price" aria-hidden="true"><span data-r-low>470</span><span class="dash">–</span><span data-r-high>560</span><span class="cur">€</span></p>
-          <p class="sr-only" aria-live="polite" data-r-live></p>
+        <article class="sheet" data-receipt aria-label="Reinigungsplan (Entwurf)">
+          <header class="sheet__head">
+            <p class="sheet__brand"><b>Reinigungsplan</b><span>Entwurf · Blitzblank Gebäudereinigung</span></p>
+            <p class="sheet__no" aria-hidden="true">RP&nbsp;0412</p>
+          </header>
+          <p class="sheet__obj" data-r-obj>Büro &amp; Verwaltung · 400&nbsp;m² · 2× pro Woche</p>
+
           <div class="week" data-week aria-hidden="true">
-            <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
+            <span class="day"><svg viewBox="0 0 24 24"><path d="M4.6 12.9c1.9 1.3 3.3 2.8 4.6 4.7 2.6-4.6 5.6-8.3 10.2-11.4"/></svg><b>Mo</b></span>
+            <span class="day"><svg viewBox="0 0 24 24"><path d="M4.6 12.9c1.9 1.3 3.3 2.8 4.6 4.7 2.6-4.6 5.6-8.3 10.2-11.4"/></svg><b>Di</b></span>
+            <span class="day"><svg viewBox="0 0 24 24"><path d="M4.6 12.9c1.9 1.3 3.3 2.8 4.6 4.7 2.6-4.6 5.6-8.3 10.2-11.4"/></svg><b>Mi</b></span>
+            <span class="day"><svg viewBox="0 0 24 24"><path d="M4.6 12.9c1.9 1.3 3.3 2.8 4.6 4.7 2.6-4.6 5.6-8.3 10.2-11.4"/></svg><b>Do</b></span>
+            <span class="day"><svg viewBox="0 0 24 24"><path d="M4.6 12.9c1.9 1.3 3.3 2.8 4.6 4.7 2.6-4.6 5.6-8.3 10.2-11.4"/></svg><b>Fr</b></span>
+            <span class="day day--we"><svg viewBox="0 0 24 24"><path d="M4.6 12.9c1.9 1.3 3.3 2.8 4.6 4.7 2.6-4.6 5.6-8.3 10.2-11.4"/></svg><b>Sa</b></span>
+            <span class="day day--we"><svg viewBox="0 0 24 24"><path d="M4.6 12.9c1.9 1.3 3.3 2.8 4.6 4.7 2.6-4.6 5.6-8.3 10.2-11.4"/></svg><b>So</b></span>
           </div>
-          <p class="receipt__once" data-r-once hidden>Einmaliger Einsatz · 1–3 Tage je nach Fläche</p>
-          <dl class="receipt__facts">
+          <p class="sheet__once" data-r-once hidden>Einmaliger Einsatz · 1–3 Tage je nach Fläche</p>
+
+          <dl class="sheet__facts">
             <div><dt>Einsätze pro Monat</dt><dd data-r-visits>8,7</dd></div>
             <div><dt>Stunden pro Einsatz</dt><dd data-r-hours>1,9</dd></div>
             <div><dt>Team</dt><dd data-r-team>1 Reinigungs&shy;kraft</dd></div>
           </dl>
-          <div class="receipt__scope">
-            <p class="receipt__scope-title">Leistungsumfang</p>
-            <ul data-r-scope>
+
+          <div class="sheet__scope">
+            <p class="sheet__label">Leistungsumfang</p>
+            <ul class="ticks" data-r-scope>
               <li>Papierkörbe, Teeküche und Sanitär bei jedem Einsatz</li>
               <li>Böden saugen und feucht wischen</li>
               <li>Arbeitsplätze auf freigeräumten Flächen</li>
             </ul>
           </div>
+
+          <div class="stamp" data-stamp>
+            <p class="stamp__label" data-r-label>Richtwert pro Monat (netto)</p>
+            <p class="stamp__price" aria-hidden="true"><span data-r-low>470</span><span class="dash">–</span><span data-r-high>560</span><span class="cur">€</span></p>
+          </div>
+          <p class="sr-only" aria-live="polite" data-r-live></p>
+
+          <div class="sheet__sign" aria-hidden="true">
+            <svg viewBox="0 0 220 60" data-sign><path d="M8 44c7-9 13-25 11-30-3-5-10 16-7 27 2 5 8-3 12-9 3-5 4-2 3 2-1 5 4 4 7 0 4-6 8-9 7-4-1 4 3 6 7 1l4-7c1 5 3 7 6 3 4-5 6-8 5-3-1 6 3 6 7 1 3-5 6-8 6-3 0 4 3 5 6 1 4-6 7-10 6-5-1 4 1 7 6 2l6-9c-2 7-1 11 4 7 8-6 15-12 30-15M120 40c18-3 46-5 84-4"/></svg>
+            <span>Elena Novak · Gebäudereinigermeisterin</span>
+          </div>
+
           <button class="btn btn--primary btn--block" type="button" data-calc-transfer><span>Werte in Anfrage übernehmen</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
-          <p class="receipt__note">Unverbindliche Beispielrechnung, netto zzgl. MwSt. Grundlage: Stundensatz 28,50–33,50&nbsp;€ und übliche Leistungswerte je Objektart. Ihr Festpreis hängt von Belag, Möblierung und Verschmutzung ab.</p>
-        </div>
+          <p class="sheet__note">Unverbindliche Beispielrechnung, netto zzgl. MwSt. Grundlage: Stundensatz 28,50–33,50&nbsp;€ und übliche Leistungswerte je Objektart. Ihr Festpreis hängt von Belag, Möblierung und Verschmutzung ab.</p>
+        </article>
         <noscript><p class="hint">Der Rechner benötigt JavaScript. Rufen Sie uns gern an: 0621&nbsp;555&nbsp;70&nbsp;80.</p></noscript>
       </div>
     </form>
@@ -399,15 +466,12 @@
 </section>
 
 <!-- ============ CHECKLISTEN ============ -->
-<section class="section checklists" id="checklisten" aria-labelledby="cl-title">
+<section class="lists" id="checklisten" aria-labelledby="cl-title">
   <div class="container">
-    <div class="section-head section-head--split">
-      <div>
-        <p class="eyebrow"><svg aria-hidden="true"><use href="#i-sparkle"/></svg>Leistungs-Checklisten</p>
-        <h2 class="h2" id="cl-title" data-reveal>Was wir reinigen. <span class="light">Schwarz auf weiß.</span></h2>
-      </div>
-      <p class="section-lead" data-reveal>Jedes Objekt bekommt ein schriftliches Leistungsverzeichnis. So sieht unser Standard aus – angepasst wird bei der Begehung.</p>
-    </div>
+    <header class="lists__head">
+      <h2 class="h2 h2--xl" id="cl-title" data-pull>Was wir reinigen. Schwarz auf weiß.</h2>
+      <p>Jedes Objekt bekommt ein schriftliches Leistungs&shy;verzeichnis. Das hier ist unser Standard; angepasst wird bei der Begehung.</p>
+    </header>
 
     <div class="tabs" data-tabs>
       <div class="tabs__list" role="tablist" aria-label="Reinigungsart wählen">
@@ -619,97 +683,96 @@
   </div>
 </section>
 
-<!-- ============ ABLAUF ============ -->
-<section class="section process" id="ablauf" aria-labelledby="proc-title">
-  <div class="container process__grid">
-    <div class="process__head">
-      <p class="eyebrow"><svg aria-hidden="true"><use href="#i-sparkle"/></svg>So arbeiten wir</p>
-      <h2 class="h2" id="proc-title" data-reveal>Vom ersten Anruf bis zum ersten Glanz. <span class="light">Vier Schritte.</span></h2>
-      <figure class="protocol" data-reveal aria-label="Beispiel eines digitalen Reinigungsprotokolls">
-        <div class="protocol__head"><svg aria-hidden="true"><use href="#i-qr"/></svg><div><strong>Reinigungsprotokoll</strong><span>Kanzlei am Wasserturm · KW 41</span></div></div>
+<!-- ============ ABLAUF · Schlangenlinie ============ -->
+<section class="flow" id="ablauf" aria-labelledby="proc-title">
+  <div class="container flow__grid">
+    <div class="flow__aside">
+      <h2 class="h2" id="proc-title" data-pull>Vom ersten Anruf bis zum ersten Glanz.</h2>
+      <p class="flow__lead">Vier Schritte in fester Reihenfolge. Der Weg dazwischen folgt der Technik, mit der Profis Glas abziehen: in Schlangenlinien, ohne abzusetzen.</p>
+      <figure class="protocol" data-protocol aria-label="Beispiel eines digitalen Reinigungsprotokolls">
+        <div class="protocol__head"><svg aria-hidden="true"><use href="#i-qrcode"/></svg><div><strong>Reinigungsprotokoll</strong><span>Kanzlei am Wasserturm · KW&nbsp;41</span></div></div>
         <ol class="protocol__list">
-          <li style="--i:0"><span class="tick" aria-hidden="true"><svg><use href="#i-check"/></svg></span><span><strong>Mo 06:12</strong> Unterhaltsreinigung · Team Lindenhof</span></li>
-          <li style="--i:1"><span class="tick" aria-hidden="true"><svg><use href="#i-check"/></svg></span><span><strong>Mi 06:08</strong> Unterhaltsreinigung · Team Lindenhof</span></li>
-          <li style="--i:2"><span class="tick" aria-hidden="true"><svg><use href="#i-check"/></svg></span><span><strong>Do 14:30</strong> Glas innen, 3. OG · Kolonne Krüger</span></li>
-          <li style="--i:3" class="is-note"><span class="tick" aria-hidden="true"><svg><use href="#i-check"/></svg></span><span><strong>Fr 06:20</strong> Hinweis: Seifenspender WC&nbsp;2 defekt, Ersatz bestellt</span></li>
+          <li><span class="tick" aria-hidden="true"><svg><use href="#i-check"/></svg></span><span><strong>Mo 06:12</strong> Unterhaltsreinigung · Team Lindenhof</span></li>
+          <li><span class="tick" aria-hidden="true"><svg><use href="#i-check"/></svg></span><span><strong>Mi 06:08</strong> Unterhaltsreinigung · Team Lindenhof</span></li>
+          <li><span class="tick" aria-hidden="true"><svg><use href="#i-check"/></svg></span><span><strong>Do 14:30</strong> Glas innen, 3.&nbsp;OG · Kolonne Krüger</span></li>
+          <li class="is-note"><span class="tick" aria-hidden="true"><svg><use href="#i-check"/></svg></span><span><strong>Fr 06:20</strong> Hinweis: Seifenspender WC&nbsp;2 defekt, Ersatz bestellt</span></li>
         </ol>
         <figcaption>Beispielansicht – jeder Einsatz wird per QR-Code im Objekt quittiert.</figcaption>
       </figure>
     </div>
-    <ol class="steps" data-steps>
-      <li class="steps__line" aria-hidden="true"><span data-steps-fill></span></li>
-      <li class="step-card" data-reveal>
-        <span class="step-card__num">1</span>
-        <h3>Begehung vor Ort</h3>
-        <p>30 bis 45&nbsp;Minuten, kostenlos. Wir sehen uns Beläge, Möblierung, Sanitär und Zugänge an und fragen, was Sie bisher gestört hat.</p>
-      </li>
-      <li class="step-card" data-reveal>
-        <span class="step-card__num">2</span>
-        <h3>Leistungsverzeichnis &amp; Festpreis</h3>
-        <p>Innerhalb von zwei Werktagen: was, wie oft, zu welcher Uhrzeit – und ein monatlicher Festpreis ohne Kleingedrucktes über Fahrtkosten.</p>
-      </li>
-      <li class="step-card" data-reveal>
-        <span class="step-card__num">3</span>
-        <h3>Einweisung &amp; erste Reinigung</h3>
-        <p>Schlüsselübergabe per Protokoll, Alarmanlage, Lagerplatz für Material. Bei der ersten Reinigung ist die Objektleitung selbst dabei.</p>
-      </li>
-      <li class="step-card" data-reveal>
-        <span class="step-card__num">4</span>
-        <h3>Feste Teams, kurze Wege</h3>
-        <p>Dieselben Gesichter jede Woche, eingearbeitete Vertretung bei Urlaub. Mängel melden Sie per Telefon, Mail oder QR-Code – nachgebessert wird in der Regel am nächsten Werktag.</p>
-      </li>
-    </ol>
+    <div class="flow__road" data-flow>
+      <svg class="flow__svg" aria-hidden="true" data-flow-svg><path class="flow__track" data-flow-track d=""/><path class="flow__ink" data-flow-ink d=""/></svg>
+      <span class="flow__head" aria-hidden="true" data-flow-head><svg viewBox="0 0 120 120"><use href="#i-squeegee"/></svg></span>
+      <ol class="flow__steps">
+        <li class="flow-step" data-step>
+          <span class="flow-step__num" aria-hidden="true">1</span>
+          <h3>Begehung vor Ort</h3>
+          <p>30 bis 45&nbsp;Minuten, kostenlos. Wir sehen uns Beläge, Möblierung, Sanitär und Zugänge an und fragen, was Sie bisher gestört hat.</p>
+        </li>
+        <li class="flow-step" data-step>
+          <span class="flow-step__num" aria-hidden="true">2</span>
+          <h3>Leistungsverzeichnis &amp; Festpreis</h3>
+          <p>Innerhalb von zwei Werktagen: was, wie oft, zu welcher Uhrzeit. Dazu ein monatlicher Festpreis ohne Kleingedrucktes über Fahrtkosten.</p>
+        </li>
+        <li class="flow-step" data-step>
+          <span class="flow-step__num" aria-hidden="true">3</span>
+          <h3>Einweisung &amp; erste Reinigung</h3>
+          <p>Schlüsselübergabe per Protokoll, Alarmanlage, Lagerplatz für Material. Bei der ersten Reinigung ist die Objektleitung selbst dabei.</p>
+        </li>
+        <li class="flow-step" data-step>
+          <span class="flow-step__num" aria-hidden="true">4</span>
+          <h3>Feste Teams, kurze Wege</h3>
+          <p>Dieselben Gesichter jede Woche, eingearbeitete Vertretung bei Urlaub. Mängel melden Sie per Telefon, Mail oder QR-Code; nachgebessert wird in der Regel am nächsten Werktag.</p>
+        </li>
+      </ol>
+    </div>
   </div>
 </section>
 
 <!-- ============ ÜBER UNS ============ -->
-<section class="section about" id="ueber-uns" aria-labelledby="about-title">
+<section class="about" id="ueber-uns" aria-labelledby="about-title">
   <div class="container">
+    <h2 class="about__title" id="about-title" data-pull>Angefangen mit drei Treppen&shy;häusern in Neckarau. <span class="about__now">Heute <span class="odo" data-odo="64">64</span>&nbsp;Menschen.</span></h2>
+
     <div class="about__grid">
-      <div class="about__story">
-        <p class="eyebrow"><svg aria-hidden="true"><use href="#i-sparkle"/></svg>Über uns</p>
-        <h2 class="h2" id="about-title" data-reveal>Angefangen mit drei Treppenhäusern in Neckarau. <span class="light">Heute 64&nbsp;Menschen.</span></h2>
-        <blockquote class="about__quote" data-reveal>
-          <p>„Ein Objekt wird sauber, wenn dieselben Leute es jede Woche reinigen. Deshalb arbeiten wir mit festen Teams – und rufen zurück, bevor Sie nachfragen müssen.“</p>
-          <footer><span class="mono mono--sm" aria-hidden="true">EN</span><span><strong>Elena Novak</strong> Gebäudereinigermeisterin, Geschäftsführerin</span></footer>
-        </blockquote>
-        <ul class="values" data-reveal-group>
-          <li data-reveal><svg aria-hidden="true"><use href="#i-key"/></svg><div><strong>Feste Objektteams</strong><span>Ihr Team kennt Ihre Räume, Ihre Alarmanlage und Ihre Eigenheiten.</span></div></li>
-          <li data-reveal><svg aria-hidden="true"><use href="#i-leaf"/></svg><div><strong>Dosiert statt geschüttet</strong><span>Konzentrate mit Dosiersystem, überwiegend mit EU-Ecolabel, Mikrofaser im Farbcode.</span></div></li>
-          <li data-reveal><svg aria-hidden="true"><use href="#i-shield"/></svg><div><strong>Ausbildungsbetrieb</strong><span>Wir bilden Gebäudereiniger:innen aus – aktuell fünf Azubis im Haus.</span></div></li>
-        </ul>
+      <div class="about__collage" data-collage>
+        <figure class="about__photo about__photo--tall" data-depth="-0.06" data-pull><img src="/arena/reinigung-blitzblank/assets/img/kolonne-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/kolonne-480.webp 480w, /arena/reinigung-blitzblank/assets/img/kolonne-960.webp 960w" sizes="(min-width: 900px) 300px, 52vw" width="960" height="1440" loading="lazy" decoding="async" alt="Glasreiniger in Seilen an einer hohen, gerasterten Hochhausfassade"></figure>
+        <figure class="about__photo about__photo--wide" data-depth="0.05" data-pull><img src="/arena/reinigung-blitzblank/assets/img/flur-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/flur-480.webp 480w, /arena/reinigung-blitzblank/assets/img/flur-960.webp 960w" sizes="(min-width: 900px) 420px, 70vw" width="960" height="640" loading="lazy" decoding="async" alt="Reinigungskraft wischt den Boden eines hellen, geschwungenen Foyers"></figure>
+        <figure class="about__photo about__photo--small" data-depth="0.12" data-pull><img src="/arena/reinigung-blitzblank/assets/img/mopp-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/mopp-480.webp 480w, /arena/reinigung-blitzblank/assets/img/mopp-960.webp 960w" sizes="(min-width: 900px) 260px, 46vw" width="960" height="640" loading="lazy" decoding="async" alt="Türkiser Wischmopp auf glänzendem Holzboden in Nahaufnahme"></figure>
+        <p class="about__label" aria-hidden="true">Kolonne Krüger, 9.&nbsp;OG</p>
       </div>
-      <div class="about__media">
-        <div class="about__photo about__photo--tall wipe" data-wipe>
-          <img src="/arena/reinigung-blitzblank/assets/img/kolonne-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/kolonne-480.webp 480w, /arena/reinigung-blitzblank/assets/img/kolonne-960.webp 960w" sizes="(min-width: 900px) 260px, 45vw" width="960" height="1440" loading="lazy" decoding="async" alt="Glasreiniger in Seilen an einer hohen, gerasterten Hochhausfassade">
-        </div>
-        <div class="about__photo about__photo--wide wipe" data-wipe>
-          <img src="/arena/reinigung-blitzblank/assets/img/flur-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/flur-480.webp 480w, /arena/reinigung-blitzblank/assets/img/flur-960.webp 960w" sizes="(min-width: 900px) 400px, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Reinigungskraft wischt den Boden eines hellen, geschwungenen Foyers">
-        </div>
-        <div class="about__photo about__photo--small wipe" data-wipe>
-          <img src="/arena/reinigung-blitzblank/assets/img/mopp-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/mopp-480.webp 480w, /arena/reinigung-blitzblank/assets/img/mopp-960.webp 960w" sizes="(min-width: 900px) 300px, 45vw" width="960" height="640" loading="lazy" decoding="async" alt="Türkiser Wischmopp auf glänzendem Holzboden in Nahaufnahme">
-        </div>
+
+      <div class="about__story">
+        <p class="about__lede">2011 hat Elena Novak den Betrieb mit drei Treppenhäusern und einem Kombi gegründet. Heute betreuen 64&nbsp;Menschen rund 190&nbsp;Objekte zwischen Worms und Wiesloch, in festen Teams, mit Meisterbrief und fünf Azubis.</p>
+        <blockquote class="about__quote">
+          <p><span class="hang" aria-hidden="true">„</span><span class="sr-only">„</span>Ein Objekt wird sauber, wenn dieselben Leute es jede Woche reinigen. Deshalb arbeiten wir mit festen Teams und rufen zurück, bevor Sie nachfragen müssen.“</p>
+          <footer><strong>Elena Novak</strong> Gebäudereinigermeisterin, Geschäftsführerin</footer>
+        </blockquote>
+        <ul class="values">
+          <li><span class="values__k" aria-hidden="true">A</span><div><strong>Feste Objektteams</strong><span>Ihr Team kennt Ihre Räume, Ihre Alarmanlage und Ihre Eigenheiten.</span></div></li>
+          <li><span class="values__k" aria-hidden="true">B</span><div><strong>Dosiert statt geschüttet</strong><span>Konzentrate mit Dosiersystem, überwiegend mit EU-Ecolabel, Mikrofaser im Farbcode.</span></div></li>
+          <li><span class="values__k" aria-hidden="true">C</span><div><strong>Ausbildungsbetrieb</strong><span>Wir bilden Gebäudereiniger:innen aus – aktuell fünf Azubis im Haus.</span></div></li>
+        </ul>
       </div>
     </div>
 
-    <h3 class="team__title" data-reveal>Ihre Ansprechpartner:innen</h3>
-    <ul class="team" data-reveal-group>
-      <li class="person" data-reveal><span class="mono" aria-hidden="true">EN</span><strong>Elena Novak</strong><span class="person__role">Geschäftsführung · Meisterin</span><p>Macht jede Erstbegehung ab 1.000&nbsp;m² selbst.</p></li>
-      <li class="person" data-reveal><span class="mono mono--lilac" aria-hidden="true">LH</span><strong>Lea Hoffmann</strong><span class="person__role">Angebote &amp; Kundenbetreuung</span><p>Ihre erste Stimme am Telefon – und die, die zurückruft.</p></li>
-      <li class="person" data-reveal><span class="mono mono--aqua" aria-hidden="true">MA</span><strong>Murat Aksoy</strong><span class="person__role">Objektleitung Unterhalts&shy;reinigung</span><p>Betreut neun Objektteams zwischen Lindenhof und Käfertal.</p></li>
-      <li class="person" data-reveal><span class="mono" aria-hidden="true">SK</span><strong>Sabine Krüger</strong><span class="person__role">Glas &amp; Fassade</span><p>Industrie&shy;kletterin, leitet die Glaskolonne.</p></li>
-      <li class="person" data-reveal><span class="mono mono--aqua" aria-hidden="true">TW</span><strong>Tomasz Wójcik</strong><span class="person__role">Bauend- &amp; Sonderreinigung</span><p>Kommt, wenn die Handwerker gehen.</p></li>
+    <h3 class="team__title">Ihre Ansprechpartner:innen</h3>
+    <ul class="team" data-rail>
+      <li class="badge"><span class="badge__mono" aria-hidden="true">EN</span><strong>Elena Novak</strong><span class="badge__role">Geschäftsführung · Meisterin</span><p>Macht jede Erstbegehung ab 1.000&nbsp;m² selbst.</p></li>
+      <li class="badge"><span class="badge__mono badge__mono--lilac" aria-hidden="true">LH</span><strong>Lea Hoffmann</strong><span class="badge__role">Angebote &amp; Kundenbetreuung</span><p>Ihre erste Stimme am Telefon. Und die, die zurückruft.</p></li>
+      <li class="badge"><span class="badge__mono badge__mono--aqua" aria-hidden="true">MA</span><strong>Murat Aksoy</strong><span class="badge__role">Objektleitung Unterhalts&shy;reinigung</span><p>Betreut neun Objektteams zwischen Lindenhof und Käfertal.</p></li>
+      <li class="badge"><span class="badge__mono" aria-hidden="true">SK</span><strong>Sabine Krüger</strong><span class="badge__role">Glas &amp; Fassade</span><p>Industrie&shy;kletterin, leitet die Glaskolonne.</p></li>
+      <li class="badge"><span class="badge__mono badge__mono--aqua" aria-hidden="true">TW</span><strong>Tomasz Wójcik</strong><span class="badge__role">Bauend- &amp; Sonderreinigung</span><p>Kommt, wenn die Handwerker gehen.</p></li>
     </ul>
   </div>
 </section>
 
-<!-- ============ STIMMEN ============ -->
-<section class="section voices" id="stimmen" aria-labelledby="voices-title">
+<!-- ============ STIMMEN · Seifenblasen ============ -->
+<section class="voices" id="stimmen" aria-labelledby="voices-title" data-voices>
+  <canvas class="voices__bubbles" data-bubbles aria-hidden="true"></canvas>
   <div class="container voices__grid">
-    <div class="rating-card" data-reveal>
-      <p class="eyebrow"><svg aria-hidden="true"><use href="#i-sparkle"/></svg>Kundenstimmen</p>
-      <h2 class="h2" id="voices-title">4,8 <span class="light">von 5</span></h2>
-      <p class="rating-card__sub"><span class="stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>aus 118&nbsp;Bewertungen</p>
+    <div class="voices__score">
+      <h2 class="voices__title" id="voices-title"><span class="voices__big">4,8</span><span class="voices__of">von 5 Sternen, aus 118&nbsp;Bewertungen</span></h2>
       <ul class="bars" aria-label="Verteilung der Bewertungen">
         <li><span>5&nbsp;★</span><span class="bars__track"><span style="--v:.856"></span></span><span class="bars__n">101</span></li>
         <li><span>4&nbsp;★</span><span class="bars__track"><span style="--v:.11"></span></span><span class="bars__n">13</span></li>
@@ -717,43 +780,43 @@
         <li><span>2&nbsp;★</span><span class="bars__track"><span style="--v:.008"></span></span><span class="bars__n">1</span></li>
         <li><span>1&nbsp;★</span><span class="bars__track"><span style="--v:0"></span></span><span class="bars__n">0</span></li>
       </ul>
+      <p class="voices__hint" aria-hidden="true">Die Blasen dürfen Sie anstupsen.</p>
     </div>
-    <ul class="quotes" data-reveal-group>
-      <li class="quote" data-reveal>
-        <p>„Seit Blitzblank bei uns reinigt, ist die Frage ‚Wer war gestern eigentlich da?‘ beantwortet – es steht im Protokoll. Und die Teeküche sieht morgens aus wie neu.“</p>
-        <footer><span class="mono mono--sm mono--aqua" aria-hidden="true">KS</span><span><strong>Katrin S.</strong> Steuerkanzlei, Mannheim-Oststadt</span></footer>
+    <ul class="quotes" data-rail>
+      <li class="quote quote--lg">
+        <p>„Seit Blitzblank bei uns reinigt, ist die Frage ‚Wer war gestern eigentlich da?‘ beantwortet: Es steht im Protokoll. Und die Teeküche sieht morgens aus wie neu.“</p>
+        <footer><strong>Katrin S.</strong> Steuerkanzlei, Mannheim-Oststadt</footer>
       </li>
-      <li class="quote" data-reveal>
-        <p>„Unsere Glasfront war noch nie so klar. Termin samstags um sieben, bevor die ersten Kunden kommen – und niemand musste etwas wegräumen.“</p>
-        <footer><span class="mono mono--sm mono--lilac" aria-hidden="true">PM</span><span><strong>Philipp M.</strong> Möbelhaus, Viernheim</span></footer>
+      <li class="quote">
+        <p>„Unsere Glasfront war noch nie so klar. Termin samstags um sieben, bevor die ersten Kunden kommen, und niemand musste etwas wegräumen.“</p>
+        <footer><strong>Philipp M.</strong> Möbelhaus, Viernheim</footer>
       </li>
-      <li class="quote" data-reveal>
+      <li class="quote">
         <p>„Bauendreinigung nach dem Umbau in drei Tagen, inklusive Silikonresten an 60&nbsp;Fenstern. Die Übergabe an den Mieter lief ohne eine einzige Mängelnotiz.“</p>
-        <footer><span class="mono mono--sm" aria-hidden="true">JR</span><span><strong>Jana R.</strong> Architekturbüro, Heidelberg</span></footer>
+        <footer><strong>Jana R.</strong> Architekturbüro, Heidelberg</footer>
       </li>
-      <li class="quote" data-reveal>
+      <li class="quote">
         <p>„Vierzehn Wohnanlagen, ein Ansprechpartner. Seit dem Wechsel kommen bei uns praktisch keine Beschwerden über Treppenhäuser mehr an.“</p>
-        <footer><span class="mono mono--sm mono--aqua" aria-hidden="true">HT</span><span><strong>Holger T.</strong> Hausverwaltung, Ludwigshafen</span></footer>
+        <footer><strong>Holger T.</strong> Hausverwaltung, Ludwigshafen</footer>
       </li>
     </ul>
   </div>
 </section>
 
 <!-- ============ EINSATZGEBIET ============ -->
-<section class="section area-section" id="einsatzgebiet" aria-labelledby="area-title">
+<section class="area" id="einsatzgebiet" aria-labelledby="area-title">
   <div class="container area__grid">
     <div class="area__copy">
-      <p class="eyebrow"><svg aria-hidden="true"><use href="#i-sparkle"/></svg>Einsatzgebiet</p>
-      <h2 class="h2" id="area-title" data-reveal>Kommen wir zu Ihnen? <span class="light">PLZ eingeben.</span></h2>
-      <p class="section-lead" data-reveal>Unsere Teams starten in Mannheim-Neckarau. Rhein und Neckar sind für uns keine Grenze – Ludwigshafen ist so nah wie die Oststadt.</p>
+      <h2 class="h2" id="area-title" data-pull>Kommen wir zu Ihnen?</h2>
+      <p class="area__lead">Unsere Teams starten in Mannheim-Neckarau. Rhein und Neckar sind für uns keine Grenze: Ludwigshafen ist so nah wie die Oststadt.</p>
 
       <form class="plz" data-plz novalidate>
         <label for="plz-input">Postleitzahl Ihres Objekts</label>
         <div class="plz__row">
-          <input id="plz-input" name="plz" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="z. B. 68159" pattern="[0-9]{5}" aria-describedby="plz-result" data-plz-input>
-          <button class="btn btn--primary" type="submit"><span>Prüfen</span></button>
+          <input id="plz-input" name="plz" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="68159" pattern="[0-9]{5}" aria-describedby="plz-result" data-plz-input>
+          <button class="btn btn--primary" type="submit"><span>Prüfen</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
         </div>
-        <p class="plz__quick"><span>Schnellwahl:</span>
+        <p class="plz__quick"><span>Oder direkt:</span>
           <button type="button" class="pill-btn" data-plz-quick="68159">Mannheim</button>
           <button type="button" class="pill-btn" data-plz-quick="67059">Ludwigshafen</button>
           <button type="button" class="pill-btn" data-plz-quick="69117">Heidelberg</button>
@@ -836,16 +899,12 @@
 </section>
 
 <!-- ============ KARRIERE ============ -->
-<section class="section career" id="karriere" aria-labelledby="career-title">
-  <div class="career__glow" aria-hidden="true"></div>
+<section class="career" id="karriere" aria-labelledby="career-title">
   <div class="container">
-    <div class="section-head section-head--split">
-      <div>
-        <p class="eyebrow eyebrow--on-dark"><svg aria-hidden="true"><use href="#i-sparkle"/></svg>Karriere</p>
-        <h2 class="h2" id="career-title" data-reveal>Arbeiten, wenn es in Ihren Tag passt. <span class="light">Bewerben in 60&nbsp;Sekunden.</span></h2>
-      </div>
-      <p class="section-lead" data-reveal>Wählen Sie Ihre Schichten – wir zeigen die passenden Stellen. Kein Lebenslauf, kein Anschreiben: Wir rufen Sie zurück, in Ihrer Sprache.</p>
-    </div>
+    <header class="career__head">
+      <h2 class="h2 h2--xl" id="career-title" data-pull>Arbeiten, wenn es in Ihren Tag passt.</h2>
+      <p>Wählen Sie Ihre Schichten, wir zeigen die passenden Stellen. Kein Lebenslauf, kein Anschreiben: Bewerbung in 60&nbsp;Sekunden, Rückruf in Ihrer Sprache.</p>
+    </header>
 
     <div class="career__grid">
       <div class="shifts">
@@ -944,7 +1003,7 @@
           <button class="btn btn--primary btn--block" type="submit"><span>Bewerbung absenden</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
         </form>
         <div class="apply__success" data-apply-success hidden tabindex="-1">
-          <div class="success-burst" aria-hidden="true"><svg><use href="#i-sparkle"/></svg></div>
+          <svg class="success-tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.6 12.9c1.9 1.3 3.3 2.8 4.6 4.7 2.6-4.6 5.6-8.3 10.2-11.4"/></svg>
           <h3>Danke, <span data-apply-name></span>!</h3>
           <p class="apply__time" data-apply-time></p>
           <dl class="summary" data-apply-summary></dl>
@@ -957,14 +1016,11 @@
 </section>
 
 <!-- ============ FAQ ============ -->
-<section class="section faq" id="faq" aria-labelledby="faq-title">
+<section class="faq" id="faq" aria-labelledby="faq-title">
   <div class="container faq__grid">
     <div class="faq__head">
-      <p class="eyebrow"><svg aria-hidden="true"><use href="#i-sparkle"/></svg>FAQ</p>
-      <h2 class="h2" id="faq-title" data-reveal>Was Sie vor dem Wechsel wissen wollen.</h2>
-      <div class="faq__media wipe" data-wipe>
-        <img src="/arena/reinigung-blitzblank/assets/img/fenster-960.webp" srcset="/arena/reinigung-blitzblank/assets/img/fenster-480.webp 480w, /arena/reinigung-blitzblank/assets/img/fenster-960.webp 960w" sizes="(min-width: 900px) 420px, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Helle Küche mit Erkerfenster, dessen Scheiben klar glänzen">
-      </div>
+      <h2 class="h2" id="faq-title" data-pull>Was Sie vor dem Wechsel wissen wollen.</h2>
+      <p>Sieben Fragen, die bei fast jeder Begehung kommen. Die achte stellen Sie am besten Lea Hoffmann: <a class="text-link" href="tel:+496215557080">0621&nbsp;555&nbsp;70&nbsp;80</a></p>
     </div>
     <div class="faq__list">
       <details class="faq-item">
@@ -973,7 +1029,7 @@
       </details>
       <details class="faq-item">
         <summary>Wie lange binde ich mich?<span class="faq-item__icon" aria-hidden="true"></span></summary>
-        <div class="faq-item__body"><p>Nach einer Startphase von drei Monaten ist der Vertrag mit drei Monaten Frist kündbar. Lange Mindestlaufzeiten brauchen wir nicht – wenn die Qualität stimmt, bleiben Kunden ohnehin.</p></div>
+        <div class="faq-item__body"><p>Nach einer Startphase von drei Monaten ist der Vertrag mit drei Monaten Frist kündbar. Lange Mindestlaufzeiten brauchen wir nicht. Wenn die Qualität stimmt, bleiben Kunden ohnehin.</p></div>
       </details>
       <details class="faq-item">
         <summary>Wer hat unsere Schlüssel?<span class="faq-item__icon" aria-hidden="true"></span></summary>
@@ -981,11 +1037,11 @@
       </details>
       <details class="faq-item">
         <summary>Was passiert bei Krankheit oder Urlaub?<span class="faq-item__icon" aria-hidden="true"></span></summary>
-        <div class="faq-item__body"><p>Für jedes Objekt gibt es eine eingearbeitete Vertretung, die vorher mindestens einmal im Tandem dabei war. Das Leistungsverzeichnis liegt im Objekt – niemand muss raten.</p></div>
+        <div class="faq-item__body"><p>Für jedes Objekt gibt es eine eingearbeitete Vertretung, die vorher mindestens einmal im Tandem dabei war. Das Leistungsverzeichnis liegt im Objekt. Niemand muss raten.</p></div>
       </details>
       <details class="faq-item">
         <summary>Und wenn mal etwas nicht sauber ist?<span class="faq-item__icon" aria-hidden="true"></span></summary>
-        <div class="faq-item__body"><p>Melden Sie es per Telefon, Mail oder über den QR-Code im Objekt. Nachgebessert wird in der Regel am nächsten Werktag – ohne Diskussion, mit Rückmeldung an Sie.</p></div>
+        <div class="faq-item__body"><p>Melden Sie es per Telefon, Mail oder über den QR-Code im Objekt. Nachgebessert wird in der Regel am nächsten Werktag, ohne Diskussion, mit Rückmeldung an Sie.</p></div>
       </details>
       <details class="faq-item">
         <summary>Welche Reinigungsmittel verwenden Sie?<span class="faq-item__icon" aria-hidden="true"></span></summary>
@@ -1000,28 +1056,25 @@
 </section>
 
 <!-- ============ KONTAKT ============ -->
-<section class="section contact" id="kontakt" aria-labelledby="contact-title">
+<section class="contact" id="kontakt" aria-labelledby="contact-title">
   <div class="container contact__grid">
     <div class="contact__info">
-      <p class="eyebrow"><svg aria-hidden="true"><use href="#i-sparkle"/></svg>Kontakt</p>
-      <h2 class="h2" id="contact-title" data-reveal>Begehung anfragen. <span class="light">Kostenlos, 30&nbsp;Minuten, unverbindlich.</span></h2>
+      <h2 class="h2 h2--xl" id="contact-title" data-pull>Begehung anfragen.</h2>
+      <p class="contact__sub">Kostenlos, 30&nbsp;Minuten, unverbindlich.</p>
       <ul class="contact__list">
         <li><svg aria-hidden="true"><use href="#i-phone"/></svg><div><span>Telefon</span><a href="tel:+496215557080">0621&nbsp;555&nbsp;70&nbsp;80</a></div></li>
         <li><svg aria-hidden="true"><use href="#i-mail"/></svg><div><span>E-Mail</span><a href="mailto:angebot@blitzblank-reinigung.de">angebot@blitzblank-reinigung.de</a></div></li>
         <li><svg aria-hidden="true"><use href="#i-pin"/></svg><div><span>Büro</span>Neckarauer Straße 102, 68199&nbsp;Mannheim</div></li>
         <li><svg aria-hidden="true"><use href="#i-clock"/></svg><div><span>Erreichbar</span>Mo–Fr 7–17&nbsp;Uhr · Rückruf innerhalb eines Werktags</div></li>
       </ul>
-      <div class="contact__person">
-        <span class="mono mono--lilac" aria-hidden="true">LH</span>
-        <p><strong>Lea Hoffmann</strong> liest Ihre Anfrage und meldet sich mit zwei Terminvorschlägen für die Begehung.</p>
-      </div>
+      <p class="contact__person"><span class="badge__mono badge__mono--lilac" aria-hidden="true">LH</span><span><strong>Lea Hoffmann</strong> liest Ihre Anfrage und meldet sich mit zwei Terminvorschlägen für die Begehung.</span></p>
     </div>
 
     <div class="contact__formwrap" data-contact-wrap>
       <form class="contact-form" data-contact novalidate aria-label="Anfrage für eine Begehung">
         <div class="transfer" data-transfer hidden>
           <svg aria-hidden="true"><use href="#i-calc"/></svg>
-          <div><strong>Aus dem Preisrechner übernommen</strong><span data-transfer-text></span></div>
+          <div><strong>Aus dem Reinigungsplan übernommen</strong><span data-transfer-text></span></div>
           <button class="text-btn" type="button" data-transfer-clear>Entfernen</button>
         </div>
         <div class="field-row">
@@ -1097,11 +1150,11 @@
           <span>Ich habe die <a href="/arena/reinigung-blitzblank/datenschutz.html">Datenschutzhinweise</a> gelesen und bin mit der Verarbeitung meiner Angaben zur Bearbeitung der Anfrage einverstanden.</span>
         </label>
         <p class="field__err" id="cf-ds-err" data-err-ds></p>
-        <button class="btn btn--primary btn--block" type="submit"><span>Begehung anfragen</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        <button class="btn btn--marine btn--block" type="submit"><span>Begehung anfragen</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
         <p class="form-note">Pflichtfelder sind mit * markiert.</p>
       </form>
       <div class="contact__success" data-contact-success hidden tabindex="-1">
-        <div class="success-burst" aria-hidden="true"><svg><use href="#i-sparkle"/></svg></div>
+        <svg class="success-tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.6 12.9c1.9 1.3 3.3 2.8 4.6 4.7 2.6-4.6 5.6-8.3 10.2-11.4"/></svg>
         <h3>Danke – Ihre Anfrage ist da.</h3>
         <p>Lea Hoffmann meldet sich innerhalb eines Werktags mit zwei Terminvorschlägen.</p>
         <dl class="summary" data-contact-summary></dl>
@@ -1115,6 +1168,10 @@
 </main>
 
 <footer class="site-footer">
+  <div class="footer__word" aria-hidden="true" data-word>
+    <span class="footer__word-ghost">Blitzblank.</span>
+    <span class="footer__word-fill" data-word-fill>Blitzblank.</span>
+  </div>
   <div class="container">
     <div class="footer__top">
       <div class="footer__brand">

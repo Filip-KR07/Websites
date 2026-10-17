@@ -278,9 +278,12 @@ body.menu-open .site-header::before { opacity: 0; }
 }
 .hero-scene > [data-layer] { will-change: transform; }
 .scene-sky { z-index: 0; } .hero-title { z-index: 1; } .scene-land { z-index: 2; } .scene-lake { z-index: 3; } .scene-front { z-index: 4; }
+/* Mit JavaScript zeichnet das Canvas die Spiegelung; die maskierte SVG-Spiegelung (teuer beim ersten Zeichnen) bleibt nur ohne JS. */
 .scene-lake { display: none; pointer-events: none; }
-.hero.has-lake .scene-lake { display: block; }
-.hero.has-lake .scene .refl, .hero.has-lake .scene .lights-refl { display: none; }
+html.js .scene-lake { display: block; opacity: 0; transition: opacity 900ms ease; }
+html.js .hero.has-lake .scene-lake { opacity: 1; }
+html.js .scene .refl, html.js .scene .lights-refl { display: none; }
+.pano .p-refl-g { opacity: .55; }
 
 /* SVG-Füllungen */
 .st-s1 { stop-color: var(--s1); } .st-s2 { stop-color: var(--s2); } .st-s3 { stop-color: var(--s3); }
@@ -1241,7 +1244,7 @@ html.js.motion-off .hero-title .line > span { transform: none; }
   --dur-fog: 1600ms;      /* Nebel lichtet sich */
   --ease-water: cubic-bezier(0.32, 0.72, 0, 1);
   --stagger: 55ms;
-  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .11 0 0 0 0 .16 0 0 0 0 .2 0 0 0 .075 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  --grain: url("assets/img/grain.png"); /* Papierkorn als kleine Rasterkachel (günstig zu zeichnen) */
 }
 
 /* ---------- Buttons: Emailschild & gezeichnete Linie ---------- */

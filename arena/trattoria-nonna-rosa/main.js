@@ -397,7 +397,7 @@
       });
       if (moving) raf = requestAnimationFrame(frame);
     }
-    visibilityGate(table, function (on) { active = on; kick(); }, '0px');
+    visibilityGate(table, function (on) { active = on; table.classList.toggle('is-live', on); kick(); }, '0px');
   }
 
   /** Magnetische Buttons (nur feiner Zeiger) – nutzt `translate`, damit :active (transform) unberührt bleibt */
@@ -644,7 +644,10 @@
       var f = clamp(p * FL, 0, FL);
       var key = f.toFixed(3) + '|' + enter.toFixed(3);
       if (key === lastKey) return; lastKey = key;
+      var base = Math.floor(f);
       leaves.forEach(function (leaf, i) {
+        // Nur die sichtbaren Blätter rendern: oberstes links, aktuelles, darunterliegendes
+        leaf.classList.toggle('is-off', i < base - 1 || i > base + 1);
         if (i >= FL) { leaf.style.zIndex = 1; return; }
         var local = clamp(f - i, 0, 1), e = easeInOut(local);
         leaf.style.transform = 'rotateY(' + (-180 * e).toFixed(2) + 'deg)';

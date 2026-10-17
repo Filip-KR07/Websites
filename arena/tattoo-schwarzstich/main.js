@@ -194,214 +194,201 @@
     } else setTimeout(startHero, 200);
   }
 
-  /* ---------- Hero: Dotwork-Mandala auf Canvas (Nadel zeichnet Punkt für Punkt) ----------
-     Leistung: Fertige Punkte werden einmal in ein Offscreen-Bitmap „gebacken“. Danach zeichnet das
-     Canvas nur noch neu, solange die Nadel zeichnet oder der Mauszeiger Punkte verdrängt. Die langsame
-     Drehung macht CSS (Compositor, siehe .hero-canvas in style.css) – kein Dauer-Neuzeichnen. */
-  (function heroCanvas() {
-    var cv = $('.hero-canvas'), wrap = $('.hero-canvas-wrap');
-    if (!cv || !cv.getContext || !wrap) return;
-    var ctx = cv.getContext('2d');
-    var base = document.createElement('canvas'), bctx = base.getContext('2d');
-    var TAU = Math.PI * 2, DRAW_MS = 2600, FRESH_MS = 240, RAD = 80, PUSH = 16, CELL = 40;
-    var BONE = '#B7B3A9', RED = '#D9262F', FRESH = '#E5484F'; // BONE = Knochen mit 78 % Deckung auf Schwarz, deckend gerechnet
-    var N = 0, PX, PY, BORN, RING, grid = [], cols = 0;
-    var W = 0, H = 0, dpr = 1, R = 0, dotR = 1.25, start = 0, baked = 0, visible = true, raf = 0;
-    var ptr = { cx: 0, cy: 0, on: false }, sm = { x: 0, y: 0, s: 0, init: false };
+  /* ---------- Etappenstart: alles unterhalb des ersten Bildschirms in kleinen Häppchen ---------- */
+  var laterQ = [], laterBusy = false;
+  function later(fn) { laterQ.push(fn); if (!laterBusy) { laterBusy = true; setTimeout(runLater, 60); } }
+  function runLater() {
+    var t0 = performance.now();
+    while (laterQ.length && performance.now() - t0 < 18) { try { laterQ.shift()(); } catch (e) { if (window.console) console.warn(e); } }
+    if (laterQ.length) { (window.requestIdleCallback || setTimeout)(runLater, window.requestIdleCallback ? { timeout: 120 } : 16); }
+    else { laterBusy = false; if (hasGsap) ScrollTrigger.refresh(); }
+  }
 
-    function density(x, y) {
-      var r = Math.sqrt(x * x + y * y), t = Math.atan2(y, x), k, edge;
-      if (r > 0.98) return 0;
-      if (r < 0.045) return 1;
-      if (r < 0.075) return 0;
-      if (r < 0.16) return 0.85 - (r - 0.075) * 5;
-      if (r > 0.175 && r < 0.2) return 0.95;
-      if (r >= 0.2 && r < 0.235) return 0;
-      if (r >= 0.235 && r < 0.56) {
-        k = (r - 0.235) / 0.325; edge = Math.pow(Math.abs(Math.cos(6 * t)), 0.7);
-        if (k < edge * 0.98) return 0.12 + 0.85 * Math.pow(k / Math.max(edge, 1e-3), 2.2);
-        return 0;
-      }
-      if (r >= 0.56 && r < 0.6) return 0;
-      if (r >= 0.6 && r < 0.63) return 1;
-      if (r >= 0.65 && r < 0.86) {
-        k = (r - 0.65) / 0.21;
-        edge = 1 - Math.abs(((t * 24 / (2 * Math.PI)) % 1 + 1) % 1 - 0.5) * 2;
-        if (k < Math.pow(edge, 1.6)) return 0.85 - 0.6 * k;
-        return 0;
-      }
-      if (r > 0.895 && r < 0.915) return (Math.floor((t + Math.PI) / (2 * Math.PI) * 96) % 2 === 0) ? 0.9 : 0;
-      return 0;
-    }
-    function band(r) { return r < 0.17 ? 5 : r < 0.21 ? 4 : r < 0.58 ? 3 : r < 0.64 ? 1 : r < 0.88 ? 0 : 2; }
+  /* ---------- Hero: Tinte breitet sich im Wasser aus (WebGL, ohne Bibliothek) ----------
+     Rendert bewusst in halber Auflösung (weiche Tinte braucht keine Schärfe), DPR ≤ 2.
+     Volle Bildrate nur während des Einlaufs, beim Rühren mit dem Zeiger und beim Scrollen,
+     sonst gedrosselte Drift mit ~15 fps; außerhalb des Viewports und bei verdecktem Tab Stillstand. */
+  var INK = {
+    renderScale: 0.5,      // Anteil der CSS-Auflösung (Handy 0,4)
+    introSec: 6,           // so lange läuft die Tinte mit voller Bildrate aus
+    idleFps: 15,           // Drift danach
+    growSec: 2.4,          // Zeitkonstante der Ausbreitung
+    spreadPortrait: 0.5    // Hochformat: Tinte bleibt im oberen Teil, Text unten bleibt auf Papier
+  };
+  var inkGL = (function () {
+    var hero = $('.hero'), cv = $('.hero-ink');
+    if (!hero || !cv) return null;
+    var gl = null;
+    try { gl = cv.getContext('webgl', { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: 'low-power' }); } catch (e) { gl = null; }
+    if (!gl) return null;
+    var FS = [
+      'precision mediump float;',
+      'uniform vec2 uRes; uniform float uT; uniform vec2 uSrc; uniform vec3 uM; uniform float uGrow; uniform float uFlood; uniform float uSpread;',
+      'float h(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
+      'float n(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1.,0.)),u.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),u.x),u.y);}',
+      'float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=mat2(1.6,1.2,-1.2,1.6)*p;a*=.5;}return v;}',
+      'void main(){',
+      ' vec2 uv=gl_FragCoord.xy/uRes.y;',
+      ' vec2 p=uv-uSrc/uRes.y;',
+      ' vec2 m=uv-uM.xy/uRes.y; float md=exp(-dot(m,m)*26.);',
+      ' p+=vec2(-m.y,m.x)*md*uM.z;',
+      ' float t=uT;',
+      ' vec2 q=vec2(fbm(p*1.7+vec2(0.,-t*.07)),fbm(p*1.7+vec2(5.2,1.3)+t*.05));',
+      ' vec2 r=vec2(fbm(p*2.5+3.3*q+vec2(1.7,9.2)+t*.03),fbm(p*2.5+3.3*q+vec2(8.3,2.8)-t*.035));',
+      ' float f=fbm(p*2.1+2.7*r);',
+      ' vec2 e=vec2(p.x*1.25,(p.y-uGrow*.2)*.72);',
+      ' float rad=(.05+uGrow*.78)*uSpread+uFlood*2.4;',
+      ' float env=1.-smoothstep(rad*.2,rad,length(e)+(f-.5)*.8);',
+      ' float ink=smoothstep(.6,.7,env*(.5+f)+uFlood*.5);',
+      ' float rg=1.-abs(2.*fbm(p*3.6+2.8*r)-1.);',
+      ' float fil=pow(rg,9.)*smoothstep(.0,.55,env)*.95;',
+      ' float a=clamp(ink+fil,0.,1.);',
+      ' vec3 col=mix(vec3(.91,.886,.839),vec3(.043),a);',
+      ' float rw=pow(1.-abs(2.*fbm(p*3.+2.*q+7.)-1.),16.)*smoothstep(.1,.6,env)*(1.-uFlood);',
+      ' float drop=exp(-dot(p,p)*260.)*(1.-uGrow);',
+      ' col=mix(col,vec3(.70,.07,.106),clamp(rw*.9+drop,0.,1.)*(1.-a*.85));',
+      ' col+=(h(gl_FragCoord.xy+fract(t*7.)*91.)-.5)*.045;',
+      ' gl_FragColor=vec4(col,1.);',
+      '}'
+    ].join('\n');
+    function sh(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null; }
+    var vs = sh(gl.VERTEX_SHADER, 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}'), fs = sh(gl.FRAGMENT_SHADER, FS);
+    if (!vs || !fs) return null;
+    var pr = gl.createProgram(); gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+    if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return null;
+    gl.useProgram(pr);
+    var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    var U = {}; ['uRes', 'uT', 'uSrc', 'uM', 'uGrow', 'uFlood', 'uSpread'].forEach(function (k) { U[k] = gl.getUniformLocation(pr, k); });
 
-    function build() {
-      W = wrap.offsetWidth; H = wrap.offsetHeight;
-      if (!W || !H) return false;
-      dpr = Math.min(2, window.devicePixelRatio || 1);
-      cv.width = base.width = Math.round(W * dpr); cv.height = base.height = Math.round(H * dpr);
-      R = Math.min(W, H) * 0.47;
-      dotR = W < 520 ? 1.15 : 1.25;
-      var spacingPx = W < 520 ? 4.2 : 3.5;
-      var s = spacingPx / R, row = 0, seed = 7, tmp = [];
-      var rnd = function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
-      for (var y = -1; y <= 1; y += s * 0.866, row++) {
-        for (var x = -1 + (row % 2 ? s / 2 : 0); x <= 1; x += s) {
-          var jx = x + (rnd() - 0.5) * s * 0.7, jy = y + (rnd() - 0.5) * s * 0.7;
-          var d = density(jx, jy);
-          if (d > 0 && rnd() < d) {
-            var r = Math.sqrt(jx * jx + jy * jy), a = Math.atan2(jy, jx);
-            tmp.push({ x: jx * R, y: jy * R, ring: r >= 0.6 && r < 0.63, key: band(r) + (a + Math.PI) / (2 * Math.PI) * 0.999 });
-          }
-        }
-      }
-      tmp.sort(function (p, q) { return p.key - q.key; });
-      N = tmp.length;
-      PX = new Float32Array(N); PY = new Float32Array(N); BORN = new Float32Array(N); RING = new Uint8Array(N);
-      cols = Math.ceil((2 * R) / CELL) + 1; grid = new Array(cols * cols);
-      for (var i = 0; i < N; i++) {
-        var p = tmp[i];
-        PX[i] = p.x; PY[i] = p.y; RING[i] = p.ring ? 1 : 0; BORN[i] = (i / N) * DRAW_MS;
-        var gi = Math.min(cols - 1, Math.floor((p.y + R) / CELL)) * cols + Math.min(cols - 1, Math.floor((p.x + R) / CELL));
-        (grid[gi] || (grid[gi] = [])).push(i);
-      }
-      baked = 0;
-      bctx.setTransform(1, 0, 0, 1, 0, 0); bctx.clearRect(0, 0, base.width, base.height);
-      return true;
+    var W = 0, H = 0, k = 1, src = { x: 0, y: 0 }, flood = 0, t0 = performance.now(), visible = true, raf = 0, idleT = 0, lastStir = -1e9;
+    var mouse = { x: -999, y: -999, s: 0, ts: 0 };
+    var tip = $('.dagger');
+    function size() {
+      var r = hero.getBoundingClientRect();
+      var scale = window.innerWidth < 900 ? 0.4 : INK.renderScale;
+      k = Math.min(window.devicePixelRatio || 1, 2) * scale;
+      W = Math.max(2, Math.round(r.width * k)); H = Math.max(2, Math.round(r.height * k));
+      cv.width = W; cv.height = H; gl.viewport(0, 0, W, H);
+      // Quelle der Tinte: die Klingenspitze des Dolchs (SVG-Punkt 200/760)
+      if (tip && tip.getScreenCTM) {
+        var m = tip.getScreenCTM(), pt = tip.createSVGPoint(); pt.x = 200; pt.y = 760;
+        var s = pt.matrixTransform(m);
+        src.x = (s.x - r.left) * k; src.y = H - (s.y - r.top) * k;
+      } else { src.x = W * 0.72; src.y = H * 0.12; }
     }
-    // Reife Punkte (älter als FRESH_MS) einmalig ins Offscreen-Bitmap zeichnen
-    function bakeTo(limit) {
-      if (baked >= N || BORN[baked] > limit) return;
-      var pb = new Path2D(), pr = new Path2D();
-      while (baked < N && BORN[baked] <= limit) {
-        var i = baked++, path = RING[i] ? pr : pb;
-        path.moveTo(PX[i] + dotR, PY[i]); path.arc(PX[i], PY[i], dotR, 0, TAU);
-      }
-      bctx.setTransform(dpr, 0, 0, dpr, W / 2 * dpr, H / 2 * dpr);
-      bctx.fillStyle = BONE; bctx.fill(pb);
-      bctx.fillStyle = RED; bctx.fill(pr);
+    function draw(now) {
+      var t = animate ? (now - t0) / 1000 : 14;
+      var grow = 1 - Math.exp(-t / INK.growSec);
+      mouse.s += (mouse.ts - mouse.s) * 0.08; mouse.ts *= 0.94;
+      gl.uniform2f(U.uRes, W, H); gl.uniform1f(U.uT, t + 3.0); gl.uniform2f(U.uSrc, src.x, src.y);
+      gl.uniform3f(U.uM, mouse.x, mouse.y, mouse.s); gl.uniform1f(U.uGrow, grow); gl.uniform1f(U.uFlood, flood); gl.uniform1f(U.uSpread, W / H < 0.8 ? INK.spreadPortrait : 1);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      return t;
     }
-    function spinAngle() {
-      var a = cv.getAnimations ? cv.getAnimations()[0] : null;
-      if (!a || a.currentTime == null) return 0;
-      var dur = +a.effect.getTiming().duration || 180000;
-      return ((a.currentTime % dur) / dur) * TAU;
-    }
-    function toLocal(cx, cy) {
-      var r = wrap.getBoundingClientRect(), px = cx - (r.left + r.width / 2), py = cy - (r.top + r.height / 2);
-      var a = -spinAngle(), c = Math.cos(a), s = Math.sin(a);
-      return { x: px * c - py * s, y: px * s + py * c };
-    }
-    function push(i, path, rr) {
-      var X = PX[i], Y = PY[i];
-      if (sm.s > 0) {
-        var dx = X - sm.x, dy = Y - sm.y, dd = dx * dx + dy * dy;
-        if (dd < RAD * RAD) { var d = Math.sqrt(dd) || 1, k = 1 - d / RAD, f = k * k * PUSH * sm.s; X += dx / d * f; Y += dy / d * f; }
-      }
-      path.moveTo(X + rr, Y); path.arc(X, Y, rr, 0, TAU);
-    }
-
     function frame(now) {
       raf = 0;
-      if (!N) return;
-      if (!start) start = now;
-      var t = animate ? now - start : Infinity;
-      bakeTo(t - FRESH_MS);
-      // Zeiger mit Feder (Lerp) – Stärke blendet ein und aus, statt hart zu springen
-      var near = false, l = null;
-      if (ptr.on) { l = toLocal(ptr.cx, ptr.cy); near = Math.sqrt(l.x * l.x + l.y * l.y) < R + RAD; }
-      if (near) {
-        if (!sm.init) { sm.x = l.x; sm.y = l.y; sm.init = true; }
-        sm.x += (l.x - sm.x) * 0.2; sm.y += (l.y - sm.y) * 0.2;
-      }
-      sm.s += ((near ? 1 : 0) - sm.s) * 0.12;
-      if (!near && sm.s < 0.004) { sm.s = 0; sm.init = false; }
-
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, cv.width, cv.height);
-      ctx.drawImage(base, 0, 0);
-      ctx.setTransform(dpr, 0, 0, dpr, W / 2 * dpr, H / 2 * dpr);
-      if (sm.s > 0) {
-        // Loch ins Bitmap stanzen und die Punkte darin verdrängt neu zeichnen
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.beginPath(); ctx.arc(sm.x, sm.y, RAD + 2, 0, TAU); ctx.fill();
-        ctx.globalCompositeOperation = 'source-over';
-        var Q = RAD + 3 + dotR, pb = new Path2D(), pr = new Path2D();
-        var x0 = Math.max(0, Math.floor((sm.x - Q + R) / CELL)), x1 = Math.min(cols - 1, Math.floor((sm.x + Q + R) / CELL));
-        var y0 = Math.max(0, Math.floor((sm.y - Q + R) / CELL)), y1 = Math.min(cols - 1, Math.floor((sm.y + Q + R) / CELL));
-        for (var gy = y0; gy <= y1; gy++) for (var gx = x0; gx <= x1; gx++) {
-          var cell = grid[gy * cols + gx]; if (!cell) continue;
-          for (var k = 0; k < cell.length; k++) {
-            var i = cell[k]; if (i >= baked) continue;
-            var ex = PX[i] - sm.x, ey = PY[i] - sm.y;
-            if (ex * ex + ey * ey < Q * Q) push(i, RING[i] ? pr : pb, dotR);
-          }
-        }
-        ctx.fillStyle = BONE; ctx.fill(pb);
-        ctx.fillStyle = RED; ctx.fill(pr);
-      }
-      if (baked < N) {
-        // frisch gestochene Punkte: wachsen kurz und leuchten rot, bevor sie ins Bitmap wandern
-        var pf = new Path2D(), pr2 = new Path2D();
-        for (var j = baked; j < N && BORN[j] <= t; j++) push(j, RING[j] ? pr2 : pf, dotR * (0.6 + 0.4 * (t - BORN[j]) / FRESH_MS));
-        ctx.fillStyle = FRESH; ctx.fill(pf);
-        ctx.fillStyle = RED; ctx.fill(pr2);
-      }
-      var busy = baked < N || near || sm.s > 0;
-      if (animate && busy && visible && !document.hidden) raf = requestAnimationFrame(frame);
+      if (!visible || document.hidden) return;
+      var t = draw(now);
+      if (!animate) return;
+      if (t < INK.introSec || now - lastStir < 1600 || mouse.s > 0.01) raf = requestAnimationFrame(frame);
+      else idleT = setTimeout(function () { idleT = 0; if (!raf) raf = requestAnimationFrame(frame); }, 1000 / INK.idleFps);
     }
-    function kick() { if (!raf && N && visible && !document.hidden) raf = requestAnimationFrame(frame); }
-    function init() {
-      if (!build()) return;
-      if (!animate) { frame(performance.now()); return; }
-      if ('IntersectionObserver' in window) {
-        new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (visible) kick(); }, { threshold: 0 }).observe(wrap);
-        var heroEl = $('.hero');
-        new IntersectionObserver(function (en) { heroEl.classList.toggle('is-off', !en[0].isIntersecting); }, { threshold: 0 }).observe(heroEl);
-      }
-      document.addEventListener('visibilitychange', kick);
-      if (finePointer) {
-        var art = $('.hero');
-        art.addEventListener('pointermove', function (e) {
-          ptr.cx = e.clientX; ptr.cy = e.clientY; ptr.on = true;
-          var r = wrap.getBoundingClientRect(), dx = e.clientX - r.left - r.width / 2, dy = e.clientY - r.top - r.height / 2;
-          if (sm.s > 0 || dx * dx + dy * dy < (R + RAD) * (R + RAD)) kick(); // abseits des Mandalas nichts neu zeichnen
-        });
-        art.addEventListener('pointerleave', function () { ptr.on = false; kick(); });
-      }
-      kick();
+    function kick() { if (idleT) { clearTimeout(idleT); idleT = 0; } if (!raf) raf = requestAnimationFrame(frame); }
+    size();
+    draw(performance.now());
+    cv.classList.add('is-live');
+    if (animate) kick();
+    window.addEventListener('resize', function () { size(); kick(); if (!animate) draw(performance.now()); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) kick(); }).observe(hero);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) kick(); });
+    if (animate && finePointer) {
+      var lx = 0, ly = 0;
+      hero.addEventListener('pointermove', function (e) {
+        var r = hero.getBoundingClientRect();
+        var x = (e.clientX - r.left) * k, y = H - (e.clientY - r.top) * k;
+        var v = Math.hypot(e.clientX - lx, e.clientY - ly); lx = e.clientX; ly = e.clientY;
+        mouse.x = x; mouse.y = y; mouse.ts = Math.min(1.1, mouse.ts + v * 0.012);
+        lastStir = performance.now(); kick();
+      });
     }
-    var rz, lastW = 0;
-    window.addEventListener('resize', function () {
-      clearTimeout(rz);
-      rz = setTimeout(function () {
-        if (wrap.offsetWidth === lastW) return;
-        lastW = wrap.offsetWidth;
-        var old = start; if (!build()) return; start = old;
-        if (!animate) { frame(performance.now()); return; }
-        if (start) bakeTo(performance.now() - start - FRESH_MS);
-        frame(performance.now());
-      }, 200);
-    });
-    // Aufbau erst, wenn der Browser Luft hat: erster Bildschirm (Titel, Foto) zuerst
-    var go = function () { lastW = wrap.offsetWidth; init(); };
-    if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 400 }); else setTimeout(go, 60);
+    return {
+      flood: function (p) { var f = clamp((p - 0.18) / 0.62, 0, 1); f = f * f * (3 - 2 * f); if (Math.abs(f - flood) > 0.002) { flood = f; if (animate) kick(); else draw(performance.now()); } },
+      resize: function () { size(); kick(); }
+    };
   })();
 
-  /* ---------- Manifest: Wörter füllen sich beim Scrollen ---------- */
-  (function manifest() {
-    var el = $('[data-words]');
-    if (!el) return;
-    var words = el.textContent.trim().split(/\s+/);
+  /* ---------- Hero: Der Dolch wird Stich für Stich gezogen, die Nadel läuft mit ---------- */
+  (function daggerDraw() {
+    var svg = $('.dagger'), dot = $('.needle-dot'), hero = $('.hero');
+    if (!svg) return;
+    if (!animate) { svg.classList.add('is-drawn'); return; }
+    var paths = $$('.ln', svg);
+    var lens = paths.map(function (p) { try { return p.getTotalLength(); } catch (e) { return 100; } });
+    var total = lens.reduce(function (a, b) { return a + b; }, 0) || 1;
+    var DUR = 2600, DELAY = 300, STITCHES = 150, t0 = performance.now();
+    function step(now) {
+      var k = clamp((now - t0 - DELAY) / DUR, 0, 1);
+      k = Math.floor(k * STITCHES) / STITCHES;          // die Nadel springt in Stichen, nicht stufenlos
+      var e = 1 - Math.pow(1 - k, 1.6);
+      var at = e * total, acc = 0, active = -1;
+      for (var i = 0; i < paths.length; i++) {
+        var local = clamp((at - acc) / lens[i], 0, 1);
+        paths[i].style.strokeDashoffset = String(1 - local);
+        if (local > 0 && local < 1 && active < 0) active = i;
+        acc += lens[i];
+      }
+      if (dot && active > -1) {
+        var p = paths[active], l = clamp((at - (acc = lens.slice(0, active).reduce(function (a, b) { return a + b; }, 0))) / lens[active], 0, 1);
+        var pt = p.getPointAtLength(l * lens[active]).matrixTransform(svg.getScreenCTM());
+        var r = hero.getBoundingClientRect();
+        dot.style.opacity = '1';
+        dot.style.transform = 'translate3d(' + (pt.x - r.left).toFixed(1) + 'px,' + (pt.y - r.top).toFixed(1) + 'px,0)';
+      }
+      if (k < 1) requestAnimationFrame(step);
+      else {
+        svg.classList.add('is-drawn');
+        paths.forEach(function (p) { p.style.strokeDasharray = 'none'; p.style.strokeDashoffset = '0'; });
+        if (dot) { dot.style.transition = 'opacity 400ms ease'; dot.style.opacity = '0'; }
+      }
+    }
+    requestAnimationFrame(step);
+  })();
+
+  /* ---------- Manifest: Der Text wird Zeichen für Zeichen gestochen (Scroll-Scrub) ---------- */
+  later(function stitchText() {
+    var el = $('[data-stitch]');
+    if (!el || !animate || !hasGsap) return;
+    var text = el.textContent.trim();
     el.textContent = '';
-    var spans = words.map(function (w, i) {
-      var s = document.createElement('span'); s.className = 'w'; s.textContent = w;
-      el.appendChild(s); if (i < words.length - 1) el.appendChild(document.createTextNode(' '));
-      return s;
+    var sr = document.createElement('span'); sr.className = 'visually-hidden'; sr.textContent = text; el.appendChild(sr);
+    var vis = document.createElement('span'); vis.setAttribute('aria-hidden', 'true'); el.appendChild(vis);
+    var chars = [];
+    text.split(/\s+/).forEach(function (w, i, arr) {
+      var ws = document.createElement('span'); ws.className = 'mt-w';
+      for (var j = 0; j < w.length; j++) { var c = document.createElement('span'); c.className = 'mt-c'; c.textContent = w[j]; ws.appendChild(c); chars.push(c); }
+      vis.appendChild(ws); if (i < arr.length - 1) vis.appendChild(document.createTextNode(' '));
     });
-    if (!animate || !hasGsap) { spans.forEach(function (s) { s.style.opacity = '1'; }); return; }
-    gsap.fromTo(spans, { opacity: 0.16 }, { opacity: 1, ease: 'none', stagger: 0.12, scrollTrigger: { trigger: el, start: 'top 82%', end: 'bottom 48%', scrub: 0.6 } });
-  })();
+    var needle = document.createElement('span'); needle.className = 'stitch-needle'; needle.setAttribute('aria-hidden', 'true'); el.appendChild(needle);
+    root.classList.add('stitch-on');
+    var pos = [], shown = 0;
+    function measure() { pos = chars.map(function (c) { return [c.offsetLeft + c.offsetWidth + 2, c.offsetTop + c.offsetHeight * 0.1]; }); }
+    measure();
+    ScrollTrigger.create({
+      trigger: el, start: 'top 80%', end: 'bottom 45%',
+      onRefresh: measure,
+      onUpdate: function (self) {
+        var n = Math.round(self.progress * chars.length), i;
+        if (n > shown) for (i = shown; i < n; i++) chars[i].classList.add('on');
+        else for (i = n; i < shown; i++) chars[i].classList.remove('on');
+        shown = n;
+        var p = pos[Math.max(0, n - 1)] || [0, 0];
+        needle.style.transform = 'translate3d(' + p[0] + 'px,' + p[1] + 'px,0)';
+        needle.classList.toggle('is-on', n > 0 && n < chars.length);
+      }
+    });
+  });
 
   /* ---------- Zahlen zählen hoch ---------- */
   (function counters() {
@@ -425,35 +412,29 @@
     els.forEach(function (el) { io.observe(el); });
   })();
 
-  /* ---------- Stile: Vorschaubild folgt dem Cursor (Lerp) ---------- */
-  (function stylePreview() {
-    var list = $('.style-list'), pv = $('.style-preview');
-    if (!list || !pv || !finePointer) return;
-    var img = pv.querySelector('img');
-    var cur = { x: 0, y: 0 }, tgt = { x: 0, y: 0 }, on = false, raf = 0, rot = 0;
-    function loop() {
-      var px = cur.x;
-      cur.x += (tgt.x - cur.x) * (animate ? 0.14 : 1);
-      cur.y += (tgt.y - cur.y) * (animate ? 0.14 : 1);
-      var vx = cur.x - px;
-      rot += ((animate ? clamp(vx * 0.35, -10, 10) : 0) - rot) * 0.1;
-      pv.style.transform = 'translate3d(' + (cur.x - pv.offsetWidth / 2) + 'px,' + (cur.y - pv.offsetHeight / 2) + 'px,0) rotate(' + rot.toFixed(2) + 'deg)';
-      if (on || Math.abs(tgt.x - cur.x) > 0.3 || Math.abs(tgt.y - cur.y) > 0.3) raf = requestAnimationFrame(loop); else raf = 0;
+  /* ---------- Stile: Die Körperkarte klebt, jede Stil-Zeile setzt ihre Stellen darauf ---------- */
+  later(function bodyMap() {
+    var rows = $$('.style-row'), map = $('.body-map');
+    if (!rows.length || !map || !('IntersectionObserver' in window)) return;
+    var spots = $$('.bm-spot', map), imgs = $$('.bm-img', map), nm = $('.bm-name', map), wh = $('.bm-where', map);
+    var cur = null;
+    function set(row) {
+      if (row === cur) return;
+      if (cur) cur.classList.remove('is-active');
+      cur = row; row.classList.add('is-active');
+      var k = row.dataset.style;
+      spots.forEach(function (g) { g.classList.toggle('on', g.dataset.for === k); });
+      imgs.forEach(function (im) { im.classList.toggle('on', im.dataset.for === k); });
+      if (nm) nm.textContent = row.querySelector('.style-name').textContent;
+      if (wh) wh.textContent = row.querySelector('.style-where').textContent.replace(/^Sitzt gut:\s*/, '');
     }
-    list.addEventListener('pointerenter', function (e) { cur.x = tgt.x = e.clientX + 120; cur.y = tgt.y = e.clientY; });
-    list.addEventListener('pointermove', function (e) {
-      if (window.innerWidth < 900) return;
-      tgt.x = e.clientX + 150; tgt.y = e.clientY;
-      var row = e.target.closest('.style-row');
-      if (row) {
-        var src = row.dataset.img;
-        if (img.getAttribute('src') !== src) { img.src = src; pv.classList.toggle('is-paper', /\.svg$/.test(src)); }
-        if (!on) { on = true; pv.classList.add('is-on'); }
-      }
-      if (!raf) raf = requestAnimationFrame(loop);
-    });
-    list.addEventListener('pointerleave', function () { on = false; pv.classList.remove('is-on'); });
-  })();
+    root.classList.add('styles-live');
+    set(rows[0]);
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) { if (en.isIntersecting) set(en.target); });
+    }, { rootMargin: '-46% 0px -46% 0px' });
+    rows.forEach(function (r) { io.observe(r); });
+  });
 
   /* ---------- Portfolio: Filter (FLIP), Farbe beim Scrollen auf Touch, Lightbox ---------- */
   var pf = (function portfolio() {
@@ -659,6 +640,74 @@
     });
     updateFree();
   })();
+
+  /* ---------- Flash-Wand: Motive werden gestochen, Lupe zoomt beim Überfahren ---------- */
+  later(function flashWall() {
+    var sheet = $('.sheet');
+    if (!sheet) return;
+    var cards = $$('.flash-card', sheet);
+    if (animate && 'IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('is-drawn'); io.unobserve(en.target); } });
+      }, { threshold: 0.3 });
+      cards.forEach(function (c, i) { c.style.setProperty('--fd', (i % 3) * 90 + 'ms'); io.observe(c); });
+    } else cards.forEach(function (c) { c.classList.add('is-drawn'); });
+
+    if (!finePointer) return;
+    var lens = $('.flash-lens', sheet), art = $('.lens-art', sheet), use = art && art.querySelector('use');
+    if (!lens || !use) return;
+    sheet.classList.add('has-lens');
+    var ZOOM = 2.4;                       // Vergrößerung der Lupe
+    var cur = { x: 0, y: 0 }, tgt = { x: 0, y: 0 }, box = { x: 0, y: 0 }, raf = 0, active = null;
+    function place() {
+      var R = lens.offsetWidth / 2;
+      lens.style.transform = 'translate3d(' + cur.x.toFixed(1) + 'px,' + cur.y.toFixed(1) + 'px,0)';
+      art.style.transform = 'translate3d(' + (R - (cur.x - box.x) * ZOOM).toFixed(1) + 'px,' + (R - (cur.y - box.y) * ZOOM).toFixed(1) + 'px,0)';
+    }
+    function loop() {
+      var f = animate ? 0.3 : 1;
+      cur.x += (tgt.x - cur.x) * f; cur.y += (tgt.y - cur.y) * f;
+      place();
+      raf = (Math.abs(tgt.x - cur.x) > 0.2 || Math.abs(tgt.y - cur.y) > 0.2) ? requestAnimationFrame(loop) : 0;
+    }
+    function off() { sheet.classList.remove('lens-on'); active = null; }
+    sheet.addEventListener('pointermove', function (e) {
+      if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+      var card = e.target.closest('.flash-card'), svg = card && !e.target.closest('button') && card.querySelector('.flash-art');
+      if (!svg) return off();
+      var ar = svg.getBoundingClientRect(), sr = sheet.getBoundingClientRect();
+      if (e.clientX < ar.left || e.clientX > ar.right || e.clientY < ar.top || e.clientY > ar.bottom) return off();
+      if (active !== card) {
+        active = card;
+        use.setAttribute('href', svg.querySelector('use').getAttribute('href'));
+        art.style.width = (ar.width * ZOOM) + 'px'; art.style.height = (ar.height * ZOOM) + 'px';
+        box.x = ar.left - sr.left; box.y = ar.top - sr.top;
+      }
+      tgt.x = e.clientX - sr.left; tgt.y = e.clientY - sr.top;
+      if (!sheet.classList.contains('lens-on')) { cur.x = tgt.x; cur.y = tgt.y; place(); sheet.classList.add('lens-on'); }
+      if (!raf) raf = requestAnimationFrame(loop);
+    });
+    sheet.addEventListener('pointerleave', off);
+  });
+
+  /* ---------- Magnetische Buttons (nur feiner Zeiger) ---------- */
+  later(function magnets() {
+    if (!finePointer || !animate) return;
+    $$('[data-magnetic]').forEach(function (el) {
+      var x = 0, y = 0, tx = 0, ty = 0, raf = 0;
+      function loop() {
+        x += (tx - x) * 0.2; y += (ty - y) * 0.2;
+        el.style.translate = x.toFixed(2) + 'px ' + y.toFixed(2) + 'px';
+        raf = (Math.abs(tx - x) > 0.05 || Math.abs(ty - y) > 0.05) ? requestAnimationFrame(loop) : 0;
+      }
+      el.addEventListener('pointermove', function (e) {
+        var r = el.getBoundingClientRect();
+        tx = (e.clientX - (r.left + r.width / 2)) * 0.22; ty = (e.clientY - (r.top + r.height / 2)) * 0.32;
+        if (!raf) raf = requestAnimationFrame(loop);
+      });
+      el.addEventListener('pointerleave', function () { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(loop); });
+    });
+  });
 
   /* ---------- Anfrage-Assistent mit Körper-Silhouette ---------- */
   var wiz = (function wizard() {
@@ -915,6 +964,26 @@
     return { prefill: prefill };
   })();
 
+  /* ---------- Pflege: heilende Haut (Rötung, Folie, Schuppen, Silberhaut) ---------- */
+  var skin = (function () {
+    var svg = $('.skin-svg');
+    if (!svg) return null;
+    var red = $('.sk-red', svg), film = $$('.sk-film', svg), flakes = $('.sk-flakes', svg), silver = $('.sk-silver', svg), tat = $('.sk-tattoo', svg), state = $('#skin-state');
+    var last = -1;
+    function bell(x, c, w) { return Math.max(0, 1 - Math.abs(x - c) / w); }
+    return function (d) {
+      d = Math.max(0, Math.min(60, d));
+      var r = Math.round(d * 2) / 2;
+      if (r === last) return; last = r;
+      red.style.opacity = clamp(d <= 2 ? 0.9 : 0.9 - (d - 2) * 0.15, 0, 0.9).toFixed(2);
+      film.forEach(function (f) { f.style.opacity = clamp(1 - d * 0.8, 0, 1).toFixed(2); });
+      flakes.style.opacity = bell(d, 11, 5).toFixed(2);
+      silver.style.opacity = (bell(d, 20, 11) * 0.55).toFixed(2);
+      tat.style.transform = 'scale(' + (1 + 0.045 * clamp(1 - d / 4, 0, 1)).toFixed(3) + ')';
+      if (state) state.textContent = d < 1 ? 'Frisch gestochen, unter Folie' : d < 4 ? 'Gerötet, nässt leicht' : d < 8 ? 'Spannt und juckt' : d < 15 ? 'Schält sich' : d < 29 ? 'Silberhaut, leicht milchig' : d < 45 ? 'Ausgeheilt' : 'Verheilt. Sonnenschutz bleibt.';
+    };
+  })();
+
   /* ---------- Pflege: Tag-Regler ---------- */
   var careCards = $$('.care-card');
   var careRail = null; // wird in der Scroll-Choreografie gesetzt (Desktop): { goTo(card) }
@@ -926,6 +995,7 @@
       out.textContent = d >= 45 ? '45+' : String(d);
       input.setAttribute('aria-valuetext', d === 0 ? 'heute gestochen' : d >= 45 ? 'über sechs Wochen' : d + (d === 1 ? ' Tag' : ' Tage'));
       input.style.setProperty('--p', (d / 45 * 100) + '%');
+      if (skin && (e || !careRail)) { skin(d); var bg = $('#care-big'); if (bg) bg.textContent = d >= 45 ? '45+' : String(d); }
       var hit = null;
       careCards.forEach(function (c) {
         var on = d >= +c.dataset.from && d <= +c.dataset.to;
@@ -943,6 +1013,17 @@
     }
     input.addEventListener('input', upd);
     upd();
+    if (skin && 'IntersectionObserver' in window) {
+      var cio = new IntersectionObserver(function (es) {
+        if (careRail) return;
+        es.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          var c = en.target, d = +c.dataset.from;
+          skin(d); var bg = $('#care-big'); if (bg) bg.textContent = d >= 45 ? '∞' : String(d);
+        });
+      }, { rootMargin: '-40% 0px -50% 0px' });
+      careCards.forEach(function (c) { cio.observe(c); });
+    }
   })();
 
   /* ---------- Öffnungsstatus (Ortszeit Kiel) ---------- */
@@ -965,7 +1046,7 @@
 
   /* ---------- Einblendungen für Listen ---------- */
   (function reveals() {
-    var groups = [['.hero-kicker, .hero-lead, .hero-ctas, .hero-trust, .hero-cap', 90], ['.style-row', 60], ['.artist', 70], ['.flash-card', 45], ['.quote', 70], ['.steps li', 50], ['.care-head .care-tool', 0], ['.stat', 70]];
+    var groups = [['.manifest-notes li', 80], ['.artist', 70], ['.quote', 70], ['.steps li', 50], ['.care-head .care-tool', 0]];
     if (!animate || !('IntersectionObserver' in window)) return;
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); } });
@@ -979,10 +1060,9 @@
   if (hasGsap && animate) {
     var mm = gsap.matchMedia();
     mm.add('(min-width: 900px)', function () {
-      // Hero-Parallaxe
-      gsap.to('.hero-figure', { yPercent: -10, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
-      gsap.to('.hero-canvas-wrap', { y: 80, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
-      gsap.to('.hero-title', { y: -50, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+      // Hero: Dolch steigt, Name sinkt – die Tinte flutet das Blatt (siehe unten)
+      gsap.to('.hero-dagger', { y: -90, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+      gsap.to('.ht-word', { y: 60, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
       gsap.fromTo('.studio-fig--b', { y: 60 }, { y: -40, ease: 'none', scrollTrigger: { trigger: '.studio', start: 'top bottom', end: 'bottom top', scrub: true } });
 
       // Pflege: siehe eigenes matchMedia unten (braucht auch Mindesthöhe)
@@ -1020,6 +1100,7 @@
             if (fill) fill.style.transform = 'scaleX(' + p.toFixed(3) + ')';
             var r = dayAt(p), d = Math.round(r.day);
             big.textContent = (r.day >= 45 || p > 0.995) ? '∞' : String(d);
+            if (skin) skin(r.day >= 45 ? 50 : r.day);
             if (r.card !== focus) { if (focus) focus.classList.remove('is-focus'); focus = r.card; focus.classList.add('is-focus'); }
           }
         }
@@ -1043,7 +1124,9 @@
         if (focus) focus.classList.remove('is-focus');
       };
     });
-    window.addEventListener('load', function () { ScrollTrigger.refresh(); });
+    // Kapitelwechsel: Beim Verlassen des Bogens läuft die Tinte über das ganze Blatt
+    if (inkGL) ScrollTrigger.create({ trigger: '.hero', start: 'top top', end: 'bottom top', onUpdate: function (self) { inkGL.flood(self.progress); } });
+    window.addEventListener('load', function () { ScrollTrigger.refresh(); if (inkGL) inkGL.resize(); });
   }
 
   window.__inkReady = true;

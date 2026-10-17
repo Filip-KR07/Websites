@@ -34,4 +34,4 @@ python3 -m http.server 8830
 Dann http://127.0.0.1:8830/arena/hotel-seeblick/ öffnen. `?motion=off` schaltet Animationen ab; `prefers-reduced-motion` wird respektiert.
 
 ## Technik
-GSAP 3.13 + ScrollTrigger und Lenis liegen unter `assets/vendor/`. Schriften Marcellus und Mulish selbst gehostet (`assets/fonts/`, Lizenzen dabei). Keine externen Anfragen, keine Cookies.
+GSAP 3.13 + ScrollTrigger und Lenis liegen unter `assets/vendor/` und werden von `main.js` erst nach dem ersten Bild nachgeladen (kurzer Start-Task). Die Spiegelung im Hero regelt ihre Qualität selbst herunter, wenn ein Bild zu teuer wird (`LAKE` in `main.js`). Schriften Marcellus und Mulish selbst gehostet (`assets/fonts/`, Lizenzen dabei). Keine externen Anfragen, keine Cookies.

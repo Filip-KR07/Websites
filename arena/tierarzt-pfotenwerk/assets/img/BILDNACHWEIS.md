@@ -18,3 +18,5 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 | `terrier` | 960x640 | Dog Puppy | https://stocksnap.io/photo/dog-puppy-8MNEFJ1N2M |
 | `welpe` | 960x643 | Dog Puppy | https://stocksnap.io/photo/dog-puppy-19KEJ58BB9 |
 | `welpe-sitzt` | 960x624 | Animals Puppy | https://stocksnap.io/photo/animals-puppy-OOH59BAHBL |
+
+Die Varianten `*-duo-480.webp` / `*-duo-960.webp` sind Duoton-Bearbeitungen (Tinte/Creme, ImageMagick) derselben Fotos und werden auf der Seite verwendet.

@@ -96,6 +96,27 @@
   var NB = ' ';
   var eur = function (n) { return nf0.format(Math.round(n)) + NB + '€'; };
   var hasGSAP = !!(window.gsap && window.ScrollTrigger);
+  // Bewegungs-Bibliotheken nachladen (eigene Tasks, blockieren den ersten Bildschirm nicht)
+  var VENDOR = ['gsap.min.js', 'ScrollTrigger.min.js', 'lenis.min.js'];
+  var vendorWait = null;
+  function loadVendor(cb) {
+    if (hasGSAP) { cb(); return; }
+    if (vendorWait) { vendorWait.push(cb); return; }
+    vendorWait = [cb];
+    var i = 0;
+    (function one() {
+      if (i >= VENDOR.length) {
+        hasGSAP = !!(window.gsap && window.ScrollTrigger);
+        var w = vendorWait; vendorWait = null; w.forEach(function (f) { f(); });
+        return;
+      }
+      var s = document.createElement('script');
+      s.src = '/arena/pflege-lebenswert/assets/vendor/' + VENDOR[i++];
+      s.onload = function () { setTimeout(one, 0); };
+      s.onerror = function () { setTimeout(one, 0); };
+      document.head.appendChild(s);
+    })();
+  }
   var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   var mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -121,12 +142,18 @@
   function scrollToEl(el, opts) {
     if (!el) return;
     opts = opts || {};
+    // Kapitel mit content-visibility kurz voll rendern, damit das Ziel exakt berechnet wird
+    // (contain-intrinsic-size: auto merkt sich danach die echten Höhen – nichts springt).
+    doc.classList.add('cv-all');
+    var done = function () { doc.classList.remove('cv-all'); };
     if (state.lenis) {
-      state.lenis.scrollTo(el, { offset: -headerOffset(), duration: 1.1 });
+      state.lenis.scrollTo(el, { offset: -headerOffset(), duration: 1.1, onComplete: done });
     } else {
       var y = el.getBoundingClientRect().top + window.pageYOffset - headerOffset();
       window.scrollTo({ top: Math.max(0, y), behavior: motionReduced() ? 'auto' : 'smooth' });
+      setTimeout(done, 1200);
     }
+    setTimeout(done, 2500);
     if (opts.focus !== false) {
       if (!el.hasAttribute('tabindex') && !/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) el.setAttribute('tabindex', '-1');
       try { el.focus({ preventScroll: true }); } catch (e) { /* ältere Browser */ }
@@ -230,7 +257,7 @@
     }
     window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
     window.addEventListener('resize', update);
-    update();
+    requestAnimationFrame(update);
 
     var links = qsa('.nav a[href^="#"]');
     var map = {};
@@ -503,7 +530,8 @@
 
   function setupMotion() {
     if (state.hero) { if (motionFull()) state.hero.enable(); else state.hero.disable(); }
-    if (!hasGSAP || !motionFull()) return;
+    if (!motionFull()) return;
+    if (!hasGSAP) { loadVendor(function () { if (hasGSAP && motionFull() && !state.mm) setupMotion(); }); return; }
     gsap.registerPlugin(ScrollTrigger);
     if (window.Lenis) {
       state.lenis = new window.Lenis({ lerp: 0.1, smoothWheel: true, wheelMultiplier: 0.9 });
@@ -570,7 +598,18 @@
         if (win) { win.style.clipPath = ''; var i = qs('img', win); if (i) i.style.transform = ''; var f = qs('.about__frame', win); if (f) f.style.opacity = ''; }
       };
     });
-    ScrollTrigger.refresh();
+    setTimeout(function () { if (state.mm) ScrollTrigger.refresh(); }, 0);
+    // content-visibility: Kapitel bekommen ihre echte Höhe erst beim Näherkommen → Trigger nachziehen
+    if (!state.ro && 'ResizeObserver' in window) {
+      var rt = 0, lastH = 0;
+      state.ro = new ResizeObserver(function (en) {
+        var h = Math.round(en[0].contentRect.height);
+        if (h === lastH) return;
+        lastH = h; clearTimeout(rt);
+        rt = setTimeout(function () { if (state.mm) ScrollTrigger.refresh(); }, 160);
+      });
+      state.ro.observe(qs('main'));
+    }
   }
 
   function teardownMotion() {
@@ -621,6 +660,7 @@
         (lr.bottom - tr.bottom).toFixed(1) + 'px ' + (tr.left - lr.left).toFixed(1) + 'px round .55rem .55rem 0 0)';
       if (instant) { overlay.getBoundingClientRect(); overlay.style.transition = ''; }
     }
+    var ready = false;
     function select(i, focus, animate) {
       i = (i + tabs.length) % tabs.length;
       var changed = i !== current;
@@ -631,7 +671,7 @@
         t.tabIndex = on ? 0 : -1;
         panels[j].hidden = !on;
       });
-      clip(false);
+      if (ready) clip(false);
       if (focus) tabs[i].focus();
       if (changed && animate !== false && panels[i].animate && !motionOff()) {
         panels[i].animate(
@@ -654,7 +694,7 @@
       });
     });
     select(current, false, false);
-    clip(true);
+    requestAnimationFrame(function () { ready = true; clip(true); });
     if ('ResizeObserver' in window) new ResizeObserver(function () { clip(true); }).observe(list);
     document.addEventListener('lebenswert:layout', function () { clip(true); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { clip(true); });
@@ -1249,6 +1289,8 @@
     })();
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+  // eigener Task: nicht im selben Task wie das Auswerten von GSAP/ScrollTrigger/Lenis
+  var start = function () { setTimeout(init, 0); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
 })();
