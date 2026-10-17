@@ -105,8 +105,13 @@
     <symbol id="i-close" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
     <!-- Wechselklinge (Double-Edge), gezeichnet: Mittelschlitz mit drei Bohrungen, Fasen an beiden Schneiden -->
     <symbol id="i-blade" viewBox="0 0 120 44">
-      <path fill="currentColor" fill-rule="evenodd" d="M4 3h112a2 2 0 0 1 2 2v34a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm4 16.5h8l3 2.5-3 2.5H8l-2-2.5Zm104 0h-8l-3 2.5 3 2.5h8l2-2.5ZM30 19h60v6H30Zm0 3m-5 0a5 5 0 1 0 10 0a5 5 0 1 0-10 0Zm30 0a5 5 0 1 0 10 0a5 5 0 1 0-10 0Zm30 0a5 5 0 1 0 10 0a5 5 0 1 0-10 0Z"/>
-      <path d="M3 8.5h114M3 35.5h114" stroke="#000" stroke-opacity=".28" stroke-width="1"/>
+      <mask id="bladeCut" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="44">
+        <rect width="120" height="44" fill="#fff"/>
+        <rect x="30" y="19.5" width="60" height="5" fill="#000"/>
+        <circle cx="30" cy="22" r="4.6" fill="#000"/><circle cx="60" cy="22" r="4.6" fill="#000"/><circle cx="90" cy="22" r="4.6" fill="#000"/>
+        <path d="M0 19h13l3.5 3-3.5 3H0ZM120 19h-13l-3.5 3 3.5 3h13Z" fill="#000"/>
+      </mask>
+      <g mask="url(#bladeCut)"><rect x="2" y="3" width="116" height="38" rx="2.5" fill="currentColor"/><path d="M2 8.5h116M2 35.5h116" stroke="#000" stroke-opacity=".3" stroke-width="1"/></g>
     </symbol>
     <symbol id="deco-corner" viewBox="0 0 48 48"><path d="M1 47V1h46M7 41V7h34M13 35V13h22" fill="none" stroke="currentColor" stroke-width="1"/><path d="M1 1l12 12" fill="none" stroke="currentColor" stroke-width="1"/><rect x="17" y="17" width="5" height="5" transform="rotate(45 19.5 19.5)" fill="currentColor"/></symbol>
     <symbol id="deco-fan" viewBox="0 0 120 60"><g fill="none" stroke="currentColor" stroke-width="1"><path d="M10 59a50 50 0 0 1 100 0M24 59a36 36 0 0 1 72 0M38 59a22 22 0 0 1 44 0"/><path d="M60 59V3M60 59 22.5 23.7M60 59l37.5-35.3M60 59 11.6 41.4M60 59l48.4-17.6M60 59 37.4 11.2M60 59l22.6-47.8"/></g></symbol>
@@ -179,7 +184,7 @@
       <div class="hero-inner wrap">
         <svg class="hero-arc" viewBox="0 0 1200 150" aria-hidden="true">
           <defs><path id="arcPath" d="M90 140 A1500 1500 0 0 1 1110 140"/><path id="arcPathM" d="M40 146 A900 900 0 0 1 1160 146"/></defs>
-          <text class="arc-d"><textPath href="#arcPath" startOffset="50%" text-anchor="middle">Barbier-Meisterbetrieb  ·  Venloer Strasse 211  ·  seit 2014</textPath></text>
+          <text class="arc-d"><textPath href="#arcPath" startOffset="50%" text-anchor="middle">Meisterbetrieb · Venloer Strasse 211 · seit 2014</textPath></text>
           <text class="arc-m"><textPath href="#arcPathM" startOffset="50%" text-anchor="middle">Meisterbetrieb · seit 2014</textPath></text>
         </svg>
 
@@ -208,7 +213,7 @@
             <circle cx="100" cy="100" r="96" fill="none" stroke="currentColor" stroke-width="1"/>
             <circle cx="100" cy="100" r="60" fill="none" stroke="currentColor" stroke-width="1"/>
             <circle cx="100" cy="100" r="56" fill="none" stroke="currentColor" stroke-width=".6" stroke-dasharray="1.5 3"/>
-            <text><textPath href="#sealPath">Barbier-Meisterbetrieb ✦ seit 2014 ✦ 412 Bewertungen ✦</textPath></text>
+            <text><textPath href="#sealPath">Barbier-Meisterbetrieb · seit 2014 · 412 Bewertungen ·</textPath></text>
           </svg>
           <p class="seal-core"><strong>4,9</strong><span class="stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span><span>aus 412 Bewertungen</span></p>
         </div>
@@ -293,7 +298,6 @@
           <div class="ritual-frame" data-ritual-frame>
             <span class="frame-corner frame-corner--tl" aria-hidden="true"></span><span class="frame-corner frame-corner--br" aria-hidden="true"></span>
             <canvas class="ritual-fx" data-ritual-fx aria-hidden="true"></canvas>
-            <svg class="ritual-blade" aria-hidden="true" data-ritual-blade><use href="#i-blade"/></svg>
           </div>
           <ol class="acts" data-acts>
             <li class="act">
@@ -321,8 +325,7 @@
     <!-- ============ PREISE: Art-déco-Spiegel ============ -->
     <section class="prices" id="preise" aria-labelledby="prices-title">
       <div class="wrap">
-        <div class="mirror" data-mirror>
-          <svg class="mirror-crown" viewBox="0 0 520 120" aria-hidden="true">
+        <svg class="mirror-crown" viewBox="0 0 520 120" aria-hidden="true">
             <g fill="none" stroke="currentColor" stroke-width="1.2">
               <path d="M40 119h440M70 119V96h380v23M110 96V74h300v22M160 74V56h200v18"/>
               <path d="M260 56a70 70 0 0 0-70-70" transform="translate(0 70)" opacity=".0"/>
@@ -331,6 +334,7 @@
             </g>
             <rect x="255" y="0" width="10" height="10" transform="rotate(45 260 5)" fill="currentColor"/>
           </svg>
+        <div class="mirror" data-mirror>
           <div class="mirror-glass">
             <div class="mirror-reflect" aria-hidden="true" data-mirror-reflect><img src="/arena/barbershop-kaiser/assets/img/salon-480.webp" width="480" height="720" loading="lazy" decoding="async" alt=""></div>
             <span class="mirror-foxing" aria-hidden="true"></span>
@@ -426,11 +430,11 @@
     <!-- ============ BART-ATELIER (Kapitel „Papier“) ============ -->
     <section class="beard chapter" id="bart" aria-labelledby="beard-title" data-chapter="papier">
       <div class="wrap">
-        <header class="beard-head">
-          <h2 class="h2" id="beard-title" data-cut>Welcher Bart steht&nbsp;Ihnen?</h2>
-          <p class="lead">Vier Klassiker zum Durchprobieren. Die Skizze zeigt, wo wir Wangen- und Halslinie setzen – im Laden passen wir sie an Ihre Gesichtsform an.</p>
-        </header>
         <div class="beard-grid">
+          <header class="beard-head">
+            <h2 class="h2" id="beard-title" data-cut>Welcher Bart steht&nbsp;Ihnen?</h2>
+            <p class="lead">Vier Klassiker zum Durchprobieren. Die Skizze zeigt, wo wir Wangen- und Halslinie setzen – im Laden passen wir sie an Ihre Gesichtsform an.</p>
+          </header>
           <figure class="beard-chart">
             <span class="tape tape--l" aria-hidden="true"></span><span class="tape tape--r" aria-hidden="true"></span>
             <div class="chart-head"><span>Kaiser · Barbier-Skizze</span><span data-chart-no>Nr. 01</span></div>
@@ -821,7 +825,7 @@
     <section class="faq" id="faq" aria-labelledby="faq-title">
       <div class="wrap faq-grid">
         <header class="faq-head">
-          <h2 class="h2" id="faq-title" data-cut>Bevor Sie Platz&nbsp;nehmen.</h2>
+          <h2 class="h2" id="faq-title" data-cut>Bevor Sie Platz nehmen.</h2>
           <p class="lead">Noch etwas offen? Rufen Sie an: <a class="inline-link" href="tel:+492215552480">0221&nbsp;555&nbsp;24&nbsp;80</a></p>
         </header>
         <div class="faq-list">

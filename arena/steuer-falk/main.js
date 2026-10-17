@@ -92,6 +92,16 @@
   function fmtDate(t, withYear) { var d = new Date(t); return pad2(d.getUTCDate()) + '.' + pad2(d.getUTCMonth() + 1) + '.' + (withYear === false ? '' : d.getUTCFullYear()); }
   function wday(t) { return new Date(t).getUTCDay(); }
 
+
+  /* Abreißkalender: so viele kommende Fristtermine (nach „Heute“) bekommen ein eigenes Blatt */
+  var PAD_LEAVES = 6;
+  /* Rechenstreifen: Tipp-Tempo je Ziffer (ms) und Pause nach dem Anschlag */
+  var TAPE_CHAR_MS = 13, TAPE_STRIKE_MS = 105, TAPE_START_MS = 420;
+
+  var mqFine = window.matchMedia('(hover: hover) and (pointer: fine)');
+  function finePointer() { return mqFine.matches; }
+  function localDate(d) { return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1) + '.' + d.getFullYear(); }
+
   /* ------------------------------------------------------------------
      Smooth Scroll (Lenis) + ScrollTrigger + Anker
      ------------------------------------------------------------------ */
@@ -139,9 +149,13 @@
       setTimeout(focus, reduced() ? 0 : 700);
     }
   }
+  function scrollToY(y) {
+    if (lenis) lenis.scrollTo(y, { duration: 0.9, easing: easeInOut });
+    else window.scrollTo({ top: y, behavior: reduced() ? 'auto' : 'smooth' });
+  }
 
   /* ------------------------------------------------------------------
-     Header: Zustand, Fortschritt, aktive Navigation
+     Header: Zustand, Fortschritt, aktive Navigation, Zeichen-Rollen
      ------------------------------------------------------------------ */
   function initHeader() {
     var hdr = qs('[data-hdr]'), bar = qs('[data-progress]');
@@ -155,7 +169,7 @@
     };
     window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
     window.addEventListener('resize', update);
-    update();
+    requestAnimationFrame(update); /* kein erzwungenes Layout beim Start */
 
     var links = qsa('.nav a'), map = {};
     links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
@@ -169,6 +183,20 @@
       });
     }, { rootMargin: '-45% 0px -50% 0px' });
     qsa('main section[id]').forEach(function (s) { io.observe(s); });
+  }
+  /* Zeichen rollen beim Hover: sichtbarer Text als Einzelzeichen, Original für Screenreader */
+  function initRoll() {
+    if (!motionOk) return;
+    qsa('[data-roll]').forEach(function (a) {
+      var text = a.textContent;
+      a.textContent = '';
+      var sr = document.createElement('span'); sr.className = 'sr-only'; sr.textContent = text;
+      var roll = document.createElement('span'); roll.className = 'roll'; roll.setAttribute('aria-hidden', 'true');
+      for (var i = 0; i < text.length; i++) {
+        var c = document.createElement('i'); c.textContent = text.charAt(i); c.style.setProperty('--c', i); roll.appendChild(c);
+      }
+      a.appendChild(sr); a.appendChild(roll);
+    });
   }
 
   /* ------------------------------------------------------------------
@@ -216,7 +244,6 @@
      Zahlenrollen (Odometer)
      ------------------------------------------------------------------ */
   var REEL = 20; // zwei Ziffernkränze 0–9, damit jede Stelle sichtbar rollt
-  /* ein Textknoten je Rolle („0⏎1⏎…⏎9⏎0⏎…⏎9“) statt 20 Elementen – spart rund 1.500 DOM-Knoten */
   var REEL_TEXT = (function () { var s = []; for (var k = 0; k < REEL; k++) s.push(k % 10); return s.join('\n'); })();
   function Odo(el) {
     this.el = el;
@@ -249,17 +276,15 @@
     this.ph = ph;
     this.text = text;
   };
-  /* rollt alle Stellen auf ihren Zielwert; delay in s, stagger je Stelle */
   Odo.prototype.play = function (delay, stagger) {
-    var self = this;
     this.reels.forEach(function (r, i) {
       r.strip.style.transitionDelay = ((delay || 0) + i * (stagger == null ? 0.05 : stagger)).toFixed(3) + 's';
       r.pos = 10 + r.digit;
       r.strip.style.transform = 'translateY(' + (-r.pos * (100 / REEL)) + '%)';
     });
-    return self;
+    return this;
   };
-  Odo.prototype.set = function (text) {
+  Odo.prototype.set = function (text, stagger) {
     if (text === this.text) return;
     var sameShape = text.length === this.text.length && text.replace(/\d/g, '0') === this.text.replace(/\d/g, '0');
     if (!sameShape) {
@@ -273,82 +298,189 @@
     this.ph.textContent = text;
     this.text = text;
     var digits = text.replace(/\D/g, '');
+    var st = stagger == null ? 0.04 : stagger;
+    var wrapped = [];
+    /* immer vorwärts rollen wie ein Zählwerk; am Ende des zweiten Kranzes unsichtbar zurücksetzen */
     this.reels.forEach(function (r, i) {
       var nd = +digits.charAt(i);
       r.digit = nd;
-      /* immer vorwärts rollen: innerhalb der zwei Kränze den nächsten passenden Platz wählen */
-      var next = r.pos >= 10 ? nd : 10 + nd;
-      if (next === r.pos) return;
-      r.pos = next;
-      r.strip.style.transitionDelay = (i * 0.04).toFixed(2) + 's';
+      if (r.pos % 10 === nd) return;
+      var next = r.pos - (r.pos % 10) + nd;
+      if (next < r.pos) next += 10;
+      if (next > REEL - 1) {
+        r.strip.style.transition = 'none';
+        r.pos -= 10; next -= 10;
+        r.strip.style.transform = 'translateY(' + (-r.pos * (100 / REEL)) + '%)';
+        wrapped.push(r);
+      }
+      r.next = next;
+    });
+    if (wrapped.length) { void this.el.offsetWidth; wrapped.forEach(function (r) { r.strip.style.transition = ''; }); }
+    this.reels.forEach(function (r, i) {
+      if (r.next == null) return;
+      r.pos = r.next; r.next = null;
+      r.strip.style.transitionDelay = (i * st).toFixed(3) + 's';
       r.strip.style.transform = 'translateY(' + (-r.pos * (100 / REEL)) + '%)';
     });
+  };
+  /* alle Rollen ohne Animation auf „0“ stellen (Zählwerk löschen) */
+  Odo.prototype.zero = function (text) {
+    this.reels.forEach(function (r) { r.strip.style.transition = 'none'; r.strip.style.transitionDelay = '0s'; r.pos = 0; r.digit = 0; r.strip.style.transform = 'translateY(0)'; });
+    if (text) { this.ph.textContent = text; this.text = text; }
+    void this.el.offsetWidth;
+    this.reels.forEach(function (r) { r.strip.style.transition = ''; });
   };
   function plainSet(el, text) {
     if (el.__odo) el.__odo.set(text); else el.textContent = text;
   }
 
   /* ------------------------------------------------------------------
-     Hero: Bilanz baut sich auf
+     Hero: der Rechenstreifen druckt die Bilanz
+     Zeile für Zeile: Papiervorschub → Ziffern tippen → Anschlag (+ / *) →
+     das Summenzählwerk rollt. Am Ende Stempel „ausgeglichen“ mit heutigem Datum.
      ------------------------------------------------------------------ */
+  function fmtReg(n) { /* 000.000,00 – mechanisches Zählwerk mit führenden Nullen */
+    var s = String(Math.round(Math.abs(n)));
+    while (s.length < 6) s = '0' + s;
+    return s.slice(0, 3) + '.' + s.slice(3) + ',00';
+  }
   function initHero() {
-    var hero = qs('.hero');
-    if (!hero) return;
-    if (motionOk) {
-      /* Reihen gestaffelt einblenden, Zahlen rollen mit */
-      var odos = [];
-      qsa('.t-col', hero).forEach(function (col) {
-        qsa('[data-t-row]', col).forEach(function (row, i) {
-          var isSum = row.classList.contains('t-sum');
-          var delay = isSum ? 1.95 : 1.0 + i * 0.15;
-          row.style.setProperty('--rd', delay + 's');
-          var o = qs('[data-odo]', row);
-          if (o) odos.push({ el: o, delay: delay + 0.05 });
-        });
-      });
-      var kpi = qs('.kpi-v [data-odo]', hero);
-      if (kpi) odos.push({ el: kpi, delay: 2.0 });
-      odos.forEach(function (o) { o.odo = o.el.__odo = new Odo(o.el); });
-    }
-    /* Der Textblock blendet per CSS sofort ein (unabhängig von main.js → schneller LCP).
-       Die Bilanz baut sich erst auf, wenn sie im Bild ist – auf dem Handy liegt sie unter dem
-       ersten Bildschirm und würde sonst unbemerkt fertig animieren. */
-    var go = function () {
-      requestAnimationFrame(function () {
-        hero.classList.add('is-go');
-        if (motionOk) {
-          odos.forEach(function (o) { o.odo.play(o.delay, 0.045); });
-          setTimeout(function () { hero.classList.add('is-settled'); }, 3700);
-        } else {
-          hero.classList.add('is-settled');
-        }
-      });
+    var m = qs('[data-machine]');
+    if (!m) return;
+    var today = localDate(new Date());
+    qsa('[data-today]').forEach(function (t) { t.textContent = today; t.setAttribute('datetime', today.split('.').reverse().join('-')); });
+    if (!motionOk) return;
+
+    var tape = qs('[data-tape]', m), reg = qs('[data-reg]', m), again = qs('[data-reprint]', m);
+    var lines = qsa('.tl, .stamp', tape);
+    var keys = {};
+    qsa('[data-mk]', m).forEach(function (k) { keys[k.getAttribute('data-mk')] = k; });
+    var regOdo = reg.__odo = new Odo(reg); /* zeigt „000.000,00“, bis gerechnet wird */
+    var timers = [], running = false, tapeH = 0, bottoms = [];
+
+    var measure = function () {
+      tapeH = tape.offsetHeight;
+      bottoms = lines.map(function (ln) { return ln.offsetTop + ln.offsetHeight + (ln.classList.contains('stamp') ? 10 : 0); });
     };
+    var feedTo = function (i) { tape.style.transform = 'translateY(' + Math.max(0, tapeH - bottoms[i]) + 'px)'; };
+    var press = function (k) {
+      var el = keys[k]; if (!el) return;
+      el.classList.add('is-down');
+      setTimeout(function () { el.classList.remove('is-down'); }, 110);
+    };
+    var later = function (fn, t) { timers.push(setTimeout(fn, t)); };
+
+    /* Zwischen Aktiva und Passiva wird das Zählwerk gelöscht – die laufende Summe beginnt neu */
+    var clearIdx = lines.map(function (l) { return l.hasAttribute('data-clear'); }).indexOf(true);
+    /* laufende Summe pro Abschnitt: data-v-Zeilen nach dem Löschen zählen neu */
+    (function patchSums() {
+      var acc = 0;
+      lines.forEach(function (ln, i) {
+        if (i === clearIdx) acc = 0;
+        var v = +ln.getAttribute('data-v') || 0;
+        if (v) acc += v;
+        ln.__sum = acc;
+      });
+    })();
+    /* Druckfolge: Zeitpunkte je Zeile, alles per setTimeout (unterbrechbar über reset) */
+    var run = function () {
+      running = true;
+      if (again) again.disabled = true;
+      measure();
+      tape.style.transition = 'none';
+      tape.style.transform = 'translateY(' + tapeH + 'px)';
+      void tape.offsetWidth;
+      tape.style.transition = 'transform var(--t-feed) var(--ease-out)';
+      m.classList.add('is-run');
+      var t = 0, passiva = false;
+      lines.forEach(function (ln, i) {
+        var isStamp = ln.classList.contains('stamp');
+        var n = qs('.tl-n', ln);
+        if (ln.hasAttribute('data-clear')) passiva = true;
+        var fast = passiva ? 0.72 : 1;
+        later(function () { feedTo(i); ln.classList.add('is-p'); }, t);
+        if (isStamp) {
+          later(function () { if (tape.animate) tape.animate([{ translate: '0 0' }, { translate: '0 1.5px' }, { translate: '0 0' }], { duration: 140, easing: 'ease-out' }); }, t + 40);
+          t += 260; return;
+        }
+        if (ln.classList.contains('tl--hd')) { t += 110; return; }
+        if (ln.classList.contains('tl--rule') || ln.classList.contains('tl--dbl')) { t += 170; return; }
+        if (ln.hasAttribute('data-clear')) { later(function () { press('c'); regOdo.set(fmtReg(0), 0.02); }, t + 40); t += 150; return; }
+        if (!n) { t += 100; return; }
+        var chars = n.textContent.length;
+        var ty = Math.round(chars * TAPE_CHAR_MS * fast);
+        ln.style.setProperty('--ch', chars);
+        ln.style.setProperty('--ty', ty + 'ms');
+        var isTotal = ln.hasAttribute('data-total'), isDiff = ln.hasAttribute('data-diff');
+        var show = ln.__sum; /* Differenz-Zeile: Zählwerk behält die Bilanzsumme */
+        later(function () { press(isTotal ? '*' : '+'); if (!isDiff) regOdo.set(fmtReg(show), 0.025); }, t + ty);
+        t += ty + Math.round((isTotal ? TAPE_STRIKE_MS + 70 : TAPE_STRIKE_MS) * fast);
+      });
+      later(function () { running = false; m.classList.add('is-done'); m.classList.remove('is-run'); if (again) again.disabled = false; }, t + 200);
+    };
+
+    var reset = function () {
+      timers.forEach(clearTimeout); timers = [];
+      m.classList.remove('is-done', 'is-run');
+      lines.forEach(function (ln) { ln.classList.remove('is-p'); });
+      regOdo.zero(fmtReg(0));
+    };
+    if (again) {
+      again.addEventListener('click', function () {
+        if (running) return;
+        again.disabled = true;
+        m.classList.add('is-tearing');
+        setTimeout(function () {
+          measure();
+          tape.style.transition = 'none';
+          tape.style.transform = 'translateY(' + tapeH + 'px)';
+          reset();
+          m.classList.remove('is-tearing');
+          void tape.offsetWidth;
+          setTimeout(run, 160);
+        }, 540);
+      });
+    }
+    window.addEventListener('resize', function () {
+      if (running || !m.classList.contains('is-done')) return;
+      measure(); feedTo(lines.length - 1);
+    });
+
+    /* Start, sobald Schriften stehen und die Maschine im Bild ist */
     var fontsOk = false, inView = false, started = false;
-    var start = function () { if (!started && fontsOk && inView) { started = true; go(); } };
-    /* auf Schriften warten (max. 450 ms), damit nichts springt */
+    var start = function () { if (!started && fontsOk && inView) { started = true; setTimeout(run, TAPE_START_MS); } };
     var fontsDone = function () { fontsOk = true; start(); };
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(fontsDone);
     setTimeout(fontsDone, 450);
-    var vis = qs('[data-hero-vis]', hero);
-    if (vis && motionOk && 'IntersectionObserver' in window) {
+    if ('IntersectionObserver' in window) {
       var io = new IntersectionObserver(function (en) {
         if (!en[0].isIntersecting) return;
         io.disconnect(); inView = true; start();
-      }, { rootMargin: '0px 0px -22% 0px' });
-      io.observe(vis);
+      }, { rootMargin: '0px 0px -10% 0px' });
+      io.observe(m);
     } else { inView = true; start(); }
   }
 
-  /* Hero-Parallaxe (nur Desktop, Bewegung erlaubt) */
-  function initParallax() {
-    if (!hasGSAP || !motionOk) return;
-    var mm = gsap.matchMedia();
-    mm.add('(min-width: 1000px)', function () {
-      var photo = qs('[data-hero-photo]');
-      var tw = gsap.to(photo, { yPercent: -14, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.6 } });
-      var tw2 = gsap.to('.hero-copy', { y: -40, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.6 } });
-      return function () { tw.kill(); tw2.kill(); gsap.set([photo, '.hero-copy'], { clearProps: 'transform' }); };
+  /* Magnetische Taste (nur feiner Zeiger): folgt dem Zeiger ein Stück, federt zurück */
+  function initMagnet() {
+    if (!motionOk) return;
+    qsa('[data-magnet]').forEach(function (el) {
+      var x = 0, y = 0, tx = 0, ty = 0, raf = 0;
+      var tick = function () {
+        x += (tx - x) * 0.2; y += (ty - y) * 0.2;
+        el.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0)';
+        if (Math.abs(tx - x) > 0.05 || Math.abs(ty - y) > 0.05) raf = requestAnimationFrame(tick);
+        else { raf = 0; if (!tx && !ty) el.style.transform = ''; }
+      };
+      var kick = function () { if (!raf) raf = requestAnimationFrame(tick); };
+      el.addEventListener('pointermove', function (e) {
+        if (e.pointerType !== 'mouse' || !finePointer()) return;
+        var r = el.getBoundingClientRect();
+        tx = clamp((e.clientX - (r.left + r.width / 2)) * 0.18, -7, 7);
+        ty = clamp((e.clientY - (r.top + r.height / 2)) * 0.28, -5, 5);
+        kick();
+      });
+      el.addEventListener('pointerleave', function () { tx = 0; ty = 0; kick(); });
     });
   }
 
@@ -357,90 +489,118 @@
      ------------------------------------------------------------------ */
   function initReveal() {
     var els = qsa('[data-reveal]');
-    if (motionOff || !('IntersectionObserver' in window)) { els.forEach(function (el) { el.classList.add('is-in'); }); return; }
-    var io = new IntersectionObserver(function (entries) {
-      var n = 0;
-      entries.forEach(function (en) {
-        var el = en.target;
-        if (!en.isIntersecting) {
-          /* bereits oberhalb des Viewports (z. B. nach Neuladen weiter unten): sofort sichtbar */
-          if (en.boundingClientRect.bottom < 0) { el.classList.add('is-in'); io.unobserve(el); }
-          return;
-        }
-        el.style.setProperty('--rd', Math.min(n, 6) * 70 + 'ms');
-        n++;
-        el.classList.add('is-in');
-        io.unobserve(el);
-        setTimeout(function () { el.style.removeProperty('--rd'); }, 1400);
-      });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0 });
-    els.forEach(function (el) { io.observe(el); }); /* Lage liefert der Observer asynchron – kein erzwungenes Layout */
+    qsa('[data-reveal="rows"]').forEach(function (g) { Array.prototype.forEach.call(g.children, function (c, i) { c.style.setProperty('--i', i); }); });
+    if (motionOff || !('IntersectionObserver' in window)) { els.forEach(function (el) { el.classList.add('is-in'); }); }
+    else {
+      var io = new IntersectionObserver(function (entries) {
+        var n = 0;
+        entries.forEach(function (en) {
+          var el = en.target;
+          if (!en.isIntersecting) {
+            if (en.boundingClientRect.bottom < 0) { el.classList.add('is-in'); io.unobserve(el); }
+            return;
+          }
+          el.style.setProperty('--rd', Math.min(n, 5) * 60 + 'ms');
+          n++;
+          el.classList.add('is-in');
+          io.unobserve(el);
+          setTimeout(function () { el.style.removeProperty('--rd'); }, 1400);
+        });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0 });
+      els.forEach(function (el) { io.observe(el); });
+    }
 
-    /* Kennzahlen rollen beim Einblenden */
+    /* Kennzahlen im Kanzleijournal rollen beim Einblenden */
     var stats = qsa('[data-odo-scroll]');
-    if (!motionOk || !stats.length) return;
+    if (!motionOk || !stats.length || !('IntersectionObserver' in window)) return;
     stats.forEach(function (el) { el.__odo = new Odo(el); });
     var io2 = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
         if (!en.isIntersecting) return;
         var i = stats.indexOf(en.target);
-        en.target.__odo.play(0.15 + (i % 4) * 0.08, 0.06);
+        en.target.__odo.play(0.2 + i * 0.09, 0.07);
         io2.unobserve(en.target);
       });
-    }, { rootMargin: '0px 0px -10% 0px' });
+    }, { rootMargin: '0px 0px -12% 0px' });
     stats.forEach(function (el) { io2.observe(el); });
   }
 
   /* ------------------------------------------------------------------
-     Leistungen: Kontenblatt-Zeilen wechseln das Bild
+     Leistungen: Vorschau folgt dem Zeiger (Feder), Bild je Position
      ------------------------------------------------------------------ */
   function initLedger() {
-    var frame = qs('[data-lst-frame]'), cap = qs('[data-lst-cap]');
-    if (!frame) return;
-    var imgs = qsa('img[data-lst-img]', frame);
-    var current = 'belege';
-    var show = function (row) {
-      var key = row.getAttribute('data-img');
-      var nr = qs('.lr-nr', row).textContent, name = qs('.lr-name', row).textContent;
-      if (cap) cap.textContent = 'Pos. ' + nr + ' · ' + name;
-      if (key === current) return;
-      imgs.forEach(function (img) {
-        var k = img.getAttribute('data-lst-img');
-        img.classList.remove('was-on');
-        if (k === current) { img.classList.remove('is-on'); img.classList.add('was-on'); }
-        if (k === key) { img.classList.remove('is-on'); void img.offsetWidth; img.classList.add('is-on'); }
+    var ledger = qs('[data-ledger]'), peek = qs('[data-peek]');
+    if (!ledger || !peek || !motionOk) return;
+    var box = qs('[data-peek-img]', peek), cap = qs('[data-peek-cap]', peek);
+    var imgs = {}, built = false, cur = null, on = false;
+    var x = 0, y = 0, tx = 0, ty = 0, rot = 0, trot = 0, raf = 0, w = 300, h = 200;
+    var build = function () {
+      if (built) return; built = true;
+      qsa('.lrow', ledger).forEach(function (row) {
+        var k = row.getAttribute('data-img');
+        if (imgs[k]) return;
+        var img = document.createElement('img');
+        img.alt = ''; img.decoding = 'async'; img.width = 480; img.height = 320;
+        img.sizes = '320px';
+        img.srcset = '/arena/steuer-falk/assets/img/' + k + '-duo-480.webp 480w, /arena/steuer-falk/assets/img/' + k + '-duo-960.webp 960w';
+        img.src = '/arena/steuer-falk/assets/img/' + k + '-duo-480.webp';
+        box.appendChild(img); imgs[k] = img;
       });
-      current = key;
     };
-    qsa('.lrow').forEach(function (row) {
-      row.addEventListener('toggle', function () { if (row.open) show(row); });
-      var sum = qs('summary', row);
-      sum.addEventListener('mouseenter', function () { if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) show(row); });
-      sum.addEventListener('focus', function () { show(row); });
+    var tick = function () {
+      x += (tx - x) * 0.16; y += (ty - y) * 0.16; rot += (trot - rot) * 0.12;
+      peek.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) rotate(' + rot.toFixed(2) + 'deg)';
+      if (on || Math.abs(tx - x) > 0.3 || Math.abs(ty - y) > 0.3) raf = requestAnimationFrame(tick); else raf = 0;
+    };
+    var show = function (row) {
+      var k = row.getAttribute('data-img');
+      cap.textContent = 'Pos. ' + qs('.lr-nr', row).textContent + ' · ' + qs('.lr-name', row).textContent;
+      if (k === cur) return;
+      Object.keys(imgs).forEach(function (n) { imgs[n].classList.toggle('is-on', n === k); });
+      cur = k;
+    };
+    ledger.addEventListener('pointerenter', function (e) {
+      if (e.pointerType !== 'mouse' || !finePointer()) return;
+      build();
+      w = peek.offsetWidth; h = peek.offsetHeight;
+      x = tx = e.clientX + 28; y = ty = e.clientY - h * 0.5;
     });
+    ledger.addEventListener('pointermove', function (e) {
+      if (e.pointerType !== 'mouse' || !finePointer()) return;
+      var row = e.target.closest && e.target.closest('.lrow');
+      if (!row || (row.open && !e.target.closest('summary'))) { if (on) { on = false; peek.classList.remove('is-on'); } return; }
+      show(row);
+      var vw = window.innerWidth, vh = window.innerHeight;
+      var nx = e.clientX + 32;
+      if (nx + w > vw - 16) nx = e.clientX - w - 32;
+      trot = clamp((e.clientX + 32 - tx) * 0.04, -3, 3);
+      tx = nx; ty = clamp(e.clientY - h * 0.55, 80, vh - h - 40);
+      if (!on) { on = true; peek.classList.add('is-on'); }
+      if (!raf) raf = requestAnimationFrame(tick);
+    });
+    ledger.addEventListener('pointerleave', function () { on = false; peek.classList.remove('is-on'); trot = 0; });
+    window.addEventListener('scroll', function () { if (on) { on = false; peek.classList.remove('is-on'); } }, { passive: true });
   }
 
   /* ------------------------------------------------------------------
      Mandanten-Wegweiser (Tabs mit Pfeiltasten)
      ------------------------------------------------------------------ */
-  var wwSelect = null;
   function initWegweiser() {
     var root = qs('[data-ww]');
     if (!root) return;
-    var tabs = qsa('[role="tab"]', root), panels = qsa('[role="tabpanel"]', root), ind = qs('[data-ww-ind]', root);
+    var tabs = qsa('[role="tab"]', root), panels = qsa('[role="tabpanel"]', root);
     var select = function (i, focus, animate) {
       tabs.forEach(function (t, k) {
         var on = k === i;
         t.setAttribute('aria-selected', on ? 'true' : 'false');
         t.tabIndex = on ? 0 : -1;
         panels[k].hidden = !on;
-        if (on && animate) restart(panels[k], 'is-entering');
+        if (on && animate && motionOk) restart(panels[k], 'is-entering');
       });
-      if (ind) ind.style.setProperty('--i', i);
       if (focus) tabs[i].focus();
     };
     tabs.forEach(function (t, i) {
-      t.addEventListener('click', function () { select(i, false, true); });
+      t.addEventListener('click', function () { if (t.getAttribute('aria-selected') !== 'true') select(i, false, true); });
       t.addEventListener('keydown', function (e) {
         var k = null;
         if (e.key === 'ArrowRight' || e.key === 'ArrowDown') k = (i + 1) % tabs.length;
@@ -449,12 +609,12 @@
         else if (e.key === 'End') k = tabs.length - 1;
         if (k === null) return;
         e.preventDefault();
-        select(k, true, false);
+        select(k, true, false); /* Tastatur: ohne Animation */
       });
     });
     panels.forEach(function (p) { p.addEventListener('animationend', function (e) { if (e.target.parentNode === p) p.classList.remove('is-entering'); }); });
     select(0, false, false);
-    wwSelect = function (type) { var i = tabs.map(function (t) { return t.getAttribute('data-type'); }).indexOf(type); if (i > -1) select(i, false, false); };
+    doc.classList.add('ww-ready');
   }
 
   /* ------------------------------------------------------------------
@@ -480,8 +640,6 @@
         save(); update();
       });
     });
-    lists.forEach(function (l) { qsa('.ck-group', l).forEach(function (g, i) { g.style.setProperty('--g', i); }); });
-
     function save() { state.type = type; store(CK_KEY, state); }
     function activeList() { return lists.filter(function (l) { return l.getAttribute('data-list') === type; })[0]; }
     function update() {
@@ -526,14 +684,54 @@
     setChecklistType = function (t, fromLink) { applyType(t, !fromLink); save(); };
   }
 
+  /* Ordner-Deckel: klappt beim Hineinscrollen auf (einmalig) – bleibt danach offen.
+     Bleibt das Scrollen auf halber Strecke stehen, öffnet er sich nach kurzer Pause von selbst. */
+  function initBinder() {
+    var cover = qs('[data-cover]'), binder = qs('[data-binder]');
+    if (!cover || !binder || !motionOk || !hasGSAP) { if (cover) cover.style.display = 'none'; return; }
+    var OPEN = -166, done = false, idle = 0, st = null, tw = null;
+    gsap.set(cover, { rotationY: 0, transformPerspective: 0 });
+    var finish = function (animate) {
+      if (done) return; done = true;
+      if (st) { st.kill(); st = null; }
+      if (tw) tw.kill();
+      gsap.to(cover, { rotationY: OPEN, duration: animate ? 0.7 : 0, ease: 'power2.inOut', onComplete: function () { cover.style.visibility = 'hidden'; } });
+    };
+    tw = gsap.fromTo(cover, { rotationY: 0 }, { rotationY: OPEN, ease: 'none', paused: true });
+    st = ScrollTrigger.create({
+      trigger: binder, start: 'top 90%', end: 'top 32%', scrub: 0.5,
+      animation: tw,
+      onUpdate: function (self) {
+        clearTimeout(idle);
+        if (self.progress >= 0.999) { finish(false); return; }
+        if (self.progress > 0.04) idle = setTimeout(function () { finish(true); }, 1400);
+      }
+    });
+    /* bereits vorbei (z. B. Sprung per Anker): sofort offen */
+    if (st.progress >= 0.999 || binder.getBoundingClientRect().top < window.innerHeight * 0.32) finish(false);
+  }
+
   /* ------------------------------------------------------------------
-     Digitaler Ablauf: gepinnte Schrittfolge (Desktop) / Einblenden (Handy)
+     Digitaler Ablauf: Sticky-Storytelling (Desktop) / Einblenden (Handy)
+     – position: sticky, ScrollTrigger nur für den Fortschritt (kein Pin)
      ------------------------------------------------------------------ */
+  var mqFlow = window.matchMedia('(min-width: 900px)');
+  function flowLayout() {
+    var flow = qs('[data-flow]');
+    if (!flow || !motionOk || !hasGSAP) return;
+    var apply = function () {
+      flow.classList.toggle('is-sticky', mqFlow.matches);
+      flow.style.setProperty('--steps', qsa('.flow-step', flow).length);
+    };
+    apply();
+  }
   function initFlow() {
     var flow = qs('[data-flow]');
     if (!flow) return;
     var steps = qsa('.flow-step', flow);
     if (!motionOk) return; /* ohne Bewegung: alle Schritte vollständig sichtbar */
+    var counter = qs('[data-flow-odo]', flow);
+    if (counter) { counter.__odo = new Odo(counter); counter.__odo.play(0.1, 0.05); }
 
     var observeSteps = function () {
       if (!('IntersectionObserver' in window)) { steps.forEach(function (s) { s.classList.add('is-active'); }); return function () {}; }
@@ -543,12 +741,13 @@
       steps.forEach(function (s) { io.observe(s); });
       return function () { io.disconnect(); };
     };
-
     if (!hasGSAP) { observeSteps(); return; }
 
     var mm = gsap.matchMedia();
     mm.add('(min-width: 900px)', function () {
-      var fill = qs('[data-flow-fill]', flow);
+      flow.classList.add('is-sticky');
+      flow.style.setProperty('--steps', steps.length);
+      var grid = qs('.flow-grid', flow);
       var nav = document.createElement('nav');
       nav.className = 'flow-nav';
       nav.setAttribute('aria-label', 'Schritte des Ablaufs');
@@ -565,10 +764,8 @@
         li.appendChild(b); ol.appendChild(li);
       });
       nav.appendChild(ol);
-      flow.insertBefore(nav, flow.firstChild);
+      grid.appendChild(nav);
       var items = qsa('li', ol);
-      flow.classList.add('is-pinned');
-
       var active = -1;
       var setActive = function (i) {
         if (i === active) return;
@@ -580,35 +777,43 @@
           var btn = li.firstChild;
           if (k === i) btn.setAttribute('aria-current', 'step'); else btn.removeAttribute('aria-current');
         });
+        if (counter && counter.__odo) counter.__odo.set(pad2(i + 1), 0.03);
       };
       var st = ScrollTrigger.create({
         trigger: flow,
-        /* Bühne mittig im freien Bereich unter dem Header – keine leere Fläche am unteren Rand */
-        start: function () { var hh = headerOffset(); return 'top ' + Math.round(hh + Math.max(28, (window.innerHeight - hh - flow.offsetHeight) / 2)) + 'px'; },
-        end: function () { return '+=' + Math.round(window.innerHeight * 0.75 * steps.length); },
-        pin: true,
-        anticipatePin: 1,
+        start: function () { return 'top ' + headerOffset() + 'px'; },
+        end: 'bottom bottom',
         invalidateOnRefresh: true,
-        onUpdate: function (self) {
-          var p = self.progress;
-          setActive(Math.min(steps.length - 1, Math.floor(p * steps.length + 0.0001)));
-          if (fill) fill.style.transform = 'scaleY(' + clamp(p * steps.length / (steps.length - 1), 0, 1).toFixed(4) + ')';
-        }
+        onUpdate: function (self) { setActive(Math.min(steps.length - 1, Math.floor(self.progress * steps.length + 0.0001))); }
       });
       setActive(0);
-      function goTo(i) {
-        var y = st.start + (st.end - st.start) * ((i + 0.5) / steps.length);
-        if (lenis) lenis.scrollTo(y, { duration: 1, easing: easeInOut }); else window.scrollTo({ top: y, behavior: 'smooth' });
-      }
+      function goTo(i) { scrollToY(st.start + (st.end - st.start) * ((i + 0.5) / steps.length)); }
       return function () {
         st.kill();
         nav.remove();
-        flow.classList.remove('is-pinned');
-        if (fill) fill.style.transform = '';
+        flow.classList.remove('is-sticky');
         steps.forEach(function (s) { s.classList.remove('is-active'); });
       };
     });
     mm.add('(max-width: 899px)', function () { return observeSteps(); });
+  }
+
+  /* ------------------------------------------------------------------
+     Leichte Tiefen-Parallaxe (Collage, Belege) und Prägesiegel
+     ------------------------------------------------------------------ */
+  function initParallax() {
+    if (!hasGSAP || !motionOk) return;
+    var mm = gsap.matchMedia();
+    mm.add('(min-width: 900px)', function () {
+      var tws = qsa('[data-par]').map(function (el) {
+        var v = +el.getAttribute('data-par') || 0;
+        return gsap.fromTo(el, { yPercent: -v / 2 }, { yPercent: v / 2, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 0.6 } });
+      });
+      return function () { tws.forEach(function (t) { t.scrollTrigger && t.scrollTrigger.kill(); t.kill(); }); gsap.set('[data-par]', { clearProps: 'transform' }); };
+    });
+    qsa('[data-seal]').forEach(function (s, i) {
+      gsap.fromTo(s, { rotation: -14 + i * 8 }, { rotation: 22 + i * 8, ease: 'none', scrollTrigger: { trigger: s, start: 'top bottom', end: 'bottom top', scrub: 0.8 } });
+    });
   }
 
   /* ------------------------------------------------------------------
@@ -734,6 +939,7 @@
     qsa('[data-fr-year], [data-fr-year2]').forEach(function (el) { el.textContent = Y; });
     var tableWrap = qs('.fr-table-wrap', root);
     if (tableWrap) tableWrap.open = false; /* ohne JS bleibt die Liste offen */
+    doc.classList.add('fr-ready');
 
     /* Monatsraster proportional zu den Monatslängen */
     var cols = [];
@@ -945,6 +1151,7 @@
     if (dfv) { opt.dfv = dfv.checked; dfv.setAttribute('aria-checked', dfv.checked ? 'true' : 'false'); }
 
     render(true);
+    safe('tear', function () { initTear(Y); });
     /* Tage-Zähler als Rolle, sobald sichtbar */
     if (motionOk && 'IntersectionObserver' in window) {
       daysEl.__odo = new Odo(daysEl);
@@ -956,6 +1163,145 @@
       io.observe(daysEl);
     }
   }
+
+  /* ------------------------------------------------------------------
+     Abreißkalender: „Heute“ + die nächsten Fristtermine als Blätter.
+     Desktop: Blätter reißen beim Scrollen ab (Sticky-Bühne, Scrub).
+     Handy / ohne Scroll-Bindung: per Knopf; das erste Blatt reißt einmal von selbst ab.
+     ------------------------------------------------------------------ */
+  function isoWeek(t) {
+    var d = new Date(t), day = (d.getUTCDay() + 6) % 7;
+    d.setUTCDate(d.getUTCDate() - day + 3);
+    var first = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+    return 1 + Math.round(((d - first) / DAY - 3 + ((first.getUTCDay() + 6) % 7)) / 7);
+  }
+  function initTear(Y) {
+    var wrap = qs('[data-tear-wrap]'), pad = qs('[data-tear]'), box = qs('[data-tear-leaves]');
+    if (!wrap || !pad || !box) return;
+    var prev = qs('[data-tear-prev]'), next = qs('[data-tear-next]'), count = qs('[data-tear-count]'), live = qs('[data-tear-live]');
+    var opt = { turnus: 'monat', dfv: false };
+    var evs = buildEvents(Y, opt).concat(buildEvents(Y + 1, opt)).filter(function (e) { return e.days >= 0; });
+    /* nach Datum gruppieren */
+    var groups = [];
+    evs.forEach(function (e) {
+      var g = groups[groups.length - 1];
+      if (g && g.date === e.date) { if (g.names.indexOf(e.laneObj.name) < 0) g.names.push(e.laneObj.name); }
+      else groups.push({ date: e.date, days: e.days, s: e.s, names: [e.laneObj.name] });
+    });
+    groups = groups.slice(0, PAD_LEAVES);
+    var nextG = groups[0];
+    var data = [{ today: true, date: TODAY, days: 0, s: 'today' }].concat(groups);
+    var N = data.length;
+
+    var mk = function (tag, cls, text) { var el = document.createElement(tag); if (cls) el.className = cls; if (text != null) el.textContent = text; return el; };
+    var leaves = data.map(function (d, i) {
+      var dt = new Date(d.date);
+      var leaf = mk('div', 'leaf' + (d.today ? ' leaf--today' : ''));
+      leaf.setAttribute('data-s', d.s);
+      leaf.style.zIndex = String(N - i);
+      var band = mk('div', 'leaf-band');
+      band.appendChild(mk('span', null, d.today ? 'Heute' : 'Steuerfrist'));
+      band.appendChild(mk('span', null, 'KW ' + isoWeek(d.date)));
+      leaf.appendChild(band);
+      leaf.appendChild(mk('p', 'leaf-wd', DAY_NAMES[dt.getUTCDay()]));
+      leaf.appendChild(mk('p', 'leaf-day', String(dt.getUTCDate())));
+      leaf.appendChild(mk('p', 'leaf-mo', MONTHS[dt.getUTCMonth()] + ' ' + dt.getUTCFullYear()));
+      var what = mk('p', 'leaf-what');
+      var inn = mk('p', 'leaf-in');
+      var amp = mk('span', 'amp'); amp.setAttribute('aria-hidden', 'true');
+      if (d.today) {
+        what.appendChild(mk('b', null, 'Nächste Frist am ' + fmtDate(nextG.date, false)));
+        what.appendChild(document.createTextNode(nextG.names.join(', ')));
+        inn.appendChild(document.createTextNode('Noch ' + nextG.days + ' Tage – Blatt abreißen'));
+      } else {
+        what.appendChild(mk('b', null, d.names[0]));
+        if (d.names.length > 1) what.appendChild(document.createTextNode(d.names.slice(1).join(', ')));
+        inn.appendChild(amp);
+        inn.appendChild(document.createTextNode(daysText(d.days)));
+      }
+      leaf.appendChild(what); leaf.appendChild(inn);
+      box.appendChild(leaf);
+      return leaf;
+    });
+    var describe = function (k) {
+      var d = data[k], dt = new Date(d.date);
+      if (d.today) return 'Blatt ' + (k + 1) + ' von ' + N + ': Heute, ' + DAY_NAMES[dt.getUTCDay()] + ' ' + fmtDate(d.date) + '. Nächste Frist ' + daysText(nextG.days) + '.';
+      return 'Blatt ' + (k + 1) + ' von ' + N + ': ' + DAY_NAMES[dt.getUTCDay()] + ', ' + fmtDate(d.date) + ' – ' + d.names.join(', ') + ', ' + daysText(d.days) + '.';
+    };
+    var idx = 0;
+    var ui = function (announce) {
+      count.textContent = 'Blatt ' + (idx + 1) + ' von ' + N;
+      prev.disabled = idx === 0;
+      next.disabled = idx >= N - 1;
+      if (announce && live) live.textContent = describe(idx);
+    };
+
+    /* Variante 1: Knopf / Klassen (Handy, reduzierte Bewegung) */
+    var stepTo = function (k, announce) {
+      idx = clamp(k, 0, N - 1);
+      leaves.forEach(function (l, i) { l.classList.toggle('is-torn', i < idx); });
+      ui(announce);
+    };
+    /* Variante 2: Scroll-Bindung (Desktop) */
+    var st = null;
+    var paint = function (P) {
+      var f = P * (N - 1);
+      leaves.forEach(function (l, i) {
+        if (i === N - 1) return;
+        var p = clamp(f - i, 0, 1);
+        var a = Math.min(1, p / 0.35), b = Math.max(0, (p - 0.35) / 0.65);
+        if (p <= 0) { l.style.transform = ''; l.style.opacity = ''; return; }
+        l.style.transform = 'translate3d(' + (-7 * b).toFixed(2) + '%,' + (125 * b * b).toFixed(2) + '%,0) rotate(' + (-15 * b).toFixed(2) + 'deg) rotateX(' + (22 * a - 8 * b).toFixed(2) + 'deg)';
+        l.style.opacity = (1 - Math.max(0, (b - 0.55) / 0.45)).toFixed(3);
+      });
+      var k = clamp(Math.floor(f + 0.35), 0, N - 1);
+      if (k !== idx) { idx = k; ui(false); }
+    };
+    prev.addEventListener('click', function () {
+      if (st) { scrollToY(st.start + (st.end - st.start) * Math.max(0, idx - 1) / (N - 1)); if (live) live.textContent = describe(Math.max(0, idx - 1)); }
+      else stepTo(idx - 1, true);
+    });
+    next.addEventListener('click', function () {
+      if (st) { scrollToY(st.start + (st.end - st.start) * Math.min(N - 1, idx + 1) / (N - 1) + 2); if (live) live.textContent = describe(Math.min(N - 1, idx + 1)); }
+      else stepTo(idx + 1, true);
+    });
+    ui(false);
+
+    if (motionOk && hasGSAP) {
+      var mm = gsap.matchMedia();
+      mm.add('(min-width: 900px)', function () {
+        wrap.classList.add('is-sticky');
+        wrap.style.setProperty('--leaves', N - 1);
+        pad.classList.add('is-scrub');
+        leaves.forEach(function (l) { l.classList.remove('is-torn'); });
+        st = ScrollTrigger.create({
+          trigger: wrap,
+          start: function () { return 'top ' + headerOffset() + 'px'; },
+          end: 'bottom bottom',
+          invalidateOnRefresh: true,
+          onUpdate: function (self) { paint(self.progress); }
+        });
+        paint(st.progress);
+        return function () {
+          st.kill(); st = null;
+          wrap.classList.remove('is-sticky'); pad.classList.remove('is-scrub');
+          leaves.forEach(function (l) { l.style.transform = ''; l.style.opacity = ''; });
+          stepTo(0, false);
+        };
+      });
+      mm.add('(max-width: 899px)', function () {
+        if (!('IntersectionObserver' in window)) return;
+        var io = new IntersectionObserver(function (en) {
+          if (!en[0].isIntersecting) return;
+          io.disconnect();
+          setTimeout(function () { if (idx === 0) stepTo(1, false); }, 900);
+        }, { threshold: 0.6 });
+        io.observe(pad);
+        return function () { io.disconnect(); };
+      });
+    }
+  }
+
 
   /* ------------------------------------------------------------------
      Öffnungszeiten: „jetzt geöffnet“
@@ -1111,28 +1457,30 @@
   }
 
   /* ------------------------------------------------------------------
-     Start
+     Start in Etappen
      ------------------------------------------------------------------ */
-  /* Sofort: alles, was den ersten Bildschirm betrifft */
+  /* Sofort: alles, was den ersten Bildschirm betrifft (und Layout, das später nicht springen darf) */
   safe('scroll', initScroll);
   safe('header', initHeader);
+  safe('roll', initRoll);
   safe('menu', initMenu);
   safe('hero', initHero);
-  safe('reveal', initReveal);
-  safe('wegweiser', initWegweiser); /* günstig; blendet sofort die drei inaktiven Tafeln aus */
+  safe('flowLayout', flowLayout);
+  safe('wegweiser', initWegweiser);
   safe('actionbar', initActionbar);
 
-  /* Danach in kleinen Häppchen (je max. ~40 ms), damit der Hauptthread nicht lange blockiert.
-     Fristen zuerst – sie füllen den Fristen-Chip im Hero. */
-  var later = [['fristen', initFristen], ['parallax', initParallax], ['flow', initFlow], ['ledger', initLedger],
-    ['checklist', initChecklist], ['open', initOpenStatus], ['form', initForm], ['map', initMap]];
+  /* Danach in kleinen Häppchen (je max. ~20 ms), damit der Hauptthread nicht lange blockiert.
+     Fristen zuerst – sie füllen die „nächste Steuerfrist“ in der Kontenzeile. */
+  var later = [['reveal', initReveal], ['magnet', initMagnet], ['fristen', initFristen], ['flow', initFlow], ['ledger', initLedger],
+    ['checklist', initChecklist], ['binder', initBinder], ['parallax', initParallax], ['open', initOpenStatus], ['form', initForm], ['map', initMap]];
   var laterDone = false, loaded = document.readyState === 'complete', afterBoot = [];
   var whenBooted = function (fn) { if (laterDone && loaded) fn(); else afterBoot.push(fn); };
   var flushBoot = function () { if (laterDone && loaded) { var q = afterBoot; afterBoot = []; q.forEach(function (fn) { fn(); }); } };
+  var idle = window.requestIdleCallback ? function (fn) { window.requestIdleCallback(fn, { timeout: 120 }); } : function (fn) { setTimeout(fn, 0); };
   var step = function () {
     var t0 = Date.now();
-    while (later.length && Date.now() - t0 < 40) { var job = later.shift(); safe(job[0], job[1]); }
-    if (later.length) setTimeout(step, 0); else { laterDone = true; flushBoot(); }
+    while (later.length && Date.now() - t0 < 20) { var job = later.shift(); safe(job[0], job[1]); }
+    if (later.length) idle(step); else { laterDone = true; flushBoot(); }
   };
   setTimeout(step, 0);
   window.addEventListener('load', function () { loaded = true; flushBoot(); });

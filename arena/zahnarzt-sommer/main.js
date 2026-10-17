@@ -1,5 +1,7 @@
 /* ==========================================================================
    Zahnarztpraxis Dr. Lea Sommer – Modell „Klarheit“ (Demo)
+   Bewegungs-Handschrift „kalibriert“: Scans mit konstanter Geschwindigkeit,
+   Zustände mit kräftigem Ease-out, nichts federt nach.
    Alle anpassbaren Werte stehen gesammelt im Block „Konfiguration“.
    ========================================================================== */
 (() => {
@@ -10,10 +12,13 @@
   // Öffnungszeiten: Wochentag (0 = So … 6 = Sa) → [öffnet, schließt] in Minuten ab 0 Uhr
   const OEFFNUNGSZEITEN = { 1: [480, 1140], 2: [480, 1140], 3: [480, 840], 4: [480, 1140], 5: [480, 900] };
   const ZEITZONE = 'Europe/Berlin';
-  // Atemübung: Sekunden je Phase und Anzahl der Runden
+  // Atemübung: Sekunden je Phase und Anzahl der Runden; ATEM_FARBE = wie stark die Seite beim Einatmen aufhellt (0–1)
   const ATEM = { ein: 4, halten: 4, aus: 6, runden: 5 };
-  // Hero-Linse: Radius als Anteil der Bildbreite, Nachlauf (0–1, kleiner = träger)
-  const LINSE = { radius: 0.3, lerp: 0.1 };
+  const ATEM_FARBE = 0.75;
+  // Panorama-Scanner im Hero: Geschwindigkeit der automatischen Fahrt (px/s) und Nachlauf der Maus (0–1, kleiner = träger)
+  const SCANNER = { tempo: 130, nachlauf: 0.12, pauseNachMaus: 1400 };
+  // Behandlungsweg: Höhe der „Zeichenlinie“ im Fenster (0 = oben, 1 = unten)
+  const WEG_LINIE = 0.68;
 
   /* ---------- Grundlagen ---------- */
   const root = document.documentElement;
@@ -23,10 +28,12 @@
   const hasGSAP = !!(window.gsap && window.ScrollTrigger);
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
   const EASE = 'cubic-bezier(0.23, 1, 0.32, 1)';
+  const EASE_IO = 'cubic-bezier(0.77, 0, 0.175, 1)';
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const hdrH = () => ($('.hdr') ? $('.hdr').offsetHeight : 64);
   const fade = (el, from = {}, dur = 260) => {
     if (!MOTION || !el || !el.animate) return;
-    el.animate([{ opacity: 0, transform: 'translateY(8px)', ...from }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { duration: dur, easing: EASE });
+    el.animate([{ opacity: 0, transform: 'translateY(6px)', ...from }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { duration: dur, easing: EASE });
   };
 
   if (hasGSAP) gsap.registerPlugin(ScrollTrigger);
@@ -52,7 +59,7 @@
     else window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY + off, behavior: MOTION ? 'smooth' : 'auto' });
   }
 
-  /* ---------- Header, Fortschritt, aktive Navigation ---------- */
+  /* ---------- Header, Scan-Fortschritt, aktive Navigation ---------- */
   function initHeader() {
     const hdr = $('.hdr');
     const bar = $('.progress__bar');
@@ -78,6 +85,40 @@
       });
     }, { rootMargin: '-45% 0px -50% 0px' });
     $$('main section[id]').forEach((s) => io.observe(s));
+  }
+
+  /* Navigation: Zeichen rollen beim Hover (nur feiner Zeiger) */
+  function initRoll() {
+    if (!MOTION || !finePointer.matches) return;
+    $$('[data-roll]').forEach((a) => {
+      const text = a.textContent.trim();
+      a.textContent = '';
+      const sr = document.createElement('span'); sr.className = 'sr-only'; sr.textContent = text;
+      const vis = document.createElement('span'); vis.className = 'roll'; vis.setAttribute('aria-hidden', 'true');
+      [...text].forEach((ch, i) => { const c = document.createElement('span'); c.className = 'roll__c'; c.style.setProperty('--i', i); c.textContent = ch; vis.append(c); });
+      a.append(sr, vis);
+    });
+  }
+
+  /* Magnetische Haupt-Buttons (nur feiner Zeiger) – nutzt `translate`, damit `:active { transform: scale() }` erhalten bleibt */
+  function initMagnetic() {
+    if (!MOTION || !finePointer.matches) return;
+    $$('[data-magnetic]').forEach((el) => {
+      let x = 0, y = 0, tx = 0, ty = 0, raf = 0;
+      const step = () => {
+        raf = 0;
+        x += (tx - x) * 0.18; y += (ty - y) * 0.18;
+        el.style.translate = `${x.toFixed(2)}px ${y.toFixed(2)}px`;
+        if (Math.abs(tx - x) > 0.05 || Math.abs(ty - y) > 0.05) raf = requestAnimationFrame(step);
+      };
+      el.addEventListener('pointermove', (e) => {
+        const b = el.getBoundingClientRect();
+        tx = clamp((e.clientX - (b.left + b.width / 2)) * 0.22, -8, 8);
+        ty = clamp((e.clientY - (b.top + b.height / 2)) * 0.32, -6, 6);
+        if (!raf) raf = requestAnimationFrame(step);
+      });
+      el.addEventListener('pointerleave', () => { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(step); });
+    });
   }
 
   /* ---------- Handy-Aktionsleiste: fährt ein, sobald die Hero-Buttons aus dem Bild sind ---------- */
@@ -146,118 +187,280 @@
     });
   }
 
-  /* ---------- Hero: Intro + Klarheits-Linse ---------- */
-  function initHero() {
-    const ready = () => requestAnimationFrame(() => root.classList.add('is-ready'));
-    if (document.fonts && document.fonts.ready) Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 700))]).then(ready);
-    else ready();
+  /* ---------- Hero: Panorama-Scanner ----------
+     Fenster (.pano__win) und Röntgenebene (.pano__xr) bewegen sich gegenläufig per transform –
+     die Röntgenebene bleibt deckungsgleich mit der Zeichnung. Leerlauf = WAAPI auf dem Compositor,
+     Maus/Finger = kurzer rAF-Nachlauf, der von selbst stoppt. */
+  function bezier(x1, y1, x2, y2) {
+    const A = (a, b) => 1 - 3 * b + 3 * a, B = (a, b) => 3 * b - 6 * a, C = (a) => 3 * a;
+    const at = (t, a, b) => ((A(a, b) * t + B(a, b)) * t + C(a)) * t;
+    const slope = (t, a, b) => 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a);
+    const tFor = (x) => { let t = x; for (let i = 0; i < 8; i++) { const s = slope(t, x1, x2); if (Math.abs(s) < 1e-6) break; t -= (at(t, x1, x2) - x) / s; } return clamp(t, 0, 1); };
+    return (x) => at(tFor(x), y1, y2);
+  }
+  const easeIO = bezier(0.77, 0, 0.175, 1);
+  const LUT = Array.from({ length: 201 }, (_, i) => easeIO(i / 200));
+  const invEase = (y) => { let lo = 0, hi = 200; while (lo < hi) { const m = (lo + hi) >> 1; if (LUT[m] < y) lo = m + 1; else hi = m; } return lo / 200; };
 
-    const fig = $('[data-lens]');
-    if (!fig || !MOTION) return;
-    const clear = $('.lens__clear', fig);
-    const win = $('.lens__win', fig);
-    const ring = $('.lens__ring', fig);
-    if (!clear || !win || !ring) return;
-    let w = 0, h = 0, base = 100, r = 0, x = 0, y = 0, tx = 0, ty = 0;
-    let hover = false, visible = true, grow = false, raf = 0;
-    const t0 = performance.now();
-    const measure = () => {
-      const b = fig.getBoundingClientRect();
-      w = b.width; h = b.height;
-      base = Math.max(70, w * LINSE.radius);
-      ring.style.width = ring.style.height = `${(base * 2).toFixed(1)}px`;
-      fig.style.setProperty('--lens-d', `${(base * 2).toFixed(1)}px`);
-      fig.style.setProperty('--lens-w', `${w.toFixed(1)}px`);
-      fig.style.setProperty('--lens-h', `${h.toFixed(1)}px`);
+  function initPano() {
+    const pano = $('[data-pano]');
+    if (!pano) return;
+    const img = $('.pano__img', pano), win = $('[data-pano-win]', pano), xr = $('[data-pano-xr]', pano);
+    const hero = $('[data-hero]');
+    let W = 0, w = 0, x = 0, tx = 0, raf = 0, anims = null, dir = -1, idle = 0, visible = true, dragging = false;
+    const max = () => Math.max(0, W - w);
+    const apply = (v) => {
+      win.style.transform = `translate3d(${v.toFixed(1)}px,0,0)`;
+      xr.style.transform = `translate3d(${(-v).toFixed(1)}px,0,0)`;
     };
-    measure();
-    fig.classList.add('is-live');
-    x = tx = w * 0.42; y = ty = h * 0.55;
-    if (window.ResizeObserver) new ResizeObserver(measure).observe(fig);
-
-    fig.addEventListener('pointermove', (e) => {
-      if (e.pointerType !== 'mouse') return;
-      const b = fig.getBoundingClientRect();
-      tx = e.clientX - b.left; ty = e.clientY - b.top; hover = true; start();
-    });
-    fig.addEventListener('pointerleave', () => { hover = false; });
-    setTimeout(() => { grow = true; start(); }, 1350);
-    new IntersectionObserver(([en]) => { visible = en.isIntersecting; if (visible) start(); }).observe(fig);
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) start(); });
-
-    function frame(now) {
-      raf = 0;
-      if (!visible || document.hidden) return;
-      if (!hover) {
-        const t = (now - t0) / 1000;
-        tx = w * (0.44 + 0.17 * Math.sin(t * 0.33));
-        ty = h * (0.52 + 0.13 * Math.sin(t * 0.47 + 1.2));
-      }
-      x += (tx - x) * LINSE.lerp;
-      y += (ty - y) * LINSE.lerp;
-      const target = grow ? base * (hover ? 1.12 : 1) : 0;
-      r += (target - r) * 0.07;
-      // Fenster: Kreis mit Radius r um (x, y); Bild gegenläufig, damit es deckungsgleich mit der Basis bleibt
-      const s = Math.max(r / base, 0.02), k = 1 / s;
-      win.style.transform = `matrix(${s.toFixed(4)}, 0, 0, ${s.toFixed(4)}, ${(x - s * base).toFixed(2)}, ${(y - s * base).toFixed(2)})`;
-      clear.style.transform = `matrix(${k.toFixed(4)}, 0, 0, ${k.toFixed(4)}, ${(base - x * k).toFixed(2)}, ${(base - y * k).toFixed(2)})`;
-      win.style.opacity = r > 2 ? '1' : '0';
-      ring.style.transform = `translate(${(x - base).toFixed(1)}px, ${(y - base).toFixed(1)}px) scale(${(r / base).toFixed(4)})`;
-      ring.style.opacity = r > 10 ? '1' : '0';
-      raf = requestAnimationFrame(frame);
+    const measure = () => {
+      const keep = W ? x / Math.max(1, max()) : 0.56;
+      W = img.clientWidth; w = win.offsetWidth;
+      xr.style.width = `${W}px`;
+      x = tx = keep * max();
+      if (anims) startAuto(); else apply(x);
+    };
+    const currentX = () => {
+      const m = new DOMMatrixReadOnly(getComputedStyle(win).transform);
+      return m.m41;
+    };
+    function stopAuto() {
+      if (!anims) return;
+      x = tx = currentX();
+      anims.forEach((a) => a.cancel());
+      anims = null;
+      apply(x);
     }
-    function start() { if (!raf) raf = requestAnimationFrame(frame); }
-    start();
+    function startAuto() {
+      if (anims) { x = currentX(); anims.forEach((a) => a.cancel()); anims = null; }
+      const m = max();
+      if (!MOTION || m < 20 || !win.animate) return;
+      const D = clamp(m / SCANNER.tempo * 1000, 5200, 11000);
+      const opts = { duration: D, iterations: Infinity, direction: 'alternate', easing: 'cubic-bezier(0.77, 0, 0.175, 1)' };
+      anims = [
+        win.animate([{ transform: 'translate3d(0px,0,0)' }, { transform: `translate3d(${m}px,0,0)` }], opts),
+        xr.animate([{ transform: 'translate3d(0px,0,0)' }, { transform: `translate3d(${-m}px,0,0)` }], opts)
+      ];
+      const p = clamp(x / m, 0, 1);
+      // Richtung beibehalten: vorwärts (0 → m) in geraden, rückwärts in ungeraden Durchläufen
+      const t = dir > 0 ? invEase(p) * D : D + (1 - invEase(p)) * D;
+      anims.forEach((a) => { a.currentTime = t; if (!visible || document.hidden) a.pause(); });
+    }
+    const step = () => {
+      raf = 0;
+      const k = dragging ? 0.35 : SCANNER.nachlauf;
+      const d = tx - x;
+      if (Math.abs(d) > 0.4) dir = d > 0 ? 1 : -1;
+      x += d * k;
+      apply(x);
+      if (Math.abs(tx - x) > 0.3) raf = requestAnimationFrame(step);
+    };
+    const follow = (clientX) => {
+      const b = img.getBoundingClientRect();
+      tx = clamp(clientX - b.left - w / 2, 0, max());
+      clearTimeout(idle);
+      stopAuto();
+      if (!raf) raf = requestAnimationFrame(step);
+    };
+    const resumeLater = (ms) => { clearTimeout(idle); idle = setTimeout(() => { if (!dragging) startAuto(); }, ms); };
+
+    measure();
+    if (window.ResizeObserver) new ResizeObserver(() => measure()).observe(img);
+    if (!MOTION) return;
+
+    // Maus: Scanner folgt im ganzen Hero
+    hero.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') follow(e.clientX); });
+    hero.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') resumeLater(SCANNER.pauseNachMaus); });
+    // Finger/Stift: horizontal wischen auf dem Panorama (vertikal scrollt weiter)
+    img.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse') return;
+      dragging = true; follow(e.clientX);
+    });
+    img.addEventListener('pointermove', (e) => { if (dragging) follow(e.clientX); });
+    const end = () => { if (!dragging) return; dragging = false; resumeLater(1800); };
+    img.addEventListener('pointerup', end);
+    img.addEventListener('pointercancel', end);
+
+    new IntersectionObserver(([en]) => {
+      visible = en.isIntersecting;
+      if (anims) anims.forEach((a) => (visible && !document.hidden ? a.play() : a.pause()));
+    }).observe(pano);
+    document.addEventListener('visibilitychange', () => { if (anims) anims.forEach((a) => (document.hidden || !visible ? a.pause() : a.play())); });
+
+    // Nach dem Scan-Intro: Scanner steht dort, wo die Scanlinie den Hero verlassen hat, und fährt los
+    const kick = () => { if (raf || anims || dragging) return; x = tx = max(); dir = -1; apply(x); startAuto(); };
+    const wait = root.classList.contains('scan-skip') ? 0 : Math.max(0, 1250 - performance.now());
+    setTimeout(kick, wait);
   }
 
-  /* ---------- Prinzip: Worte werden beim Scrollen klar ---------- */
-  function initStatement() {
+  /* ---------- Behandlungsweg: eine Linie, die sich beim Scrollen zeichnet und verzweigt ---------- */
+  function initRoute() {
+    const list = $('[data-route]');
+    if (!list) return;
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('class', 'route__svg');
+    svg.setAttribute('aria-hidden', 'true');
+    list.prepend(svg);
+    const stations = $$('.station', list);
+    let paths = [], nodes = [];
+    const mkPath = (d, cls) => { const p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); p.setAttribute('class', cls); svg.append(p); return p; };
+    const add = (d, y0, y1) => {
+      mkPath(d, 'route__guide');
+      const p = mkPath(d, 'route__path');
+      p.setAttribute('pathLength', '1');
+      paths.push({ el: p, y0, y1: Math.max(y1, y0 + 1), t: -1 });
+    };
+    const f = (n) => n.toFixed(1);
+    function build() {
+      const lb = list.getBoundingClientRect();
+      svg.setAttribute('width', f(lb.width)); svg.setAttribute('height', f(lb.height));
+      svg.setAttribute('viewBox', `0 0 ${f(lb.width)} ${f(lb.height)}`);
+      svg.textContent = '';
+      paths = []; nodes = [];
+      const c = (el) => { const b = el.getBoundingClientRect(); return { x: b.left + b.width / 2 - lb.left, y: b.top + b.height / 2 - lb.top, top: b.top - lb.top, bottom: b.bottom - lb.top }; };
+      const dots = stations.map((s) => c($('[data-dot]', s)));
+      const x0 = dots[0].x;
+      stations.forEach((s, i) => nodes.push({ el: s, y: dots[i].y }));
+      for (let i = 0; i < dots.length - 1; i++) {
+        const a = dots[i], b = dots[i + 1];
+        add(`M${f(x0)} ${f(a.y + 8)}V${f(b.y - 8)}`, a.y, b.y);
+        if (!stations[i].classList.contains('station--fork')) continue;
+        const forks = $$('.fork', stations[i]).filter((li) => !li.classList.contains('fork--main'));
+        const fd = forks.map((li) => ({ li, d: c($('[data-fdot]', li)), box: c(li) }));
+        if (!fd.length) continue;
+        const row = Math.abs(fd[0].d.y - fd[fd.length - 1].d.y) < 4;
+        if (row) {
+          // Desktop: Fächer aus der Hauptlinie, unter den Optionen wieder zusammen
+          const yS = fd[0].d.y - Math.min(120, (fd[0].d.y - a.y) * 0.55);
+          const yB = Math.max(...fd.map((o) => o.box.bottom)) + 18;
+          const yE = Math.min(b.y - 20, yB + 90);
+          fd.forEach((o) => {
+            const k1 = (o.d.y - yS) * 0.62, k2 = (yE - yB) * 0.62;
+            add(`M${f(x0)} ${f(yS)}C${f(x0)} ${f(yS + k1)} ${f(o.d.x)} ${f(o.d.y - k1)} ${f(o.d.x)} ${f(o.d.y)}V${f(yB)}C${f(o.d.x)} ${f(yB + k2)} ${f(x0)} ${f(yE - k2)} ${f(x0)} ${f(yE)}`, yS, yE);
+            nodes.push({ el: o.li, y: o.d.y });
+          });
+        } else {
+          // Handy: kleine Abzweige je Option, die neben der Hauptlinie mitlaufen
+          fd.forEach((o) => {
+            const yS = o.d.y - 34, yB = o.box.bottom - 6, yE = yB + 26;
+            add(`M${f(x0)} ${f(yS)}C${f(x0)} ${f(yS + 22)} ${f(o.d.x)} ${f(o.d.y - 20)} ${f(o.d.x)} ${f(o.d.y)}V${f(yB)}C${f(o.d.x)} ${f(yB + 16)} ${f(x0)} ${f(yE - 14)} ${f(x0)} ${f(yE)}`, yS, yE);
+            nodes.push({ el: o.li, y: o.d.y });
+          });
+        }
+        const main = $('.fork--main', stations[i]);
+        if (main) nodes.push({ el: main, y: c($('[data-fdot]', main)).y });
+      }
+      paths.sort((p, q) => p.y0 - q.y0);
+      update(true);
+    }
+    function update(force) {
+      if (!MOTION) { nodes.forEach((n) => n.el.classList.add('is-reached')); return; }
+      const p = window.innerHeight * WEG_LINIE - list.getBoundingClientRect().top;
+      for (const o of paths) {
+        const t = clamp((p - o.y0) / (o.y1 - o.y0), 0, 1);
+        if (force || Math.abs(t - o.t) > 0.0015) { o.t = t; o.el.style.strokeDashoffset = (1 - t).toFixed(4); }
+      }
+      for (const n of nodes) n.el.classList.toggle('is-reached', p >= n.y - 2);
+    }
+    let ticking = false, vis = false;
+    const onScroll = () => { if (!ticking && vis) { ticking = true; requestAnimationFrame(() => { ticking = false; update(); }); } };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    new IntersectionObserver(([en]) => { vis = en.isIntersecting; if (vis) update(); }, { rootMargin: '20% 0px 20% 0px' }).observe(list);
+    let rt = 0;
+    const rebuild = () => { clearTimeout(rt); rt = setTimeout(build, 120); };
+    if (window.ResizeObserver) new ResizeObserver(rebuild).observe(list);
+    window.addEventListener('load', rebuild);
+    build();
+  }
+
+  /* Überschrift des Behandlungswegs: Worte „entwickeln“ sich beim Scrollen von links nach rechts */
+  function initWords() {
     const el = $('[data-words]');
-    if (!el || !MOTION || !hasGSAP) return;
+    if (!el || !MOTION) return;
     const text = el.textContent.trim().replace(/\s+/g, ' ');
-    const words = text.split(' ');
     el.textContent = '';
-    const sr = document.createElement('span');
-    sr.className = 'sr-only'; sr.textContent = text;
-    const vis = document.createElement('span');
-    vis.setAttribute('aria-hidden', 'true');
-    words.forEach((wd, i) => {
-      const s = document.createElement('span');
-      s.className = 'w'; s.textContent = wd;
-      vis.append(s);
-      if (i < words.length - 1) vis.append(' ');
+    const sr = document.createElement('span'); sr.className = 'sr-only'; sr.textContent = text;
+    const vis = document.createElement('span'); vis.setAttribute('aria-hidden', 'true');
+    const words = text.split(' ').map((wd, i, arr) => {
+      const s = document.createElement('span'); s.className = 'w'; s.textContent = wd;
+      vis.append(s); if (i < arr.length - 1) vis.append(' ');
+      return s;
     });
     el.append(sr, vis);
-    gsap.to($$('.w', el), {
-      opacity: 1, ease: 'none', stagger: 0.12,
-      scrollTrigger: { trigger: el, start: 'top 80%', end: 'bottom 48%', scrub: 0.4 }
-    });
+    let lit = -1, ticking = false;
+    const update = () => {
+      ticking = false;
+      const b = el.getBoundingClientRect(), vh = window.innerHeight;
+      const p = clamp((vh * 0.86 - b.top) / (vh * 0.5), 0, 1);
+      const n = Math.round(p * words.length);
+      if (n === lit) return;
+      lit = n;
+      words.forEach((w, i) => w.classList.toggle('on', i < n));
+    };
+    window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    update();
+    // Ohne Interaktion fertig: nach spätestens 2 s im Bild komplett lesbar
+    new IntersectionObserver(([en], io) => { if (en.isIntersecting) { setTimeout(() => { if (lit < words.length) { lit = words.length; words.forEach((w) => w.classList.add('on')); } }, 2000); io.disconnect(); } }, { threshold: 0.6 }).observe(el);
   }
 
-  /* ---------- Reveals ---------- */
+  /* ---------- Reveals: „entwickeln“ statt Einblenden ----------
+     Beobachtet wird immer ein unbeschnittener Rahmen (clip-path am Ziel selbst würde die Schnittmenge auf 0 setzen). */
   function initReveals() {
-    const els = $$('[data-reveal]');
-    if (!MOTION) { els.forEach((el) => el.classList.add('is-in')); }
+    const dev = $$('[data-develop]');
+    const titles = $$('.h-xl').filter((h) => !h.closest('.hero'));
+    const rev = $$('[data-reveal]');
+    if (!MOTION) { [...dev, ...rev].forEach((el) => el.classList.add('is-in')); }
     else {
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); } });
-      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
-      els.forEach((el) => {
-        const sibs = $$(':scope > [data-reveal]', el.parentElement);
-        el.style.setProperty('--d', `${Math.min(sibs.indexOf(el), 6) * 70}ms`);
-        io.observe(el);
+      titles.forEach((t) => t.classList.add('dev'));
+      const targets = new Map();
+      const watch = (frame, els) => { targets.set(frame, (targets.get(frame) || []).concat(els)); };
+      dev.forEach((f) => watch(f, [f]));
+      titles.forEach((t) => watch(t.parentElement, [t]));
+      new Set(rev.map((r) => r.parentElement)).forEach((list) => {
+        const kids = $$(':scope > [data-reveal]', list);
+        kids.forEach((k, i) => k.style.setProperty('--d', `${Math.min(i, 6) * 60}ms`));
+        watch(list, kids);
       });
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((en) => {
+          if (!en.isIntersecting) return;
+          (targets.get(en.target) || []).forEach((el) => el.classList.add('is-in'));
+          io.unobserve(en.target);
+        });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0 });
+      targets.forEach((_, frame) => io.observe(frame));
     }
     const map = $('[data-map]');
     if (map) {
-      const io2 = new IntersectionObserver(([en]) => { if (en.isIntersecting) { map.classList.add('is-in'); io2.disconnect(); } }, { threshold: 0.35 });
-      io2.observe(map);
       new IntersectionObserver(([en]) => map.classList.toggle('is-vis', en.isIntersecting)).observe(map);
-      const svg = $('[data-map-svg]');
+      const svg = $('svg', map);
       const mq = window.matchMedia('(max-width: 640px)');
       const setVB = () => svg.setAttribute('viewBox', mq.matches ? '138 84 390 362' : '0 0 640 480');
       setVB(); mq.addEventListener('change', setVB);
     }
+  }
+
+  /* ---------- Kapitel-Ton: Die ganze Seite wechselt im Kapitel „Ohne Angst“ auf Petrol ----------
+     Erst blendet der Hintergrund (Compositor), zur Hälfte kippt die Schriftfarbe – so bleibt alles lesbar. */
+  function initTone() {
+    const secs = $$('[data-tone]').filter((s) => s !== root);
+    if (!secs.length) return;
+    let t = 0, cur = '';
+    const set = (tone) => {
+      if (tone === cur) return;
+      cur = tone;
+      if (tone) root.dataset.toneBg = tone; else delete root.dataset.toneBg;
+      clearTimeout(t);
+      t = setTimeout(() => { if (tone) root.dataset.tone = tone; else delete root.dataset.tone; }, 260);
+    };
+    const state = new Map();
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => state.set(en.target, en.isIntersecting));
+      const on = secs.find((s) => state.get(s));
+      set(on ? on.dataset.tone : '');
+    }, { rootMargin: '-50% 0px -50% 0px' });
+    secs.forEach((s) => io.observe(s));
   }
 
   /* ---------- Zahnschema: auf schmalen Screens enger zuschneiden ---------- */
@@ -269,28 +472,28 @@
     set(); mq.addEventListener('change', set);
   }
 
-  /* ---------- Behandlungen: Bildvorschau folgt dem Mauszeiger ---------- */
+  /* ---------- Behandlungen: Bildvorschau folgt dem Mauszeiger und „entwickelt“ sich ---------- */
   function initServices() {
     const list = $('[data-svc-list]');
     const prev = $('[data-svc-preview]');
     if (!list || !prev || !MOTION || !finePointer.matches) return;
     const imgs = new Map($$('img', prev).map((i) => [i.dataset.key, i]));
+    const nEl = $('[data-svc-n]', prev);
     const W = 300, H = 200;
     let x = 0, y = 0, tx = 0, ty = 0, on = false, raf = 0, cur = null;
     const step = () => {
       raf = 0;
       x += (tx - x) * 0.16; y += (ty - y) * 0.16;
-      const rot = Math.max(-6, Math.min(6, (tx - x) * 0.04));
       const cx = Math.min(x, window.innerWidth - W - 16);
-      const cy = Math.max(12, Math.min(y, window.innerHeight - H - 12));
-      prev.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0) rotate(${rot.toFixed(2)}deg)`;
+      const cy = clamp(y, 12, window.innerHeight - H - 12);
+      prev.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;
       if (Math.abs(tx - x) > 0.3 || Math.abs(ty - y) > 0.3) raf = requestAnimationFrame(step);
     };
     const loop = () => { if (!raf) raf = requestAnimationFrame(step); };
     const hide = () => { prev.classList.remove('is-on'); on = false; };
     list.addEventListener('pointermove', (e) => {
       if (e.pointerType !== 'mouse') return;
-      tx = e.clientX + 28; ty = e.clientY - H / 2;
+      tx = e.clientX + 32; ty = e.clientY - H / 2;
       if (!on) { x = tx; y = ty; }
       loop();
     });
@@ -299,8 +502,9 @@
         if (e.pointerType !== 'mouse' || window.innerWidth < 900) return;
         const img = imgs.get(li.dataset.img);
         if (!img) { hide(); return; }
-        if (cur && cur !== img) cur.classList.remove('is-on');
-        cur = img; img.classList.add('is-on');
+        if (cur && cur !== img) { cur.classList.remove('is-on'); cur.style.zIndex = ''; }
+        cur = img; img.style.zIndex = '2'; img.classList.add('is-on');
+        nEl.textContent = $('.svc__n', li).textContent;
         prev.classList.add('is-on'); on = true;
       });
     });
@@ -421,6 +625,27 @@
     return [['Wurzeln', roots], ['Kanäle', canals], ['Aufgabe', BY_TYPE[t].job]];
   }
 
+
+  /* Zählwerk für die Zahnnummer: Ziffern rollen statt zu springen */
+  function makeOdometer(el) {
+    const sr = document.createElement('span'); sr.className = 'sr-only';
+    const odo = document.createElement('span'); odo.className = 'odo'; odo.setAttribute('aria-hidden', 'true');
+    const cols = [0, 1].map((k) => {
+      const c = document.createElement('span'); c.className = 'odo__col';
+      [k === 0 ? '' : null, '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].filter((v) => v !== null).forEach((d) => { const s = document.createElement('span'); s.textContent = d || ' '; c.append(s); });
+      odo.append(c); return c;
+    });
+    el.textContent = '';
+    el.append(sr, odo);
+    return (val) => {
+      const s = String(val).padStart(2, ' ');
+      sr.textContent = String(val);
+      const a = s[0] === ' ' ? 0 : +s[0] + 1, b = +s[1];
+      cols[0].style.transform = `translateY(${-a * 0.8}em)`;
+      cols[1].style.transform = `translateY(${-b * 0.8}em)`;
+    };
+  }
+
   let chart = null;
   function initChart() {
     const svg = $('.chart__svg');
@@ -429,6 +654,12 @@
     const fig = $('[data-chart]');
     const teeth = $$('.tooth', svg);
     const byFdi = new Map(teeth.map((t) => [+t.dataset.fdi, t]));
+    const center = new Map(teeth.map((t) => {
+      const m = /translate\(([-\d.]+)[ ,]+([-\d.]+)\)/.exec($('.tooth__body', t).getAttribute('transform') || '');
+      return [t, m ? [+m[1], +m[2]] : [280, 280]];
+    }));
+    const reticle = $('[data-reticle]', svg);
+    const reticleIn = reticle && $('.chart__reticle-in', reticle);
     const areaBtns = $$('.area-btn');
     const q = (s) => $(s, panel);
     const el = {
@@ -437,12 +668,18 @@
       fdi: q('[data-tp-fdi]'), title: q('.tp__title'), facts: q('.tp__facts'), live: q('[data-tp-live]'),
       ctaLabel: $('[data-tooth-cta-label]'), cta: $('[data-tooth-cta]')
     };
+    const setNum = makeOdometer(el.num);
     const FDI_TEXT = el.fdi.textContent;
     const panes = {};
     $$('.tp__pane', panel).forEach((p) => { panes[p.dataset.pane] = p; });
     const tabRel = {};
     $$('.tp__tab', panel).forEach((t) => { tabRel[t.dataset.treat] = $('.rel', t); });
-    const tabs = makeTabs($('.tp__tabs', panel));
+    // Laufende Markierung unter dem aktiven Tab
+    const tabList = $('.tp__tabs', panel);
+    const ink = $('[data-tp-ink]', panel);
+    const placeInk = (tab) => { if (!ink || !tab) return; const y = tab.offsetTop + tab.offsetHeight - tabList.clientHeight; ink.style.transform = `translate(${tab.offsetLeft}px, ${y}px) scaleX(${(tab.offsetWidth - 10) / 100})`; };
+    const tabs = makeTabs(tabList, (i, tab) => placeInk(tab));
+    window.addEventListener('resize', () => placeInk(tabs.tabs[tabs.index]));
 
     let sel = { kind: 'tooth', fdi: 36 };
     let focusFdi = 36;
@@ -461,12 +698,26 @@
       tabRel[key].dataset.rel = rel;
     }
 
+    function moveReticle(tooth, animate) {
+      if (!reticle) return;
+      if (!tooth) { reticle.classList.remove('is-on'); return; }
+      const [cx, cy] = center.get(tooth);
+      if (!animate) { reticle.style.transition = 'none'; }
+      reticle.style.transform = `translate(${cx}px, ${cy}px)`;
+      reticle.classList.add('is-on');
+      if (!animate) { reticle.getBoundingClientRect(); reticle.style.transition = ''; }
+      else if (MOTION && reticleIn && reticleIn.animate) {
+        // „Einrasten“: Ecken kommen aus 45° und etwas größer an
+        reticleIn.animate([{ transform: 'rotate(45deg) scale(1.3)', opacity: 0.2 }, { transform: 'none', opacity: 1 }], { duration: 300, delay: 120, easing: EASE, fill: 'backwards' });
+      }
+    }
+
     function render(animate) {
       let typeKey, facts;
       if (sel.kind === 'tooth') {
         const fdi = sel.fdi, qd = Math.floor(fdi / 10), p = fdi % 10;
         typeKey = POS_TYPE[p];
-        el.num.textContent = String(fdi);
+        setNum(fdi);
         el.unit.textContent = 'Zahn';
         el.where.textContent = QUAD[qd];
         el.name.textContent = POS_NAME[p];
@@ -477,7 +728,7 @@
         const a = AREAS[sel.area];
         typeKey = sel.area;
         const count = a.pos.length ? teeth.filter((t) => a.pos.includes(+t.dataset.pos)).length : 32;
-        el.num.textContent = sel.area === 'gums' ? '32' : String(count);
+        setNum(sel.area === 'gums' ? 32 : count);
         el.unit.textContent = 'Zähne';
         el.where.textContent = a.where;
         el.name.textContent = a.name;
@@ -488,8 +739,9 @@
       facts.forEach(([k, v], i) => { el.fk[i].textContent = k; el.fv[i].textContent = v; });
       Object.keys(TREAT).forEach((k) => fillPane(k, BY_TYPE[typeKey][k]));
       if (animate && MOTION) {
-        [el.title, el.facts, panes[$$('.tp__tab', panel)[tabs.index].dataset.treat]].forEach((n) => fade(n, { filter: 'blur(2px)' }, 260));
-        fade(el.num.parentElement, { transform: 'scale(.92)' }, 260);
+        [el.title, el.facts, panes[$$('.tp__tab', panel)[tabs.index].dataset.treat]].forEach((n, i) => {
+          n.animate([{ opacity: 0, transform: 'translateX(-6px)', filter: 'blur(2px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { duration: 260, delay: i * 40, easing: EASE, fill: 'backwards' });
+        });
       }
     }
 
@@ -500,10 +752,11 @@
 
     function selectTooth(fdi, { focus = false, animate = false, announce = false } = {}) {
       sel = { kind: 'tooth', fdi };
-      teeth.forEach((t) => { t.setAttribute('aria-checked', String(+t.dataset.fdi === fdi)); t.classList.remove('in-area'); });
+      teeth.forEach((t) => { t.style.removeProperty('--td'); t.setAttribute('aria-checked', String(+t.dataset.fdi === fdi)); t.classList.remove('in-area'); });
       setRoving(fdi);
       areaBtns.forEach((b) => b.setAttribute('aria-pressed', 'false'));
       fig.removeAttribute('data-area');
+      moveReticle(byFdi.get(fdi), animate && !focus);
       render(animate);
       if (focus) byFdi.get(fdi).focus();
       if (announce) el.live.textContent = `Zahn ${fdi} gewählt: ${POS_NAME[fdi % 10]}, ${QUAD_SHORT[Math.floor(fdi / 10)]}.`;
@@ -512,12 +765,17 @@
     function selectArea(key) {
       const a = AREAS[key];
       sel = { kind: 'area', area: key };
+      // Zähne des Bereichs leuchten der Reihe nach entlang des Bogens auf
+      let k = 0;
       teeth.forEach((t) => {
+        const inA = a.pos.includes(+t.dataset.pos);
         t.setAttribute('aria-checked', 'false');
-        t.classList.toggle('in-area', a.pos.includes(+t.dataset.pos));
+        t.style.setProperty('--td', MOTION && inA ? `${(k++) * 22}ms` : '0ms');
+        t.classList.toggle('in-area', inA);
       });
       areaBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.area === key)));
       fig.dataset.area = key;
+      moveReticle(null);
       render(true);
       el.live.textContent = key === 'gums' ? 'Bereich Zahnfleisch gewählt.' : `Bereich ${a.name} gewählt, ${a.pos.length * 4} Zähne hervorgehoben.`;
     }
@@ -536,7 +794,7 @@
         case 'ArrowLeft': n = (i - 1 + teeth.length) % teeth.length; break;
         case 'ArrowDown':
         case 'ArrowUp': {
-          const f = +t.dataset.fdi, qd = Math.floor(f / 10), p = f % 10;
+          const fdi = +t.dataset.fdi, qd = Math.floor(fdi / 10), p = fdi % 10;
           const nq = { 1: 4, 4: 1, 2: 3, 3: 2 }[qd];
           n = teeth.indexOf(byFdi.get(nq * 10 + p));
           break;
@@ -573,8 +831,9 @@
     });
 
     selectTooth(36);
+    requestAnimationFrame(() => placeInk(tabs.tabs[tabs.index]));
 
-    // Einblenden der Zähne beim ersten Sichtkontakt
+    // Erster Sichtkontakt: Zähne erscheinen wie auf einem Monitor, Quadrant für Quadrant von der Mitte nach außen
     if (MOTION && 'IntersectionObserver' in window) {
       teeth.forEach((t) => { t.style.opacity = '0'; });
       const io = new IntersectionObserver(([en]) => {
@@ -582,8 +841,7 @@
         io.disconnect();
         teeth.forEach((t) => {
           const p = +t.dataset.pos, lower = +t.dataset.q > 2;
-          const d = p * 55 + (lower ? 30 : 0);
-          t.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 420, delay: d, easing: 'ease', fill: 'backwards' });
+          t.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 360, delay: p * 50 + (lower ? 25 : 0), easing: 'ease', fill: 'backwards' });
           t.style.opacity = '';
         });
       }, { threshold: 0.25 });
@@ -592,15 +850,22 @@
     chart = { selectTooth };
   }
 
-  /* ---------- Prophylaxe-Schritte ---------- */
+  /* ---------- Prophylaxe-Schritte (Sticky-Erzählung) + Zeitleiste ---------- */
   function initProphy() {
     const pv = $('[data-pv]');
     if (!pv) return;
     const steps = $$('.pstep');
     const segs = $$('.pv__seg', pv);
-    const bars = $$('.pv__time span');
+    const bars = $$('.ruler__scale span');
+    const needle = $('[data-ruler-needle]');
+    const ruler = $('.ruler');
     const nEl = $('[data-pv-n]'), minEl = $('[data-pv-min]');
     let cur = -1;
+    const placeNeedle = () => {
+      if (!needle || cur < 0) return;
+      const m = +steps[cur].dataset.start;
+      needle.style.transform = `translateX(${(m / 55 * ruler.clientWidth).toFixed(1)}px)`;
+    };
     const set = (i) => {
       if (i === cur) return;
       cur = i;
@@ -610,13 +875,14 @@
       bars.forEach((b, j) => b.classList.toggle('is-on', j <= i));
       nEl.textContent = String(i + 1);
       minEl.textContent = `Minute ${steps[i].dataset.min}`;
+      placeNeedle();
     };
     set(0);
+    window.addEventListener('resize', placeNeedle);
     const io = new IntersectionObserver((entries) => {
       entries.forEach((en) => { if (en.isIntersecting) set(steps.indexOf(en.target)); });
     }, { rootMargin: '-48% 0px -48% 0px' });
     steps.forEach((s) => io.observe(s));
-    // Werkzeug-Animationen (SVG) nur laufen lassen, solange die Grafik im Bild ist
     new IntersectionObserver(([en]) => pv.classList.toggle('is-vis', en.isIntersecting)).observe(pv);
 
     if (MOTION && hasGSAP) {
@@ -634,13 +900,14 @@
     makeTabs(seg, (i) => { seg.dataset.active = String(i); });
   }
 
-  /* ---------- Atemübung 4-4-6 ---------- */
+  /* ---------- Atemübung 4-4-6: Kreis atmet, die ganze Seite atmet die Farbe mit ---------- */
   function initBreath() {
     const box = $('[data-breath]');
     if (!box) return;
     const NS = 'http://www.w3.org/2000/svg';
     const circle = $('[data-breath-circle]', box);
     const dotsSvg = $('[data-breath-dots]', box);
+    const atmo = $('[data-atmo-breath]');
     const phaseEl = $('[data-breath-phase]', box), countEl = $('[data-breath-count]', box);
     const btn = $('[data-breath-toggle]', box), label = $('[data-breath-label]', box), icon = $('[data-breath-icon]', box);
     const roundEl = $('[data-breath-round]', box), live = $('[data-breath-live]', box);
@@ -653,18 +920,21 @@
       const c = document.createElementNS(NS, 'circle');
       c.setAttribute('cx', (150 + 140 * Math.cos(a)).toFixed(2));
       c.setAttribute('cy', (150 + 140 * Math.sin(a)).toFixed(2));
-      c.setAttribute('r', '5');
+      c.setAttribute('r', '3.6');
       c.setAttribute('class', i < ATEM.ein ? 'd-in' : i < ATEM.ein + ATEM.halten ? 'd-hold' : 'd-out');
       dotsSvg.append(c); dots.push(c);
     }
     let running = false, elapsed = 0, last = 0, raf = 0, phase = -1, round = -1, lit = -1, shown = -1;
     const ease = (x) => 0.5 - 0.5 * Math.cos(Math.PI * x);
     const setScale = (s) => {
+      const q = (s - S_MIN) / (S_MAX - S_MIN);
       if (MOTION) circle.style.transform = `scale(${s.toFixed(4)})`;
-      else circle.style.opacity = (0.4 + 0.6 * ((s - S_MIN) / (S_MAX - S_MIN))).toFixed(3);
+      else circle.style.opacity = (0.4 + 0.6 * q).toFixed(3);
+      if (atmo && running) atmo.style.opacity = (q * ATEM_FARBE).toFixed(3);
     };
     const reset = (msg) => {
       setScale(S_MIN);
+      if (atmo) { atmo.style.transition = 'opacity 900ms cubic-bezier(0.77, 0, 0.175, 1)'; atmo.style.opacity = '0'; }
       dots.forEach((d) => d.classList.remove('is-lit'));
       phaseEl.textContent = msg || 'Bereit?';
       countEl.textContent = msg ? '✓' : '4·4·6';
@@ -677,6 +947,7 @@
     };
     function start() {
       running = true; elapsed = 0; last = performance.now(); phase = -1; round = -1; lit = -1; shown = -1;
+      if (atmo) atmo.style.transition = 'none';
       setBtn(true);
       raf = requestAnimationFrame(frame);
     }
@@ -716,6 +987,8 @@
     }
     btn.addEventListener('click', () => (running ? stop(false) : start()));
     document.addEventListener('visibilitychange', () => { if (!document.hidden && running) { last = performance.now(); if (!raf) raf = requestAnimationFrame(frame); } });
+    // Wer das Kapitel verlässt, beendet die Übung – die Seite soll nicht weiter „atmen“
+    new IntersectionObserver(([en]) => { if (!en.isIntersecting && running) stop(false); }, { threshold: 0 }).observe(box);
     reset('');
   }
 
@@ -790,32 +1063,36 @@
       vp.scrollLeft = 0;
       const vis = visible();
       count.textContent = lang === 'all' ? `${vis.length} Personen` : `${vis.length} Personen sprechen ${lang === 'en' ? 'Englisch' : 'Türkisch'}`;
-      if (MOTION) vis.forEach((c, i) => c.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: Math.min(i, 6) * 50, easing: EASE, fill: 'backwards' }));
+      if (MOTION) vis.forEach((c, i) => c.animate([{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], { duration: 520, delay: Math.min(i, 6) * 45, easing: EASE_IO, fill: 'backwards' }));
       measure();
     }));
   }
 
-  /* ---------- Praxis-Rundgang: horizontale Strecke (Desktop) ---------- */
+  /* ---------- Praxis-Rundgang: horizontale Strecke (Desktop, CSS sticky statt Pin) ---------- */
   function initTour() {
     const sec = $('[data-tour]');
     if (!sec || !hasGSAP || !MOTION) return;
     const track = $('[data-tour-track]', sec);
+    const nEl = $('[data-tour-n]', sec);
+    const n = $$('.tcard', track).length;
     const mm = gsap.matchMedia();
     mm.add('(min-width: 900px)', () => {
-      // Statt GSAP-Pin (position: fixed + Pin-Spacer → Layout-Shifts) hält CSS sticky die Bühne;
-      // die Sektion bekommt so viel zusätzliche Höhe, wie die Strecke breit ist.
       sec.classList.add('is-h');
       const dist = () => Math.max(0, track.scrollWidth - window.innerWidth);
       const setDist = () => sec.style.setProperty('--tour-dist', `${dist()}px`);
       setDist();
       ScrollTrigger.addEventListener('refreshInit', setDist);
+      let shown = 1;
       const tween = gsap.to(track, {
         x: () => -dist(), ease: 'none',
-        scrollTrigger: { trigger: sec, start: 'top top', end: 'bottom bottom', scrub: 0.8, invalidateOnRefresh: true }
+        scrollTrigger: {
+          trigger: sec, start: 'top top', end: 'bottom bottom', scrub: 0.8, invalidateOnRefresh: true,
+          onUpdate: (st) => { const k = Math.min(n, 1 + Math.floor(st.progress * n)); if (k !== shown && nEl) { shown = k; nEl.textContent = String(k).padStart(2, '0'); } }
+        }
       });
       $$('.tcard__frame img', track).forEach((img) => {
-        gsap.fromTo(img, { xPercent: -3 }, {
-          xPercent: 3, ease: 'none',
+        gsap.fromTo(img, { xPercent: -2.5 }, {
+          xPercent: 2.5, ease: 'none',
           scrollTrigger: { trigger: img.closest('.tcard'), containerAnimation: tween, start: 'left right', end: 'right left', scrub: true }
         });
       });
@@ -827,10 +1104,16 @@
     });
   }
 
+  /* ---------- Bewertungs-Stempel dreht sich mit dem Scrollen ---------- */
+  function initStamp() {
+    const st = $('[data-stamp]');
+    if (!st || !MOTION || !hasGSAP) return;
+    gsap.fromTo(st, { rotation: -40 }, { rotation: 120, ease: 'none', scrollTrigger: { trigger: '.voices', start: 'top bottom', end: 'bottom top', scrub: 0.6 } });
+  }
+
   /* ---------- Öffnungsstatus (Europe/Berlin) ---------- */
   function initOpenStatus() {
     const DAYS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-    const DAYS_S = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
     const fmt = (m) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
     let dtf = null; // einmal anlegen – Intl-Formatter sind teuer
     try { dtf = new Intl.DateTimeFormat('en-GB', { timeZone: ZEITZONE, weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }); } catch (err) { dtf = null; }
@@ -847,9 +1130,9 @@
       if (day < 0) return;
       const h = OEFFNUNGSZEITEN[day];
       const open = !!h && mins >= h[0] && mins < h[1];
-      let long, k, v;
+      let long, short;
       if (open) {
-        long = `Jetzt geöffnet · bis ${fmt(h[1])} Uhr`; k = 'Jetzt geöffnet'; v = `bis ${fmt(h[1])} Uhr`;
+        long = `Jetzt geöffnet · bis ${fmt(h[1])} Uhr`; short = `Geöffnet bis ${fmt(h[1])}`;
       } else {
         let nx = null;
         for (let i = 0; i < 8; i++) {
@@ -858,13 +1141,11 @@
           nx = { d, i, hh }; break;
         }
         const when = nx.i === 0 ? 'heute' : nx.i === 1 ? 'morgen' : DAYS[nx.d];
-        const whenS = nx.i === 0 ? 'heute' : nx.i === 1 ? 'morgen' : DAYS_S[nx.d];
-        long = `Geschlossen · öffnet ${when} ${fmt(nx.hh[0])} Uhr`; k = 'Gerade geschlossen'; v = `öffnet ${whenS} ${fmt(nx.hh[0])} Uhr`;
+        long = `Geschlossen · öffnet ${when} ${fmt(nx.hh[0])} Uhr`; short = `Öffnet ${nx.i === 0 ? 'heute' : nx.i === 1 ? 'morgen' : DAYS[nx.d].slice(0, 2)} ${fmt(nx.hh[0])}`;
       }
       $$('[data-open-dot]').forEach((d) => { d.dataset.state = open ? 'open' : 'closed'; });
       $$('[data-open-text]').forEach((t) => { t.textContent = long; });
-      const card = $('.hcard--status');
-      if (card) { $('.hcard__k', card).textContent = k; $('[data-open-short]', card).textContent = v; }
+      $$('[data-open-short]').forEach((t) => { t.textContent = short; });
       $$('.hours__t tr').forEach((tr) => tr.classList.toggle('is-today', +tr.dataset.day === day));
     };
     run();
@@ -921,7 +1202,7 @@
         li.classList.toggle('is-done', j < i);
         if (j === i) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
       });
-      line.style.transform = `scaleX(${i / (steps.length - 1)})`;
+      line.style.transform = `translateX(${i * 100}%)`;
       cur = i;
       fade(steps[i], {}, 300);
     }
@@ -1073,15 +1354,15 @@
   initMenu();
   initBooking();
   initAnchors();
-  initHero();
-  initReveals();
+  initPano();
   initMobileBar();
+  initTone();
 
   // Danach in kleinen Häppchen (je eigener Task), damit der Main-Thread nie lange blockiert.
   const pause = (window.scheduler && typeof window.scheduler.yield === 'function')
     ? () => window.scheduler.yield()
     : () => new Promise((r) => setTimeout(r, 0));
-  const later = [initOpenStatus, initStatement, initServices, initChart, initChartCrop, initProphy, initCost, initBreath, initTeam, initTour];
+  const later = [initRoll, initMagnetic, initOpenStatus, initReveals, initWords, initRoute, initServices, initChart, initChartCrop, initProphy, initCost, initBreath, initTeam, initTour, initStamp];
   (async () => {
     for (const fn of later) {
       await pause();

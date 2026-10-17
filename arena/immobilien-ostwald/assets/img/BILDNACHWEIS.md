@@ -23,3 +23,6 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 | `skyline` | 960x640 | Buildings Architecture | https://stocksnap.io/photo/buildings-architecture-O6ZKFPOHXN |
 | `villa` | 960x720 | Modern House | https://stocksnap.io/photo/modern-house-UIU7D31EDY |
 Hinweis: `skyline` wurde mit ImageMagick als Duoton (Nachtblau/Sandstein) eingefärbt.
+
+## Fensterausschnitte für die Fassade (Hero)
+`fenster-<name>.webp` (420×560) und `fenster-<name>-210.webp` (210×280) sind Hochformat-Zuschnitte der obigen Fotos (ImageMagick: mittig beschnitten, Sättigung leicht reduziert) für die neun Fenster der Fassadenansicht: `altbau`, `dach-wohnen`, `haus-treppe`, `loft-holz`, `altbau-essen`, `loft`, `neubau-schlafen`, `hell`. Gleiche Quelle und Lizenz (StockSnap.io, CC0).

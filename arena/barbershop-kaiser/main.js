@@ -1,6 +1,6 @@
 /* ==========================================================================
-   KAISER Barbershop · Modell „Messing“
-   Ohne Build-Schritt. Optional: GSAP + ScrollTrigger, Lenis.
+   KAISER Barbershop · Modell „Messing“ – Gestaltungsidee „Schaufenster-Vergoldung“
+   Ohne Build-Schritt. Optional: GSAP + ScrollTrigger, Lenis. Eigenes WebGL (Blattgold).
    ========================================================================== */
 (function () {
   'use strict';
@@ -34,6 +34,10 @@
   var BELEGT_QUOTE = { normal: 0.42, samstag: 0.6 }; // Demo: Anteil belegter Slots (deterministisch erzeugt)
   var TZ = 'Europe/Berlin';
 
+  /* Gestaltung: Barber-Pole-Farben und Blattgold-Parameter */
+  var POLE_BANDS = [['#7A1F1F', 0.34], ['#EFE8DC', 0.2], ['#C9A25E', 0.16], ['#EFE8DC', 0.2], ['#1C1715', 0.1]];
+  var GOLD = { leaf: 0.24, shade: 0.034, bevel: 0.02 }; // Blattgröße, Schattenversatz, Facette (jeweils in em)
+
   /* ------------------------------------------------------------------
      Helfer
      ------------------------------------------------------------------ */
@@ -42,8 +46,9 @@
   var qsa = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
   var lerp = function (a, b, t) { return a + (b - a) * t; };
+  var smooth = function (a, b, v) { var t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
   var easeInOut = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
-  var dprMax = function () { return Math.min(window.devicePixelRatio || 1, 2); };
+  var dprMax = function (m) { return Math.min(window.devicePixelRatio || 1, m || 2); };
   var pad2 = function (n) { return (n < 10 ? '0' : '') + n; };
 
   var motionOff = doc.classList.contains('motion-off');
@@ -56,16 +61,20 @@
   function safe(name, fn) {
     try { fn(); } catch (err) { if (window.console) console.warn('[Kaiser] ' + name + ':', err); }
   }
-  function visibilityGate(el, onChange) {
+  function visibilityGate(el, onChange, margin) {
     var inView = false;
     var update = function () { onChange(inView && !document.hidden); };
     if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function (entries) { inView = entries[0].isIntersecting; update(); }, { rootMargin: '80px 0px' }).observe(el);
+      new IntersectionObserver(function (entries) { inView = entries[entries.length - 1].isIntersecting; update(); }, { rootMargin: margin || '80px 0px' }).observe(el);
     } else { inView = true; }
     document.addEventListener('visibilitychange', update);
     update();
   }
   function headerOffset() { var h = qs('[data-header]'); return h ? h.offsetHeight : 0; }
+  function scrollVelocity() { return lenis ? (lenis.velocity || 0) : 0; }
+  function idle(fn, timeout) {
+    if ('requestIdleCallback' in window) requestIdleCallback(fn, { timeout: timeout || 800 }); else setTimeout(fn, 60);
+  }
 
   /* ------------------------------------------------------------------
      Smooth Scroll (Lenis) + ScrollTrigger
@@ -191,61 +200,307 @@
     window.matchMedia('(min-width: 1024px)').addEventListener('change', function (e) { if (e.matches && dialog.open) close(); });
   }
 
-  /* ------------------------------------------------------------------
-     Hero: Headline-Reveal (clip-path) + Parallax
-     ------------------------------------------------------------------ */
-  function initHero() {
-    var started = false;
-    var start = function () { if (started) return; started = true; requestAnimationFrame(function () { doc.classList.add('hero-in'); }); };
-    var fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-    fontsReady.then(start);
-    setTimeout(start, 900);
 
-    if (!hasGSAP || reduced()) return;
-    var mm = gsap.matchMedia();
-    mm.add('(min-width: 900px)', function () {
-      gsap.to('.hero-arch img', { yPercent: 8, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
-      gsap.to('.hero-rays .rays', { rotation: 30, svgOrigin: '300 300', ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+  /* ------------------------------------------------------------------
+     Mikro-Interaktionen: Zeichen-Rollen, magnetische Plakette
+     ------------------------------------------------------------------ */
+  function initRoll() {
+    if (!finePointer.matches || reduced()) return;
+    qsa('[data-roll]').forEach(function (el) {
+      var text = el.textContent.replace(/\s+/g, ' ').trim();
+      if (!text) return;
+      var roll = document.createElement('span'); roll.className = 'roll'; roll.setAttribute('aria-hidden', 'true');
+      Array.prototype.forEach.call(text, function (ch, i) {
+        var c = document.createElement('span'); c.className = 'roll-c'; c.style.setProperty('--i', i);
+        var a = document.createElement('span'); a.textContent = ch === ' ' ? ' ' : ch;
+        c.appendChild(a); c.appendChild(a.cloneNode(true)); roll.appendChild(c);
+      });
+      var sr = document.createElement('span'); sr.className = 'sr-only'; sr.textContent = text;
+      el.textContent = ''; el.appendChild(roll); el.appendChild(sr);
+    });
+  }
+  function initMagnet() {
+    if (!finePointer.matches || reduced()) return;
+    qsa('[data-magnet]').forEach(function (el) {
+      var x = 0, y = 0, tx = 0, ty = 0, raf = 0;
+      var loop = function () {
+        x += (tx - x) * 0.2; y += (ty - y) * 0.2;
+        el.style.translate = x.toFixed(2) + 'px ' + y.toFixed(2) + 'px';
+        if (Math.abs(tx - x) > 0.05 || Math.abs(ty - y) > 0.05) raf = requestAnimationFrame(loop); else raf = 0;
+      };
+      el.addEventListener('pointermove', function (e) {
+        if (e.pointerType !== 'mouse') return;
+        var r = el.getBoundingClientRect();
+        tx = (e.clientX - (r.left + r.width / 2)) * 0.24; ty = (e.clientY - (r.top + r.height / 2)) * 0.32;
+        if (!raf) raf = requestAnimationFrame(loop);
+      });
+      el.addEventListener('pointerleave', function () { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(loop); });
     });
   }
 
   /* ------------------------------------------------------------------
-     Hero: generative Barber-Pole (Canvas, Helix-Streifen)
-     Drehtempo = Grundtempo + Scroll-Geschwindigkeit (mit Feder geglättet)
+     Hero: Klingenwinkel, Türschild (Pendel), Siegel, Durchblick-Parallaxe
+     ------------------------------------------------------------------ */
+  var Hero = { pointer: null }; // gemeinsamer Zeiger für Blattgold und Durchblick
+  function initHero() {
+    var hero = qs('[data-hero]'), sign = qs('[data-sign]');
+    if (!hero || !sign) return;
+    // Klinge entlang der Schnittkante ausrichten (Kante läuft von (X, -25 %) nach (X - 26 %, 125 %))
+    var r = sign.getBoundingClientRect();
+    if (r.width) sign.style.setProperty('--blade-rot', (Math.atan2(1.5 * r.height, -0.26 * r.width) * 180 / Math.PI).toFixed(1) + 'deg');
+    if (reduced()) return;
+
+    // Türschild: gedämpftes Pendel, angestoßen von Scroll-Tempo und Zeiger
+    var door = qs('[data-door]');
+    if (door) {
+      var ang = 0, vel = 0, raf = 0, last = 0, lastY = window.scrollY, ready = false, near = false;
+      var STIFF = 52, DAMP = 1.6;
+      setTimeout(function () { ready = true; }, 1750); // erst nach dem Einschwingen per CSS
+      var tick = function (t) {
+        var dt = last ? Math.min(0.04, (t - last) / 1000) : 0.016; last = t;
+        vel += (-ang * STIFF - vel * DAMP) * dt; ang += vel * dt;
+        door.style.transform = 'rotate(' + ang.toFixed(2) + 'deg)';
+        if (Math.abs(ang) > 0.02 || Math.abs(vel) > 0.05) raf = requestAnimationFrame(tick); else { raf = 0; last = 0; door.style.transform = ''; }
+      };
+      var kick = function (dv) { if (!ready) return; vel = clamp(vel + dv, -90, 90); if (!raf) raf = requestAnimationFrame(tick); };
+      window.addEventListener('scroll', function () { var y = window.scrollY, d = y - lastY; lastY = y; if (y < window.innerHeight) kick(clamp(d, -40, 40) * 0.9); }, { passive: true });
+      if (finePointer.matches) hero.addEventListener('pointermove', function (e) {
+        var b = door.getBoundingClientRect(), inside = e.clientX > b.left - 30 && e.clientX < b.right + 30 && e.clientY > b.top && e.clientY < b.bottom + 20;
+        if (inside && !near) kick(clamp(e.movementX || 0, -30, 30) * 1.6);
+        near = inside;
+      });
+    }
+    // Siegel dreht sich mit dem Scroll, Durchblick folgt dem Zeiger (Tiefe hinter der Scheibe)
+    if (hasGSAP) gsap.to('.seal-ring', { rotation: 150, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.4 } });
+    var slitImg = qs('[data-hero-slit] img');
+    if (finePointer.matches) {
+      var px = 0, py = 0, tx = 0, ty = 0, sraf = 0;
+      var sl = function () {
+        px += (tx - px) * 0.08; py += (ty - py) * 0.08;
+        if (slitImg) slitImg.style.transform = 'translate3d(' + (px * -14).toFixed(2) + 'px,' + (py * -10).toFixed(2) + 'px,0) scale(1.07)';
+        if (Math.abs(tx - px) > 0.002 || Math.abs(ty - py) > 0.002) sraf = requestAnimationFrame(sl); else sraf = 0;
+      };
+      hero.addEventListener('pointermove', function (e) {
+        if (e.pointerType !== 'mouse') return;
+        tx = e.clientX / window.innerWidth * 2 - 1; ty = e.clientY / window.innerHeight * 2 - 1;
+        Hero.pointer = { x: e.clientX, y: e.clientY };
+        if (Hero.onPointer) Hero.onPointer();
+        if (!sraf) sraf = requestAnimationFrame(sl);
+      });
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     Blattgold (WebGL): Mattgold mit Blattkanten, Glanzgold-Kontur,
+     ochsenblutroter Blockschatten. Licht folgt Maus (Desktop) bzw. Scroll.
+     Rendert nur bei Bedarf – keine Dauerschleife.
+     ------------------------------------------------------------------ */
+  var GOLD_VS = 'attribute vec2 p;varying vec2 vUv;void main(){vUv=vec2(p.x*.5+.5,.5-p.y*.5);gl_Position=vec4(p,0.,1.);}';
+  var GOLD_FS = [
+    '#ifdef GL_FRAGMENT_PRECISION_HIGH', 'precision highp float;', '#else', 'precision mediump float;', '#endif',
+    'uniform sampler2D uMask;uniform sampler2D uBlur;uniform vec2 uRes;uniform vec2 uBt;uniform vec2 uShade;uniform vec2 uLight;',
+    'uniform float uEm;uniform float uLeaf;uniform float uSweep;uniform float uH;varying vec2 vUv;',
+    'float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
+    'float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1.,0.)),f.x),mix(h21(i+vec2(0.,1.)),h21(i+vec2(1.,1.)),f.x),f.y);}',
+    'void main(){',
+    ' vec2 uv=vUv;float m=texture2D(uMask,uv).r;',
+    ' float s1=texture2D(uMask,uv-uShade*.34).r;float s2=texture2D(uMask,uv-uShade*.67).r;float s3=texture2D(uMask,uv-uShade).r;',
+    ' float sd=max(s1,max(s2,s3));',
+    ' if(m<.004&&sd<.004){gl_FragColor=vec4(0.);return;}',
+    ' vec2 px=uv*uRes;',
+    ' float bl=texture2D(uBlur,uv-vec2(uBt.x,0.)).r;float br=texture2D(uBlur,uv+vec2(uBt.x,0.)).r;',
+    ' float bu=texture2D(uBlur,uv-vec2(0.,uBt.y)).r;float bd=texture2D(uBlur,uv+vec2(0.,uBt.y)).r;float b=texture2D(uBlur,uv).r;',
+    ' vec2 gr=vec2(br-bl,bd-bu);',
+    ' float edge=(1.-smoothstep(.42,.9,b))*m;',
+    ' vec2 g=px/(uEm*uLeaf);float row=floor(g.y);g.x+=mod(row,2.)*.43;vec2 cell=floor(g);vec2 f=fract(g);',
+    ' float r1=h21(cell);float r2=h21(cell+7.13);vec2 tilt=(vec2(r1,r2)-.5)*.18;',
+    ' float seam=1.-smoothstep(0.,.03,min(min(f.x,1.-f.x),min(f.y,1.-f.y)));',
+    ' vec2 q=px/(uEm*.045);vec2 cr=vec2(vn(q),vn(q+19.7))-.5;float grain=vn(px/(uEm*.09));',
+    ' vec3 N=normalize(vec3(-gr*3.4*(.35+edge)+(tilt+cr*.1)*(1.-edge*.85),1.));',
+    ' vec3 L=normalize(vec3(uLight,uH)-vec3(px,0.));vec3 Hh=normalize(L+vec3(0.,0.,1.));',
+    ' float ndh=max(dot(N,Hh),0.);float dif=max(dot(N,L),0.);',
+    ' vec3 deep=vec3(.34,.23,.09);vec3 gold=vec3(.80,.63,.35);vec3 hi=vec3(1.,.94,.78);',
+    ' vec3 col=mix(deep,gold,.38+.62*dif);col*=.93+.14*r1;col*=.92+.16*grain;',
+    ' col+=vec3(.07,.05,.02)*seam*(1.-edge);',
+    ' col+=hi*mix(pow(ndh,22.)*.55,pow(ndh,150.)*1.7,edge);',
+    ' float d=(px.x/uRes.x+px.y/uRes.y*.28)-uSweep;col+=hi*exp(-d*d*220.)*.6*(.45+edge);',
+    ' vec3 sh=mix(vec3(.16,.04,.04),vec3(.44,.11,.10),s1);float sa=sd*(1.-m);',
+    ' gl_FragColor=vec4(col*m+sh*sa,m+sa);',
+    '}'
+  ].join('\n');
+
+  function initGold() {
+    var sign = qs('[data-sign]'), name = qs('[data-sign-name]'), hero = qs('[data-hero]');
+    if (!sign || !name || reduced()) return;
+    var canvas = document.createElement('canvas');
+    var gl = null;
+    try { gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false }); } catch (e) { gl = null; }
+    if (!gl) return;
+    canvas.className = 'sign-gl'; canvas.setAttribute('aria-hidden', 'true');
+
+    var prog, uni = {}, texMask, texBlur, W = 0, H = 0, em = 100, dpr = 1, lost = false;
+    var light = { x: 0, y: 0 }, target = { x: 0, y: 0 }, sweep = -0.4, sweepT0 = 0, raf = 0, visible = true, ready = false;
+
+    function shader(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
+    function setupGL() {
+      prog = gl.createProgram();
+      gl.attachShader(prog, shader(gl.VERTEX_SHADER, GOLD_VS)); gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, GOLD_FS));
+      gl.linkProgram(prog); if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error('link');
+      gl.useProgram(prog);
+      var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+      var loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      ['uMask', 'uBlur', 'uRes', 'uBt', 'uShade', 'uLight', 'uEm', 'uLeaf', 'uSweep', 'uH'].forEach(function (n) { uni[n] = gl.getUniformLocation(prog, n); });
+      gl.uniform1i(uni.uMask, 0); gl.uniform1i(uni.uBlur, 1);
+      texMask = makeTex(0); texBlur = makeTex(1);
+    }
+    function makeTex(unit) {
+      var t = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      return t;
+    }
+    /* Schrift einmal in eine Maske rendern (scharf) + weichgezeichnete Viertel-Auflösung für die Facette */
+    function buildMask() {
+      var nr = name.getBoundingClientRect(), sr = sign.getBoundingClientRect();
+      if (!nr.width || !nr.height) return false;
+      var cs = getComputedStyle(name);
+      var fs = parseFloat(cs.fontSize);
+      var padX = fs * 0.08, padY = fs * 0.1;
+      var cw = nr.width + padX * 2, ch = nr.height + padY * 2;
+      dpr = dprMax(2);
+      if (cw * ch * dpr * dpr > 2.6e6) dpr = Math.max(1, Math.sqrt(2.6e6 / (cw * ch)));
+      W = Math.round(cw * dpr); H = Math.round(ch * dpr); em = fs * dpr;
+      canvas.width = W; canvas.height = H;
+      canvas.style.left = (nr.left - sr.left - padX).toFixed(1) + 'px'; canvas.style.top = (nr.top - sr.top - padY).toFixed(1) + 'px';
+      canvas.style.width = cw.toFixed(1) + 'px'; canvas.style.height = ch.toFixed(1) + 'px';
+      var mk = document.createElement('canvas'); mk.width = W; mk.height = H;
+      var c = mk.getContext('2d');
+      c.scale(dpr, dpr);
+      c.font = cs.fontWeight + ' ' + fs + 'px ' + cs.fontFamily;
+      var txt = name.textContent.trim().toUpperCase();
+      var ls = parseFloat(cs.letterSpacing) || 0;
+      var hasLS = 'letterSpacing' in c;
+      if (hasLS) c.letterSpacing = ls + 'px';
+      c.textBaseline = 'alphabetic'; c.fillStyle = '#fff';
+      var met = c.measureText(txt);
+      var A = met.fontBoundingBoxAscent || fs * 0.9, D = met.fontBoundingBoxDescent || fs * 0.25;
+      var lh = parseFloat(cs.lineHeight); if (!lh || /normal/.test(cs.lineHeight)) lh = fs * 1.2;
+      var pl = parseFloat(cs.paddingLeft) || 0, pr = parseFloat(cs.paddingRight) || 0, pt = parseFloat(cs.paddingTop) || 0;
+      var contentW = nr.width - pl - pr;
+      var x0 = padX + pl + (contentW - met.width) / 2, base = padY + pt + (lh - (A + D)) / 2 + A;
+      if (hasLS || !ls) c.fillText(txt, x0, base);
+      else { var x = x0; Array.prototype.forEach.call(txt, function (chr) { c.fillText(chr, x, base); x += c.measureText(chr).width + ls; }); }
+      var bw = Math.max(4, Math.round(W / 4)), bh = Math.max(4, Math.round(H / 4));
+      var bk = document.createElement('canvas'); bk.width = bw; bk.height = bh;
+      var bc = bk.getContext('2d');
+      if ('filter' in bc) bc.filter = 'blur(' + Math.max(0.6, fs * GOLD.bevel * dpr / 4).toFixed(2) + 'px)';
+      bc.drawImage(mk, 0, 0, bw, bh);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texMask);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, mk);
+      gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, texBlur);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bk);
+      gl.viewport(0, 0, W, H);
+      gl.uniform2f(uni.uRes, W, H); gl.uniform2f(uni.uBt, 1.6 / bw, 1.6 / bh);
+      gl.uniform2f(uni.uShade, em * GOLD.shade / W, em * GOLD.shade / H);
+      gl.uniform1f(uni.uEm, em); gl.uniform1f(uni.uLeaf, GOLD.leaf); gl.uniform1f(uni.uH, em * 1.25);
+      return true;
+    }
+    function draw() {
+      if (lost) return;
+      gl.uniform2f(uni.uLight, light.x, light.y); gl.uniform1f(uni.uSweep, sweep);
+      gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+    function loop(t) {
+      raf = 0;
+      if (!ready || !visible) return;
+      var moving = false;
+      light.x += (target.x - light.x) * 0.12; light.y += (target.y - light.y) * 0.12;
+      if (Math.abs(target.x - light.x) > 0.5 || Math.abs(target.y - light.y) > 0.5) moving = true;
+      if (sweepT0) {
+        var p = (t - sweepT0) / 1700;
+        sweep = lerp(-0.45, 1.5, easeInOut(clamp(p, 0, 1)));
+        if (p < 1) moving = true; else sweepT0 = 0;
+      }
+      draw();
+      if (moving) raf = requestAnimationFrame(loop);
+    }
+    function kick() { if (!raf && ready && visible) raf = requestAnimationFrame(loop); }
+    function aimAt(clientX, clientY) {
+      var r = canvas.getBoundingClientRect(); if (!r.width) return;
+      target.x = (clientX - r.left) * (W / r.width); target.y = (clientY - r.top) * (H / r.height);
+      kick();
+    }
+    function aimByScroll() {
+      var hh = hero ? hero.offsetHeight : window.innerHeight;
+      var p = clamp(window.scrollY / (hh * 0.7), 0, 1);
+      target.x = W * (0.12 + 0.8 * p); target.y = -H * (0.45 - 0.5 * p);
+      kick();
+    }
+
+    var start = function () {
+      if (!document.fonts || document.fonts.check('400 100px "Bodoni Moda"')) go(); else document.fonts.load('400 100px "Bodoni Moda"').then(go, go);
+    };
+    var go = function () {
+      try { setupGL(); } catch (e) { if (window.console) console.warn('[Kaiser] gold', e); return; }
+      // Maske im eigenen Task (hält die Aufgaben kurz)
+      setTimeout(function () {
+        try { if (!buildMask()) return; } catch (e) { return; }
+        sign.appendChild(canvas);
+        light.x = target.x = W * 0.16; light.y = target.y = -H * 0.5;
+        ready = true; draw();
+        requestAnimationFrame(function () {
+          doc.classList.add('gl-on');
+          setTimeout(function () { doc.classList.add('gl-done'); }, 650);
+          sweepT0 = performance.now() + 120; kick();
+        });
+        if (finePointer.matches) Hero.onPointer = function () { if (Hero.pointer) aimAt(Hero.pointer.x, Hero.pointer.y); };
+        else window.addEventListener('scroll', function () { if (visible) aimByScroll(); }, { passive: true });
+        if (hero) visibilityGate(hero, function (on) { visible = on; if (on) kick(); }, '0px');
+        var rt = 0;
+        window.addEventListener('resize', function () {
+          clearTimeout(rt); rt = setTimeout(function () { if (lost) return; if (buildMask()) { if (!finePointer.matches) aimByScroll(); draw(); } }, 160);
+        });
+      }, 30);
+    };
+    canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); lost = true; doc.classList.remove('gl-on', 'gl-done'); });
+    // Erst nach dem Klingenschnitt (CSS, ~1,1 s) und wenn der Main-Thread Luft hat
+    var wait = Math.max(0, 1250 - performance.now());
+    setTimeout(function () { idle(start, 700); }, wait);
+  }
+
+  /* ------------------------------------------------------------------
+     Barber-Pole (Canvas, Helix-Streifen): Säule im Hero, danach schmales
+     Band am Rand. Drehtempo = Grundtempo + Scroll-Geschwindigkeit.
+     Ruhig: gedrosselte Bildrate; außerhalb des Tabs pausiert.
      ------------------------------------------------------------------ */
   function initPole() {
-    var canvas = qs('[data-pole]');
-    if (!canvas || !canvas.getContext) return;
+    var pole = qs('[data-pole]'), canvas = qs('[data-pole-canvas]'), collar = qs('[data-pole-collar]');
+    if (!pole || !canvas || !canvas.getContext) return;
     var ctx = canvas.getContext('2d');
-    var BANDS = [ // Farbe, Anteil an einer Periode
-      ['#7A1F1F', 0.34], ['#EFE8DC', 0.2], ['#C9A25E', 0.16], ['#EFE8DC', 0.2], ['#1C1715', 0.1]
-    ];
     var BASE_SPEED = 0.22;   // Perioden pro Sekunde im Ruhezustand
     var SCROLL_GAIN = 0.035; // Zusatz pro px Scroll-Geschwindigkeit
+    var IDLE_FPS = 24;
     var W = 0, H = 0, dpr = 1, pitch = 60, period = 80;
-    var phase = 0, boost = 0, running = false, raf = 0, last = 0, lastY = window.scrollY;
-    var tile = null, shade = null;
+    var phase = 0, boost = 0, running = false, raf = 0, last = 0, lastDraw = 0, lastY = window.scrollY, lastScroll = 0;
+    var tile = null, shade = null, band = -1, collarY = -1, scaleNow = -1;
 
     function resize() {
-      var r = canvas.getBoundingClientRect();
-      var w = Math.max(1, Math.round(r.width)), h = Math.max(1, Math.round(r.height));
+      var w = Math.max(1, canvas.clientWidth), h = Math.max(1, canvas.clientHeight);
       if (w === W && h === H) return;
-      W = w; H = h; dpr = dprMax();
+      W = w; H = h; dpr = dprMax(2);
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-      pitch = W * 2.4;          // Steigung der Helix (px pro Umdrehung)
-      period = W * 1.25;        // Höhe einer Farbfolge
-      renderTile();
-      draw();
+      pitch = W * 2.4; period = W * 1.25;
+      renderTile(); draw();
     }
-    /* Die Helix ist vertikal periodisch: Phase p = Bild bei Phase 0, um p·period nach oben verschoben.
-       Deshalb einmal eine Kachel (Höhe H + period) zeichnen und pro Frame nur verschoben einblenden. */
     function renderTile() {
       tile = tile || document.createElement('canvas');
       var TH = H + Math.ceil(period) + 2;
       tile.width = Math.round(W * dpr); tile.height = Math.round(TH * dpr);
       var t = tile.getContext('2d');
       t.setTransform(dpr, 0, 0, dpr, 0, 0);
-      var slices = Math.max(24, Math.round(W / 1.25)), sw = W / slices;
+      var slices = Math.max(20, Math.round(W / 1.25)), sw = W / slices;
       for (var s = 0; s < slices; s++) {
         var cx = (s + 0.5) * sw;
         var theta = Math.asin(clamp((cx / W) * 2 - 1, -1, 1));
@@ -253,18 +508,18 @@
         var k0 = Math.floor((off - period) / period), k1 = Math.ceil((TH + off) / period);
         for (var k = k0; k <= k1; k++) {
           var y = k * period - off;
-          for (var b = 0; b < BANDS.length; b++) {
-            var hgt = BANDS[b][1] * period;
-            if (y + hgt > 0 && y < TH) { t.fillStyle = BANDS[b][0]; t.fillRect(s * sw, y, sw + 0.6, hgt + 0.6); }
+          for (var b = 0; b < POLE_BANDS.length; b++) {
+            var hgt = POLE_BANDS[b][1] * period;
+            if (y + hgt > 0 && y < TH) { t.fillStyle = POLE_BANDS[b][0]; t.fillRect(s * sw, y, sw + 0.6, hgt + 0.6); }
             y += hgt;
           }
         }
       }
-      // Schatten unter den Kappen
       shade = ctx.createLinearGradient(0, 0, 0, H);
-      shade.addColorStop(0, 'rgba(0,0,0,.55)'); shade.addColorStop(0.06, 'rgba(0,0,0,0)'); shade.addColorStop(0.94, 'rgba(0,0,0,0)'); shade.addColorStop(1, 'rgba(0,0,0,.5)');
+      shade.addColorStop(0, 'rgba(0,0,0,.5)'); shade.addColorStop(0.05, 'rgba(0,0,0,0)'); shade.addColorStop(0.95, 'rgba(0,0,0,0)'); shade.addColorStop(1, 'rgba(0,0,0,.45)');
     }
     function draw() {
+      if (!tile) return;
       var m = ((phase * period) % period + period) % period;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -272,43 +527,107 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.fillStyle = shade; ctx.fillRect(0, 0, W, H);
     }
+    /* Säule → Band: nur transform (scaleX) und Opazität der Kappen */
+    function layout() {
+      var y = window.scrollY, vh = window.innerHeight;
+      var p = clamp(y / (vh * 0.55), 0, 1), e = p * p * (3 - 2 * p);
+      var s = 1 - 0.76 * e;
+      if (Math.abs(s - scaleNow) > 0.001) { scaleNow = s; pole.style.transform = 'scaleX(' + s.toFixed(4) + ')'; }
+      var b = p > 0.97 ? 1 : 0;
+      if (b !== band) { band = b; pole.classList.toggle('is-band', !!b); }
+      if (collar) {
+        var max = Math.max(1, document.documentElement.scrollHeight - vh);
+        var cy = Math.round(clamp(y / max, 0, 1) * Math.max(0, H - 18));
+        if (cy !== collarY) { collarY = cy; collar.style.transform = 'translateY(' + cy + 'px)'; }
+      }
+    }
     function velocity() {
       if (lenis) return lenis.velocity || 0;
       var y = window.scrollY, v = y - lastY; lastY = y; return v;
     }
     function tick(t) {
       if (!running) return;
+      raf = requestAnimationFrame(tick);
       var dt = last ? Math.min(0.05, (t - last) / 1000) : 0.016; last = t;
-      var target = clamp(velocity() * SCROLL_GAIN, -2.4, 3.2);
+      var v = velocity();
+      if (Math.abs(v) > 0.3) lastScroll = t;
+      var target = clamp(v * SCROLL_GAIN, -2.4, 3.2);
       boost = lerp(boost, target, 1 - Math.pow(0.9, dt * 60));
       phase += dt * (BASE_SPEED + boost);
-      phase -= Math.floor(phase); // eine Periode genügt
+      phase -= Math.floor(phase);
+      var calm = t - lastScroll > 300 && Math.abs(boost) < 0.02;
+      if (calm && t - lastDraw < 1000 / IDLE_FPS) return; // Ruhe: gedrosselt
+      lastDraw = t;
+      layout();
       draw();
-      raf = requestAnimationFrame(tick);
     }
     if ('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas); else window.addEventListener('resize', resize);
-    resize();
-    if (reduced()) return; // statisch
-    visibilityGate(canvas, function (on) {
+    resize(); layout();
+    if (reduced()) { window.addEventListener('scroll', function () { requestAnimationFrame(layout); }, { passive: true }); return; }
+    var setRun = function () {
+      var on = !document.hidden;
       if (on && !running) { running = true; last = 0; lastY = window.scrollY; raf = requestAnimationFrame(tick); }
       else if (!on && running) { running = false; cancelAnimationFrame(raf); }
-    });
+    };
+    document.addEventListener('visibilitychange', setRun);
+    setRun();
   }
 
   /* ------------------------------------------------------------------
-     Reveal beim Scrollen
+     Kapitel: Die ganze Seite wechselt die Farbe (Glas → Papier → Leder)
      ------------------------------------------------------------------ */
-  function initReveal() {
-    var els = qsa('[data-reveal]');
-    if (motionOff || !('IntersectionObserver' in window)) { els.forEach(function (el) { el.classList.add('is-in'); }); return; }
+  function initChapters() {
+    if (motionOff || !('IntersectionObserver' in window)) return;
+    var sections = qsa('main > section');
+    doc.classList.add('chapters');
+    var current = 'glas';
     var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); } });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
-    els.forEach(function (el) { io.observe(el); });
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var c = en.target.getAttribute('data-chapter') || 'glas';
+        if (c === current) return;
+        current = c;
+        if (c === 'glas') doc.removeAttribute('data-chapter'); else doc.setAttribute('data-chapter', c);
+      });
+    }, { rootMargin: '-50% 0px -50% 0px' });
+    sections.forEach(function (s) { io.observe(s); });
   }
 
   /* ------------------------------------------------------------------
-     Statement: Wort für Wort mit dem Scroll aufhellen
+     Freischneiden: diagonaler Klingenzug beim Hereinscrollen
+     ------------------------------------------------------------------ */
+  function initCuts() {
+    if (motionOff || !('IntersectionObserver' in window)) return;
+    var CUT_MS = 1000;
+    /* Ein vollständig beschnittenes Element gilt für den IntersectionObserver als unsichtbar –
+       deshalb wird der (unbeschnittene) Elternknoten beobachtet. */
+    var map = new Map();
+    var reveal = function (el) {
+      el.classList.add('is-cut');
+      if (el.hasAttribute('data-cut')) {
+        var d = parseFloat(el.style.getPropertyValue('--d')) || 0;
+        setTimeout(function () { el.classList.add('is-done'); }, CUT_MS + d + 80);
+      }
+    };
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        io.unobserve(en.target);
+        (map.get(en.target) || [en.target]).forEach(reveal);
+      });
+    }, { rootMargin: '0px 0px -14% 0px', threshold: 0 });
+    qsa('[data-cut]').forEach(function (el) {
+      var p = el.parentElement || el;
+      if (!map.has(p)) { map.set(p, []); io.observe(p); }
+      map.get(p).push(el);
+    });
+    var gallery = qs('.gallery'); if (gallery) { qsa('.g-card', gallery).forEach(function (c, i) { c.style.setProperty('--i', i); }); io.observe(gallery); }
+    var vf = qs('.voice-frame'); if (vf) { qsa('.voice', vf).forEach(function (c, i) { c.style.setProperty('--i', i); }); io.observe(vf); }
+    qsa('.svc-row').forEach(function (r, i) { r.style.setProperty('--i', i % 2); io.observe(r); });
+  }
+
+  /* ------------------------------------------------------------------
+     Statement: Wort für Wort vergolden (Scroll)
      ------------------------------------------------------------------ */
   function initStatement() {
     var el = qs('[data-words]');
@@ -328,52 +647,270 @@
       });
     };
     split(el);
-    gsap.fromTo(words, { opacity: 0.16 }, { opacity: 1, ease: 'none', stagger: 0.08, scrollTrigger: { trigger: el, start: 'top 82%', end: 'bottom 48%', scrub: 0.4 } });
+    gsap.fromTo(words, { opacity: 0.14 }, { opacity: 1, ease: 'none', stagger: 0.08, scrollTrigger: { trigger: el, start: 'top 80%', end: 'bottom 50%', scrub: 0.4 } });
   }
 
   /* ------------------------------------------------------------------
-     Nassrasur in vier Akten: gepinnte Szene (nur Desktop)
+     Leistungen: Vorschau im Klingenschnitt folgt dem Zeiger (Feder)
      ------------------------------------------------------------------ */
+  function initServices() {
+    var list = qs('[data-svc-list]'), prev = qs('[data-svc-preview]'), section = qs('.services');
+    if (!list || !prev || !section || !finePointer.matches || reduced()) return;
+    var imgs = qsa('img', prev), rows = qsa('.svc-row', list);
+    var x = 0, y = 0, tx = 0, ty = 0, rot = 0, raf = 0, on = false, w = 280, h = 350, placed = false;
+    var measure = function () { w = prev.offsetWidth; h = prev.offsetHeight; };
+    if ('ResizeObserver' in window) new ResizeObserver(measure).observe(prev); else measure();
+    var loop = function () {
+      x += (tx - x) * 0.14; y += (ty - y) * 0.14;
+      rot = lerp(rot, clamp((tx - x) * 0.05, -9, 9), 0.2);
+      prev.style.transform = 'translate3d(' + (x - w / 2).toFixed(1) + 'px,' + (y - h / 2).toFixed(1) + 'px,0) rotate(' + rot.toFixed(2) + 'deg)';
+      if (on || Math.abs(tx - x) > 0.3 || Math.abs(ty - y) > 0.3 || Math.abs(rot) > 0.05) raf = requestAnimationFrame(loop); else raf = 0;
+    };
+    list.addEventListener('pointermove', function (e) {
+      if (e.pointerType !== 'mouse') return;
+      var r = section.getBoundingClientRect();
+      tx = e.clientX - r.left + w * 0.62; ty = e.clientY - r.top;
+      if (!placed) { x = tx; y = ty; placed = true; }
+      if (!raf) raf = requestAnimationFrame(loop);
+    });
+    rows.forEach(function (row) {
+      row.addEventListener('pointerenter', function (e) {
+        if (e.pointerType !== 'mouse') return;
+        var i = +row.getAttribute('data-preview');
+        imgs.forEach(function (im, k) { im.classList.toggle('is-active', k === i); });
+        on = true; prev.classList.add('is-on');
+        if (!raf) raf = requestAnimationFrame(loop);
+      });
+    });
+    list.addEventListener('pointerleave', function () { on = false; placed = false; prev.classList.remove('is-on'); });
+  }
+
+  /* ------------------------------------------------------------------
+     Ritual: Sticky-Bühne in vier Akten + Partikel (Dampf, Schaum, Klinge, kalter Nebel)
+     ------------------------------------------------------------------ */
+  function mulberry(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function sprite(size, paint) { var c = document.createElement('canvas'); c.width = c.height = size; paint(c.getContext('2d'), size); return c; }
+  function createRitualFx(canvas, frame) {
+    var noop = { time: function () {}, active: function () {}, resize: function () {} };
+    if (!canvas || !frame || !canvas.getContext) return noop;
+    var ctx = canvas.getContext('2d');
+    var W = 0, H = 0, dpr = 1, fx0 = 0, fy0 = 0, fw = 1, fh = 1;
+    var T = 0, Tt = 0, on = false, visible = false, raf = 0, last = 0, lastDraw = 0, lastInput = 0, warm = false;
+    var rnd = mulberry(20140211);
+    var steamS = sprite(128, function (c, s) { var g = c.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2); g.addColorStop(0, 'rgba(239,232,220,1)'); g.addColorStop(0.42, 'rgba(239,232,220,.38)'); g.addColorStop(1, 'rgba(239,232,220,0)'); c.fillStyle = g; c.fillRect(0, 0, s, s); });
+    var bubbleS = sprite(48, function (c, s) {
+      var r = s / 2 - 1.5, g = c.createRadialGradient(s * 0.42, s * 0.4, r * 0.15, s / 2, s / 2, r);
+      g.addColorStop(0, 'rgba(255,255,255,.96)'); g.addColorStop(0.6, 'rgba(244,239,230,.86)'); g.addColorStop(0.88, 'rgba(214,205,190,.9)'); g.addColorStop(1, 'rgba(180,170,155,.55)');
+      c.beginPath(); c.arc(s / 2, s / 2, r, 0, Math.PI * 2); c.fillStyle = g; c.fill(); c.lineWidth = 1; c.strokeStyle = 'rgba(140,128,112,.45)'; c.stroke();
+      c.beginPath(); c.arc(s * 0.37, s * 0.35, r * 0.18, 0, Math.PI * 2); c.fillStyle = 'rgba(255,255,255,1)'; c.fill();
+    });
+    var bladeS = sprite(256, function (c, s) { /* Wechselklinge, gebürsteter Stahl */
+      var w = s, h = s * 44 / 120, y0 = (s - h) / 2;
+      var g = c.createLinearGradient(0, y0, 0, y0 + h); g.addColorStop(0, '#8D8A86'); g.addColorStop(0.18, '#F2EFEA'); g.addColorStop(0.5, '#B9B5AE'); g.addColorStop(0.82, '#EDE9E2'); g.addColorStop(1, '#7E7A74');
+      c.fillStyle = g; c.fillRect(2, y0, w - 4, h);
+      c.globalCompositeOperation = 'destination-out';
+      var k = w / 120; c.fillRect(30 * k, y0 + 19.5 * k, 60 * k, 5 * k);
+      [30, 60, 90].forEach(function (cx) { c.beginPath(); c.arc(cx * k, y0 + 22 * k, 4.6 * k, 0, Math.PI * 2); c.fill(); });
+      c.beginPath(); c.moveTo(0, y0 + 19 * k); c.lineTo(13 * k, y0 + 19 * k); c.lineTo(16.5 * k, y0 + 22 * k); c.lineTo(13 * k, y0 + 25 * k); c.lineTo(0, y0 + 25 * k); c.fill();
+      c.beginPath(); c.moveTo(w, y0 + 19 * k); c.lineTo(w - 13 * k, y0 + 19 * k); c.lineTo(w - 16.5 * k, y0 + 22 * k); c.lineTo(w - 13 * k, y0 + 25 * k); c.lineTo(w, y0 + 25 * k); c.fill();
+      c.globalCompositeOperation = 'source-over'; c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(2, y0 + 5.5 * k, w - 4, 1); c.fillRect(2, y0 + h - 6.5 * k, w - 4, 1);
+    });
+    // Dampf: zeitbasierter Emitter
+    var steam = []; for (var i = 0; i < 44; i++) steam.push({ a: false });
+    var acc = 0;
+    // Schaum: deterministisch (rückwärts scrollen ergibt dasselbe Bild)
+    var foam = [];
+    for (var j = 0; j < 240; j++) {
+      var ang = rnd() * Math.PI * 2, rr = Math.pow(rnd(), 0.75);
+      var bx = 0.46 + Math.cos(ang) * rr * 0.3, by = 0.52 + Math.sin(ang) * rr * 0.23;
+      foam.push({ x: bx, y: by, s: 0.005 + rnd() * rnd() * 0.024, b: clamp(rr * 0.78 + rnd() * 0.2, 0, 0.98), ph: rnd() * 6.28, dir: rnd() < 0.5 ? -1 : 1, k: bx + 0.36 * by });
+    }
+    // Schaumkörper: weiche, cremige Basis unter den Bläschen
+    var lather = []; for (var la = 0; la < 26; la++) { var a2 = rnd() * 6.28, r2 = Math.pow(rnd(), 0.8); lather.push({ x: 0.46 + Math.cos(a2) * r2 * 0.22, y: 0.52 + Math.sin(a2) * r2 * 0.16, s: 0.16 + rnd() * 0.14, b: r2 * 0.7, k: 0 }); lather[la].k = lather[la].x + 0.36 * lather[la].y; }
+    // kalter Nebel / Funkeln (Akt IV)
+    var mist = []; for (var m = 0; m < 34; m++) mist.push({ x: rnd(), y: rnd(), vx: (rnd() - 0.5) * 0.012, vy: 0.008 + rnd() * 0.016, s: 10 + rnd() * 26, ph: rnd() * 6.28 });
+
+    function resize() {
+      var r = canvas.getBoundingClientRect(), f = frame.getBoundingClientRect();
+      if (!r.width) return;
+      W = r.width; H = r.height; dpr = dprMax(1.5);
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+      fx0 = f.left - r.left; fy0 = f.top - r.top; fw = f.width; fh = f.height;
+    }
+    function spawnSteam(p) {
+      p.a = true; p.life = 0; p.max = 3.4 + rnd() * 2.4;
+      p.x = fx0 + fw * (0.3 + rnd() * 0.42); p.y = fy0 + fh * (0.42 + rnd() * 0.3);
+      p.vy = fh * (0.13 + rnd() * 0.1); p.s = fw * (0.07 + rnd() * 0.06); p.g = fw * (0.06 + rnd() * 0.06); p.ph = rnd() * 6.28;
+    }
+    function draw(now, dt, sim) {
+      if (!sim) { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); }
+      var w1 = 1 - smooth(0.7, 1.25, T);
+      var foamP = smooth(0.85, 1.85, T);
+      var bladeP = clamp((T - 2.0) / 0.85, 0, 1);
+      var w4 = smooth(2.75, 3.3, T);
+      var sec = now / 1000;
+      // Dampf
+      acc += dt * 15 * w1;
+      for (var i = 0; i < steam.length; i++) {
+        var p = steam[i];
+        if (!p.a) { if (acc >= 1) { acc -= 1; spawnSteam(p); } else continue; }
+        p.life += dt;
+        if (p.life >= p.max) { p.a = false; continue; }
+        p.y -= p.vy * dt; p.x += Math.sin(sec * 0.7 + p.ph) * fw * 0.012 * dt; p.s += p.g * dt;
+        if (sim) continue;
+        var lf = p.life / p.max;
+        ctx.globalAlpha = Math.sin(Math.PI * lf) * 0.2 * (0.4 + 0.6 * w1);
+        ctx.drawImage(steamS, p.x - p.s / 2, p.y - p.s / 2, p.s, p.s);
+      }
+      if (acc > 2) acc = 2;
+      if (sim) return;
+      // Schaum + Klinge
+      if (foamP > 0 && bladeP < 1) {
+        var line = -0.3 + 1.75 * bladeP;
+        for (var lq = 0; lq < lather.length; lq++) {
+          var L2 = lather[lq]; if (foamP < L2.b) continue;
+          var la2 = clamp((foamP - L2.b) / 0.25, 0, 1) * 0.42;
+          if (bladeP > 0 && L2.k < line) la2 *= 1 - clamp((line - L2.k) / 0.12, 0, 1);
+          if (la2 <= 0.01) continue;
+          var ls = L2.s * fw; ctx.globalAlpha = la2;
+          ctx.drawImage(steamS, fx0 + L2.x * fw - ls / 2, fy0 + L2.y * fh - ls / 2, ls, ls);
+        }
+        for (var k = 0; k < foam.length; k++) {
+          var b = foam[k];
+          if (foamP < b.b) continue;
+          var appear = clamp((foamP - b.b) / 0.1, 0, 1), alpha = 0.9 * appear;
+          var x = fx0 + b.x * fw + Math.sin(sec * 1.3 + b.ph) * 0.8, y = fy0 + b.y * fh + Math.cos(sec * 1.1 + b.ph) * 0.6;
+          if (bladeP > 0 && b.k < line) {
+            var c = clamp((line - b.k) / 0.16, 0, 1);
+            x += b.dir * c * c * fw * 0.08 + c * fw * 0.12; y -= c * fh * 0.05; alpha *= 1 - c;
+            if (alpha <= 0.01) continue;
+          }
+          var s = b.s * fw * (0.55 + 0.45 * appear);
+          ctx.globalAlpha = alpha;
+          ctx.drawImage(bubbleS, x - s / 2, y - s / 2, s, s);
+        }
+        if (bladeP > 0) {
+          var bc = line - 0.18, ang = Math.atan2(fh, -0.36 * fw);
+          var bl = fh * 0.74;
+          ctx.save();
+          ctx.globalAlpha = smooth(0, 0.08, bladeP) * (1 - smooth(0.9, 1, bladeP));
+          ctx.translate(fx0 + bc * fw, fy0 + fh * 0.5); ctx.rotate(ang);
+          ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 8;
+          ctx.drawImage(bladeS, -bl / 2, -bl / 2, bl, bl);
+          ctx.restore();
+        }
+      }
+      // Kalte Kompresse: feiner Nebel, der sich setzt
+      if (w4 > 0) {
+        for (var n = 0; n < mist.length; n++) {
+          var q = mist[n];
+          var mx = fx0 + (((q.x + sec * q.vx) % 1 + 1) % 1) * fw, my = fy0 + (((q.y + sec * q.vy) % 1 + 1) % 1) * fh;
+          ctx.globalAlpha = w4 * (0.2 + 0.16 * Math.sin(sec * 2.2 + q.ph));
+          ctx.drawImage(steamS, mx - q.s / 2, my - q.s / 2, q.s, q.s);
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+    function tick(t) {
+      raf = 0;
+      if (!on || !visible) return;
+      raf = requestAnimationFrame(tick);
+      var calm = t - lastInput > 250;
+      if (calm && t - lastDraw < 33) return; // ohne Scroll: 30 fps genügen für Dampf
+      var dt = last ? Math.min(0.05, (t - last) / 1000) : 0.016; last = t; lastDraw = t;
+      T += (Tt - T) * (1 - Math.exp(-dt * 7));
+      if (!warm) { warm = true; for (var s = 0; s < 90; s++) draw(t - (90 - s) * 33, 0.033, true); }
+      draw(t, dt);
+    }
+    function wake() { if (!raf && on && visible) { last = 0; raf = requestAnimationFrame(tick); } }
+    visibilityGate(frame, function (v) { visible = v; if (v) { resize(); wake(); } }, '0px');
+    return {
+      time: function (t) { Tt = t; if (!warm) T = t; lastInput = performance.now(); wake(); },
+      active: function (a) { on = a; if (a) { resize(); wake(); } else { ctx.clearRect(0, 0, canvas.width, canvas.height); } },
+      resize: resize
+    };
+  }
   function initRitual() {
     var section = qs('[data-ritual]');
     if (!section || !hasGSAP || reduced()) return;
-    var figs = qsa('.ritual-fig', section), texts = qsa('.ritual-text', section), ticks = qsa('.ritual-ticks li', section);
+    var figs = qsa('.act-fig', section), texts = qsa('.act-text', section), bigs = qsa('.act-big span', section);
+    var ticks = qsa('[data-act-ticks] li:not(.act-marker)', section), marker = qs('.act-marker', section);
     var imgs = figs.map(function (f) { return qs('img', f); });
+    var fx = createRitualFx(qs('[data-ritual-fx]', section), qs('[data-ritual-frame]', section));
+    var HIDE = 'polygon(120% 0%, 140% 0%, 140% 100%, 140% 100%)', SHOW = 'polygon(-20% 0%, 140% 0%, 140% 100%, 0% 100%)';
     var mm = gsap.matchMedia();
     mm.add('(min-width: 900px) and (min-height: 560px)', function () {
-      // Bühne per CSS „position: sticky“ (statt GSAP-Pin mit position: fixed):
-      // kein Umschalten der Positionierung beim Scrollen → keine Layout-Verschiebung (CLS), kein Pin-Spacer.
-      section.classList.add('is-pinned');
+      section.classList.add('is-sticky');
+      imgs.forEach(function (im) { im.loading = 'eager'; });
       figs.forEach(function (f, i) { f.style.zIndex = i + 1; });
-      gsap.set(figs.slice(1), { clipPath: 'inset(100% 0% 0% 0%)' });
-      gsap.set(imgs.slice(1), { scale: 1.18 });
-      gsap.set(texts.slice(1), { autoAlpha: 0, y: 40 });
+      gsap.set(figs.slice(1), { clipPath: HIDE });
+      gsap.set(imgs.slice(1), { scale: 1.15, xPercent: 4 });
+      gsap.set(texts.slice(1), { autoAlpha: 0, y: 36 });
+      gsap.set(bigs.slice(1), { autoAlpha: 0, yPercent: 14 });
       var lastTick = -1;
-      var setTick = function (idx) { if (idx === lastTick) return; lastTick = idx; ticks.forEach(function (t, i) { t.classList.toggle('is-active', i === idx); }); };
+      var setTick = function (idx) {
+        if (idx === lastTick) return; lastTick = idx;
+        ticks.forEach(function (t, i) { t.classList.toggle('is-active', i === idx); });
+        if (marker) marker.style.transform = 'translateX(' + (idx * 100) + '%)';
+      };
       var tl = gsap.timeline({
         defaults: { ease: 'none' },
         scrollTrigger: {
-          trigger: section, start: 'top top', end: 'bottom bottom',
-          scrub: 0.6, invalidateOnRefresh: true,
-          onUpdate: function (self) { var t = self.progress * tl.duration(); setTick(clamp(Math.floor(t - 0.65) + 1, 0, 3)); }
+          trigger: section, start: 'top top', end: 'bottom bottom', scrub: 0.6, invalidateOnRefresh: true,
+          onUpdate: function (self) { var t = self.progress * 4; setTick(clamp(Math.floor(t + 0.02), 0, 3)); fx.time(t); },
+          onToggle: function (self) { fx.active(self.isActive); },
+          onRefresh: function () { fx.resize(); }
         }
       });
       for (var i = 1; i < figs.length; i++) {
-        var at = i - 1 + 0.3;
-        tl.to(figs[i], { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.7, ease: 'power2.inOut' }, at)
-          .to(imgs[i], { scale: 1, duration: 0.9, ease: 'power2.out' }, at)
-          .to(imgs[i - 1], { scale: 0.94, duration: 0.7 }, at)
-          .to(texts[i - 1], { autoAlpha: 0, y: -40, duration: 0.3, ease: 'power2.in' }, at)
-          .to(texts[i], { autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out' }, at + 0.35);
+        var at = i - 0.3;
+        tl.to(figs[i], { clipPath: SHOW, duration: 0.6, ease: 'power2.inOut' }, at)
+          .to(imgs[i], { scale: 1, xPercent: 0, duration: 0.8, ease: 'power2.out' }, at)
+          .to(imgs[i - 1], { scale: 1.06, xPercent: -3, duration: 0.6 }, at)
+          .to(texts[i - 1], { autoAlpha: 0, y: -36, duration: 0.25, ease: 'power2.in' }, at)
+          .to(texts[i], { autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out' }, at + 0.3)
+          .to(bigs[i - 1], { autoAlpha: 0, yPercent: -14, duration: 0.35 }, at)
+          .to(bigs[i], { autoAlpha: 1, yPercent: 0, duration: 0.45, ease: 'power2.out' }, at + 0.15);
       }
-      tl.to({}, { duration: 0.4 });
+      tl.set({}, {}, 4);
       return function () {
-        section.classList.remove('is-pinned');
-        gsap.set(figs.concat(texts, imgs), { clearProps: 'all' });
+        section.classList.remove('is-sticky');
+        fx.active(false);
+        gsap.set(figs.concat(texts, imgs, bigs), { clearProps: 'all' });
         figs.forEach(function (f) { f.style.zIndex = ''; });
         lastTick = -1; setTick(0);
       };
     });
+  }
+
+  /* ------------------------------------------------------------------
+     Spiegel: Spiegelbild wandert gegenläufig (Scroll + Zeiger), Lichtbahn gleitet
+     ------------------------------------------------------------------ */
+  function initMirror() {
+    var mirror = qs('[data-mirror]'), reflect = qs('[data-mirror-reflect]'), sheen = qs('[data-mirror-sheen]');
+    if (!mirror || !reflect || !sheen || reduced()) return;
+    var sp = 0, px = 0, py = 0, cs = 0, cx = 0, cy = 0, raf = 0, visible = false;
+    var measure = function () {
+      var r = mirror.getBoundingClientRect(), vh = window.innerHeight;
+      sp = clamp((vh / 2 - (r.top + r.height / 2)) / (vh / 2 + r.height / 2), -1, 1);
+    };
+    var loop = function () {
+      cs += (sp - cs) * 0.12; cx += (px - cx) * 0.08; cy += (py - cy) * 0.08;
+      reflect.style.transform = 'translate3d(' + (cx * -3).toFixed(2) + '%,' + (cs * -7 + cy * -2).toFixed(2) + '%,0)';
+      sheen.style.transform = 'translateX(' + (-130 + (cs + 1) * 230 + cx * 25).toFixed(1) + '%) rotate(16deg)';
+      if (Math.abs(sp - cs) > 0.001 || Math.abs(px - cx) > 0.002 || Math.abs(py - cy) > 0.002) raf = requestAnimationFrame(loop); else raf = 0;
+    };
+    var kick = function () { if (!raf) raf = requestAnimationFrame(loop); };
+    visibilityGate(mirror, function (v) { visible = v; if (v) { measure(); kick(); } });
+    window.addEventListener('scroll', function () { if (visible) { measure(); kick(); } }, { passive: true });
+    if (finePointer.matches) {
+      mirror.addEventListener('pointermove', function (e) {
+        if (e.pointerType !== 'mouse') return;
+        var r = mirror.getBoundingClientRect();
+        px = ((e.clientX - r.left) / r.width) * 2 - 1; py = ((e.clientY - r.top) / r.height) * 2 - 1; kick();
+      });
+      mirror.addEventListener('pointerleave', function () { px = 0; py = 0; kick(); });
+    }
   }
 
   /* ------------------------------------------------------------------
@@ -439,6 +976,7 @@
     place();
   }
 
+
   /* ------------------------------------------------------------------
      Bart-Atelier: SVG-Profil, Bartstile morphen weich
      ------------------------------------------------------------------ */
@@ -482,7 +1020,7 @@
   function initBeard() {
     var svg = qs('[data-face]');
     if (!svg) return;
-    var pSolid = qs('[data-beard-solid]', svg), pStache = qs('[data-beard-stache]', svg), pStubble = qs('[data-beard-stubble]', svg);
+    var pSolid = qs('[data-beard-solid]', svg), pStache = qs('[data-beard-stache]', svg), pStubble = qs('[data-beard-stubble]', svg), pContour = qs('[data-beard-contour]', svg);
     var marks = { cheek: qs('[data-mark="cheek"]', svg), neck: qs('[data-mark="neck"]', svg), chin: qs('[data-mark="chin"]', svg) };
     var info = {
       name: qs('[data-bi-name]'), desc: qs('[data-bi-desc]'), grow: qs('[data-bi-grow]'), cut: qs('[data-bi-cut]'),
@@ -497,6 +1035,7 @@
     function render(s) {
       var bd = smoothPath(s.beard), st = smoothPath(s.stache);
       pSolid.setAttribute('d', bd); pStache.setAttribute('d', st); pStubble.setAttribute('d', bd + st);
+      if (pContour) pContour.setAttribute('d', (s.o.solid + s.o.stubble) > 0.5 ? bd : st);
       pSolid.style.opacity = s.o.solid.toFixed(3); pStache.style.opacity = s.o.stache.toFixed(3); pStubble.style.opacity = s.o.stubble.toFixed(3);
       var mo = Math.max(s.o.solid, s.o.stubble);
       var put = function (m, p, dx, dy) { m.setAttribute('transform', 'translate(' + (p[0] + dx).toFixed(1) + ' ' + (p[1] + dy).toFixed(1) + ')'); m.style.opacity = mo.toFixed(3); };
@@ -512,8 +1051,14 @@
       info.book.setAttribute('data-book-service', d.book); info.book.setAttribute('data-beard-style', d.name);
       info.chartName.textContent = d.name; info.chartNo.textContent = 'Nr. ' + pad2(idx + 1);
     }
+    /* Kreidelinie: Die neue Kontur zeichnet sich nach, dann verblasst sie */
+    function drawContour() {
+      if (!pContour || reduced() || !pContour.animate) return;
+      pContour.animate([{ strokeDashoffset: 1, opacity: 1 }, { strokeDashoffset: 0, opacity: 1, offset: 0.55 }, { strokeDashoffset: 0, opacity: 0 }], { duration: 2000, easing: 'cubic-bezier(0.77, 0, 0.175, 1)' });
+    }
     function morphTo(key) {
       var to = BEARDS[key];
+      drawContour();
       cancelAnimationFrame(anim);
       if (reduced()) { cur = { beard: copy(to.beard), stache: copy(to.stache), o: Object.assign({}, to.o) }; render(cur); return; }
       var from = { beard: copy(cur.beard), stache: copy(cur.stache), o: Object.assign({}, cur.o) };
@@ -536,6 +1081,7 @@
     if (checked && checked.value !== 'vollbart') { cur = { beard: copy(BEARDS[checked.value].beard), stache: copy(BEARDS[checked.value].stache), o: Object.assign({}, BEARDS[checked.value].o) }; render(cur); setInfo(checked.value, keys.indexOf(checked.value)); }
   }
 
+
   /* ------------------------------------------------------------------
      Galerie: ziehbare Strecke mit Trägheit und Gummiband an den Rändern
      ------------------------------------------------------------------ */
@@ -550,10 +1096,15 @@
     var x = 0, v = 0, min = 0, max = 0, mode = 'idle', target = 0, raf = 0, lastT = 0;
     var dragging = false, moved = false, pid = null, startX = 0, startY = 0, startPos = 0, samples = [];
     var lastIdx = -1;
+    /* Bilder wandern in ihrer Schnittmaske gegen die Zugrichtung (Tiefe) */
+    var centers = [], vpw = 0, para = !reduced(), gimgs = cards.map(function (c) { return qs('img', c); });
     if (tot) tot.textContent = pad2(cards.length);
 
     function padLeft() { return parseFloat(getComputedStyle(track).paddingLeft) || 0; }
-    function bounds() { min = Math.min(0, vp.clientWidth - track.scrollWidth); max = 0; }
+    function bounds() {
+      min = Math.min(0, vp.clientWidth - track.scrollWidth); max = 0;
+      vpw = vp.clientWidth; centers = cards.map(function (c) { return c.offsetLeft + c.offsetWidth / 2; });
+    }
     function index() {
       var pos = -x + 12, idx = 0, pl = padLeft();
       for (var i = 0; i < cards.length; i++) { if (cards[i].offsetLeft - pl <= pos) idx = i; }
@@ -562,6 +1113,11 @@
     }
     function render() {
       track.style.transform = 'translate3d(' + x.toFixed(2) + 'px,0,0)';
+      if (para) for (var gi = 0; gi < gimgs.length; gi++) {
+        if (!gimgs[gi]) continue;
+        var off = (centers[gi] || 0) + x - vpw / 2;
+        gimgs[gi].style.transform = 'translate3d(' + (-off * 0.045).toFixed(1) + 'px,0,0) scale(1.16)';
+      }
       var p = min === 0 ? 1 : clamp(x / min, 0, 1);
       if (bar) bar.style.transform = 'scaleX(' + (0.12 + 0.88 * p).toFixed(4) + ')';
       var idx = index();
@@ -681,6 +1237,28 @@
     if ('ResizeObserver' in window) new ResizeObserver(onResize).observe(vp); else { window.addEventListener('resize', onResize); onResize(); }
   }
 
+
+  /* ------------------------------------------------------------------
+     Team: Name zeigen → Stuhl im Grundriss leuchtet
+     ------------------------------------------------------------------ */
+  function initTeam() {
+    var rows = qsa('.barber[data-chair]'), plan = qs('[data-plan]');
+    if (!rows.length || !plan) return;
+    var chairs = {};
+    qsa('.plan-chair', plan).forEach(function (c) { chairs[c.getAttribute('data-chair')] = c; });
+    var set = function (id) {
+      rows.forEach(function (r) { r.classList.toggle('is-on', r.getAttribute('data-chair') === id); });
+      Object.keys(chairs).forEach(function (k) { chairs[k].classList.toggle('is-on', k === id); });
+    };
+    rows.forEach(function (r) {
+      var id = r.getAttribute('data-chair');
+      r.addEventListener('pointerenter', function () { set(id); });
+      r.addEventListener('focusin', function () { set(id); });
+    });
+    Object.keys(chairs).forEach(function (k) { chairs[k].addEventListener('pointerenter', function () { set(k); }); });
+    set('murat');
+  }
+
   /* ------------------------------------------------------------------
      Datum/Zeit in Köln
      ------------------------------------------------------------------ */
@@ -704,12 +1282,13 @@
   var fmtTime = function (min) { return pad2(Math.floor(min / 60)) + ':' + pad2(min % 60); };
   var fmtHour = function (h) { return String(h); };
 
+
   function initOpenStatus() {
     var now = berlinNow();
-    var el = qs('[data-open-status]'), txt = qs('[data-open-text]');
-    if (el && txt) {
+    var el = qs('[data-open-status]'), state = qs('[data-open-state]'), txt = qs('[data-open-text]');
+    if (el && txt && state) {
       var h = HOURS[now.wd], open = h && now.minutes >= h[0] * 60 && now.minutes < h[1] * 60;
-      if (open) { el.classList.add('is-open'); txt.textContent = 'Jetzt geöffnet · bis ' + fmtHour(h[1]) + ' Uhr'; }
+      if (open) { el.classList.add('is-open'); state.textContent = 'Geöffnet'; txt.textContent = 'heute bis ' + fmtHour(h[1]) + ' Uhr'; }
       else {
         el.classList.add('is-closed');
         var label = '';
@@ -717,7 +1296,7 @@
         else {
           for (var i = 1; i <= 7; i++) { var wd = (now.wd + i) % 7; if (HOURS[wd]) { label = (i === 1 ? 'morgen' : WD_SHORT[wd]) + ' ab ' + fmtHour(HOURS[wd][0]) + ' Uhr'; break; } }
         }
-        txt.textContent = 'Geschlossen · wieder ' + label;
+        state.textContent = 'Geschlossen'; txt.textContent = 'wieder ' + label;
       }
     }
     var row = qs('[data-hours] tr[data-day="' + (now.wd === 1 ? 0 : now.wd) + '"]');
@@ -1135,6 +1714,7 @@
     }, true);
   }
 
+
   /* ------------------------------------------------------------------
      Start
      ------------------------------------------------------------------ */
@@ -1150,30 +1730,32 @@
     return function (fn) { setTimeout(fn, 0); };
   })();
 
+
   function start() {
     // sofort: alles, was im ersten Bildschirm sichtbar ist oder Eingaben annimmt
     safe('scroll', initScroll);
     safe('header', initHeader);
     safe('menu', initMenu);
+    safe('roll', initRoll);
     safe('hero', initHero);
     safe('pole', initPole);
+    safe('status', initOpenStatus);
     // danach in kleinen Häppchen
     var queue = [
-      ['reveal', initReveal], ['status', initOpenStatus], ['statement', initStatement], ['ritual', initRitual],
-      ['prices', initPrices], ['beard', initBeard], ['gallery', initGallery], ['booking', initBooking], ['deeplinks', initDeepLinks]
+      ['magnet', initMagnet], ['chapters', initChapters], ['cuts', initCuts], ['statement', initStatement], ['services', initServices],
+      ['ritual', initRitual], ['mirror', initMirror], ['prices', initPrices], ['beard', initBeard], ['gallery', initGallery],
+      ['team', initTeam], ['booking', initBooking], ['deeplinks', initDeepLinks], ['gold', initGold]
     ];
     var run = function () {
       var job = queue.shift();
-      if (!job) return;
+      if (!job) { if (hasGSAP) requestAnimationFrame(function () { ScrollTrigger.refresh(); }); return; }
       safe(job[0], job[1]);
       nextTask(run);
     };
     nextTask(run);
     if (hasGSAP && document.fonts && document.fonts.ready) {
-      // ScrollTrigger aktualisiert sich bei DOMContentLoaded/load selbst; nur nachziehen, wenn Schriften später fertig werden
       document.fonts.ready.then(function () { if (document.readyState === 'complete') ScrollTrigger.refresh(); });
     }
   }
-  // Eigener Task statt direkt im Block der defer-Skripte (GSAP/ScrollTrigger/Lenis laufen dort schon am Stück)
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else nextTask(start);
 })();

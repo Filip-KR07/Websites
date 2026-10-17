@@ -323,7 +323,10 @@
       header.classList.toggle('is-scrolled', y > 12);
       var max = document.documentElement.scrollHeight - window.innerHeight;
       if (bar) bar.style.transform = 'scaleX(' + (max > 0 ? clamp(y / max, 0, 1) : 0).toFixed(4) + ')';
+      headerTheme();
     }
+    nightEls = qsa('.theme-night:not(.site-footer), .st-night');
+    window.__ostwaldHeaderTheme = function () { nightEls = qsa('.theme-night:not(.site-footer), .st-night'); update(); };
     window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
     window.addEventListener('resize', update);
     update();
@@ -453,7 +456,7 @@
     qsa('[data-stagger]').forEach(function (list) {
       Array.prototype.forEach.call(list.children, function (c, i) { c.style.setProperty('--si', Math.min(i, 8)); });
     });
-    var items = qsa('[data-reveal], [data-reveal-img], [data-split], [data-stagger]');
+    var items = qsa('[data-reveal], [data-reveal-img], [data-split], [data-stagger], [data-blind], .footer-word');
     if (motionOff || !('IntersectionObserver' in window)) {
       items.forEach(function (n) { n.classList.add('is-in', 'st-done'); });
       return;
@@ -479,63 +482,120 @@
   }
 
   /* ------------------------------------------------------------------
-     Hero-Intro, Zähler, Parallaxe
+     Zählwerk (Odometer): Ziffern rollen wie bei einem mechanischen Zähler
      ------------------------------------------------------------------ */
-  function countUp(node, dur) {
-    var target = parseFloat(node.getAttribute('data-count'));
-    if (!isFinite(target)) return;
-    var start = performance.now();
-    node.textContent = '0';
-    (function tick(now) {
-      var t = clamp((now - start) / dur, 0, 1);
-      var e = 1 - Math.pow(1 - t, 4);
-      node.textContent = fmt(target * e);
-      if (t < 1) requestAnimationFrame(tick);
-    })(start);
+  function Odo(node) {
+    var cur = '', strips = [];
+    function build(str) {
+      node.textContent = '';
+      strips = [];
+      for (var i = 0; i < str.length; i++) {
+        var ch = str.charAt(i);
+        if (/\d/.test(ch)) {
+          var d = el('span', 'odo-d'), s = el('span', 'odo-s');
+          for (var k = 0; k < 10; k++) s.appendChild(el('span', null, String(k)));
+          d.appendChild(s); node.appendChild(d); strips.push(s);
+        } else node.appendChild(el('span', 'odo-c', ch === ' ' ? ' ' : ch));
+      }
+    }
+    function apply(str, instant) {
+      var ds = str.replace(/\D/g, ''), n = strips.length;
+      strips.forEach(function (s, i) {
+        if (instant) s.style.transition = 'none';
+        else s.style.transitionDelay = ((n - 1 - i) * 45) + 'ms';
+        s.style.transform = 'translateY(' + (-(+ds.charAt(i)) * 10) + '%)';
+        if (instant) { void s.offsetWidth; s.style.transition = ''; }
+      });
+    }
+    return {
+      set: function (str, instant, from0) {
+        if (str === cur && !from0) return;
+        var rebuild = from0 || str.replace(/\d/g, '0') !== cur.replace(/\d/g, '0');
+        var inst = instant || reduced;
+        if (rebuild) {
+          build(str);
+          if (inst) apply(str, true);
+          else { apply(str.replace(/\d/g, '0'), true); requestAnimationFrame(function () { requestAnimationFrame(function () { apply(str, false); }); }); }
+        } else apply(str, inst);
+        cur = str;
+      }
+    };
   }
+
+  /* ------------------------------------------------------------------
+     Hero: Fassade – Legende im Schriftfeld, Blick durchs Fenster (Parallaxe)
+     ------------------------------------------------------------------ */
   function initHero() {
-    var done = function () { doc.classList.remove('is-loading'); };
-    if (!enhanced) { done(); return; }
-    var gsap = window.gsap;
-    var hero = qs('.hero');
-    var lines = qsa('.hero-title .line-inner', hero);
-    var fades = qsa('[data-hero-fade]', hero);
-    var photo = qs('.hero-photo', hero);
-    var photoImg = qs('img', photo);
-    var clH = qsa('.cl--t, .cl--b', hero), clV = qsa('.cl--l, .cl--r', hero);
-    var dims = qsa('.dim', hero);
-    var doors = qsa('.door, .hero-north', hero);
-    var card = qs('.hero-card', hero);
-    var kpis = qsa('.kpi', hero);
+    doc.classList.remove('is-loading');
+    var hero = qs('.hero'), facade = qs('[data-facade]');
+    if (!facade) return;
+    var wins = qsa('.win', facade);
+    var legend = qs('[data-legend]'), lk = qs('[data-legend-k]'), lt = qs('[data-legend-t]'), lm = qs('[data-legend-m]');
+    var cur = wins.filter(function (w) { return w.getAttribute('data-expose') === 'OW-2611'; })[0], swapT = 0;
+    function show(w) {
+      if (!w || w === cur || !legend) return;
+      cur = w;
+      clearTimeout(swapT);
+      legend.classList.add('is-swapping');
+      swapT = setTimeout(function () {
+        lk.textContent = w.getAttribute('data-win');
+        lt.textContent = w.getAttribute('data-win-t');
+        lm.textContent = w.getAttribute('data-win-m');
+        legend.classList.remove('is-swapping');
+      }, reduced ? 0 : 90);
+    }
+    wins.forEach(function (w) {
+      w.addEventListener('pointerenter', function () { show(w); });
+      w.addEventListener('focus', function () { show(w); });
+    });
+    if (reduced) return;
 
-    // Erst die CSS-Startzustände entfernen, dann identische Inline-Zustände setzen (gleicher Task → kein Flackern),
-    // sonst liest GSAP das CSS-translateY als zusätzlichen y-Versatz.
-    done();
-    gsap.set(lines, { y: 0, yPercent: 105 });
-    gsap.set(fades, { opacity: 0, y: 14 });
-    gsap.set(photo, { clipPath: 'inset(100% 0% 0% 0%)' });
-    gsap.set(photoImg, { scale: 1.14 });
-    gsap.set(clH, { scaleX: 0, scaleY: 1, opacity: 0 });
-    gsap.set(clV, { scaleY: 0, scaleX: 1, opacity: 0 });
-    gsap.set(dims, { opacity: 0, scale: 0.96 });
-    gsap.set(doors, { opacity: 0 });
-    if (card) { card.style.transition = 'none'; gsap.set(card, { opacity: 0, y: 24 }); }
-    gsap.set(kpis, { opacity: 0, y: 16 });
-
-    var tl = gsap.timeline({ defaults: { ease: 'expo.out' }, delay: 0.1 });
-    tl.to(lines, { yPercent: 0, duration: 1.25, stagger: 0.12 }, 0)
-      .to(clH, { scaleX: 1, opacity: 0.55, duration: 1.1, ease: 'power3.inOut', stagger: 0.08 }, 0.15)
-      .to(clV, { scaleY: 1, opacity: 0.55, duration: 1.1, ease: 'power3.inOut', stagger: 0.08 }, 0.25)
-      .to(photo, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, ease: 'power4.inOut' }, 0.35)
-      .to(photoImg, { scale: 1, duration: 1.8, ease: 'power3.out' }, 0.35)
-      .to(dims, { opacity: 1, scale: 1, duration: 0.8, ease: 'power2.out', stagger: 0.08 }, 1.0)
-      .to(doors, { opacity: 1, duration: 0.8, ease: 'power1.out', stagger: 0.08 }, 1.1)
-      .to(fades, { opacity: 1, y: 0, duration: 0.9, stagger: 0.07 }, 0.55);
-    if (card) tl.to(card, { opacity: 1, y: 0, duration: 1, onComplete: function () { gsap.set(card, { clearProps: 'transform,opacity' }); card.style.transition = ''; } }, 1.15);
-    tl.to(kpis, { opacity: 1, y: 0, duration: 0.9, stagger: 0.07, onStart: function () {
-      qsa('[data-count]', hero).forEach(function (n) { countUp(n, 1600); });
-    } }, 1.05);
+    // Raumfotos verschieben sich gegen den Blickpunkt – wie beim Kopfbewegen vor einem Fenster
+    var imgs = wins.map(function (w) { return qs('img', w); }).filter(Boolean);
+    var centers = [], px = .5, py = .5, tx = .5, ty = .5, sy = 0, tsy = 0, raf = 0, inView = true;
+    function measure() {
+      var fr = facade.getBoundingClientRect();
+      centers = imgs.map(function (im) {
+        var r = im.parentNode.getBoundingClientRect();
+        return { x: (r.left + r.width / 2 - fr.left) / fr.width, y: (r.top + r.height / 2 - fr.top) / fr.height };
+      });
+    }
+    function render() {
+      imgs.forEach(function (im, i) {
+        var c = centers[i] || { x: .5, y: .5 };
+        var dx = (c.x - px) * 8, dy = (c.y - py) * 4.5 + sy;
+        im.style.transform = 'translate3d(' + dx.toFixed(2) + '%,' + dy.toFixed(2) + '%,0)';
+      });
+    }
+    function loop() {
+      px += (tx - px) * .085; py += (ty - py) * .085; sy += (tsy - sy) * .18;
+      render();
+      if (inView && (Math.abs(tx - px) > .0015 || Math.abs(ty - py) > .0015 || Math.abs(tsy - sy) > .02)) raf = requestAnimationFrame(loop);
+      else raf = 0;
+    }
+    function kick() { if (!raf && inView) raf = requestAnimationFrame(loop); }
+    measure(); render();
+    window.addEventListener('resize', function () { measure(); render(); });
+    if (finePointer) {
+      hero.addEventListener('pointermove', function (e) {
+        if (e.pointerType !== 'mouse') return;
+        var fr = facade.getBoundingClientRect();
+        tx = clamp((e.clientX - fr.left) / fr.width, -.25, 1.25);
+        ty = clamp((e.clientY - fr.top) / fr.height, -.25, 1.25);
+        kick();
+      });
+      hero.addEventListener('pointerleave', function () { tx = .5; ty = .5; kick(); });
+    }
+    window.addEventListener('scroll', function () {
+      if (!inView) return;
+      tsy = -clamp(window.scrollY / window.innerHeight, 0, 1) * 3.2;
+      kick();
+    }, { passive: true });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (en) { inView = en[0].isIntersecting; if (inView) kick(); }).observe(hero);
+    }
   }
+
   function initParallax() {
     if (!enhanced) return;
     var gsap = window.gsap;
@@ -543,15 +603,298 @@
       var box = img.parentElement;
       gsap.fromTo(img, { yPercent: -6 }, {
         yPercent: 6, ease: 'none',
-        // refreshPriority -1: nach dem gepinnten Verkaufsprozess berechnen, sonst liegt die Parallaxe darunter falsch
         scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: 0.6, refreshPriority: -1 }
       });
     });
-    // Konstruktionslinien im Hero driften minimal mit
-    var frame = qs('.hero-frame');
-    if (frame) {
-      gsap.to(qsa('.door, .hero-north', frame), { y: -18, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.6, refreshPriority: -1 } });
+  }
+
+  /* ------------------------------------------------------------------
+     Übergang Hero → Objekte: Das Fenster öffnet sich (Clip-Path, scroll-gesteuert)
+     ------------------------------------------------------------------ */
+  var passDark = false;
+  function initPassage() {
+    var pass = qs('[data-passage]');
+    if (!pass) return;
+    if (!enhanced) {
+      // ohne GSAP: Raum offen zeigen, Wand und Rahmen entfernen
+      qsa('[data-passage-walls], [data-passage-frame]', pass).forEach(function (n) { n.hidden = true; });
+      qsa('.pw > span', pass).forEach(function (w) { w.style.transform = 'none'; });
+      var sb = qs('[data-passage-sub]', pass); if (sb) sb.style.opacity = '1';
+      return;
     }
+    var gsap = window.gsap, ST = window.ScrollTrigger;
+    var stage = qs('.passage-stage', pass), room = qs('[data-passage-room]', pass), photo = qs('[data-passage-photo]', pass);
+    var frame = qs('[data-passage-frame]', pass), walls = qsa('.pwall', pass), wallBox = qs('[data-passage-walls]', pass);
+    var L = {}; ['t', 'b', 'l', 'r', 'x', 'y', 'sill'].forEach(function (k) { L[k] = qs('.pf-' + k, frame); });
+    var words = qsa('.pw > span', pass), sub = qs('[data-passage-sub]', pass);
+    var W = 0, H = 0, P = null, lastP = 0;
+    var ease = function (t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+    var outE = function (t) { return 1 - Math.pow(1 - t, 3); };
+    function measure() {
+      photo.style.transform = '';
+      W = stage.clientWidth; H = stage.clientHeight;
+      var s = stage.getBoundingClientRect(), r = photo.getBoundingClientRect();
+      P = { cx: r.left - s.left + r.width / 2, cy: r.top - s.top + r.height / 2, w: r.width, h: r.height };
+    }
+    function render(p) {
+      lastP = p;
+      if (!P) measure();
+      var o = ease(clamp(p / .62, 0, 1));
+      var w0 = clamp(W * .2, 170, 340), h0 = Math.min(w0 * 1.375, H * .6);
+      var cx = W / 2, cy = H / 2;
+      var x0 = (cx - w0 / 2) * (1 - o), y0 = (cy - h0 / 2) * (1 - o);
+      var x1 = cx + w0 / 2 + (W - cx - w0 / 2) * o, y1 = cy + h0 / 2 + (H - cy - h0 / 2) * o;
+      // Wandstücke schieben sich nach außen (nur transform) – der Raum dahinter wird nie neu gezeichnet
+      walls[0].style.transform = 'translate3d(0,' + (y0 - H).toFixed(1) + 'px,0)';
+      walls[1].style.transform = 'translate3d(0,' + y1.toFixed(1) + 'px,0)';
+      walls[2].style.transform = 'translate3d(' + (x0 - W).toFixed(1) + 'px,0,0)';
+      walls[3].style.transform = 'translate3d(' + x1.toFixed(1) + 'px,0,0)';
+      var gone = o >= .999; if (wallBox.hidden !== gone) wallBox.hidden = gone;
+      var ww = x1 - x0, wh = y1 - y0, tr = y0 + wh * .3;
+      L.t.style.transform = 'translate(' + x0 + 'px,' + (y0 - 2) + 'px) scaleX(' + (ww / W).toFixed(4) + ')';
+      L.b.style.transform = 'translate(' + x0 + 'px,' + y1 + 'px) scaleX(' + (ww / W).toFixed(4) + ')';
+      L.l.style.transform = 'translate(' + (x0 - 2) + 'px,' + y0 + 'px) scaleY(' + (wh / H).toFixed(4) + ')';
+      L.r.style.transform = 'translate(' + x1 + 'px,' + y0 + 'px) scaleY(' + (wh / H).toFixed(4) + ')';
+      L.sill.style.transform = 'translate(' + (x0 - 14) + 'px,' + (y1 + 2) + 'px) scaleX(' + ((ww + 28) / W).toFixed(4) + ')';
+      L.x.style.transform = 'translate(' + x0 + 'px,' + (tr - 3.5) + 'px) scaleX(' + (ww / W).toFixed(4) + ')';
+      L.y.style.transform = 'translate(' + (x0 + ww / 2 - 3.5) + 'px,' + tr + 'px) scaleY(' + ((y1 - tr) / H).toFixed(4) + ')';
+      var fo = 1 - clamp((o - .5) / .42, 0, 1);
+      frame.style.opacity = fo.toFixed(3);
+      // Foto: zuerst mittig hinter dem kleinen Fenster, dann an seinen Platz
+      var o2 = ease(clamp((p - .04) / .66, 0, 1));
+      var s0 = Math.max(w0 / P.w, h0 / P.h) * 1.12, sc = s0 + (1 - s0) * o2;
+      var dx = (cx - P.cx) * (1 - o2), dy = (cy - P.cy) * (1 - o2);
+      photo.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px) scale(' + sc.toFixed(4) + ')';
+      var wp = clamp((p - .48) / .3, 0, 1);
+      words.forEach(function (w, i) {
+        var t = outE(clamp(wp * 1.7 - i * .1, 0, 1));
+        w.style.transform = t >= 1 ? 'none' : 'translateY(' + ((1 - t) * 106).toFixed(1) + '%)';
+      });
+      sub.style.opacity = clamp((p - .7) / .16, 0, 1).toFixed(3);
+      passDark = o > .55;
+    }
+    frame.classList.add('is-ready'); wallBox.classList.add('is-ready');
+    var mm = gsap.matchMedia();
+    mm.add('(min-width: 1024px)', function () {
+      var st = ST.create({ trigger: pass, start: 'top top', end: 'bottom bottom', scrub: true, onUpdate: function (self) { render(self.progress); }, onRefresh: function (self) { measure(); render(self.progress); } });
+      return function () { st.kill(); };
+    });
+    mm.add('(max-width: 1023px)', function () {
+      var st = ST.create({ trigger: stage, start: 'top 92%', end: 'top 8%', scrub: true, onUpdate: function (self) { render(self.progress); }, onRefresh: function (self) { measure(); render(self.progress); } });
+      return function () { st.kill(); };
+    });
+    measure(); render(0);
+  }
+
+  /* ------------------------------------------------------------------
+     Objektverzeichnis: Fenster rechts zeigt das Objekt unter dem Zeiger
+     ------------------------------------------------------------------ */
+  var regApi = null;
+  function initRegWindow() {
+    var win = qs('[data-reg-window]'), grid = qs('[data-obj-grid]');
+    if (!win || !grid) return;
+    var frame = qs('.rw-frame', win), idEl = qs('[data-rw-id]', win), tEl = qs('[data-rw-t]', win);
+    var cur = '', fallback = qs('img', frame);
+    function srcs(name) { return { src: BASE + 'assets/img/' + name + '-960.webp', srcset: BASE + 'assets/img/' + name + '-480.webp 480w, ' + BASE + 'assets/img/' + name + '-960.webp 960w' }; }
+    function show(id, instant) {
+      var o = OBJECTS[id];
+      if (!o || id === cur) return;
+      cur = id;
+      idEl.textContent = id + ' · ' + o.loc;
+      tEl.textContent = o.title;
+      var name = o.photos[0] || (o.reserved ? null : 'altbau');
+      var olds = qsa('img', frame);
+      if (!name) { frame.classList.add('is-empty'); return; }
+      frame.classList.remove('is-empty');
+      var s = srcs(name);
+      var im = document.createElement('img');
+      im.alt = ''; im.decoding = 'async'; im.sizes = fallback.sizes || '30vw'; im.srcset = s.srcset; im.src = s.src;
+      im.width = 960; im.height = 641;
+      if (instant || reduced) {
+        frame.insertBefore(im, frame.firstChild);
+        olds.forEach(function (x) { x.remove(); });
+        return;
+      }
+      im.className = 'is-next';
+      frame.insertBefore(im, qs('.rw-bar', frame));
+      var go = function () { requestAnimationFrame(function () { im.classList.add('is-shown'); }); setTimeout(function () { olds.forEach(function (x) { x.remove(); }); im.classList.remove('is-next', 'is-shown'); }, 520); };
+      if (im.decode) im.decode().then(go, go); else go();
+    }
+    cur = 'OW-2611';
+    grid.addEventListener('pointerover', function (e) {
+      var li = e.target.closest && e.target.closest('.obj');
+      if (li) show(li.getAttribute('data-id'));
+    });
+    grid.addEventListener('focusin', function (e) {
+      var li = e.target.closest && e.target.closest('.obj');
+      if (li) show(li.getAttribute('data-id'));
+    });
+    frame.addEventListener('click', function () { if (OBJECTS[cur]) openExpose(cur, qs('.obj[data-id="' + cur + '"] .obj-link')); });
+    frame.style.cursor = 'pointer';
+    regApi = { sync: function () { if (visibleIds.length && visibleIds.indexOf(cur) === -1) show(visibleIds[0]); } };
+  }
+
+  /* ------------------------------------------------------------------
+     Haltungssatz: Wörter füllen sich, dann steigt die Nacht wie ein Vorhang
+     ------------------------------------------------------------------ */
+  function initStatement() {
+    var wrap = qs('[data-statement]');
+    if (!wrap) return;
+    var stick = qs('.statement-stick', wrap), text = qs('[data-statement-text]', wrap);
+    var night = el('div', 'st-night'), nin = el('div', 'st-night-in');
+    night.setAttribute('aria-hidden', 'true');
+    var copy = qs('.container', stick).cloneNode(true);
+    qsa('[id]', copy).forEach(function (n) { n.removeAttribute('id'); });
+    nin.appendChild(copy); night.appendChild(nin); stick.appendChild(night);
+    if (!enhanced) return;
+    // Wörter einzeln
+    var words = [];
+    (function walk(node) {
+      Array.prototype.slice.call(node.childNodes).forEach(function (c) {
+        if (c.nodeType !== 3) return;
+        var frag = document.createDocumentFragment();
+        c.nodeValue.split(/(\s+)/).forEach(function (p) {
+          if (!p) return;
+          if (/^\s+$/.test(p)) { frag.appendChild(document.createTextNode(' ')); return; }
+          var s = el('span', 'sw', p); s.style.opacity = '.14'; words.push(s); frag.appendChild(s);
+        });
+        node.replaceChild(frag, c);
+      });
+    })(text);
+    var N = words.length, lastFill = [];
+    function render(p, split) {
+      var pf = clamp(p / split, 0, 1);
+      words.forEach(function (w, i) {
+        var t = clamp((pf * (N + 2) - i) / 2.2, 0, 1);
+        var v = (.14 + .86 * t).toFixed(2);
+        if (lastFill[i] !== v) { w.style.opacity = v; lastFill[i] = v; }
+      });
+      var q = clamp((p - split - .04) / (1 - split - .08), 0, 1);
+      q = q < .5 ? 2 * q * q : 1 - Math.pow(-2 * q + 2, 2) / 2;
+      night.style.transform = 'translate3d(0,' + ((1 - q) * 100).toFixed(2) + '%,0)';
+      nin.style.transform = 'translate3d(0,' + (-(1 - q) * 100).toFixed(2) + '%,0)';
+    }
+    var gsap = window.gsap, ST = window.ScrollTrigger, mm = gsap.matchMedia();
+    mm.add('(min-width: 1024px)', function () {
+      var st = ST.create({ trigger: wrap, start: 'top top', end: 'bottom bottom', scrub: true, onUpdate: function (s) { render(s.progress, .5); } });
+      render(0, .5);
+      return function () { st.kill(); };
+    });
+    mm.add('(max-width: 1023px)', function () {
+      var st = ST.create({ trigger: stick, start: 'top 80%', end: 'bottom 35%', scrub: true, onUpdate: function (s) { render(s.progress, .55); } });
+      render(0, .55);
+      return function () { st.kill(); };
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     Kopfzeile: Etagenanzeige + Farbwechsel über Nacht-Kapiteln
+     ------------------------------------------------------------------ */
+  function rollSwap(box, text, down) {
+    var old = qsa('.lift-roll:not(.is-out)', box)[0];
+    if (old && old.textContent === text) return;
+    if (reduced || !old) { if (old) old.textContent = text; return; }
+    var n = el('span', 'lift-roll is-in', text);
+    old.classList.add('is-out');
+    box.appendChild(n);
+    setTimeout(function () { old.remove(); n.classList.remove('is-in'); }, 320);
+  }
+  function initLift() {
+    var lift = qs('[data-lift]');
+    var floors = qsa('[data-floor]');
+    if (!lift || !floors.length || !('IntersectionObserver' in window)) return;
+    var fBox = qs('.lift-floor', lift), nBox = qs('.lift-name', lift), idx = 0;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var i = floors.indexOf(en.target);
+        if (i === idx) return;
+        lift.classList.toggle('is-down', i < idx);
+        idx = i;
+        rollSwap(fBox, en.target.getAttribute('data-floor'));
+        rollSwap(nBox, en.target.getAttribute('data-floor-name'));
+      });
+    }, { rootMargin: '-50% 0px -50% 0px' });
+    floors.forEach(function (f) { io.observe(f); });
+  }
+  var nightEls = [];
+  function headerTheme() {
+    if (!header) return;
+    var y = headerH() / 2, dark = false;
+    for (var i = 0; i < nightEls.length; i++) {
+      var r = nightEls[i].getBoundingClientRect();
+      if (r.top <= y && r.bottom >= y && r.height > 0) { dark = true; break; }
+    }
+    if (!dark && passDark) {
+      var p = qs('.passage-stage');
+      if (p) { var pr = p.getBoundingClientRect(); dark = pr.top <= y && pr.bottom >= y; }
+    }
+    if (menuOpen) dark = false;
+    header.classList.toggle('on-dark', dark);
+  }
+
+  /* ------------------------------------------------------------------
+     Mikro-Interaktionen: magnetische Buttons, Zeichen-Rollen, Laufband, Fassadenschrift
+     ------------------------------------------------------------------ */
+  function initMagnet() {
+    if (!finePointer || reduced) return;
+    qsa('[data-magnet], .contact-form [type="submit"], .header-cta').forEach(function (b) {
+      var x = 0, y = 0, tx = 0, ty = 0, s = 1, ts = 1, raf = 0;
+      function loop() {
+        x += (tx - x) * .2; y += (ty - y) * .2; s += (ts - s) * .35;
+        b.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0) scale(' + s.toFixed(3) + ')';
+        if (Math.abs(tx - x) > .05 || Math.abs(ty - y) > .05 || Math.abs(ts - s) > .002) raf = requestAnimationFrame(loop);
+        else { raf = 0; if (!tx && !ty && ts === 1) b.style.transform = ''; }
+      }
+      function kick() { if (!raf) raf = requestAnimationFrame(loop); }
+      b.addEventListener('pointermove', function (e) {
+        if (e.pointerType !== 'mouse') return;
+        var r = b.getBoundingClientRect();
+        tx = (e.clientX - (r.left + r.width / 2)) * .2; ty = (e.clientY - (r.top + r.height / 2)) * .3; kick();
+      });
+      b.addEventListener('pointerleave', function () { tx = 0; ty = 0; ts = 1; kick(); });
+      b.addEventListener('pointerdown', function () { ts = .97; kick(); });
+      b.addEventListener('pointerup', function () { ts = 1; kick(); });
+    });
+  }
+  function initNavRoll() {
+    if (!finePointer || reduced) return;
+    qsa('[data-roll]').forEach(function (a) {
+      var t = a.textContent;
+      a.setAttribute('aria-label', t);
+      a.textContent = '';
+      var roll = el('span', 'roll'), A = el('span', 'roll-a'), B2 = el('span', 'roll-b');
+      roll.setAttribute('aria-hidden', 'true');
+      t.split('').forEach(function (c, i) {
+        var s1 = el('span', 'ch', c), s2 = el('span', 'ch', c);
+        s1.style.setProperty('--ci', i); s2.style.setProperty('--ci', i);
+        A.appendChild(s1); B2.appendChild(s2);
+      });
+      roll.appendChild(A); roll.appendChild(B2); a.appendChild(roll);
+    });
+  }
+  function initMarquee() {
+    var band = qs('[data-marquee]');
+    if (!band || reduced) return;
+    var track = qs('[data-marquee-track]', band), set = qs('.street-set', track);
+    track.appendChild(set.cloneNode(true));
+    var x = 0, w = 0, v = 0, lastY = window.scrollY, raf = 0, inView = false;
+    function measure() { w = set.getBoundingClientRect().width; }
+    function loop() {
+      var y = window.scrollY, dy = y - lastY; lastY = y;
+      v += (clamp(dy, -80, 80) - v) * .12;
+      x -= v * .6 + (v >= 0 ? .25 : -.25) * Math.min(1, Math.abs(v));
+      if (w) { while (x <= -w) x += w; while (x > 0) x -= w; }
+      track.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,0)';
+      if (inView && Math.abs(v) > .02) raf = requestAnimationFrame(loop); else raf = 0;
+    }
+    measure();
+    window.addEventListener('resize', measure);
+    window.addEventListener('scroll', function () { if (inView && !raf) { lastY = lastY || window.scrollY; raf = requestAnimationFrame(loop); } }, { passive: true });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (en) { inView = en[0].isIntersecting; lastY = window.scrollY; }).observe(band);
+  }
+  function initFooterWord() {
+    qsa('.footer-word span').forEach(function (s, i) { s.style.setProperty('--i', i); });
   }
 
   /* ------------------------------------------------------------------
@@ -563,7 +906,7 @@
     var img = qs('[data-svc-preview-img]');
     if (!list || !prev || !img || !finePointer || reduced) return;
     var x = 0, y = 0, tx = 0, ty = 0, rot = 0, lastX = 0, raf = 0, active = false, hideT = 0;
-    var W = 280, H = 187;
+    var W = 260, H = 325;
     var cache = {};
     qsa('.svc', list).forEach(function (li) {
       var key = li.getAttribute('data-svc-img');
@@ -680,6 +1023,7 @@
       count.appendChild(document.createTextNode(n === 1 ? ' Objekt ' + label : ' Objekte ' + label));
       if (empty) empty.hidden = n > 0;
       if (mapApi) mapApi.update();
+      if (regApi) regApi.sync();
     }
 
     form.addEventListener('change', function (e) {
@@ -1207,7 +1551,15 @@
   }
   function initExpose() {
     if (!dialog) return;
-    exState.tabs = initTabs(qs('[data-expose-tabs]', dialog));
+    // Grundriss zeichnet sich beim Umschalten Strich für Strich (wie auf dem Reißbrett)
+    var drawPlan = function () {
+      if (!doc.classList.contains('anim')) return;
+      var w = qs('[data-plan-wrap]', dialog);
+      qsa('svg rect, svg path, svg line', w).forEach(function (n) { if (!n.classList.contains('pl-balk')) n.setAttribute('pathLength', '1'); });
+      w.classList.remove('is-drawing'); void w.offsetWidth; w.classList.add('is-drawing');
+    };
+    exState.tabs = initTabs(qs('[data-expose-tabs]', dialog), function (tab) { if (tab.id === 'ex-tab-plan') drawPlan(); });
+    dialog.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.plan-floors button')) setTimeout(drawPlan, 0); });
     qs('[data-expose-close]', dialog).addEventListener('click', function () { closeExpose(true); });
     dialog.addEventListener('cancel', function (e) { e.preventDefault(); closeExpose(true); });
     dialog.addEventListener('click', function (e) { if (e.target === dialog) closeExpose(true); });
@@ -1293,6 +1645,22 @@
     var area = qs('[data-flaeche]', form);
     var areaOut = qs('[data-flaeche-out]', form);
     var cur = 1, areaTouched = false;
+    var gauge = qs('[data-gauge]', root);
+    var gOdo = gauge ? Odo(qs('[data-gauge-odo]', gauge)) : null;
+    var gNeedle = gauge && qs('[data-gauge-needle]', gauge), gLabel = gauge && qs('[data-gauge-label]', gauge);
+    var odoLow = Odo(qs('[data-odo-low]', result)), odoHigh = Odo(qs('[data-odo-high]', result));
+    // Laufender Richtwert je m² aus den bisherigen Angaben – Zeiger auf der Messlatte 3.000–12.000 €/m²
+    function gaugeUpdate(instant) {
+      if (!gauge) return;
+      var d = data();
+      var r = computeValuation({ art: d.art || 'wohnung', lage: d.lage, flaeche: d.flaeche, baujahr: d.baujahr, zustand: d.zustand, extras: d.extras });
+      var sqm = (r.sqmLow + r.sqmHigh) / 2;
+      gNeedle.style.transform = 'translateX(' + (clamp((sqm - 3000) / 9000, 0, 1) * 100).toFixed(2) + '%)';
+      gOdo.set(fmt(Math.round(sqm / 10) * 10), instant);
+      var lageLabel = (qs('input[name="lage"]:checked + span', form) || {}).textContent;
+      gLabel.textContent = (lageLabel || 'Frankfurt gesamt') + ' · ' + (d.art ? LABELS.art[d.art] : 'Eigentumswohnung') + ' · Richtwert';
+      gauge.classList.toggle('is-pending', !d.lage);
+    }
 
     function setNextLabel() {
       next.textContent = '';
@@ -1324,7 +1692,7 @@
       area.setAttribute('aria-valuetext', area.value + ' Quadratmeter');
       setRangeFill(area);
     }
-    area.addEventListener('input', function () { areaTouched = true; setArea(); });
+    area.addEventListener('input', function () { areaTouched = true; setArea(); gaugeUpdate(); });
     form.addEventListener('change', function (e) {
       var t = e.target;
       if (t.name === 'art') {
@@ -1337,6 +1705,7 @@
       }
       if (t.name === 'lage') setError(form, 'lage', false);
       if (t.name === 'consent' && t.checked) setError(form, 'consent', false);
+      if (/^(art|lage|baujahr|zustand|extra)$/.test(t.name)) gaugeUpdate();
     });
     ['name', 'email'].forEach(function (n) {
       var f = qs('[name="' + n + '"]', form);
@@ -1370,6 +1739,9 @@
       var r = computeValuation(d);
       qs('[data-val-low]', result).textContent = eur(r.low);
       qs('[data-val-high]', result).textContent = eur(r.high);
+      odoLow.set(eur(r.low), false, true);
+      odoHigh.set(eur(r.high), false, true);
+      gaugeUpdate();
       qs('[data-val-sqm]', result).textContent = 'entspricht ca. ' + eur(r.sqmLow) + ' bis ' + eur(r.sqmHigh) + ' je m² Wohnfläche';
       // Skala: Frankfurt gesamt für diese Fläche
       var vals = Object.keys(VALUATION.BASE_SQM).map(function (k) { return VALUATION.BASE_SQM[k]; });
@@ -1421,9 +1793,11 @@
       result.hidden = true;
       form.hidden = false;
       show(1, 0, true);
+      gaugeUpdate();
     });
     setArea();
     show(1, 0, false);
+    gaugeUpdate(true);
   }
 
   /* ------------------------------------------------------------------
@@ -1432,7 +1806,6 @@
   function initProcess() {
     var sec = qs('[data-process]');
     if (!sec) return;
-    var pinEl = qs('[data-process-pin]', sec);
     var stepsEls = qsa('.pstep', sec);
     var stages = qsa('.pp-stage', sec);
     var sheetNo = qs('[data-sheet-no]', sec);
@@ -1490,15 +1863,20 @@
     var mm = gsap.matchMedia();
     mm.add('(min-width: 900px) and (min-height: 620px)', function () {
       sec.classList.add('is-pinned');
+      // Höhe = Viewport + Strecke; die Bühne klebt per position: sticky, ScrollTrigger liefert nur den Fortschritt
+      var setH = function () { sec.style.height = Math.round(window.innerHeight * 4.6) + 'px'; };
+      setH();
+      ST.addEventListener('refreshInit', setH);
       lastActive = -1;
       progress(0);
       var st = ST.create({
-        trigger: pinEl, start: 'top top', end: function () { return '+=' + Math.round(window.innerHeight * 3.6); },
-        pin: true, scrub: true, anticipatePin: 1, invalidateOnRefresh: true,
+        trigger: sec, start: 'top top', end: 'bottom bottom', scrub: true, invalidateOnRefresh: true,
         onUpdate: function (self) { progress(self.progress); }
       });
       return function () {
         st.kill();
+        ST.removeEventListener('refreshInit', setH);
+        sec.style.height = '';
         sec.classList.remove('is-pinned');
         clearStages();
         lastActive = -1; setActive(5);
@@ -1565,6 +1943,7 @@
     var fact = {}; qsa('[data-fin-fact]', root).forEach(function (n) { fact[n.getAttribute('data-fin-fact')] = n; });
     var rateEl = qs('[data-fin-rate]', root), subEl = qs('[data-fin-sub]', root), quote = qs('[data-fin-ekquote]', root);
     var peekEl = qs('[data-fin-peek]', root), peekSub = qs('[data-fin-peek-sub]', root);
+    var rateOdoEl = qs('[data-odo-rate]', root), rateOdo = rateOdoEl ? Odo(rateOdoEl) : null;
     var svg = qs('[data-fin-svg]', root), grid = qs('[data-fc-grid]', root), area = qs('[data-fc-area]', root), line = qs('[data-fc-line]', root);
     var bindLine = qs('[data-fc-bind]', root), bindLabel = qs('[data-fc-bind-label]', root);
     var ax = qs('[data-fc-axis-x]', root), ay = qs('[data-fc-axis-y]', root);
@@ -1598,6 +1977,7 @@
       ['preis', 'ek', 'zins', 'tilg'].forEach(function (k) { setRangeFill(inp[k]); });
       quote.textContent = 'entspricht ' + Math.round(v.ek / v.preis * 100) + ' % des Kaufpreises' + (v.nk ? '' : ' – Nebenkosten (' + eur(nkSum) + ') zusätzlich aus Eigenmitteln');
       rateEl.textContent = fmt(sim.rate);
+      if (rateOdo) rateOdo.set(fmt(sim.rate), !last);
       if (peekEl) peekEl.textContent = fmt(sim.rate);
       if (peekSub) peekSub.textContent = D > 0 ? 'Darlehen ' + eur(D) : 'kein Darlehen nötig';
       subEl.textContent = D > 0 ? 'bei einem Darlehen von ' + eur(D) : 'Ihr Eigenkapital deckt den Kaufpreis – kein Darlehen nötig';
@@ -1782,14 +2162,18 @@
   // In drei Paketen starten, damit kein einzelner langer Task den Hauptthread blockiert:
   // zuerst alles, was im ersten Bildschirm sichtbar oder sofort bedienbar sein muss, danach der Rest.
   var GROUPS = [
-    [['scroll', initScroll], ['reveals', initReveals], ['hero', initHero], ['clicks', initClicks], ['header', initHeader], ['menu', initMenu], ['expose', initExpose]],
-    [['parallax', initParallax], ['services', initServicePreview], ['objects', initObjects], ['valuation', initValuation]],
-    [['process', initProcess], ['finance', initFinance], ['voices', initVoices], ['contact', initContact]]
+    [['scroll', initScroll], ['hero', initHero], ['clicks', initClicks], ['header', initHeader], ['menu', initMenu], ['navroll', initNavRoll], ['magnet', initMagnet]],
+    [['reveals', initReveals], ['expose', initExpose], ['lift', initLift], ['passage', initPassage]],
+    [['objects', initObjects], ['regwindow', initRegWindow], ['services', initServicePreview], ['parallax', initParallax]],
+    [['valuation', initValuation], ['process', initProcess]],
+    [['finance', initFinance], ['statement', initStatement], ['voices', initVoices]],
+    [['contact', initContact], ['marquee', initMarquee], ['footer', initFooterWord]]
   ];
   function runGroup(i) {
     GROUPS[i].forEach(function (g) { safe(g[0], g[1]); });
     if (i === 0) doc.classList.remove('is-loading');
-    if (i + 1 < GROUPS.length) { setTimeout(function () { runGroup(i + 1); }, 0); return; }
+    if (i + 1 < GROUPS.length) { (window.requestIdleCallback ? function (f) { requestIdleCallback(f, { timeout: 120 }); } : function (f) { setTimeout(f, 16); })(function () { runGroup(i + 1); }); return; }
+    if (window.__ostwaldHeaderTheme) window.__ostwaldHeaderTheme();
     if (!hasGSAP) return;
     // Alle ScrollTrigger stehen jetzt – einmal neu vermessen, wenn Seite und Schriften geladen sind
     var loaded = new Promise(function (res) {
