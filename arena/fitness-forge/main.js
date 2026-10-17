@@ -1,14 +1,18 @@
 /* ==========================================================================
-   FORGE Athletic Club · Modell „Schmiede“
+   FORGE Athletic Club · Modell „Schmiede“ – Konzept „Wildplakat & Eisen“
    Statisch, ohne Build. Optional: GSAP 3 + ScrollTrigger, Lenis.
+   Motion-Handschrift „schwer und mechanisch“: Federn mit leichtem
+   Nachfedern, harte Schnitte (steps), Klappen statt Überblendungen.
    ========================================================================== */
 (function () {
   'use strict';
   window.__forgeReady = true;
 
+
   /* ------------------------------------------------------------------
      Stammdaten – hier anpassen
      ------------------------------------------------------------------ */
+
   var TZ = 'Europe/Berlin';
   /* Öffnungszeiten je JS-Wochentag (0 = So … 6 = Sa): [ab, bis] in Stunden */
   var OEFFNUNG = { 0: [8, 20], 1: [6, 23], 2: [6, 23], 3: [6, 23], 4: [6, 23], 5: [6, 23], 6: [8, 20] };
@@ -140,10 +144,13 @@
   var lenis = null;
   var scrollVel = 0;   // px/s, geglättet
 
+  /* ------------------------------------------------------------------
+     Helfer
+     ------------------------------------------------------------------ */
+
   function safe(name, fn) {
     try { fn(); } catch (err) { if (window.console) console.warn('[FORGE] ' + name + ':', err); }
   }
-  /* Ruft onChange(true/false) auf, wenn das Element sichtbar wird/verschwindet */
   function watchVisible(node, onChange, margin) {
     if (!('IntersectionObserver' in window)) { onChange(true); return; }
     new IntersectionObserver(function (entries) {
@@ -169,6 +176,7 @@
   /* ------------------------------------------------------------------
      Berliner Zeit (Override zum Testen: ?jetzt=Di-18:45)
      ------------------------------------------------------------------ */
+
   var fmtParts = null;
   try {
     fmtParts = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
@@ -215,6 +223,7 @@
   /* ------------------------------------------------------------------
      Smooth Scroll (Lenis) + ScrollTrigger
      ------------------------------------------------------------------ */
+
   function initScroll() {
     if (hasGSAP) gsap.registerPlugin(ScrollTrigger);
     if (!reduced() && window.Lenis && hasGSAP) {
@@ -256,6 +265,7 @@
   /* ------------------------------------------------------------------
      Header, Fortschritt, aktiver Menüpunkt
      ------------------------------------------------------------------ */
+
   function initHeader() {
     var hdr = qs('.hdr'), bar = qs('.progress__bar');
     var lastY = window.pageYOffset, ticking = false;
@@ -296,6 +306,7 @@
   /* ------------------------------------------------------------------
      Mobiles Menü
      ------------------------------------------------------------------ */
+
   function initMenu() {
     var dlg = qs('#menu'), openBtn = qs('[data-menu-open]'), closeBtn = qs('[data-menu-close]');
     if (!dlg || !openBtn || typeof dlg.showModal !== 'function') {
@@ -318,8 +329,9 @@
   }
 
   /* ------------------------------------------------------------------
-     Status: geöffnet, Öffnungszeiten-Tabelle, Live-Kurs
+     Status: geöffnet, Öffnungszeiten-Tabelle
      ------------------------------------------------------------------ */
+
   function openState(now) {
     var o = OEFFNUNG[now.jsDay];
     var open = now.mins >= o[0] * 60 && now.mins < o[1] * 60;
@@ -354,8 +366,150 @@
   }
 
   /* ------------------------------------------------------------------
-     Kursplan: Filter, Tabs, Live-Markierung, Dialog
+     Klapptafel (Split-Flap): jede Zelle kippt über 2–4 Zufallszeichen
+     zum Zielzeichen. Ein gemeinsamer rAF-Takt für alle Tafeln, nur
+     solange etwas kippt; die Kippbewegung selbst ist eine WAAPI-
+     Transform-Animation (läuft auf dem Compositor).
      ------------------------------------------------------------------ */
+  var FLAP_CHARS = 'ABCDEFGHIJKLMNOPRSTUVWXYZ0123456789:·-+';
+  var flapJobs = [], flapRaf = 0;
+  function flapTick(t) {
+    flapRaf = 0;
+    var keep = [];
+    for (var i = 0; i < flapJobs.length; i++) {
+      var job = flapJobs[i];
+      if (job.dead) continue;
+      if (t < job.at) { keep.push(job); continue; }
+      var ch = job.steps.shift();
+      job.cell.g.textContent = ch === ' ' ? ' ' : ch;
+      if (job.cell.g.animate) job.cell.g.animate([{ transform: 'rotateX(-86deg)' }, { transform: 'rotateX(0deg)' }], { duration: 70, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+      if (job.steps.length) { job.at = t + 52 + Math.random() * 26; keep.push(job); }
+      else job.cell.job = null;
+    }
+    flapJobs = keep;
+    if (flapJobs.length) flapRaf = requestAnimationFrame(flapTick);
+  }
+  function Flap(node, n) {
+    this.n = n; this.cells = [];
+    node.textContent = '';
+    this.row = el('span', 'sf');
+    for (var i = 0; i < n; i++) {
+      var c = el('span', 'sf__c'), g = el('span', 'sf__g', ' ');
+      c.appendChild(g); this.row.appendChild(c);
+      this.cells.push({ c: c, g: g, ch: ' ', job: null });
+    }
+    node.appendChild(this.row);
+  }
+  Flap.prototype.set = function (text, o) {
+    o = o || {};
+    text = String(text).toUpperCase();
+    var instant = o.instant || reduced() || document.hidden, t0 = performance.now() + (o.delay || 0);
+    for (var i = 0; i < this.n; i++) {
+      var target = text.charAt(i) || ' ', cell = this.cells[i];
+      if (cell.ch === target) continue;
+      cell.ch = target;
+      if (cell.job) { cell.job.dead = true; cell.job = null; }
+      if (instant) { cell.g.textContent = target === ' ' ? ' ' : target; continue; }
+      var steps = [], k = 2 + Math.floor(Math.random() * 3);
+      for (var s = 0; s < k; s++) steps.push(FLAP_CHARS.charAt(Math.floor(Math.random() * FLAP_CHARS.length)));
+      steps.push(target);
+      cell.job = { cell: cell, steps: steps, at: t0 + i * (o.stagger || 14) };
+      flapJobs.push(cell.job);
+    }
+    if (flapJobs.length && !flapRaf) flapRaf = requestAnimationFrame(flapTick);
+  };
+
+  /* Abfahrtstafel im Kursplan: nächste Kurse ab jetzt, folgt den Filtern */
+  var BOARD_COLS = {
+    desk: [['zeit', 5], ['kurs', 17], ['coach', 12], ['ort', 8], ['stat', 9]],
+    mob: [['zeit', 5], ['kurs', 12], ['stat', 5]]
+  };
+  /* Kürzel, wenn ein Name nicht in seine Spalte passt (wie auf echten Tafeln) */
+  var ABK = {
+    'Strength Basics': 'STR. BASICS', 'Olympic Lifting': 'OLY. LIFTING', 'Morning Mobility': 'MORNING MOB.',
+    'Stretch & Restore': 'STRETCH+REST', 'Boxing Technik': 'BOX TECHNIK', 'Kettlebell Lab': 'KETTLEB. LAB',
+    'Boxing Basics': 'BOX BASICS', 'Mobility Flow': 'MOB. FLOW', 'Sled & Sprint': 'SLED+SPRINT',
+    'Plattformen': 'PLATTF.'
+  };
+  var flat = function (s) { return String(s).replace(/ć/g, 'c').replace(/Ć/g, 'C').replace(/ı/g, 'i').toUpperCase(); };
+  var fit = function (s, n) { s = flat(s); if (s.length > n) s = s.slice(0, n); while (s.length < n) s += ' '; return s; };
+
+  function makeBoard(root, form) {
+    var face = qs('.board__face', root), rowsEl = qs('[data-board-rows]', root), cols = qs('.board__cols', root), sr = qs('[data-board-sr]', root);
+    var flaps = [], mode = '', seen = false;
+    function build() {
+      mode = mqDesk.matches ? 'desk' : 'mob';
+      var def = BOARD_COLS[mode];
+      var n = def.reduce(function (a, c) { return a + c[1]; }, 0) + def.length - 1;
+      face.style.setProperty('--n', n);
+      qsa('span', cols).forEach(function (s) {
+        var key = s.className.replace('c-', ''), c = def.filter(function (d) { return d[0] === key; })[0];
+        s.hidden = !c;
+        if (c) s.style.setProperty('--k', c[1]);
+      });
+      rowsEl.textContent = '';
+      flaps = [];
+      for (var r = 0, rows = mode === 'desk' ? 5 : 4; r < rows; r++) {
+        var line = el('div', 'board__line');
+        rowsEl.appendChild(line);
+        flaps.push(new Flap(line, n));
+      }
+    }
+    function status(x, w) {
+      if (x.live) return 'LÄUFT';
+      if (x.dd === 0) return x.wait <= 90 ? 'IN ' + x.wait + (w >= 9 ? ' MIN' : '') : 'HEUTE';
+      if (x.dd === 1 && w >= 9) return 'MORGEN';
+      return w >= 9 ? TAGE_KURZ[x.k.day] + ' ' + x.date : TAGE_KURZ[x.k.day];
+    }
+    function rowText(x) {
+      return BOARD_COLS[mode].map(function (c) {
+        var key = c[0], w = c[1], v = '';
+        if (key === 'zeit') v = x.k.start;
+        else if (key === 'kurs') v = (x.k.name.length > w && ABK[x.k.name]) || x.k.name;
+        else if (key === 'coach') { var nm = COACHES[x.k.coach].split(' '); v = nm[0].charAt(0) + '. ' + nm.slice(1).join(' '); }
+        else if (key === 'ort') v = (x.k.raum.length > w && ABK[x.k.raum]) || x.k.raum;
+        else v = status(x, w);
+        return fit(v, w);
+      }).join(' ');
+    }
+    function next() {
+      var now = berlinNow(), dates = weekDates(now), out = [];
+      for (var dd = 0; dd < 7 && out.length < 6; dd++) {
+        var day = (now.planDay + dd) % 7;
+        kurse.filter(function (k) { return k.day === day && !k.li.classList.contains('is-out'); })
+          .sort(function (a, b) { return toMin(a.start) - toMin(b.start); })
+          .forEach(function (k) {
+            var s = toMin(k.start), e = toMin(k.ende);
+            if (dd === 0 && e <= now.mins) return;
+            out.push({ k: k, dd: dd, live: dd === 0 && now.mins >= s, wait: dd === 0 ? s - now.mins : null, date: dates[day] });
+          });
+      }
+      return out;
+    }
+    function update(o) {
+      o = o || {};
+      if (!seen) return;
+      var list = next(), said = [];
+      flaps.forEach(function (f, r) {
+        var x = list[r];
+        var txt = x ? rowText(x) : (r === 0 ? (mode === 'desk' ? '----- KEIN KURS PASST ZU DIESEM FILTER' : 'KEIN KURS PASST') : '');
+        f.set(txt, { delay: o.first ? 100 + r * 70 : r * 35, stagger: o.first ? 9 : 6, instant: o.instant });
+        f.row.classList.toggle('is-live', !!(x && x.live));
+        if (x) said.push(x.k.name + ' (' + (x.live ? 'läuft gerade' : TAGE[x.k.day] + ', ' + x.k.start + ' Uhr') + ', ' + COACHES[x.k.coach] + ')');
+      });
+      if (sr) sr.textContent = said.length ? 'Als Nächstes laut Tafel: ' + said.join('; ') + '.' : 'Kein Kurs passt zum gewählten Filter.';
+    }
+    build();
+    watchVisible(root, function (v) { if (v && !seen) { seen = true; update({ first: true }); } }, '0px 0px -15% 0px');
+    var onMode = function () { build(); update({ instant: true }); };
+    if (mqDesk.addEventListener) mqDesk.addEventListener('change', onMode); else mqDesk.addListener(onMode);
+    return { update: update };
+  }
+
+  /* ------------------------------------------------------------------
+     Kursplan: Filter, Tabs, Live-Markierung, Tafel, Dialog
+     ------------------------------------------------------------------ */
+
   var kurse = [];
   function readKurse() {
     kurse = qsa('.kurs').map(function (li) {
@@ -373,7 +527,6 @@
       };
     });
   }
-
   function initPlan() {
     readKurse();
     var form = qs('[data-filters]'), woche = qs('[data-woche]'), count = qs('[data-plan-count]');
@@ -381,6 +534,7 @@
     var tage = qsa('.woche__tag');
     var now = berlinNow(), dates = weekDates(now);
     var activeDay = now.planDay;
+    var board = null;
 
     // Datum + Heute in die Tagesköpfe, Live-Zeile in jede Karte
     tage.forEach(function (tag, i) {
@@ -420,11 +574,13 @@
         var c = kurse.filter(function (k) { return k.day === d && !k.li.classList.contains('is-out'); }).length;
         t.setAttribute('aria-label', TAGE[d] + ', ' + (c === 1 ? '1 Kurs' : c + ' Kurse'));
       });
+      // sichtbare Kurse klappen herunter wie Tafelklappen (nur Transform, gestaffelt)
       if (!reduced() && shown.length && shown.length < 60) {
-        shown.slice(0, 24).forEach(function (li, i) {
-          if (li.animate) li.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 240, delay: i * 18, easing: 'cubic-bezier(0.23, 1, 0.32, 1)', fill: 'backwards' });
+        shown.slice(0, 28).forEach(function (li, i) {
+          if (li.animate) li.animate([{ opacity: 0.2, transform: 'rotateX(-78deg)' }, { opacity: 1, transform: 'none' }], { duration: 300, delay: i * 16, easing: 'cubic-bezier(0.23, 1, 0.32, 1)', fill: 'backwards' });
         });
       }
+      if (board) board.update();
     }
     form.addEventListener('change', function () { apply(false); });
     form.addEventListener('reset', function () { setTimeout(function () { apply(false); }, 0); });
@@ -486,6 +642,7 @@
 
     // --- Live-Markierung
     var clockEl = qs('[data-plan-clock] span');
+    var heroFlapNode = qs('[data-live-flap]'), heroFlap = heroFlapNode ? new Flap(heroFlapNode, 22) : null, heroText = '', heroFirst = true;
     function live() {
       var n = berlinNow();
       if (clockEl) clockEl.textContent = 'Berlin · ' + TAGE_KURZ[n.planDay] + ' ' + hhmm(n.mins) + ' Uhr';
@@ -525,6 +682,7 @@
           w.classList.add('is-now');
           label.textContent = liveList.length > 1 ? 'Läuft jetzt · ' + liveList.length + ' Kurse' : 'Läuft jetzt';
           name.textContent = L.k.name;
+          heroText = L.k.name + ' · ' + L.k.raum;
           meta.textContent = L.k.start + '–' + L.k.ende + ' · ' + COACHES[L.k.coach] + ' · noch ' + L.rest + ' Min.';
           barEl.style.setProperty('--p', L.p.toFixed(3));
         } else {
@@ -541,17 +699,22 @@
           label.textContent = 'Als Nächstes · ' + when;
           if (nx) {
             name.textContent = nx.name;
+            heroText = nx.start + ' ' + nx.name;
             meta.textContent = TAGE_KURZ[nx.day] + ' ' + nx.start + '–' + nx.ende + ' · ' + COACHES[nx.coach] + ' · ' + nx.raum;
           }
           barEl.style.setProperty('--p', 0);
         }
+        if (heroFlap) { heroFlap.set(heroText, { delay: heroFirst ? 720 : 0, stagger: heroFirst ? 30 : 18 }); heroFirst = false; }
       }
+      if (board) board.update();
     }
     function fmtDauer(m) {
       if (m < 60) return m + ' Min.';
       var h = Math.floor(m / 60), r = m % 60;
       return h + ' Std.' + (r ? ' ' + r + ' Min.' : '');
     }
+    var boardEl = qs('[data-board]');
+    if (boardEl) board = makeBoard(boardEl, form);
     live();
     setInterval(live, 20000);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) live(); });
@@ -618,8 +781,9 @@
   }
 
   /* ------------------------------------------------------------------
-     Mitgliedschafts-Konfigurator mit Zählwerk
+     Mitgliedschafts-Konfigurator: Zählwerk + Hantel
      ------------------------------------------------------------------ */
+
   function Odo(node) {
     this.node = node; this.digits = [];
     node.textContent = '';
@@ -652,6 +816,97 @@
     this.node.style.setProperty('--len', (ints.length + (cents ? 1.3 : 0)).toFixed(2));
   };
 
+  /* ------------------------------------------------------------------
+     Hantel: jede gewählte Option ist eine Scheibe auf der Stange.
+     Rein visuell (aria-hidden) – Preis und Positionen stehen im Bon.
+     Scheiben gleiten per Feder auf, die Stange federt beim Aufsetzen.
+     Werte: [Höhe, Dicke, Farbe, Aufdruck] in SVG-Einheiten (viewBox 760 × 250).
+     ------------------------------------------------------------------ */
+  var PLATE = {
+    z: { gym: [200, 30, 'iron', '49'], kurse: [200, 30, 'glut', '69'], all: [200, 34, 'ink', '89'] },
+    l: { m6: [120, 14, 'iron', '+7'], flex: [140, 18, 'iron', '+15'] },
+    pt: [176, 22, 'ink', 'PT'],
+    sauna: [112, 14, 'chalk', '+12'], drinks: [98, 12, 'chalk', '+9'], towel: [86, 10, 'chalk', '+6'],
+    offpeak: [150, 12, 'ghost', '−10'], rabatt: [168, 12, 'ghost', '−15%']
+  };
+  var RACK_IN = [226, 534], RACK_OUT = 262, RACK_Y = 125;
+  function Rack(root) {
+    this.g = qs('[data-rack-plates]', root); this.bar = qs('[data-rack-bar]', root);
+    this.g.textContent = '';
+    this.items = {}; this.n = 1; this.load = 1; this.y = 0; this.vy = 0; this.raf = 0; this.last = 0;
+    this.instant = reduced();
+    this.step = this.step.bind(this);
+  }
+  /* Scheibe in leichter Schrägsicht: Körper (Dicke) + Stirnseite als Ellipse
+     mit Nabe und gestauchtem Aufdruck – die Außenseite zeigt jeweils nach außen. */
+  Rack.prototype.make = function (spec) {
+    var NS = 'http://www.w3.org/2000/svg', self = this, it = { h: spec[0], t: spec[1], cls: spec[2], els: [], d: RACK_OUT, v: 0, td: 0, i: 0, out: false };
+    var mk = function (tag, attrs, parent) { var n = document.createElementNS(NS, tag); Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); }); parent.appendChild(n); return n; };
+    [-1, 1].forEach(function (side) {
+      var g = document.createElementNS(NS, 'g'), h = spec[0], t = spec[1], fx = side < 0 ? 0 : t, rx = Math.max(7, h * 0.12);
+      mk('rect', { 'class': 'plate plate--' + spec[2], x: 0, y: -h / 2, width: t, height: h, rx: 3 }, g);
+      mk('ellipse', { 'class': 'pf pf--' + spec[2], cx: fx, cy: 0, rx: rx, ry: h / 2 }, g);
+      mk('ellipse', { 'class': 'pf-ring', cx: fx, cy: 0, rx: rx * 0.72, ry: h / 2 * 0.8 }, g);
+      mk('ellipse', { 'class': 'pf-hub', cx: fx, cy: 0, rx: rx * 0.3, ry: h * 0.12 }, g);
+      if (spec[3]) {
+        var tx = mk('text', { 'class': 'plate-label' + (spec[2] === 'chalk' || spec[2] === 'ghost' ? ' plate-label--ink' : ''), 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': (h * 0.26).toFixed(1), transform: 'translate(' + fx + ' ' + (-h * 0.3).toFixed(1) + ') scale(0.28 1)' }, g);
+        tx.textContent = spec[3];
+      }
+      g.setAttribute('transform', 'translate(' + (side < 0 ? -80 : 840) + ' ' + RACK_Y + ')');
+      self.g.appendChild(g); it.els.push(g);
+    });
+    return it;
+  };
+  /* list: [[schlüssel, spec], …] von innen nach außen */
+  Rack.prototype.set = function (list) {
+    var self = this, keep = {}, off = 0;
+    list.forEach(function (row, i) {
+      var key = row[0], spec = row[1], it = self.items[key];
+      if (it && !it.out && (it.h !== spec[0] || it.t !== spec[1] || it.cls !== spec[2])) {
+        it.out = true; self.items[key + '~' + (++self.gone || (self.gone = 1))] = it; it = null;
+      }
+      if (!it || it.out) { it = self.make(spec); if (self.instant) it.d = off; self.items[key] = it; }
+      it.td = off; it.i = i; keep[key] = true;
+      off += spec[1] + 2;
+    });
+    Object.keys(this.items).forEach(function (k) { if (!keep[k]) self.items[k].out = true; });
+    // Zeichenreihenfolge = Stapelreihenfolge: äußere Scheiben verdecken die Stirnseite der inneren
+    list.forEach(function (row) { var it = self.items[row[0]]; it.els.forEach(function (g) { self.g.appendChild(g); }); });
+    this.n = list.length;
+    this.kick();
+  };
+  Rack.prototype.kick = function () { if (!this.raf) { this.last = 0; this.raf = requestAnimationFrame(this.step); } };
+  Rack.prototype.step = function (t) {
+    this.raf = 0;
+    var dt = this.last ? Math.min(0.033, (t - this.last) / 1000) : 0.016, self = this, busy = false;
+    this.last = t;
+    Object.keys(this.items).forEach(function (k) {
+      var it = self.items[k];
+      var target = it.out ? RACK_OUT + 20 : it.td + (1 - clamp(self.load * (self.n + 0.6) - it.i, 0, 1)) * (RACK_OUT - it.td);
+      var before = it.d - target;
+      if (self.instant) { it.d = target; it.v = 0; }
+      else {
+        // Feder (k 320, d 23): kurzer Anlauf, sattes Aufsetzen mit leichtem Nachfedern
+        it.v += (320 * (target - it.d) - 23 * it.v) * dt;
+        it.d += it.v * dt;
+        if (!it.out && before > 0 && it.d - target <= 0 && it.v < -70) self.vy += Math.min(80, -it.v * 0.16);
+      }
+      if (Math.abs(target - it.d) < 0.2 && Math.abs(it.v) < 0.6) { it.d = target; it.v = 0; } else busy = true;
+      if (it.out && it.d >= RACK_OUT + 10) { it.els.forEach(function (g) { g.parentNode.removeChild(g); }); delete self.items[k]; return; }
+      it.els[0].setAttribute('transform', 'translate(' + (RACK_IN[0] - it.d - it.t).toFixed(1) + ' ' + RACK_Y + ')');
+      it.els[1].setAttribute('transform', 'translate(' + (RACK_IN[1] + it.d).toFixed(1) + ' ' + RACK_Y + ')');
+    });
+    if (!this.instant) {
+      this.vy += (380 * (0 - this.y) - 15 * this.vy) * dt;
+      this.y += this.vy * dt;
+    }
+    if (Math.abs(this.y) > 0.05 || Math.abs(this.vy) > 0.5) busy = true; else { this.y = 0; this.vy = 0; }
+    this.bar.setAttribute('transform', 'translate(0 ' + this.y.toFixed(2) + ')');
+    if (busy && !document.hidden) this.raf = requestAnimationFrame(this.step);
+    else if (busy) { this.instant = true; this.raf = requestAnimationFrame(this.step); }
+    else this.instant = reduced();
+  };
+
   var cfgSummary = '';
   function initCfg() {
     var form = qs('[data-cfg]');
@@ -661,6 +916,7 @@
     var startEl = qs('[data-cfg-start]', form), yearEl = qs('[data-cfg-year]', form);
     var liveEl = qs('[data-cfg-live]', form), mini = qs('[data-cfg-mini]', form), miniName = qs('[data-cfg-mini-name]', form);
     var lastTotal = null;
+    var monthEl = qs('[data-cfg-month]', form), rackEl = qs('[data-rack]', form), rack = rackEl ? new Rack(rackEl) : null;
     var pt = qs('#pt-range', form), ptOut = qs('[data-pt-out]', form);
     var saunaLbl = qs('[data-extra="sauna"]', form), saunaIn = qs('input[name="sauna"]', form), saunaNote = qs('[data-sauna-note]', form);
     var saunaNoteText = saunaNote.textContent, saunaPrice = qs('.tgl__price', saunaLbl), saunaPriceText = saunaPrice.textContent;
@@ -690,6 +946,14 @@
       var n = +pt.value;
       if (n) { total += n * PREISE.ptEinheit; rows.push(['pt', 'Personal Training ' + n + ' × ' + PREISE.ptEinheit + ' €', '+' + euro(n * PREISE.ptEinheit)]); }
       total = Math.round(total * 100) / 100;
+      if (rack) {
+        var pl = [['z', PLATE.z[fd.get('zugang') || 'kurse']]];
+        for (var q = 1; q <= n; q++) pl.push(['pt' + q, PLATE.pt]);
+        if (PLATE.l[fd.get('laufzeit') || 'm12']) pl.push(['l', PLATE.l[fd.get('laufzeit')]]);
+        ['sauna', 'drinks', 'towel', 'offpeak'].forEach(function (key) { if (key === 'sauna' && allIn) return; if (fd.get(key)) pl.push([key, PLATE[key]]); });
+        if (fd.get('rabatt')) pl.push(['rabatt', PLATE.rabatt]);
+        rack.set(pl);
+      }
       var start = l.startpaket ? PREISE.startpaket : 0;
 
       // Ausgabe
@@ -707,6 +971,7 @@
         lastTotal = total;
       }
       startEl.textContent = start ? euro(start) : 'entfällt';
+      if (monthEl) monthEl.textContent = euro(total);
       yearEl.textContent = euro(Math.round((total * 12 + start) * 100) / 100);
       lines.textContent = '';
       var keys = {};
@@ -722,6 +987,11 @@
       var extrasTxt = rows.filter(function (r) { return ['sauna', 'drinks', 'towel', 'offpeak', 'r', 'pt'].indexOf(r[0]) > -1; }).map(function (r) { return r[1]; });
       cfgSummary = 'Tarifwunsch: ' + z.name + ', ' + l.name + (extrasTxt.length ? ' – ' + extrasTxt.join(', ') : '') + '. Beispielpreis laut Rechner: ' + euro(total, true) + ' pro Monat.';
       first = false;
+    }
+    if (rack && hasGSAP && !reduced()) {
+      // Scheiben werden beim Hereinscrollen nacheinander aufgelegt
+      rack.load = 0;
+      ScrollTrigger.create({ trigger: rackEl, start: 'top 95%', end: 'top 40%', scrub: true, onUpdate: function (s) { rack.load = s.progress; rack.kick(); } });
     }
     form.addEventListener('input', calc);
     form.addEventListener('change', calc);
@@ -743,6 +1013,7 @@
   /* ------------------------------------------------------------------
      Trainingsplan-Generator
      ------------------------------------------------------------------ */
+
   var planText = '';
   function initGen() {
     var form = qs('[data-gen]');
@@ -878,6 +1149,7 @@
   /* ------------------------------------------------------------------
      Coach-Karten (3D-Flip)
      ------------------------------------------------------------------ */
+
   function initCoaches() {
     qsa('[data-coach-card]').forEach(function (card) {
       var front = qs('.coach__flip', card), back = qs('.coach__back', card);
@@ -905,16 +1177,16 @@
       card.addEventListener('keydown', function (e) { if (e.key === 'Escape' && card.classList.contains('is-flipped')) set(false, true); });
     });
     // Fortschrittsleiste des Karussells: CSS (scroll-driven animation) – hier nur der Ersatz für Browser ohne
-    var list = qs('[data-coaches]'), bar = qs('.coaches__bar i');
+    var list = qs('[data-crew-track]'), bar = qs('[data-crew-bar]');
     if (list && bar && !(window.CSS && CSS.supports && CSS.supports('animation-timeline: scroll()'))) {
       var ticking = false;
       list.addEventListener('scroll', function () {
-        if (ticking) return;
+        if (ticking || doc.classList.contains('has-crew')) return;
         ticking = true;
         requestAnimationFrame(function () {
           ticking = false;
           var max = list.scrollWidth - list.clientWidth, p = max > 0 ? list.scrollLeft / max : 1;
-          bar.style.setProperty('--p', (0.16 + 0.84 * p).toFixed(3));
+          bar.style.setProperty('--p', (0.12 + 0.88 * p).toFixed(3));
         });
       }, { passive: true });
     }
@@ -923,6 +1195,7 @@
   /* ------------------------------------------------------------------
      Zähler
      ------------------------------------------------------------------ */
+
   function initCounters() {
     qsa('[data-count]').forEach(function (n) {
       var target = +n.getAttribute('data-count'), de = n.getAttribute('data-format') === 'de';
@@ -944,86 +1217,15 @@
   }
 
   /* ------------------------------------------------------------------
-     Reveal-Choreografie
+     Hero: Intro-Status und Partikel-/Streifen-Canvas
      ------------------------------------------------------------------ */
-  function initReveal() {
-    if (motionOff || !('IntersectionObserver' in window)) return;
-    var groups = [
-      ['.sec .kicker, .disc__intro .kicker', 'rv'],
-      ['.sec .h2, .disc__intro .h2', 'rv-clip'],
-      ['.sec__aside, .disc__lead, .filters, .woche, .legend, .cfg__controls, .bon, .pricelist, .gen, .planout, .jobs, .halle__text > p, .founder, .day__head, .watch, .score__stars, .map-info .ways li, .hours, .areas, .map, .faq-more, .contact__side > p, .contact__list, .form', 'rv'],
-      ['.coach, .stats li, .quote, .lap, .faq details', 'rv'],
-      ['.shot, .laps__photo', 'rv-img']
-    ];
-    if (!doc.classList.contains('has-hscroll')) groups.push(['.panel', 'rv']);
-    if (!doc.classList.contains('has-strip')) groups.push(['.frame', 'rv']);
-    // clip-path am Ziel kann die Schnittmenge auf 0 setzen → bei rv-clip das Elternelement beobachten
-    var io = new IntersectionObserver(function (entries) {
-      var batch = [];
-      entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        (e.target.__rv || []).forEach(function (n) { batch.push(n); });
-        io.unobserve(e.target);
-      });
-      batch.sort(function (a, b) { return a.getBoundingClientRect().top - b.getBoundingClientRect().top || a.getBoundingClientRect().left - b.getBoundingClientRect().left; });
-      batch.forEach(function (t, i) {
-        t.style.setProperty('--d', Math.min(i, 8) * 60 + 'ms');
-        t.classList.add('is-in');
-        setTimeout(function () { t.style.removeProperty('--d'); }, 1600);
-      });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0 });
-    groups.forEach(function (g) {
-      qsa(g[0]).forEach(function (n) {
-        if (n.closest('.hero') || n.classList.contains('rv') || n.classList.contains('rv-clip')) return;
-        n.classList.add(g[1]);
-        var target = g[1] === 'rv-clip' ? n.parentElement : n;
-        // Wisch-Karussell (Coaches auf dem Handy): seitlich verdeckte Karten würden nie „sichtbar“ → die Liste beobachten
-        if (n.classList.contains('coach') && getComputedStyle(n.parentElement).overflowX !== 'visible') target = n.parentElement;
-        while (target !== n && target.parentElement && getComputedStyle(target).display === 'contents') target = target.parentElement;
-        target.__rv = (target.__rv || []).concat(n);
-        io.observe(target);
-      });
-    });
-    // Karte: Route zeichnen
-    var map = qs('.map');
-    if (map) watchVisible(map, function (v) { if (v) map.classList.add('is-in'); }, '0px 0px -20% 0px');
-  }
 
-  /* ------------------------------------------------------------------
-     Hero: Intro, Kinetik, Canvas, Stoppuhr
-     ------------------------------------------------------------------ */
   function initHeroIntro() {
     // Die Intro-Choreografie läuft rein in CSS (startet mit dem ersten Frame, unabhängig von main.js).
     // Die Klassen bleiben als Status-Haken für Tests und eigene Erweiterungen.
     doc.classList.add('hero-in');
     setTimeout(function () { doc.classList.add('hero-done'); }, 1700);
   }
-
-  function initHeroKinetic() {
-    if (!hasGSAP || reduced()) return;
-    var hero = qs('.hero'), title = qs('.hero__title');
-    var lines = qsa('.kin', title);
-    var dirs = [-26, 30, -18];
-    lines.forEach(function (ln, i) {
-      gsap.to(ln, { xPercent: dirs[i], ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.6 } });
-    });
-    gsap.to('.hero__photo', { yPercent: -18, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.6 } });
-    // Geschwindigkeit → Neigung + Bewegungsunschärfe-Echo
-    var skewTo = gsap.quickTo(title, 'skewX', { duration: 0.5, ease: 'power3' });
-    var mb = 0, lastSkew = 0, lastMb = '0.000', heroVis = true;
-    watchVisible(hero, function (v) { heroVis = v; });
-    gsap.ticker.add(function () {
-      if (!heroVis && lastSkew === 0 && lastMb === '0.000') return; // Hero außer Sicht und in Ruhe: nichts tun
-      var v = clamp(scrollVel / 2600, -1, 1);
-      var sk = Math.round(-v * 9 * 100) / 100;
-      if (sk !== lastSkew) { skewTo(sk); lastSkew = sk; }
-      mb = lerp(mb, Math.abs(v), 0.15);
-      if (mb < 0.002) mb = 0;
-      var m = mb.toFixed(3);
-      if (m !== lastMb) { title.style.setProperty('--mb', m); lastMb = m; }
-    });
-  }
-
   function initHeroCanvas() {
     var cv = qs('.hero__canvas'), hero = qs('.hero');
     if (!cv || !cv.getContext) return;
@@ -1129,70 +1331,98 @@
     sync();
   }
 
-  function initHeroTilt() {
-    if (reduced() || !finePointer.matches) return;
-    var hero = qs('.hero'), frame = qs('.hero__frame');
-    if (!frame) return;
-    var tx = 0, ty = 0, x = 0, y = 0, on = false;
-    hero.addEventListener('pointermove', function (e) {
-      var r = hero.getBoundingClientRect();
-      tx = ((e.clientX - r.left) / r.width - 0.5) * 2; ty = ((e.clientY - r.top) / r.height - 0.5) * 2;
-      if (!on) { on = true; requestAnimationFrame(loop); }
+  /* ------------------------------------------------------------------
+     Hero: kinetische Typo. Zeilen gleiten scroll-gescrubbt gegeneinander;
+     die Scroll-Geschwindigkeit staucht und streckt jedes Wort über die
+     Variable-Font-Achsen (opsz 72 → 10 = breiter, wght 800 → 900) plus
+     scaleY/skewX, gefedert (k 170, d 15 → leichtes Nachfedern).
+     Zeiger/Finger auf einem Wort: das Wort „spannt an“.
+     Wörter sind links verankert → Breitenänderung verschiebt nichts (CLS 0).
+     ------------------------------------------------------------------ */
+  function initHeroKinetic() {
+    var hero = qs('.hero');
+    if (!hero) return;
+    var rows = qsa('.kin', hero), words = qsa('.kin__w', hero), slice = qs('.hero__slice', hero);
+    if (reduced()) return;
+    if (hasGSAP) {
+      var dirs = [-15, 17, -10];
+      rows.forEach(function (r, i) {
+        gsap.to(r, { xPercent: dirs[i], ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.5 } });
+      });
+      gsap.to('.hero__photo', { yPercent: -9, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.5 } });
+    }
+    var st = words.map(function () { return { x: 0, v: 0, f: 0, fv: 0, hov: 0, key: '' }; });
+    var vis = true, running = false, last = 0, sx = 0, sxKey = '';
+    function kick() { if (!running && vis && !document.hidden) { running = true; last = 0; requestAnimationFrame(loop); } }
+    words.forEach(function (w, i) {
+      w.addEventListener('pointerenter', function () { st[i].hov = 1; kick(); });
+      w.addEventListener('pointerleave', function () { st[i].hov = 0; kick(); });
+      w.addEventListener('pointerdown', function () { st[i].fv += 7; kick(); });
     });
-    hero.addEventListener('pointerleave', function () { tx = 0; ty = 0; });
-    function loop() {
-      x = lerp(x, tx, 0.08); y = lerp(y, ty, 0.08);
-      frame.style.transform = 'perspective(900px) rotateY(' + (x * 5).toFixed(2) + 'deg) rotateX(' + (-y * 4).toFixed(2) + 'deg) translate3d(' + (x * 6).toFixed(1) + 'px,' + (y * 6).toFixed(1) + 'px,0)';
-      if (Math.abs(x - tx) > 0.001 || Math.abs(y - ty) > 0.001) requestAnimationFrame(loop); else on = false;
+    watchVisible(hero, function (v) { vis = v; kick(); });
+    window.addEventListener('scroll', kick, { passive: true });
+    document.addEventListener('visibilitychange', kick);
+    function loop(t) {
+      var dt = last ? Math.min(0.033, (t - last) / 1000) : 0.016;
+      last = t;
+      var target = clamp(Math.abs(scrollVel) / 2300, 0, 1), dir = scrollVel < 0 ? 1 : -1, calm = true;
+      for (var i = 0; i < words.length; i++) {
+        var s = st[i];
+        s.v += (170 * (target - s.x) - 15 * s.v) * dt; s.x += s.v * dt;
+        s.fv += (140 * (s.hov - s.f) - 12 * s.fv) * dt; s.f += s.fv * dt;
+        var e = clamp(s.x, -0.25, 1.25), k = clamp(Math.max(e, s.f), -0.3, 1.3);
+        var wght = Math.round(clamp(800 + (k > 0 ? 100 * k : 400 * k), 520, 900));
+        var opsz = Math.round(clamp(72 - 60 * k, 10, 72));
+        var sy = (1 - 0.14 * clamp(e, 0, 1.2)).toFixed(3), sk = (dir * 6 * clamp(e, 0, 1.2)).toFixed(2);
+        var key = wght + '|' + opsz + '|' + sy + '|' + sk;
+        if (key !== s.key) {
+          s.key = key;
+          words[i].style.fontVariationSettings = "'wght' " + wght + ", 'opsz' " + opsz;
+          words[i].style.transform = 'skewX(' + sk + 'deg) scaleY(' + sy + ')';
+          words[i].style.setProperty('--e', Math.max(0, e).toFixed(3));
+          words[i].style.setProperty('--dir', dir);
+        }
+        if (Math.abs(target - s.x) > 0.003 || Math.abs(s.v) > 0.003 || Math.abs(s.hov - s.f) > 0.003 || Math.abs(s.fv) > 0.003) calm = false;
+      }
+      // rote Platte verrutscht mit dem Tempo (Passerfehler)
+      if (slice) {
+        sx = lerp(sx, clamp(-scrollVel * 0.018, -46, 46), 0.18);
+        if (Math.abs(sx) < 0.05) sx = 0;
+        var sk2 = sx.toFixed(1);
+        if (sk2 !== sxKey) { sxKey = sk2; slice.style.transform = 'translate3d(' + (18 + sx).toFixed(1) + 'px,0,0)'; }
+        if (sx !== 0) calm = false;
+      }
+      if (calm && Math.abs(scrollVel) < 1) { running = false; return; }
+      if (!vis || document.hidden) { running = false; return; }
+      requestAnimationFrame(loop);
     }
-  }
-
-  function initTimer() {
-    var t = qs('[data-rest]'), setEl = qs('[data-set]'), arc = qs('.timer__arc');
-    if (!t || reduced()) return;
-    var TOTAL = 90, rest = 47, set = 3, iv = null;
-    function render(instant) {
-      t.textContent = pad2(Math.floor(rest / 60)) + ':' + pad2(rest % 60);
-      setEl.textContent = set;
-      if (instant) arc.style.transition = 'none';
-      arc.style.strokeDashoffset = String(100 - (rest / TOTAL) * 100);
-      if (instant) { void arc.getBoundingClientRect(); arc.style.transition = ''; }
-    }
-    function tick() {
-      rest--;
-      if (rest < 0) { rest = TOTAL; set = set >= 5 ? 1 : set + 1; render(true); return; }
-      render(false);
-    }
-    render(true);
-    var vis = true;
-    function sync() {
-      var run = vis && !document.hidden;
-      if (run && !iv) iv = setInterval(tick, 1000);
-      else if (!run && iv) { clearInterval(iv); iv = null; }
-    }
-    watchVisible(qs('.hero'), function (v) { vis = v; sync(); });
-    document.addEventListener('visibilitychange', sync);
   }
 
   /* ------------------------------------------------------------------
-     Laufbänder
+     Absperrband: Grundtempo, mit dem Scroll schneller; Richtung folgt
+     der Scrollrichtung, das Band neigt sich mit dem Tempo.
      ------------------------------------------------------------------ */
-  function initBands() {
-    var tracks = qsa('[data-marquee]');
-    if (!tracks.length || reduced()) return;
-    var vis = false, x = tracks.map(function () { return 0; }), last = 0;
-    watchVisible(qs('.bands'), function (v) { vis = v; if (v) { last = 0; requestAnimationFrame(loop); } });
+  function initTapes() {
+    var box = qs('.tapes'), tracks = qsa('[data-marquee]');
+    if (!box || !tracks.length || reduced()) return;
+    var vis = false, x = tracks.map(function () { return 0; }), w = tracks.map(function () { return 0; }), last = 0, sk = 0;
+    function measure() { tracks.forEach(function (tr, i) { w[i] = tr.scrollWidth / 2; }); }
+    measure();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+    window.addEventListener('resize', measure);
+    watchVisible(box, function (v) { vis = v; if (v) { last = 0; requestAnimationFrame(loop); } });
     function loop(t) {
       if (!vis || document.hidden) return;
-      var dt = last ? Math.min(0.05, (t - last) / 1000) : 0.016; last = t;
+      var dt = last ? Math.min(0.05, (t - last) / 1000) : 0.016;
+      last = t;
       var v = scrollVel;
+      sk = lerp(sk, clamp(-v / 260, -9, 9), 0.12);
       tracks.forEach(function (tr, i) {
         var dir = +tr.getAttribute('data-marquee');
-        var w = tr.scrollWidth / 2;
-        var speed = (50 + Math.abs(v) * 0.35) * (v < -10 ? -1 : 1);
+        var speed = (46 + Math.abs(v) * 0.42) * (v < -10 ? -1 : 1);
         x[i] += dir * speed * dt;
-        if (x[i] <= -w) x[i] += w; else if (x[i] > 0) x[i] -= w;
-        tr.style.transform = 'translate3d(' + x[i].toFixed(1) + 'px,0,0)';
+        if (w[i] > 0) { if (x[i] <= -w[i]) x[i] += w[i]; else if (x[i] > 0) x[i] -= w[i]; }
+        tr.style.transform = 'translate3d(' + x[i].toFixed(1) + 'px,0,0) skewX(' + (sk * dir).toFixed(2) + 'deg)';
       });
       requestAnimationFrame(loop);
     }
@@ -1200,52 +1430,254 @@
   }
 
   /* ------------------------------------------------------------------
-     Disziplinen: horizontale Strecke (≥ 900 px)
+     Disziplinen: das klebende Bild schneidet hart (4 Stufen) zum
+     Foto der Disziplin, die gerade die Bildschirmmitte kreuzt.
      ------------------------------------------------------------------ */
   function initDisc() {
+    var items = qsa('.disc__item'), imgs = qsa('[data-disc-img]'), frame = qs('[data-disc-frame]'), noEl = qs('[data-disc-no]'), cutBar = qs('.disc__cut');
+    if (!items.length || !imgs.length) return;
+    var cur = 0, flap = null;
+    if (noEl && !reduced()) { flap = new Flap(noEl, 2); flap.set('01', { instant: true }); }
+    items[0].classList.add('is-active');
+    function show(i) {
+      if (i < 0 || i === cur) return;
+      var prev = imgs[cur], nx = imgs[i];
+      imgs.forEach(function (im) { im.classList.remove('is-prev'); });
+      prev.classList.remove('is-on'); prev.classList.add('is-prev');
+      nx.classList.add('is-on');
+      if (!reduced() && nx.animate && mqDesk.matches) {
+        nx.animate([{ clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)' }], { duration: 420, easing: 'steps(4, jump-end)' });
+        if (cutBar) cutBar.animate([{ opacity: 1, transform: 'translateY(0px)' }, { opacity: 1, transform: 'translateY(' + frame.offsetHeight + 'px)' }], { duration: 420, easing: 'steps(4, jump-end)' });
+      }
+      cur = i;
+      items.forEach(function (it, k) { it.classList.toggle('is-active', k === i); });
+      if (flap) flap.set(pad2(i + 1), { stagger: 40 }); else if (noEl) noEl.textContent = pad2(i + 1);
+    }
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) { if (e.isIntersecting) show(items.indexOf(e.target)); });
+      }, { rootMargin: '-47% 0px -47% 0px' });
+      items.forEach(function (it) { io.observe(it); });
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     Coaches: klebende Strecke (≥ 900 px) mit Tiefe – Karten kommen
+     aus der Tiefe nach vorn und weichen nach links wieder zurück.
+     Sticky statt Pin (kein Layout-Sprung), Bewegung per Scrub.
+     ------------------------------------------------------------------ */
+  function initCrew() {
     if (!hasGSAP || reduced()) return;
-    var pin = qs('.disc__pin'), track = qs('.disc__track');
-    var no = qs('[data-disc-no]'), bar = qs('[data-disc-bar]');
-    var panels = qsa('.panel', track);
+    var sec = qs('#coaches'), pin = qs('.crew__pin', sec), track = qs('[data-crew-track]'), bar = qs('[data-crew-bar]');
+    if (!sec || !pin || !track) return;
+    var cards = qsa('.coach, .jobs', track), ghost = qs('.crew__ghost', sec);
     var mm = gsap.matchMedia();
-    var sec = qs('.disc');
     mm.add('(min-width: 900px)', function () {
-      doc.classList.add('has-hscroll');
-      var dist = function () { return Math.max(0, track.scrollWidth - window.innerWidth); };
-      // Die Sektion bekommt Strecke + Bildschirmhöhe; .disc__pin klebt per CSS (position: sticky).
-      // Anders als ein GSAP-Pin (position: fixed) erzeugt das keinen Layout-Shift beim Ein-/Ausrasten.
-      var setH = function () { sec.style.setProperty('--disc-h', Math.round(dist() + pin.offsetHeight) + 'px'); };
-      setH();
+      doc.classList.add('has-crew');
+      var offs = [], ws = [], vw = 1, dist = 0;
+      function measure() {
+        cards.forEach(function (c) { c.style.transform = ''; });
+        vw = window.innerWidth;
+        dist = Math.max(0, track.scrollWidth - vw);
+        offs = cards.map(function (c) { return c.offsetLeft; });
+        ws = cards.map(function (c) { return c.offsetWidth; });
+        sec.style.setProperty('--crew-h', Math.round(dist + pin.offsetHeight) + 'px');
+      }
+      function depth(x) {
+        for (var i = 0; i < cards.length; i++) {
+          var d = (offs[i] + ws[i] / 2 + x - vw / 2) / (vw / 2), ad = Math.min(Math.abs(d), 1.7);
+          cards[i].style.transform = 'translate3d(0,' + (ad * ad * 22).toFixed(1) + 'px,' + (-ad * 440).toFixed(1) + 'px) rotateY(' + clamp(-d * 20, -30, 30).toFixed(2) + 'deg)';
+        }
+        if (ghost) ghost.style.transform = 'translate3d(' + (x * 0.22).toFixed(1) + 'px,0,0)';
+      }
+      measure();
+      depth(0);
+      var startY = function () { return sec.getBoundingClientRect().top + window.pageYOffset + pin.offsetTop; };
       var tween = gsap.to(track, {
-        x: function () { return -dist(); }, ease: 'none',
+        x: function () { return -dist; }, ease: 'none',
+        onUpdate: function () { depth(gsap.getProperty(track, 'x')); },
         scrollTrigger: {
-          trigger: sec, start: 'top top', end: 'bottom bottom',
-          scrub: 0.8, invalidateOnRefresh: true, onRefreshInit: setH,
-          onUpdate: function (self) {
-            bar.style.transform = 'scaleX(' + self.progress.toFixed(4) + ')';
-            var c = 0, edge = window.innerWidth * 0.62;
-            panels.forEach(function (p) { if (p.getBoundingClientRect().left < edge) c++; });
-            no.textContent = pad2(c);
-          }
+          trigger: sec, start: startY, end: function () { return startY() + dist; },
+          scrub: 0.7, invalidateOnRefresh: true, onRefreshInit: measure,
+          onUpdate: function (self) { if (bar) bar.style.setProperty('--p', self.progress.toFixed(4)); }
         }
       });
-      panels.forEach(function (p) {
-        var img = qs('.panel__media img', p);
-        gsap.fromTo(img, { '--px': '-15%' }, { '--px': '0%', ease: 'none', scrollTrigger: { trigger: p, containerAnimation: tween, start: 'left right', end: 'right left', scrub: true } });
-        var nr = qs('.panel__no', p);
-        gsap.fromTo(nr, { xPercent: 40 }, { xPercent: -30, ease: 'none', scrollTrigger: { trigger: p, containerAnimation: tween, start: 'left right', end: 'right left', scrub: true } });
-      });
       return function () {
-        doc.classList.remove('has-hscroll');
-        sec.style.removeProperty('--disc-h');
+        tween.kill();
+        doc.classList.remove('has-crew');
+        sec.style.removeProperty('--crew-h');
         gsap.set(track, { clearProps: 'transform' });
+        cards.forEach(function (c) { c.style.transform = ''; });
+        if (ghost) ghost.style.transform = '';
       };
     });
   }
 
   /* ------------------------------------------------------------------
-     Ein Tag in der Halle: Zeitraffer-Strecke (≥ 900 px)
+     Rundenuhr: Siebensegment-Ziffern als SVG (Geistersegmente bleiben
+     schwach sichtbar wie bei einer echten Hallenuhr)
      ------------------------------------------------------------------ */
+  var SEG = { 0: 'abcdef', 1: 'bc', 2: 'abdeg', 3: 'abcdg', 4: 'bcfg', 5: 'acdfg', 6: 'acdefg', 7: 'abc', 8: 'abcdefg', 9: 'abcdfg' };
+  var SEG_PTS = {
+    a: '12,2 50,2 43,10 19,10', b: '52,5 52,47 45,43 45,12', c: '52,53 52,95 45,88 45,57',
+    d: '19,90 43,90 50,98 12,98', e: '10,53 17,57 17,88 10,95', f: '10,5 17,12 17,43 10,47', g: '14,50 19,46 43,46 48,50 43,54 19,54'
+  };
+  function seg7(node, sample) {
+    var NS = 'http://www.w3.org/2000/svg', wrap = el('span', 'seg7'), digits = [];
+    node.textContent = '';
+    sample.split('').forEach(function (ch) {
+      var svg = document.createElementNS(NS, 'svg');
+      if (ch === ':') {
+        svg.setAttribute('viewBox', '0 0 16 100');
+        ['36', '64'].forEach(function (y) { var r = document.createElementNS(NS, 'rect'); r.setAttribute('class', 'colon'); r.setAttribute('x', 4); r.setAttribute('y', y - 4); r.setAttribute('width', 8); r.setAttribute('height', 8); svg.appendChild(r); });
+        wrap.appendChild(svg);
+        return;
+      }
+      svg.setAttribute('viewBox', '0 0 62 100');
+      var g = document.createElementNS(NS, 'g'), segs = {};
+      g.setAttribute('transform', 'skewX(-5) translate(5 0)');
+      'abcdefg'.split('').forEach(function (s) { var p = document.createElementNS(NS, 'polygon'); p.setAttribute('points', SEG_PTS[s]); p.setAttribute('class', 's'); g.appendChild(p); segs[s] = p; });
+      svg.appendChild(g); wrap.appendChild(svg);
+      digits.push({ segs: segs, v: null });
+    });
+    node.appendChild(wrap);
+    return function (str) {
+      var ds = str.replace(/:/g, '');
+      digits.forEach(function (d, i) {
+        var v = ds.charAt(i);
+        if (v === d.v) return;
+        d.v = v;
+        var on = SEG[v] || '';
+        Object.keys(d.segs).forEach(function (s) { d.segs[s].classList.toggle('on', on.indexOf(s) > -1); });
+      });
+    };
+  }
+
+  /* ------------------------------------------------------------------
+     Strichliste: 530 Bewertungen = 106 Fünfergruppen, leicht verwackelt
+     wie mit Kreide; wird beim Scrollen Strich für Strich „gezählt“.
+     ------------------------------------------------------------------ */
+  function initTally() {
+    var box = qs('[data-tally]');
+    if (!box) return;
+    var seed = 530, rnd = function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+    var cols = 18, gw = 44, gh = 64, d = '';
+    for (var g = 0; g < 106; g++) {
+      var cx = (g % cols) * gw + 8, cy = Math.floor(g / cols) * gh + 8;
+      for (var s = 0; s < 4; s++) {
+        var x = cx + s * 7.5 + (rnd() - 0.5) * 1.8;
+        d += 'M' + x.toFixed(1) + ' ' + (cy + rnd() * 3).toFixed(1) + 'L' + (x + (rnd() - 0.5) * 2.6).toFixed(1) + ' ' + (cy + 40 + rnd() * 3).toFixed(1);
+      }
+      d += 'M' + (cx - 4).toFixed(1) + ' ' + (cy + 33 + rnd() * 4).toFixed(1) + 'L' + (cx + 28 + rnd() * 2).toFixed(1) + ' ' + (cy + 8 + rnd() * 4).toFixed(1);
+    }
+    var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'), p = document.createElementNS(NS, 'path');
+    svg.setAttribute('viewBox', '0 0 ' + (cols * gw) + ' ' + (6 * gh));
+    svg.setAttribute('preserveAspectRatio', 'xMaxYMid meet');
+    p.setAttribute('d', d); p.setAttribute('pathLength', '1');
+    svg.appendChild(p); box.appendChild(svg);
+    if (!hasGSAP || reduced()) return;
+    p.style.strokeDasharray = '1'; p.style.strokeDashoffset = '1';
+    ScrollTrigger.create({
+      trigger: qs('.score'), start: 'top 85%', end: 'bottom 45%', scrub: 0.4,
+      onUpdate: function (self) { p.style.strokeDashoffset = (1 - self.progress).toFixed(4); }
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     Reveals: Überschriften setzen auf (Gewichtsachse spannt an),
+     Bilder schneiden hart in vier Stufen, Linien zeichnen sich.
+     ------------------------------------------------------------------ */
+  function initReveal() {
+    if (motionOff || !('IntersectionObserver' in window)) return;
+    qsa('.anno__img, .halle__side, .laps__photo, .disc__pic, .frame__img').forEach(function (n) { n.classList.add('rv-cut'); });
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        (e.target.__rv || []).forEach(function (n) { n.classList.add('is-in'); });
+        io.unobserve(e.target);
+      });
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0 });
+    function watch(n, target) { target = target || n; target.__rv = (target.__rv || []).concat(n); io.observe(target); }
+    // clip-path am Ziel kann die Schnittmenge auf 0 setzen → Elternelement beobachten
+    qsa('[data-slam]').forEach(function (h) { watch(h, h.parentElement); });
+    qsa('.rv-cut, .anno, .frame--pick, .map').forEach(function (n) { watch(n); });
+  }
+
+  /* ------------------------------------------------------------------
+     Mikro-Interaktionen (nur feiner Zeiger, nicht bei reduzierter Bewegung)
+     ------------------------------------------------------------------ */
+  function initRoll() {
+    if (!finePointer.matches || reduced()) return;
+    qsa('[data-roll]').forEach(function (a) {
+      var node = null;
+      for (var i = 0; i < a.childNodes.length; i++) { var c = a.childNodes[i]; if (c.nodeType === 3 && c.textContent.trim()) { node = c; break; } }
+      if (!node) return;
+      var text = node.textContent.trim();
+      var roll = el('span', 'roll');
+      roll.setAttribute('aria-hidden', 'true');
+      text.split('').forEach(function (ch, k) { var s = el('span', 'roll__c', ch); s.setAttribute('data-c', ch); s.style.setProperty('--i', k); roll.appendChild(s); });
+      a.replaceChild(roll, node);
+      a.insertBefore(el('span', 'sr-only', text), roll);
+    });
+  }
+  function initMagnet() {
+    if (!finePointer.matches || reduced()) return;
+    qsa('[data-magnet]').forEach(function (b) {
+      var x = 0, y = 0, tx = 0, ty = 0, raf = 0;
+      function loop() {
+        x = lerp(x, tx, 0.2); y = lerp(y, ty, 0.2);
+        b.style.setProperty('--mx', x.toFixed(2) + 'px'); b.style.setProperty('--my', y.toFixed(2) + 'px');
+        raf = (Math.abs(x - tx) > 0.05 || Math.abs(y - ty) > 0.05) ? requestAnimationFrame(loop) : 0;
+      }
+      b.addEventListener('pointermove', function (e) {
+        var r = b.getBoundingClientRect();
+        tx = ((e.clientX - r.left) / r.width - 0.5) * 12; ty = ((e.clientY - r.top) / r.height - 0.5) * 8;
+        if (!raf) raf = requestAnimationFrame(loop);
+      });
+      b.addEventListener('pointerleave', function () { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(loop); });
+    });
+  }
+  /* Kontext-Cursor: kleines Etikett folgt dem Zeiger (der Systemcursor bleibt) */
+  function initCursor() {
+    var cur = qs('.cursor'), tag = qs('[data-cursor-tag]');
+    if (!cur || !tag || !finePointer.matches || reduced()) return;
+    var LABELS = [['.coach', 'Umdrehen'], ['.kurs__btn', 'Kurs öffnen'], ['.kin__w', 'Anspannen'], ['.opt, .tgl, .seg label', 'Auflegen'], ['.frame', 'Zeitraffer'], ['.goal', 'Ziel wählen']];
+    var x = 0, y = 0, tx = 0, ty = 0, raf = 0, shown = '';
+    function loop() {
+      x = lerp(x, tx, 0.24); y = lerp(y, ty, 0.24);
+      cur.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0)';
+      raf = (Math.abs(x - tx) > 0.3 || Math.abs(y - ty) > 0.3) ? requestAnimationFrame(loop) : 0;
+    }
+    document.addEventListener('pointermove', function (e) {
+      if (e.pointerType && e.pointerType !== 'mouse') return;
+      var t = e.target, label = '';
+      if (!shown) { x = e.clientX; y = e.clientY; }
+      tx = e.clientX; ty = e.clientY;
+      if (t && t.closest && !t.closest('input, select, textarea, .form, dialog')) {
+        for (var i = 0; i < LABELS.length; i++) if (t.closest(LABELS[i][0])) { label = LABELS[i][1]; break; }
+      }
+      if (label && label !== tag.textContent) tag.textContent = label;
+      if (!!label !== !!shown) cur.classList.toggle('is-on', !!label);
+      shown = label;
+      if (!raf) raf = requestAnimationFrame(loop);
+    }, { passive: true });
+    document.addEventListener('pointerleave', function () { cur.classList.remove('is-on'); shown = ''; });
+  }
+  /* Abreiß-Streifen: kurzer Riss, dann scrollt der Anker-Handler */
+  function initTear() {
+    qsa('[data-tear]').forEach(function (a) {
+      a.addEventListener('click', function () {
+        if (reduced()) return;
+        a.classList.remove('is-torn'); void a.offsetWidth; a.classList.add('is-torn');
+        clearTimeout(a._t); a._t = setTimeout(function () { a.classList.remove('is-torn'); }, 950);
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     Ein Tag in der Halle: Kontaktabzug als Zeitraffer-Strecke (≥ 900 px)
+     ------------------------------------------------------------------ */
+
   function initDayStrip() {
     if (!hasGSAP || reduced()) return;
     var box = qs('[data-day-strip]'), track = qs('[data-day-track]');
@@ -1276,8 +1708,9 @@
   }
 
   /* ------------------------------------------------------------------
-     Probetraining: Stoppuhr läuft mit dem Scrollen
+     Probetraining: Rundenuhr läuft mit dem Scrollen
      ------------------------------------------------------------------ */
+
   function initLaps() {
     if (!hasGSAP || reduced()) return;
     var list = qs('[data-laps]'), watch = qs('[data-watch]'), bar = qs('[data-watch-bar]');
@@ -1286,9 +1719,10 @@
     var marks = laps.map(function (l) { return toMin(qs('.lap__t', l).textContent) * 60; });
     var TOTAL = 75 * 60;
     doc.classList.add('has-laps');
+    var show = seg7(watch, '00:00:00');
     function render(p) {
       var s = Math.round(p * TOTAL);
-      watch.textContent = pad2(Math.floor(s / 3600)) + ':' + pad2(Math.floor(s / 60) % 60) + ':' + pad2(s % 60);
+      show(pad2(Math.floor(s / 3600)) + ':' + pad2(Math.floor(s / 60) % 60) + ':' + pad2(s % 60));
       bar.style.transform = 'scaleX(' + p.toFixed(4) + ')';
       laps.forEach(function (l, i) { l.classList.toggle('is-on', s >= marks[i]); });
     }
@@ -1303,6 +1737,7 @@
   /* ------------------------------------------------------------------
      Kontaktformular (nur clientseitig)
      ------------------------------------------------------------------ */
+
   function initForm() {
     var form = qs('[data-form]'), done = qs('[data-done]');
     if (!form || !done) return;
@@ -1362,20 +1797,19 @@
   }
 
   /* ------------------------------------------------------------------
-     Start
+     Start in Etappen: Erster Bildschirm sofort (Header, Menü, Status,
+     Kursplan-Daten + Hero-Klapptafel), alles darunter nach dem ersten
+     Frame in Häppchen von ≤ 20 ms, danach einmal ScrollTrigger.refresh().
      ------------------------------------------------------------------ */
-  /* Reihenfolge: erst alles, was im ersten Bildschirm sichtbar ist (Header, Hero, Live-Kurs),
-     dann die Widgets weiter unten in kleinen Paketen mit Pausen dazwischen – so blockiert der
-     Start den Main-Thread nie lange am Stück (Eingaben bleiben reaktionsschnell). */
   var BOOT_NOW = [
     ['scroll', initScroll], ['header', initHeader], ['menu', initMenu], ['status', initStatus],
-    ['intro', initHeroIntro], ['tilt', initHeroTilt], ['timer', initTimer], ['plan', initPlan]
+    ['intro', initHeroIntro], ['plan', initPlan]
   ];
-  // Alles mit Layout-Messungen (ScrollTrigger, Canvas-Größe) erst nach dem nächsten Frame:
-  // dann ist das Layout schon berechnet und wird nicht mitten im Skript erzwungen.
   var BOOT_LATER = [
-    ['kinetic', initHeroKinetic], ['canvas', initHeroCanvas], ['bands', initBands], ['cfg', initCfg], ['gen', initGen], ['coaches', initCoaches], ['form', initForm],
-    ['disc', initDisc], ['day', initDayStrip], ['laps', initLaps], ['counters', initCounters], ['reveal', initReveal]
+    ['kinetic', initHeroKinetic], ['canvas', initHeroCanvas], ['tapes', initTapes], ['roll', initRoll], ['magnet', initMagnet],
+    ['cursor', initCursor], ['tear', initTear], ['disc', initDisc], ['cfg', initCfg], ['gen', initGen], ['coaches', initCoaches],
+    ['crew', initCrew], ['day', initDayStrip], ['laps', initLaps], ['tally', initTally], ['form', initForm],
+    ['counters', initCounters], ['reveal', initReveal]
   ];
   BOOT_NOW.forEach(function (b) { safe(b[0], b[1]); });
   var fontsPending = !!(document.fonts && document.fonts.status !== 'loaded');
@@ -1385,10 +1819,9 @@
     while (BOOT_LATER.length) {
       var b = BOOT_LATER.shift();
       safe(b[0], b[1]);
-      if (performance.now() - t0 > 24) break;
+      if (performance.now() - t0 > 18) break;
     }
     if (BOOT_LATER.length) { setTimeout(next, 0); return; }
-    // ScrollTrigger aktualisiert sich bei „load“ selbst; nur nachziehen, wenn das schon vorbei ist
     if (hasGSAP && document.readyState === 'complete') ScrollTrigger.refresh();
     if (hasGSAP && fontsPending && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
   });

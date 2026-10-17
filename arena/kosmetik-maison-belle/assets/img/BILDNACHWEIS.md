@@ -2,7 +2,7 @@
 
 Alle Fotos: StockSnap.io, Lizenz CC0 (gemeinfrei, keine Namensnennung nötig). Platzhalter für die Demo – vor einem echten Einsatz durch eigene Fotos des Betriebs ersetzen.
 
-Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für `srcset`).
+Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für `srcset`). Alle Fotos wurden für einen einheitlichen Serienlook mit ImageMagick warm getönt (leicht entsättigt, Nude-Multiplikation, Schatten in Pflaume angehoben).
 
 | Datei | Größe (960er) | Motiv | Quelle |
 |---|---|---|---|

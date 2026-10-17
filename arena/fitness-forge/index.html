@@ -24,6 +24,7 @@
       d.classList.add('js');
       if (/[?&]motion=off\b/.test(q)) d.classList.add('motion-off');
       if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('reduced');
+      if (!d.classList.contains('reduced') && !d.classList.contains('motion-off')) d.classList.add('mv');
       // Sicherheitsnetz: Startet main.js nicht, wird alles ohne Animation sichtbar.
       setTimeout(function () { if (!window.__forgeReady) d.classList.remove('js'); }, 4000);
     })();
@@ -103,7 +104,7 @@
     <symbol id="i-bike" viewBox="0 0 24 24"><circle cx="6" cy="16" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="16" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="m6 16 4-8h6l2 8M10 8 8 5H6m6 11 4-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
     <symbol id="i-train" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 11h14M8 21l2-4m6 4-2-4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/></symbol>
     <symbol id="i-quote" viewBox="0 0 48 40"><path d="M2 38V22C2 10 8 3 19 1l2 6c-6 2-9 6-9 11h8v20H2Zm26 0V22c0-12 6-19 17-21l2 6c-6 2-9 6-9 11h8v20H28Z" fill="currentColor"/></symbol>
-    <symbol id="g-crop" viewBox="0 0 40 40"><path d="M0 14h12M14 0v12" fill="none" stroke="currentColor" stroke-width="1"/></symbol>
+    <symbol id="g-crop" viewBox="0 0 40 40"><path d="M0 14h12M14 0v12" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
   </svg>
 
   <a class="skip" href="#main">Zum Inhalt springen</a>
@@ -287,15 +288,13 @@
     <!-- ============ KURSPLAN: Abfahrtstafel ============ -->
     <section class="sec sec--iron cut-top plan" id="kursplan" aria-labelledby="plan-title">
       <div class="wrap">
-        <div class="plan__head">
-          <h2 class="h2" id="plan-title" data-slam>Was diese Woche läuft.</h2>
-          <p class="plan__lead">46 Kurse von Montag bis Sonntag. Filtern Sie nach Disziplin, Level oder Coach: Die Tafel zeigt sofort, was als Nächstes für Sie startet. Was gerade läuft, ist <strong class="glut">rot markiert</strong>.</p>
-        </div>
-
         <div class="board" data-board>
           <div class="board__top">
-            <p class="board__title">Abfahrt <span>Halle Revaler Straße</span></p>
-            <p class="clock" data-plan-clock><svg aria-hidden="true"><use href="#i-clock"/></svg><span>Berliner Zeit</span></p>
+            <h2 class="h2 board__h" id="plan-title" data-slam>Was diese Woche läuft.</h2>
+            <div class="board__meta">
+              <p class="board__title">Abfahrt <span>Halle Revaler Straße</span></p>
+              <p class="clock" data-plan-clock><svg aria-hidden="true"><use href="#i-clock"/></svg><span>Berliner Zeit</span></p>
+            </div>
           </div>
           <div class="board__face" aria-hidden="true">
             <p class="board__cols"><span class="c-zeit">Zeit</span><span class="c-kurs">Kurs</span><span class="c-coach">Coach</span><span class="c-ort">Ort</span><span class="c-stat">Status</span></p>
@@ -306,8 +305,10 @@
               <p class="board__row">23:00 LETZTE RUNDE</p>
             </div>
           </div>
-          <p class="sr-only" aria-live="polite" data-board-sr></p>
+          <p class="sr-only" data-board-sr>Die Tafel zeigt die nächsten Kurse ab jetzt; der vollständige Wochenplan folgt darunter.</p>
         </div>
+
+        <p class="plan__lead">46 Kurse von Montag bis Sonntag. Filtern Sie nach Disziplin, Level oder Coach: Die Tafel zeigt sofort, was als Nächstes für Sie startet. Was gerade läuft, ist <strong class="glut">rot markiert</strong>.</p>
 
         <form class="filters" data-filters aria-label="Kursplan filtern" onsubmit="return false">
           <fieldset class="chips">
@@ -1174,7 +1175,7 @@
       <div class="wrap halle__grid">
         <div class="halle__text">
           <h2 class="h2" id="halle-title" data-slam>1.200 Quadratmeter ehemalige Werkhalle.</h2>
-          <p class="halle__lead"><span class="initial" aria-hidden="true">2017</span> hat Coach Jonas Weber die alte Lagerhalle an der Revaler Straße übernommen: Estrich raus, Gummiboden rein, Tageslicht durch das Sheddach. Heute trainieren hier rund 900 Mitglieder, von der Studentin, die zum ersten Mal Kreuzheben lernt, bis zum Amateurboxer vor seinem nächsten Kampf.</p>
+          <p class="halle__lead"><span class="initial">2017</span> hat Coach Jonas Weber die alte Lagerhalle an der Revaler Straße übernommen: Estrich raus, Gummiboden rein, Tageslicht durch das Sheddach. Heute trainieren hier rund 900 Mitglieder, von der Studentin, die zum ersten Mal Kreuzheben lernt, bis zum Amateurboxer vor seinem nächsten Kampf.</p>
           <blockquote class="founder">
             <p>„Wir zählen keine Check-ins. Wir zählen saubere Wiederholungen.“</p>
             <footer><span class="founder__mono" aria-hidden="true">JW</span>Jonas Weber, Gründer &amp; Head Coach</footer>
@@ -1190,10 +1191,10 @@
             <path pathLength="1" d="M420 505 L420 470 L180 470" />
           </svg>
           <ul class="anno__tags">
-            <li style="--x:12.5%;--y:11%" class="is-l"><b><span data-count="6">6</span>&nbsp;×&nbsp;6&nbsp;m</b>Boxring für Technik und Open Mat</li>
-            <li style="--x:85.5%;--y:7.4%" class="is-r"><b>Sheddach</b>Tageslicht über Stahlträgern</li>
-            <li style="--x:93.8%;--y:55.6%" class="is-r is-up"><b><span data-count="14">14</span> Sandsäcke</b>an Ketten, 30 bis 60&nbsp;kg</li>
-            <li style="--x:18.8%;--y:87%" class="is-l is-up"><b><span data-count="1200" data-format="de">1.200</span>&nbsp;m²</b>Gummiboden, 8 Plattformen</li>
+            <li style="--x:12.5%;--y:11%" class="is-l"><b>6&nbsp;×&nbsp;6&nbsp;m</b><span class="anno__d">Boxring für Technik und Open Mat</span></li>
+            <li style="--x:85.5%;--y:7.4%" class="is-r"><b>Sheddach</b><span class="anno__d">Tageslicht über Stahlträgern</span></li>
+            <li style="--x:93.8%;--y:55.6%" class="is-r is-up"><b><span data-count="14">14</span> Sandsäcke</b><span class="anno__d">an Ketten, 30 bis 60&nbsp;kg</span></li>
+            <li style="--x:18.8%;--y:87%" class="is-l is-up"><b><span data-count="1200" data-format="de">1.200</span>&nbsp;m²</b><span class="anno__d">Gummiboden, 8 Plattformen</span></li>
           </ul>
           <figcaption class="anno__cap">Halle 1 von oben gesehen · 17&nbsp;Stunden werktags geöffnet · 46 Kurse pro Woche</figcaption>
         </figure>

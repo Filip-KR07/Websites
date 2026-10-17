@@ -64,8 +64,8 @@
   /** Seidenbahn im Hero (WebGL): Lage der Bahn je Bildschirmform. Mittellinie y = a + b·x + c·x² + Welle,
    *  x/y in Bildschirmhöhen (Mitte = 0, y nach oben). Farben der Seide stehen im Shader (cDeep/cMid/cHi). */
   var SILK = {
-    wide: { a: -0.356, b: 0.459, c: 0.451, amp: 0.035, k: 3.4, ph: 0.4, half: 0.15, twist: 2.1 },
-    tall: { a: -0.02, b: 0.48, c: 1.1, amp: 0.02, k: 9.0, ph: 0.2, half: 0.078, twist: 5.2 },
+    wide: { a: -0.6, b: 0.94, c: 0.18, amp: 0.035, k: 3.4, ph: 0.4, half: 0.13, twist: -0.34 },  // twist = Lage der Verdrehung (längs)
+    tall: { a: -0.116, b: 0.346, c: 2.18, amp: 0.01, k: 9.0, ph: 0.2, half: 0.062, twist: -0.19 },
     QUALITY: [0.5, 0.38, 0.28], // Auflösung relativ zur Anzeige; sinkt automatisch auf langsamen Geräten
     INTRO_MS: 1150              // Aufrollen der Bahn (≤ 1,2 s, blockiert nichts)
   };
@@ -81,11 +81,13 @@
   var MOTION = !motionOff && !reduced;             // volle Choreografie
   var UI_MOTION = !motionOff;                       // kleine UI-Übergänge (bei reduced nur Fades)
   var hasGSAP = !!(window.gsap && window.ScrollTrigger);
+  /** GSAP, ScrollTrigger und Lenis werden nacheinander nachgeladen – jede Datei in einem eigenen Task,
+   *  damit der erste Bildschirm nicht auf einen langen Skript-Block wartet (Preload steht im <head>). */
+  var VENDOR = ['gsap.min.js', 'ScrollTrigger.min.js', 'lenis.min.js'].map(function (f) { return '/arena/kosmetik-maison-belle/assets/vendor/' + f; });
   var finePointer = window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches;
   var EASE_OUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
   var EASE_IN_OUT = 'cubic-bezier(0.77, 0, 0.175, 1)';
   var lenis = null;
-  if (!hasGSAP) root.classList.remove('scene'); // Sticky-Szene braucht ScrollTrigger
 
   function $(s, c) { return (c || document).querySelector(s); }
   function $$(s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); }
@@ -309,27 +311,28 @@
       // Mittellinie der Bahn und ihre Steigung
       'float cy(float x,float t){return uBand.x+uBand.y*x+uBand.z*x*x+uBand.w*sin(uBand2.y*x+uBand2.z+t*.22)+uScroll*.42;}',
       'float cd(float x,float t){return uBand.y+2.*uBand.z*x+uBand.w*uBand2.y*cos(uBand2.y*x+uBand2.z+t*.22);}',
-      // Bahn-Koordinaten: x = quer (−1…1 innerhalb), y = längs, z = Vorder-/Rückseite (Verdrehung)
+      // Bahn-Koordinaten: x = quer (−1…1 innerhalb), y = längs, z = Nähe zur Verdrehung
       'vec3 bc(vec2 p,float t){',
       '  float c=cy(p.x,t),s=cd(p.x,t),iv=inversesqrt(1.+s*s);',
       '  float v=(p.y-c)*iv,u=(p.x+(p.y-c)*s)*iv;',
-      '  float tw=cos(u*uBand2.w+t*.11+.6);',
-      '  float w=uBand2.x*(.56+.44*abs(tw));',
-      '  return vec3(v/w,u,tw);',
+      '  float tz=1.-smoothstep(0.,.32,abs(u-uBand2.w));',
+      '  float w=uBand2.x*(1.-.48*tz);',
+      '  return vec3(v/w,u,tz);',
       '}',
-      // Falten: Längsplissee, das langsam wandert, dazu eine Welle, die durch die Bahn läuft
+      // Falten: schräg laufendes Plissee, das langsam wandert, dazu eine Welle, die durch die Bahn läuft
       'float fo(float d,float u,float t){',
-      '  float h=.55*sin(d*5.2+u*.8+t*.55+1.2*sin(u*1.5-t*.35));',
-      '  h+=.22*sin(d*11.-u*1.3-t*.8);',
-      '  h+=.36*sin(u*3.6-t*1.0+d*1.4)*(1.-d*d);',
-      '  h+=.55*d*d*d*d;',
+      '  float f=6.+2.6*sin(u*1.2+.7);',          // Faltendichte ändert sich längs der Bahn (fächert auf)
+      '  float h=.55*sin(d*f+u*1.6+t*.45+1.6*sin(u*1.1-t*.25));',
+      '  h+=.2*sin(d*f*1.9-u*2.3-t*.6+1.);',
+      '  h+=.42*sin(u*4.2-t*.85+d*2.6)*(1.-d*d);',
+      '  h+=.35*d*d*d*d;',
       '  return h;',
       '}',
       'float hg(vec2 p,float t,float ex){',
       '  vec3 b=bc(p,t);',
-      '  float h=fo(b.x,b.y,t);',
-      '  vec2 dm=p-uMouse;h+=uLift*1.7*exp(-dot(dm,dm)*16.);',
-      '  h+=2.6*(1.-smoothstep(0.,.16,p.x-ex));',   // aufrollende Kante beim Intro
+      '  float h=fo(b.x,b.y,t)*(1.-.5*b.z)+b.z*.8*sin(b.x*3.);',
+      '  vec2 dm=p-uMouse;h+=uLift*1.5*exp(-dot(dm,dm)*18.);',
+      '  h+=1.6*(1.-smoothstep(0.,.14,p.x-ex));',   // aufrollende Kante beim Intro
       '  return h;',
       '}',
       'void main(){',
@@ -338,48 +341,51 @@
       '  float ex=mix(.5*uAsp+.2,-.5*uAsp-.35,uIntro);',
       '  vec3 b=bc(p,t);',
       '  float ad=abs(b.x);',
-      '  float aa=2.2/(uRes.y*uBand2.x);',
+      '  float aa=2.4/(uRes.y*uBand2.x);',
       '  float aB=(1.-smoothstep(1.-aa,1.,ad))*smoothstep(ex-.004,ex+.004,p.x);',
-      '  vec2 ps=p+vec2(-.022,.048);',
+      '  vec2 ps=p+vec2(-.02,.042);',
       '  float ds=abs(bc(ps,t).x);',
-      '  float aS=(1.-smoothstep(.7,1.45,ds))*.26*smoothstep(ex-.05,ex+.12,ps.x);',
+      '  float aS=(1.-smoothstep(.75,1.5,ds))*.17*smoothstep(ex-.05,ex+.12,ps.x);',
       '  vec3 col=vec3(0.);',
       '  if(aB>0.002){',
-      '    float e=1.6/uRes.y;',
+      '    float e=1.5/uRes.y;',
       '    float h0=hg(p,t,ex);',
       '    vec2 g=vec2(hg(p+vec2(e,0.),t,ex)-h0,hg(p+vec2(0.,e),t,ex)-h0)/e;',
-      '    vec3 n=normalize(vec3(-g*.012,1.));',
-      '    vec3 L=normalize(vec3(uLight-p,.85));',
-      '    float wr=clamp((dot(n,L)+.42)/1.42,0.,1.);',
-      '    vec3 td=normalize(vec3(1.,cd(p.x,t),0.));',
-      '    vec3 T=normalize(td-n*dot(td,n));',
+      '    vec3 n=normalize(vec3(-g*.028,1.));',
+      '    vec3 L=normalize(vec3(uLight-p,.7));',
       '    vec3 H=normalize(L+vec3(0.,0.,1.));',
-      '    float th=dot(T,H);float sTH=sqrt(max(0.,1.-th*th));',
-      '    float front=smoothstep(-.08,.08,b.z);',
-      '    float sp=(pow(sTH,90.)*.6+pow(sTH,14.)*.13)*mix(.3,1.,front);',
-      '    vec3 cDeep=vec3(.69,.51,.46),cMid=vec3(.865,.735,.675),cHi=vec3(.98,.935,.905),cBack=vec3(.78,.6,.555);',
-      '    col=mix(cDeep,cMid,smoothstep(0.,.72,wr));',
-      '    col=mix(col,cHi,smoothstep(.72,1.,wr)*.8);',
-      '    col=mix(mix(cBack,cDeep,.25)*(.82+.25*wr),col,front);',
-      '    col+=sp*vec3(1.,.96,.92);',
-      '    col=mix(col,vec3(.93,.85,.74),pow(1.-n.z,2.)*.55);',
-      '    col=mix(col,cHi,smoothstep(.86,.985,ad)*.22);',
-      '    col+=(fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)*.018;',
+      '    float wr=clamp((dot(n,L)+.3)/1.3,0.,1.);',
+      '    float nh=max(dot(n,H),0.);',
+      '    float sp=pow(nh,22.)*.17+pow(nh,90.)*.26;',
+      '    float ao=smoothstep(-1.1,.8,h0);',
+      '    vec3 cDeep=vec3(.65,.48,.455),cMid=vec3(.855,.715,.655),cHi=vec3(.975,.925,.89);',
+      '    col=mix(cDeep,cMid,smoothstep(.12,.62,wr));',
+      '    col=mix(col,cHi,smoothstep(.62,1.,wr)*.85);',
+      '    col*=mix(.86,1.,ao)*(1.-.08*b.z);',
+      '    col+=sp*vec3(1.,.95,.9);',
+      '    col=mix(col,vec3(.93,.84,.72),pow(1.-n.z,1.5)*.3);',
+      '    col=mix(col,cHi,smoothstep(.88,.99,ad)*.18);',
+      '    col+=(fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)*.016;',
       '  }',
       '  float aT=aB+aS*(1.-aB);',
       '  gl_FragColor=vec4(col*aB+vec3(.23,.12,.17)*aS*(1.-aB),aT);',
       '}'
     ].join('\n');
 
-    function sh(type, src) {
-      var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
-      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { if (window.console) console.warn(gl.getShaderInfoLog(s)); return null; }
-      return s;
-    }
+    /* Shader im Hintergrund kompilieren (KHR_parallel_shader_compile), damit der Main-Thread nicht blockiert */
+    var pext = gl.getExtension('KHR_parallel_shader_compile');
+    function sh(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; }
     var v = sh(gl.VERTEX_SHADER, vs), f = sh(gl.FRAGMENT_SHADER, fs);
-    if (!v || !f) { root.classList.add('silk-none'); return; }
     var prog = gl.createProgram(); gl.attachShader(prog, v); gl.attachShader(prog, f); gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { root.classList.add('silk-none'); return; }
+    (function waitCompile() {
+      if (pext && !gl.getProgramParameter(prog, pext.COMPLETION_STATUS_KHR)) { setTimeout(waitCompile, 50); return; }
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+        if (window.console) console.warn(gl.getShaderInfoLog(f) || gl.getProgramInfoLog(prog));
+        root.classList.add('silk-none'); return;
+      }
+      setTimeout(setup, 0);
+    })();
+    function setup() {
     gl.useProgram(prog);
     var buf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
@@ -392,10 +398,10 @@
 
     /* Adaptive Qualität: Schafft das Gerät die Seide nicht flüssig (mittlere Frame-Zeit > 40 ms),
        sinkt die Auflösung stufenweise; bei sehr langsamer Grafik (> 120 ms) bleibt ein Standbild stehen. */
-    var level = 0, RES = SILK.QUALITY[0];
+    var level = 1, floor = 0, RES = SILK.QUALITY[1]; // startet vorsichtig, steigt auf schnellen Geräten auf
     var SLOW_MS = 40, VERY_SLOW_MS = 120;
     var w = 0, h = 0, cssW = 0, cssH = 0, band = SILK.wide;
-    var m = { x: 0.3, y: 0.1, tx: 0.3, ty: 0.1, lift: 0, tlift: 0, lx: -0.2, ly: 0.35, tlx: -0.2, tly: 0.35 };
+    var m = { x: 0.3, y: 0.1, tx: 0.3, ty: 0.1, lift: 0, tlift: 0, lx: -0.35, ly: 0.45, tlx: -0.35, tly: 0.45 };
     var t0 = performance.now(), tBase = 14.0, tNow = tBase;
     var intro = MOTION ? 0 : 1, introStart = 0;
     var running = false, inView = true, raf = 0, frozen = false, active = 0, lastFrame = 0, idleSkip = false;
@@ -434,7 +440,8 @@
             var avg = acc / n;
             acc = 0; n = 0;
             if (avg > VERY_SLOW_MS || (avg > SLOW_MS && level === SILK.QUALITY.length - 1)) { frozen = true; return; }
-            if (avg > SLOW_MS) { level++; RES = SILK.QUALITY[level]; resize(); warm = 3; }
+            if (avg > SLOW_MS) { level++; floor = level; RES = SILK.QUALITY[level]; resize(); warm = 3; }
+            else if (avg < 21 && level > floor) { level--; RES = SILK.QUALITY[level]; resize(); warm = 3; }
           }
         }
       }
@@ -457,7 +464,7 @@
         m.x = lerp(m.x, m.tx, 0.05); m.y = lerp(m.y, m.ty, 0.05);
         m.lift = lerp(m.lift, m.tlift, 0.04);
         m.lx = lerp(m.lx, m.tlx, 0.035); m.ly = lerp(m.ly, m.tly, 0.035);
-        if (!finePointer) { m.tlx = -0.25 + Math.sin((now - t0) / 5200) * 0.35; m.tly = 0.38 + Math.cos((now - t0) / 6100) * 0.1; }
+        if (!finePointer) { m.tlx = -0.3 + Math.sin((now - t0) / 5200) * 0.35; m.tly = 0.45 + Math.cos((now - t0) / 6100) * 0.1; }
         tNow = tBase + (now - t0) / 1000 * 0.62;
         draw(tNow);
       }
@@ -474,7 +481,7 @@
         if (!inView || !cssH) return;
         var r = canvas.getBoundingClientRect();
         var x = (e.clientX - r.left - cssW / 2) / cssH, y = -(e.clientY - r.top - cssH / 2) / cssH;
-        m.tx = x; m.ty = y; m.tlx = x * 0.9; m.tly = y + 0.32; m.tlift = 1;
+        m.tx = x; m.ty = y; m.tlx = x * 0.9 - 0.15; m.tly = y + 0.4; m.tlift = 1;
         active = performance.now();
       }, { passive: true });
       document.documentElement.addEventListener('pointerleave', function () { m.tlift = 0; }, { passive: true });
@@ -489,7 +496,8 @@
     }
     document.addEventListener('visibilitychange', update);
     update();
-    silk.redraw = function () { if (!running) draw(tNow); };
+    silk.redraw = function () { if (!running && !frozen) draw(tNow); };
+    }
   }
 
   /** Hero beim Scrollen: Zeilen driften unterschiedlich schnell, das Bild sinkt langsamer, die Seide hebt ab. */
@@ -517,7 +525,7 @@
   /* ------------------------------------------------------------------
      Zeichen-Zerlegung für Überschriften + Zeichen-Rollen für Links
      ------------------------------------------------------------------ */
-  /** Zerlegt Text in Wörter (span.sw) und Zeichen (span.sc), Inline-Elemente wie <em> bleiben erhalten.
+  /** Zerlegt Text in Wörter (span.spw) und Zeichen (span.sc), Inline-Elemente wie <em> bleiben erhalten.
    *  Screenreader lesen eine unsichtbare Klartext-Kopie, die zerlegte Fassung ist aria-hidden. */
   function splitChars(el) {
     if (el.dataset.splitDone) return;
@@ -533,7 +541,7 @@
           parts.forEach(function (part) {
             if (!part) return;
             if (/^\s+$/.test(part)) { dst.appendChild(document.createTextNode(' ')); return; }
-            var word = document.createElement('span'); word.className = 'sw';
+            var word = document.createElement('span'); word.className = 'spw';
             for (var k = 0; k < part.length; k++) {
               var c = document.createElement('span'); c.className = 'sc';
               c.style.setProperty('--i', i++);
@@ -1276,6 +1284,7 @@
       $$('[data-gblock]', form).forEach(function (b) { b.hidden = b.dataset.gblock !== type; });
       var isCustom = val('gamount') === 'eigen';
       customWrap.classList.toggle('is-open', isCustom);
+      var before = vOut.textContent;
       if (type === 'behandlung') {
         vOut.textContent = treatName();
         vOut.classList.add('is-treatment');
@@ -1284,6 +1293,7 @@
         vOut.textContent = a != null ? fmtEuroShort(a) : '— €';
         vOut.classList.remove('is-treatment');
       }
+      if (UI_MOTION && before !== vOut.textContent) { vOut.classList.remove('is-shine'); void vOut.offsetWidth; vOut.classList.add('is-shine'); }
       var m = msg.value.trim();
       mOut.textContent = '„' + (m || msg.getAttribute('placeholder')) + '“';
       toOut.textContent = to.value.trim() || 'Name der Beschenkten';
@@ -1359,11 +1369,16 @@
       var mqMini = matchMedia('(max-width: 899px)');
       var stageOut = false;
       var syncMini = function () { mini.classList.toggle('is-on', mqMini.matches && stageOut && !form.hidden); };
-      new IntersectionObserver(function (en) {
-        var e = en[0];
-        stageOut = !e.isIntersecting && e.boundingClientRect.top < 0; // nur wenn die Karte oberhalb verschwunden ist
-        syncMini();
-      }, { rootMargin: '-' + (headerH() + 40) + 'px 0px 0px 0px' }).observe(stage);
+      // Prüft per Scroll, solange das Gutschein-Kapitel sichtbar ist (auch bei Sprüngen über die Karte hinweg)
+      var watch = false, miniTick = false;
+      var measure = function () {
+        miniTick = false;
+        var r = stage.getBoundingClientRect();
+        var out = r.bottom < headerH() + 40;
+        if (out !== stageOut) { stageOut = out; syncMini(); }
+      };
+      window.addEventListener('scroll', function () { if (watch && !miniTick) { miniTick = true; requestAnimationFrame(measure); } }, { passive: true });
+      new IntersectionObserver(function (en) { watch = en[0].isIntersecting; measure(); }).observe($('#gutschein'));
       if (mqMini.addEventListener) mqMini.addEventListener('change', syncMini);
       form.addEventListener('submit', function () { setTimeout(syncMini, 0); });
       mini.addEventListener('click', function () { scrollToEl(stage, { offset: -(headerH() + 16) }); });
@@ -1674,39 +1689,56 @@
      Start
      ------------------------------------------------------------------ */
   function safe(fn, name) { try { fn(); } catch (e) { if (window.console) console.warn('[Maison Belle] ' + name + ':', e); } }
-  /* Sofort: was der erste Bildschirm braucht. Der Rest läuft in Häppchen (≤ 30 ms je Task),
+  /* Sofort: was der erste Bildschirm braucht (Kopfzeile, Menü, Intro). Danach laden GSAP, ScrollTrigger und
+     Lenis nacheinander; der Rest startet in kleinen Häppchen (≈ 8 ms je Task, danach wird abgegeben),
      damit der Main-Thread während des Hero-Intros frei bleibt (keine langen Boot-Tasks). */
-  safe(initScroll, 'scroll');
   safe(initHeader, 'header');
   safe(initMenu, 'menu');
   safe(initIntro, 'intro');
   window.__maisonReady = true;
   var queue = [
-    [initTones, 'tones'], [initRoll, 'roll'], [initMagnetic, 'magnetic'], [initHeroScroll, 'heroScroll'],
-    [initSplit, 'split'], [initReveals, 'reveals'], [initWords, 'words'], [initDraw, 'draw'],
+    [initScroll, 'scroll'], [initTones, 'tones'], [initRoll, 'roll'], [initSplit, 'split'], [initCarousel, 'carousel'], [initBooking, 'booking'],
+    [initMagnetic, 'magnetic'], [initHeroScroll, 'heroScroll'], [initReveals, 'reveals'], [initWords, 'words'], [initDraw, 'draw'],
     [initDepth, 'depth'], [initCounters, 'counters'], [initRibbons, 'ribbons'], [initRitual, 'ritual'],
     [initCarte, 'carte'], [initGoto, 'goto'], [initBookLinks, 'book'], [initQuiz, 'quiz'],
-    [initActives, 'actives'], [initGift, 'gift'], [initCarousel, 'carousel'],
-    [initHours, 'hours'], [initMap, 'map'], [initFaq, 'faq'], [initBooking, 'booking']
+    [initActives, 'actives'], [initGift, 'gift'], [initHours, 'hours'], [initMap, 'map'], [initFaq, 'faq']
   ];
   var yieldTask = function (fn) {
     if (window.scheduler && typeof scheduler.postTask === 'function') scheduler.postTask(fn, { priority: 'user-visible' });
     else setTimeout(fn, 0);
   };
-  (function runQueue() {
+  function runQueue() {
     var t0 = performance.now();
     while (queue.length) {
       var job = queue.shift();
       safe(job[0], job[1]);
-      if (queue.length && performance.now() - t0 > 30) { yieldTask(runQueue); return; }
+      if (queue.length && performance.now() - t0 > 8) { yieldTask(runQueue); return; }
     }
     window.__maisonBooted = true;
-    if (hasGSAP) ScrollTrigger.refresh();
-  })();
+    if (hasGSAP) {
+      ScrollTrigger.refresh();
+      if (document.readyState !== 'complete') window.addEventListener('load', function () { ScrollTrigger.refresh(); });
+    }
+  }
+  function loadVendors(done) {
+    var i = 0;
+    if (window.gsap && window.ScrollTrigger) { done(); return; }
+    (function next() {
+      if (i >= VENDOR.length) { done(); return; }
+      var s = document.createElement('script');
+      s.src = VENDOR[i++];
+      s.onload = s.onerror = function () { setTimeout(next, 0); };
+      document.head.appendChild(s);
+    })();
+  }
+  loadVendors(function () {
+    hasGSAP = !!(window.gsap && window.ScrollTrigger);
+    if (!hasGSAP) root.classList.remove('scene'); // Sticky-Szene braucht ScrollTrigger
+    yieldTask(runQueue);
+  });
   // Seide startet kurz nach dem Zeichen-Intro (Leinwand unsichtbar bis zum ersten Bild, rollt dann auf)
   setTimeout(function () {
     var start = function () { safe(initSilk, 'silk'); };
     if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 900 }); else start();
   }, 650);
-  if (hasGSAP) window.addEventListener('load', function () { ScrollTrigger.refresh(); });
 })();

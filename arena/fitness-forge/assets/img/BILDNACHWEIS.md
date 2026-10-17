@@ -17,8 +17,6 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 | `scheibe` | 960x640 | Gym Weights | https://stocksnap.io/photo/gym-weights-SRWV8BAHE6 |
 | `seil` | 960x641 | Girl Woman | https://stocksnap.io/photo/girl-woman-MRTPJW5I7U |
 | `sieg` | 960x698 | Kickboxing Fighting | https://stocksnap.io/photo/kickboxing-fighting-7683881689 |
-| `spiegel` | 960x638 | Girl Woman | https://stocksnap.io/photo/girl-woman-XBU0JECP7E |
-| `stange` | 960x640 | Weights Fitness | https://stocksnap.io/photo/weights-fitness-3H89EH3WIJ |
 | `tritt` | 960x540 | Girl Kickboxing | https://stocksnap.io/photo/girl-kickboxing-CBZ63WHPRO |
 | `trx` | 960x640 | Man Workout | https://stocksnap.io/photo/man-workout-KZROPA98J8 |
 | `werkhalle` | 960x640 | Woman Workout | https://stocksnap.io/photo/woman-workout-MO8FFFHRSS |
