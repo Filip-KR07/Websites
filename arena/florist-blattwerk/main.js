@@ -354,7 +354,19 @@
     /* PLZ-Check */
     var form = qs('[data-plz-form]'), input = qs('[data-plz-input]'), out = qs('[data-plz-result]'), map = qs('[data-map]');
     if (!form) return;
-    function clearMap() { qsa('.is-hit', map).forEach(function (n) { n.classList.remove('is-hit'); }); }
+    var route = qs('[data-route]', map);
+    function clearMap() { qsa('.is-hit', map).forEach(function (n) { n.classList.remove('is-hit'); }); if (route) route.classList.remove('is-on'); }
+    function drawRoute(node) {
+      if (!route || !node) return;
+      var c = qs('circle', node), tx, ty;
+      if (c) { tx = +c.getAttribute('cx'); ty = +c.getAttribute('cy'); }
+      else { var bb = qs('path', node).getBBox(); tx = bb.x + bb.width / 2; ty = bb.y + bb.height / 2; }
+      var sx = 350, sy = 247, mx = (sx + tx) / 2 + (ty - sy) * 0.28, my = (sy + ty) / 2 - (tx - sx) * 0.28;
+      route.classList.remove('is-on');
+      route.setAttribute('d', 'M' + sx + ' ' + sy + ' Q' + mx.toFixed(1) + ' ' + my.toFixed(1) + ' ' + tx.toFixed(1) + ' ' + ty.toFixed(1));
+      void route.getBoundingClientRect();
+      route.classList.add('is-on');
+    }
     function render(kind, title, lines) {
       out.textContent = '';
       var box = mk('div', 'res res--' + kind);
@@ -385,7 +397,7 @@
       }
       var z = ZONES[hit[0]], win = nd.date.getDay() === 6 ? z.sa : z.wd;
       var node = qs('[data-plz="' + v + '"]', map);
-      if (node) node.classList.add('is-hit');
+      if (node) { node.classList.add('is-hit'); drawRoute(node); }
       var when = dayWord(nd.date, now);
       render(hit[0], (hit[0] === 'stadt' ? (/^die /.test(hit[1]) ? 'Ja, wir liefern in ' : 'Ja, wir liefern nach ') : 'Ja, auch nach ') + hit[1] + '.', [
         ['Lieferung ', when + ' zwischen ' + win[0] + ' und ' + win[1] + NBSP + 'Uhr', nd.today ? '' : ' (' + dateLong(nd.date) + ')'],
@@ -433,7 +445,10 @@
     var canvas = qs('[data-petals]');
     if (!canvas || !canvas.getContext) return;
     var hero = canvas.parentElement, ctx = canvas.getContext('2d');
-    var COLORS = ['#F2C9C0', '#EDB5A9', '#F7DDD5', '#F2C9C0', '#E8735A', '#D9472B', '#FBEDE4', '#E9AFA3', '#C8D0C3'];
+    var COLORS = ['#F2C9C0', '#EDB5A9', '#F7DDD5', '#F2C9C0', '#E8735A', '#D9472B', '#FBEDE4', '#E9AFA3', '#D9472B'];
+    var LEAVES = ['#7f9c84', '#6f9273', '#A9BDB0'];
+    var leafPath = new Path2D('M0 1.1 C0.62 0.6 0.7 -0.5 0 -1.15 C-0.7 -0.5 -0.62 0.6 0 1.1Z');
+    var gust = 0, lastY = window.pageYOffset;
     var petal = new Path2D('M0 1 C0.55 0.75 0.95 -0.1 0.62 -0.78 C0.42 -1.05 0.1 -0.98 0 -0.82 C-0.1 -0.98 -0.42 -1.05 -0.62 -0.78 C-0.95 -0.1 -0.55 0.75 0 1Z');
     var vein = new Path2D('M0 0.9 C0.05 0.3 0.02 -0.3 0 -0.7');
     var W = 0, H = 0, dpr = 1, ps = [], running = false, visible = true, raf = 0, last = 0, t = 0;
@@ -445,7 +460,8 @@
       p.size = (5 + rnd() * 8) * p.z * (W < 600 ? 0.9 : 1);
       p.x = rnd() * W;
       p.y = top ? -20 - rnd() * 60 : rnd() * H;
-      p.c = COLORS[Math.floor(rnd() * COLORS.length)];
+      p.leaf = rnd() < 0.2;
+      p.c = p.leaf ? LEAVES[Math.floor(rnd() * LEAVES.length)] : COLORS[Math.floor(rnd() * COLORS.length)];
       p.rot = rnd() * Math.PI * 2;
       p.vr = (rnd() - 0.5) * 1.6;
       p.flip = rnd() * Math.PI * 2;
@@ -481,7 +497,7 @@
         ctx.scale(p.size, p.size * (0.28 + 0.72 * af));
         ctx.globalAlpha = (0.5 + 0.42 * af) * (0.55 + 0.45 * p.z);
         ctx.fillStyle = p.c;
-        ctx.fill(petal);
+        ctx.fill(p.leaf ? leafPath : petal);
         ctx.globalAlpha *= 0.5;
         ctx.strokeStyle = f > 0 ? '#ffffff' : 'rgba(80,30,20,.6)';
         ctx.lineWidth = 0.08;
@@ -494,7 +510,7 @@
       var wind = Math.sin(t * 0.23) * 14 + Math.sin(t * 0.61 + 1.3) * 7;
       mouse.sx += (mouse.x - mouse.sx) * 0.18;
       mouse.sy += (mouse.y - mouse.sy) * 0.18;
-      var damp = Math.pow(0.12, dt);
+      var damp = Math.pow(0.12, dt), g = gust; gust = 0;
       for (var i = 0; i < ps.length; i++) {
         var p = ps[i];
         p.ph += dt * p.swayF;
@@ -504,6 +520,7 @@
           p.px += dx / d * k; p.py += dy / d * k;
           p.vr += (dx > 0 ? 1 : -1) * k * 0.004;
         }
+        if (g) { p.py -= g * 3.2 * p.z; p.px += g * 1.6 * Math.sin(p.ph * 1.3) * p.z; p.vr += g * 0.01 * (p.z - 0.7); }
         p.px *= damp; p.py *= damp;
         p.x += (wind * p.z + Math.cos(p.ph) * p.sway + p.px) * dt;
         p.y += (p.vy + Math.sin(p.ph * 0.7) * 6 + p.py) * dt;
@@ -533,6 +550,10 @@
       new IntersectionObserver(function (en) { visible = en[0].isIntersecting; setRun(true); }, { rootMargin: '60px 0px' }).observe(hero);
     }
     document.addEventListener('visibilitychange', function () { setRun(true); });
+    // Windstoß: Scroll-Geschwindigkeit hebt die Blätter kurz an (gedämpft, verfliegt in < 1 s)
+    window.addEventListener('scroll', function () {
+      var y = window.pageYOffset; if (running) gust += clamp(y - lastY, -60, 60); lastY = y;
+    }, { passive: true });
     if (anim && finePointer) {
       window.addEventListener('pointermove', function (e) {
         if (!running) return;
@@ -557,6 +578,7 @@
     return { has: function (x) { return !!set[x]; }, size: n };
   }
   var seasonData = [];
+  var wheelApi = null;
   function readSeason() {
     seasonData = qsa('.sf').map(function (li) {
       var m = parseRange(li.getAttribute('data-m')), p = parseRange(li.getAttribute('data-p'));
@@ -627,11 +649,23 @@
     tabs[nowM - 1].classList.add('is-now');
     tabs[nowM - 1].setAttribute('aria-description', 'aktueller Monat');
 
-    function placeInk() {
-      if (!ink) return;
-      var cols = window.innerWidth < 700 ? 6 : 12, idx = cur - 1;
-      ink.style.transform = 'translate(' + ((idx % cols) * 100) + '%, ' + (Math.floor(idx / cols) * 100) + '%)';
+    // Blütenrad: Feder (unterbrechbar) dreht den gewählten Monat unter die Nadel; Scroll gibt etwas Drall dazu.
+    var wheel = qs('[data-wheel]'), hubM = qs('[data-wheel-m]'), hubN = qs('[data-wheel-n]');
+    var ang = -(nowM - 1) * 30, target = ang, drift = 0, vel = 0, wraf = 0;
+    function wheelSet(a) { if (wheel) wheel.style.setProperty('--a', a.toFixed(2) + 'deg'); }
+    function wheelLoop() {
+      var f = target + drift - ang;
+      vel = vel * 0.8 + f * 0.055; ang += vel; wheelSet(ang);
+      if (Math.abs(f) > 0.04 || Math.abs(vel) > 0.04) wraf = requestAnimationFrame(wheelLoop);
+      else { ang = target + drift; wheelSet(ang); wraf = 0; }
     }
+    function wheelKick() { if (!anim) { ang = target + drift; wheelSet(ang); } else if (!wraf) wraf = requestAnimationFrame(wheelLoop); }
+    function placeInk() {
+      var t = -(cur - 1) * 30, d = ((t - target) % 360 + 540) % 360 - 180;
+      target += d; wheelKick();
+    }
+    wheelApi = { drift: function (p) { drift = (0.5 - p) * 40; wheelKick(); } };
+    wheelSet(ang);
     // Saisonware zuerst: Karten nach „in Saison“ sortieren (stabil, sonst Jahreslauf).
     // Mit Bewegung gleiten die Karten per FLIP (nur transform, WAAPI, unterbrechbar) an ihren neuen Platz.
     var FLIP_EASE = 'cubic-bezier(0.23, 1, 0.32, 1)';
@@ -693,6 +727,8 @@
       status.appendChild(mk('strong', '', String(n)));
       status.appendChild(document.createTextNode(' von ' + seasonData.length + NBSP + 'Blumen'));
       if (pickM) pickM.textContent = MON[mo - 1];
+      if (hubM) hubM.textContent = MON[mo - 1];
+      if (hubN) hubN.textContent = n + ' Blumen in Saison';
       if (pickF) pickF.textContent = joinList(seasonPick(mo));
       placeInk();
     }
@@ -710,7 +746,6 @@
       setMonth(m, true);
     });
     if (only) only.addEventListener('change', function () { grid.classList.toggle('only-in', only.checked); });
-    window.addEventListener('resize', placeInk, { passive: true });
     setMonth(nowM, false, true);
   }
 
@@ -1278,7 +1313,128 @@
   }
 
   /* ------------------------------------------------------------------
-     GSAP-Choreografie: Hero-Parallax, horizontale Hochzeits-Strecke
+     Mohn im Hero: der Blütenkopf nickt dem Zeiger nach (Feder)
+     ------------------------------------------------------------------ */
+  function initPoppy() {
+    var fl = qs('.fl-sway'), sheet = qs('[data-sheet]'), hero = qs('.hero');
+    if (!fl || !sheet || !anim || !finePointer) return;
+    var a = 0, v = 0, t = 0, raf = 0;
+    function loop() {
+      var f = t - a;
+      v = v * 0.84 + f * 0.045; a += v;
+      fl.style.transform = 'rotate(' + a.toFixed(2) + 'deg)';
+      if (Math.abs(f) > 0.02 || Math.abs(v) > 0.02) raf = requestAnimationFrame(loop); else raf = 0;
+    }
+    hero.addEventListener('pointermove', function (e) {
+      var r = sheet.getBoundingClientRect();
+      t = clamp((e.clientX - (r.left + r.width * 0.56)) / r.width * 18, -10, 10);
+      if (!raf) raf = requestAnimationFrame(loop);
+    }, { passive: true });
+    hero.addEventListener('pointerleave', function () { t = 0; if (!raf) raf = requestAnimationFrame(loop); });
+  }
+
+  /* Magnetische Anhänger-Knöpfe (nur feiner Zeiger) – über die translate-Eigenschaft,
+     damit :active { transform: scale(.97) } unangetastet bleibt. */
+  function initMagnet() {
+    if (!finePointer || !anim) return;
+    qsa('[data-magnet]').forEach(function (b) {
+      var x = 0, y = 0, tx = 0, ty = 0, raf = 0;
+      function loop() {
+        x += (tx - x) * 0.2; y += (ty - y) * 0.2;
+        b.style.translate = x.toFixed(2) + 'px ' + y.toFixed(2) + 'px';
+        if (Math.abs(tx - x) > 0.1 || Math.abs(ty - y) > 0.1) raf = requestAnimationFrame(loop); else raf = 0;
+      }
+      b.addEventListener('pointermove', function (e) {
+        var r = b.getBoundingClientRect();
+        tx = (e.clientX - r.left - r.width / 2) * 0.22; ty = (e.clientY - r.top - r.height / 2) * 0.32;
+        if (!raf) raf = requestAnimationFrame(loop);
+      });
+      b.addEventListener('pointerleave', function () { tx = ty = 0; if (!raf) raf = requestAnimationFrame(loop); });
+    });
+  }
+
+  /* Zeichen-Rollen beim Hover: Text bleibt für Screenreader als ein Wort erhalten */
+  function initRoll() {
+    if (!finePointer || !anim) return;
+    qsa('[data-roll], .nav a').forEach(function (el) {
+      var txt = el.textContent.trim(), k = 0;
+      el.textContent = '';
+      el.appendChild(mk('span', 'visually-hidden', txt));
+      var r = mk('span', 'roll'); r.setAttribute('aria-hidden', 'true');
+      txt.split(' ').forEach(function (word, wi) {
+        if (wi) r.appendChild(document.createTextNode(' '));
+        var w = mk('span', 'roll__w'); w.style.whiteSpace = 'nowrap';
+        Array.prototype.forEach.call(word, function (ch) {
+          var i = document.createElement('i'), b = document.createElement('b');
+          i.style.setProperty('--k', k++);
+          b.textContent = ch; b.setAttribute('data-c', ch);
+          i.appendChild(b); w.appendChild(i);
+        });
+        r.appendChild(w);
+      });
+      el.appendChild(r);
+    });
+  }
+
+  /* Laufband reagiert auf Scroll-Geschwindigkeit (WAAPI playbackRate, klingt weich ab) */
+  function initTickerSpeed() {
+    var tk = qs('.ticker');
+    if (!tk || !anim || !tk.getAnimations) return;
+    var anims = [], rate = 1, goal = 1, raf = 0, lastY = window.pageYOffset, vis = false;
+    function collect() { anims = []; qsa('.ticker__list', tk).forEach(function (l) { anims = anims.concat(l.getAnimations()); }); }
+    collect();
+    function loop() {
+      goal += (1 - goal) * 0.06;
+      rate += (goal - rate) * 0.2;
+      anims.forEach(function (an) { an.playbackRate = rate; });
+      if (Math.abs(rate - 1) > 0.01 || Math.abs(goal - 1) > 0.01) raf = requestAnimationFrame(loop);
+      else { rate = 1; anims.forEach(function (an) { an.playbackRate = 1; }); raf = 0; }
+    }
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (en) { vis = en[0].isIntersecting; if (vis) collect(); }).observe(tk);
+    window.addEventListener('scroll', function () {
+      var y = window.pageYOffset, dy = y - lastY; lastY = y;
+      if (!vis) return;
+      goal = clamp(goal + dy * 0.08, -4, 7);
+      if (!raf) raf = requestAnimationFrame(loop);
+    }, { passive: true });
+  }
+
+  /* Werkbank-Text: Wort für Wort mit Tinte gefüllt – durch Scrollen schneller,
+     aber spätestens 2,6 s nach dem Erscheinen vollständig (wartet auf nichts). */
+  function initInk() {
+    var el = qs('[data-ink]');
+    if (!el || !anim || !('IntersectionObserver' in window)) return;
+    var words = [];
+    Array.prototype.slice.call(el.childNodes).forEach(function (node) {
+      if (node.nodeType !== 3) return;
+      var frag = document.createDocumentFragment();
+      node.textContent.split(/(\s+)/).forEach(function (part) {
+        if (!part) return;
+        if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
+        var w = mk('span', 'wd', part); words.push(w); frag.appendChild(w);
+      });
+      el.replaceChild(frag, node);
+    });
+    var n = words.length, shown = 0, t0 = 0, raf = 0, active = false;
+    function update(ts) {
+      var r = el.getBoundingClientRect(), vh = window.innerHeight;
+      var p = clamp((vh * 0.92 - r.top) / (r.height + vh * 0.3), 0, 1);
+      if (!t0) t0 = ts;
+      var k = Math.round(Math.max(p * 1.2, (ts - t0) / 2600) * n);
+      k = clamp(k, shown, n);
+      for (var i = shown; i < k; i++) words[i].classList.add('is-ink');
+      shown = k;
+      raf = (shown < n && active) ? requestAnimationFrame(update) : 0;
+    }
+    new IntersectionObserver(function (en) {
+      active = en[0].isIntersecting;
+      if (active && !raf && shown < n) raf = requestAnimationFrame(update);
+    }, { rootMargin: '0px 0px -12% 0px' }).observe(el);
+  }
+
+  /* ------------------------------------------------------------------
+     GSAP-Choreografie: Belege wachsen, Rad-Drall, Hochzeits-Strecke mit
+     Tiefe (CSS-sticky, kein Pin), Trauer-Kapitel färbt die Seite dunkel
      ------------------------------------------------------------------ */
   function initGSAP() {
     if (!hasGSAP || !anim) return;
@@ -1286,57 +1442,82 @@
     var hero = qs('.hero');
     var mm = gsap.matchMedia();
 
-    mm.add('(min-width: 900px)', function () {
-      qsa('[data-plx]').forEach(function (el) {
-        gsap.to(el, { y: +el.getAttribute('data-plx'), ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.4 } });
-      });
-      gsap.to('.hero__copy', { y: -40, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.4 } });
+    // Leistungen: jeder gepresste Beleg wächst aus der Grundlinie
+    qsa('[data-grow]').forEach(function (el) {
+      gsap.fromTo(el, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', ease: 'none',
+        scrollTrigger: { trigger: el, start: 'top 94%', end: 'top 52%', scrub: 0.5 } });
+    });
 
-      var pin = qs('[data-wed-pin]'), track = qs('[data-wed-track]');
+    // Blütenrad: Scroll gibt dem Rad Drall (±20°), die Feder im Rad gleicht aus
+    var season = qs('#saison');
+    if (season && wheelApi) ST.create({ trigger: season, start: 'top bottom', end: 'bottom top', onUpdate: function (st) { wheelApi.drift(st.progress); } });
+
+    // Trauer: dunkles Kapitel öffnet sich als Kreis, Text folgt
+    var mo = qs('[data-dusk]'), veil = qs('[data-veil]');
+    if (mo && veil) {
+      gsap.fromTo(veil, { clipPath: 'circle(0% at 24% 34%)' }, { clipPath: 'circle(145% at 24% 34%)', ease: 'none',
+        scrollTrigger: { trigger: mo, start: 'top 88%', end: 'top 30%', scrub: 0.4 } });
+      gsap.fromTo(qs('.mourning__grid', mo), { opacity: 0 }, { opacity: 1, ease: 'none',
+        scrollTrigger: { trigger: mo, start: 'top 62%', end: 'top 38%', scrub: 0.4 } });
+    }
+
+    mm.add('(min-width: 900px)', function () {
+      if (hero) {
+        gsap.to('.hero__sheet', { y: 70, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.4 } });
+        gsap.to('.hero__print', { y: -50, rotation: -4, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.4 } });
+        gsap.to('.hero__copy', { y: -30, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.4 } });
+      }
+      var pin = qs('[data-wed-pin]'), track = qs('[data-wed-track]'), back = qs('[data-wed-back]'), front = qs('[data-wed-front]');
       if (!pin || !track) return;
       pin.classList.add('is-pinned');
-      // Statt pin:true (position:fixed-Wechsel = Layout-Shift) eine CSS-sticky-Bühne:
-      // Die Laufbahn ist so hoch wie Viewport + Spurbreite, die Spur wird nur per transform verschoben.
-      var stick = qs('.wedding__stick', pin);
+      // Statt pin:true eine CSS-sticky-Bühne: Laufbahn = Viewport + Spurlänge, bewegt wird nur per transform.
       var dist = function () { return Math.max(0, track.scrollWidth - window.innerWidth); };
-      var setRunway = function () { pin.style.height = ((stick ? stick.offsetHeight : window.innerHeight) + dist()) + 'px'; };
+      var setRunway = function () { pin.style.height = (window.innerHeight + dist()) + 'px'; };
       setRunway();
       ST.addEventListener('refreshInit', setRunway);
-      var tween = gsap.to(track, {
-        x: function () { return -dist(); }, ease: 'none',
-        scrollTrigger: { trigger: pin, start: 'top top', end: 'bottom bottom', scrub: 0.6, invalidateOnRefresh: true }
+      var tl = gsap.timeline({ scrollTrigger: { trigger: pin, start: 'top top', end: 'bottom bottom', scrub: 0.6, invalidateOnRefresh: true } });
+      tl.to(track, { x: function () { return -dist(); }, ease: 'none' }, 0);
+      if (back) tl.to(back, { x: function () { return -dist() * 0.32; }, ease: 'none' }, 0);
+      if (front) tl.to(front, { x: function () { return -dist() * 1.5; }, ease: 'none' }, 0);
+      qsa('.wp__fig', track).forEach(function (f, i) {
+        tl.fromTo(f, { y: (i % 2 ? -1 : 1) * 26 }, { y: (i % 2 ? 1 : -1) * 26, ease: 'none' }, 0);
       });
-      qsa('.wp__fig img', track).forEach(function (img) {
-        gsap.fromTo(img, { xPercent: -6 }, { xPercent: 6, ease: 'none', scrollTrigger: { trigger: img.parentElement, containerAnimation: tween, start: 'left right', end: 'right left', scrub: true } });
-      });
-      return function () { ST.removeEventListener('refreshInit', setRunway); pin.classList.remove('is-pinned'); pin.style.height = ''; gsap.set(track, { clearProps: 'transform' }); };
+      return function () {
+        ST.removeEventListener('refreshInit', setRunway);
+        pin.classList.remove('is-pinned'); pin.style.height = '';
+        gsap.set([track, back, front].concat(qsa('.wp__fig', track)).filter(Boolean), { clearProps: 'transform' });
+      };
     });
     window.addEventListener('load', function () { ST.refresh(); });
   }
 
   /* ------------------------------------------------------------------
-     Start
+     Start in Etappen: erster Bildschirm sofort, der Rest häppchenweise
      ------------------------------------------------------------------ */
   function start() {
+    window.__blattwerkReady = true;
     safe('scroll', initScroll);
     safe('header', initHeader);
     safe('menu', initMenu);
     safe('anchors', initAnchors);
     safe('open', initOpenState);
     safe('hero', initHero);
-    safe('season-data', readSeason);
-    safe('ticker', initTicker);
     safe('petals', initPetals);
-    safe('services', initServices);
-    safe('season', initSeason);
-    safe('configurator', initConfigurator);
-    safe('abo', initAbo);
-    safe('delivery', initDelivery);
-    safe('form', initForm);
-    safe('reveals', initReveals);
-    safe('stats', initStats);
-    safe('gsap', initGSAP);
-    window.__blattwerkReady = true;
+    safe('poppy', initPoppy);
+    safe('magnet', initMagnet);
+    var queue = [
+      ['season-data', readSeason], ['ticker', initTicker], ['ticker-speed', initTickerSpeed], ['roll', initRoll],
+      ['reveals', initReveals], ['services', initServices], ['season', initSeason], ['configurator', initConfigurator],
+      ['abo', initAbo], ['delivery', initDelivery], ['form', initForm], ['ink', initInk], ['gsap', initGSAP]
+    ];
+    var later = window.requestIdleCallback ? function (fn) { window.requestIdleCallback(fn, { timeout: 180 }); } : function (fn) { setTimeout(fn, 16); };
+    function next() {
+      var t0 = performance.now();
+      while (queue.length && performance.now() - t0 < 14) { var it = queue.shift(); safe(it[0], it[1]); }
+      if (queue.length) later(next);
+      else if (hasGSAP) window.ScrollTrigger.refresh();
+    }
+    later(next);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();

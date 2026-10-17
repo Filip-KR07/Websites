@@ -209,87 +209,125 @@
      Volle Bildrate nur während des Einlaufs, beim Rühren mit dem Zeiger und beim Scrollen,
      sonst gedrosselte Drift mit ~15 fps; außerhalb des Viewports und bei verdecktem Tab Stillstand. */
   var INK = {
-    renderScale: 0.5,      // Anteil der CSS-Auflösung (Handy 0,4)
+    renderScale: 0.45,     // Anteil der CSS-Auflösung (weiche Tinte braucht keine Schärfe)
     introSec: 6,           // so lange läuft die Tinte mit voller Bildrate aus
+    maxFps: 30,            // Obergrenze: Tinte ist langsam, 30 Bilder/s reichen und schonen den Hauptthread
     idleFps: 15,           // Drift danach
     growSec: 2.4,          // Zeitkonstante der Ausbreitung
-    spreadPortrait: 0.5    // Hochformat: Tinte bleibt im oberen Teil, Text unten bleibt auf Papier
+    spreadPortrait: 0.38   // Hochformat: Tinte bleibt im oberen Teil, Text unten bleibt auf Papier
   };
-  var inkGL = (function () {
-    var hero = $('.hero'), cv = $('.hero-ink');
-    if (!hero || !cv) return null;
+  var inkGL = null;
+  // eigener Task: Shader-Kompilierung blockiert nicht den Start von main.js
+  setTimeout(function () { inkGL = initInk(); if (inkGL) window.addEventListener('load', function () { inkGL.resize(); }); }, 0);
+  var INK_FS = [
+    'precision mediump float;',
+    'uniform vec2 uRes; uniform float uT; uniform vec2 uSrc; uniform vec3 uM; uniform float uGrow; uniform float uFlood; uniform float uSpread;',
+    'float h(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
+    'float n(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1.,0.)),u.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),u.x),u.y);}',
+    'float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*n(p);p=mat2(1.6,1.2,-1.2,1.6)*p;a*=.5;}return v;}',
+    'void main(){',
+    ' vec2 uv=gl_FragCoord.xy/uRes.y;',
+    ' vec2 p=uv-uSrc/uRes.y;',
+    ' vec2 m=uv-uM.xy/uRes.y; float md=exp(-dot(m,m)*26.);',
+    ' p+=vec2(-m.y,m.x)*md*uM.z;',
+    ' float t=uT;',
+    ' vec2 q=vec2(fbm(p*1.7+vec2(0.,-t*.07)),fbm(p*1.7+vec2(5.2,1.3)+t*.05));',
+    ' vec2 r=vec2(fbm(p*2.5+3.3*q+vec2(1.7,9.2)+t*.03),fbm(p*2.5+3.3*q+vec2(8.3,2.8)-t*.035));',
+    ' float f=fbm(p*2.1+2.7*r);',
+    ' vec2 e=vec2(p.x*1.25,(p.y-uGrow*.2)*.72);',
+    ' float rad=(.05+uGrow*.78)*uSpread+uFlood*2.4;',
+    ' float env=1.-smoothstep(rad*.2,rad,length(e)+(f-.5)*.8);',
+    ' float ink=smoothstep(.62,.67,env*(.5+f)+uFlood*.5);',
+    ' float rg=1.-abs(2.*fbm(p*3.6+2.8*r)-1.);',
+    ' float fil=pow(rg,9.)*smoothstep(.0,.55,env)*.95;',
+    ' float a=clamp(ink+fil,0.,1.);',
+    ' vec3 col=mix(vec3(.91,.886,.839),vec3(.043),a);',
+    ' col+=(h(gl_FragCoord.xy+fract(t*7.)*91.)-.5)*.045;',
+    ' gl_FragColor=vec4(col,1.);',
+    '}'
+    ].join('\n');
+
+  /* Der GL-Kern ist eigenständig (keine Closures), damit er auch als Worker-Quelltext laufen kann */
+  function inkCore(cv, FS) {
     var gl = null;
     try { gl = cv.getContext('webgl', { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: 'low-power' }); } catch (e) { gl = null; }
     if (!gl) return null;
-    var FS = [
-      'precision mediump float;',
-      'uniform vec2 uRes; uniform float uT; uniform vec2 uSrc; uniform vec3 uM; uniform float uGrow; uniform float uFlood; uniform float uSpread;',
-      'float h(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
-      'float n(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1.,0.)),u.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),u.x),u.y);}',
-      'float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=mat2(1.6,1.2,-1.2,1.6)*p;a*=.5;}return v;}',
-      'void main(){',
-      ' vec2 uv=gl_FragCoord.xy/uRes.y;',
-      ' vec2 p=uv-uSrc/uRes.y;',
-      ' vec2 m=uv-uM.xy/uRes.y; float md=exp(-dot(m,m)*26.);',
-      ' p+=vec2(-m.y,m.x)*md*uM.z;',
-      ' float t=uT;',
-      ' vec2 q=vec2(fbm(p*1.7+vec2(0.,-t*.07)),fbm(p*1.7+vec2(5.2,1.3)+t*.05));',
-      ' vec2 r=vec2(fbm(p*2.5+3.3*q+vec2(1.7,9.2)+t*.03),fbm(p*2.5+3.3*q+vec2(8.3,2.8)-t*.035));',
-      ' float f=fbm(p*2.1+2.7*r);',
-      ' vec2 e=vec2(p.x*1.25,(p.y-uGrow*.2)*.72);',
-      ' float rad=(.05+uGrow*.78)*uSpread+uFlood*2.4;',
-      ' float env=1.-smoothstep(rad*.2,rad,length(e)+(f-.5)*.8);',
-      ' float ink=smoothstep(.6,.7,env*(.5+f)+uFlood*.5);',
-      ' float rg=1.-abs(2.*fbm(p*3.6+2.8*r)-1.);',
-      ' float fil=pow(rg,9.)*smoothstep(.0,.55,env)*.95;',
-      ' float a=clamp(ink+fil,0.,1.);',
-      ' vec3 col=mix(vec3(.91,.886,.839),vec3(.043),a);',
-      ' float rw=pow(1.-abs(2.*fbm(p*3.+2.*q+7.)-1.),16.)*smoothstep(.1,.6,env)*(1.-uFlood);',
-      ' float drop=exp(-dot(p,p)*260.)*(1.-uGrow);',
-      ' col=mix(col,vec3(.70,.07,.106),clamp(rw*.9+drop,0.,1.)*(1.-a*.85));',
-      ' col+=(h(gl_FragCoord.xy+fract(t*7.)*91.)-.5)*.045;',
-      ' gl_FragColor=vec4(col,1.);',
-      '}'
-    ].join('\n');
     function sh(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null; }
     var vs = sh(gl.VERTEX_SHADER, 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}'), fs = sh(gl.FRAGMENT_SHADER, FS);
     if (!vs || !fs) return null;
     var pr = gl.createProgram(); gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
     if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return null;
     gl.useProgram(pr);
-    var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     var loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     var U = {}; ['uRes', 'uT', 'uSrc', 'uM', 'uGrow', 'uFlood', 'uSpread'].forEach(function (k) { U[k] = gl.getUniformLocation(pr, k); });
+    return {
+      resize: function (w, h) { cv.width = w; cv.height = h; gl.viewport(0, 0, w, h); },
+      draw: function (d) {
+        gl.uniform2f(U.uRes, cv.width, cv.height); gl.uniform1f(U.uT, d.t); gl.uniform2f(U.uSrc, d.sx, d.sy);
+        gl.uniform3f(U.uM, d.mx, d.my, d.ms); gl.uniform1f(U.uGrow, d.grow); gl.uniform1f(U.uFlood, d.flood); gl.uniform1f(U.uSpread, d.spread);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      }
+    };
+  }
 
-    var W = 0, H = 0, k = 1, src = { x: 0, y: 0 }, flood = 0, t0 = performance.now(), visible = true, raf = 0, idleT = 0, lastStir = -1e9;
+  function initInk() {
+    var hero = $('.hero'), cv = $('.hero-ink');
+    if (!hero || !cv) return null;
+    // Bevorzugt in einem Worker (OffscreenCanvas): Der Shader blockiert dann nie den Hauptthread
+    var core = null, worker = null, busy = false, pending = null;
+    if (animate && cv.transferControlToOffscreen && window.Worker && window.Blob && window.URL && typeof OffscreenCanvas !== 'undefined') {
+      try {
+        var test = new OffscreenCanvas(1, 1);
+        if (test.getContext('webgl')) {
+          var code = 'var core=null;var inkCore=' + inkCore.toString() + ';' +
+            'onmessage=function(e){var d=e.data;if(d.canvas){core=inkCore(d.canvas,d.fs);postMessage({ok:!!core});return;}' +
+            'if(!core)return;if(d.w)core.resize(d.w,d.h);if(d.draw){core.draw(d.draw);postMessage({done:1});}};';
+          var url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
+          worker = new Worker(url);
+          var off = cv.transferControlToOffscreen();
+          worker.postMessage({ canvas: off, fs: INK_FS }, [off]);
+          worker.onmessage = function (e) {
+            if (e.data.done) { busy = false; if (pending) { var p = pending; pending = null; send(p); } }
+            if (e.data.ok === false) worker = null;
+          };
+        }
+      } catch (e) { worker = null; }
+    }
+    if (!worker) { core = inkCore(cv, INK_FS); if (!core) return null; }
+    function send(d) {
+      if (worker) { if (busy) { pending = d; return; } busy = true; worker.postMessage({ draw: d }); }
+      else core.draw(d);
+    }
+    function resizeTo(w, h) { if (worker) worker.postMessage({ w: w, h: h }); else core.resize(w, h); }
+
+    var W = 0, H = 0, k = 1, src = { x: 0, y: 0 }, flood = 0, t0 = performance.now(), visible = true, raf = 0, idleT = 0, lastStir = -1e9, lastDraw = 0;
     var mouse = { x: -999, y: -999, s: 0, ts: 0 };
     var tip = $('.dagger');
     function size() {
       var r = hero.getBoundingClientRect();
-      var scale = window.innerWidth < 900 ? 0.4 : INK.renderScale;
-      k = Math.min(window.devicePixelRatio || 1, 2) * scale;
+      k = Math.min(window.devicePixelRatio || 1, 2) * INK.renderScale * (window.innerWidth < 900 ? 0.75 : 1);
       W = Math.max(2, Math.round(r.width * k)); H = Math.max(2, Math.round(r.height * k));
-      cv.width = W; cv.height = H; gl.viewport(0, 0, W, H);
+      resizeTo(W, H);
       // Quelle der Tinte: die Klingenspitze des Dolchs (SVG-Punkt 200/760)
-      if (tip && tip.getScreenCTM) {
-        var m = tip.getScreenCTM(), pt = tip.createSVGPoint(); pt.x = 200; pt.y = 760;
-        var s = pt.matrixTransform(m);
+      if (tip && tip.getScreenCTM && tip.getScreenCTM()) {
+        var pt = tip.createSVGPoint(); pt.x = 200; pt.y = 760;
+        var s = pt.matrixTransform(tip.getScreenCTM());
         src.x = (s.x - r.left) * k; src.y = H - (s.y - r.top) * k;
       } else { src.x = W * 0.72; src.y = H * 0.12; }
     }
     function draw(now) {
       var t = animate ? (now - t0) / 1000 : 14;
-      var grow = 1 - Math.exp(-t / INK.growSec);
       mouse.s += (mouse.ts - mouse.s) * 0.08; mouse.ts *= 0.94;
-      gl.uniform2f(U.uRes, W, H); gl.uniform1f(U.uT, t + 3.0); gl.uniform2f(U.uSrc, src.x, src.y);
-      gl.uniform3f(U.uM, mouse.x, mouse.y, mouse.s); gl.uniform1f(U.uGrow, grow); gl.uniform1f(U.uFlood, flood); gl.uniform1f(U.uSpread, W / H < 0.8 ? INK.spreadPortrait : 1);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      send({ t: t + 3, sx: src.x, sy: src.y, mx: mouse.x, my: mouse.y, ms: mouse.s, grow: 1 - Math.exp(-t / INK.growSec), flood: flood, spread: W / H < 0.8 ? INK.spreadPortrait : 1 });
       return t;
     }
     function frame(now) {
       raf = 0;
       if (!visible || document.hidden) return;
+      if (animate && now - lastDraw < 1000 / INK.maxFps - 2) { raf = requestAnimationFrame(frame); return; }
+      lastDraw = now;
       var t = draw(now);
       if (!animate) return;
       if (t < INK.introSec || now - lastStir < 1600 || mouse.s > 0.01) raf = requestAnimationFrame(frame);
@@ -300,16 +338,16 @@
     draw(performance.now());
     cv.classList.add('is-live');
     if (animate) kick();
-    window.addEventListener('resize', function () { size(); kick(); if (!animate) draw(performance.now()); });
+    window.addEventListener('resize', function () { size(); if (animate) kick(); else draw(performance.now()); });
     if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) kick(); }).observe(hero);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) kick(); });
     if (animate && finePointer) {
       var lx = 0, ly = 0;
       hero.addEventListener('pointermove', function (e) {
         var r = hero.getBoundingClientRect();
-        var x = (e.clientX - r.left) * k, y = H - (e.clientY - r.top) * k;
         var v = Math.hypot(e.clientX - lx, e.clientY - ly); lx = e.clientX; ly = e.clientY;
-        mouse.x = x; mouse.y = y; mouse.ts = Math.min(1.1, mouse.ts + v * 0.012);
+        mouse.x = (e.clientX - r.left) * k; mouse.y = H - (e.clientY - r.top) * k;
+        mouse.ts = Math.min(1.1, mouse.ts + v * 0.012);
         lastStir = performance.now(); kick();
       });
     }
@@ -317,7 +355,7 @@
       flood: function (p) { var f = clamp((p - 0.18) / 0.62, 0, 1); f = f * f * (3 - 2 * f); if (Math.abs(f - flood) > 0.002) { flood = f; if (animate) kick(); else draw(performance.now()); } },
       resize: function () { size(); kick(); }
     };
-  })();
+  }
 
   /* ---------- Hero: Der Dolch wird Stich für Stich gezogen, die Nadel läuft mit ---------- */
   (function daggerDraw() {
@@ -1027,7 +1065,7 @@
   })();
 
   /* ---------- Öffnungsstatus (Ortszeit Kiel) ---------- */
-  (function hoursNow() {
+  later(function hoursNow() {
     var el = $('#hours-now');
     if (!el || !window.Intl) return;
     try {
@@ -1042,7 +1080,7 @@
         el.textContent = 'Gerade geschlossen – wieder ' + next;
       }
     } catch (e) { /* ohne Intl-Zeitzone einfach nichts anzeigen */ }
-  })();
+  });
 
   /* ---------- Einblendungen für Listen ---------- */
   (function reveals() {
@@ -1057,7 +1095,7 @@
   })();
 
   /* ---------- Scroll-Choreografie (GSAP) ---------- */
-  if (hasGsap && animate) {
+  if (hasGsap && animate) later(function choreo() {
     var mm = gsap.matchMedia();
     mm.add('(min-width: 900px)', function () {
       // Hero: Dolch steigt, Name sinkt – die Tinte flutet das Blatt (siehe unten)
@@ -1125,9 +1163,9 @@
       };
     });
     // Kapitelwechsel: Beim Verlassen des Bogens läuft die Tinte über das ganze Blatt
-    if (inkGL) ScrollTrigger.create({ trigger: '.hero', start: 'top top', end: 'bottom top', onUpdate: function (self) { inkGL.flood(self.progress); } });
-    window.addEventListener('load', function () { ScrollTrigger.refresh(); if (inkGL) inkGL.resize(); });
-  }
+    ScrollTrigger.create({ trigger: '.hero', start: 'top top', end: 'bottom top', onUpdate: function (self) { if (inkGL) inkGL.flood(self.progress); } });
+    if (document.readyState !== 'complete') window.addEventListener('load', function () { ScrollTrigger.refresh(); });
+  });
 
   window.__inkReady = true;
 })();

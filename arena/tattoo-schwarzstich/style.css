@@ -296,6 +296,8 @@ html.js .site-header:not(.is-scrolled):has(.menu-btn[aria-expanded="false"]) .na
 html.js .site-header:not(.is-scrolled) .menu-btn[aria-expanded="false"] { background: transparent; border-color: rgba(11, 11, 11, .45); }
 html.js .site-header:not(.is-scrolled) .header-cta { --bg: var(--black); --bd: var(--black); }
 html:not(.js) .site-header { background: rgba(11, 11, 11, .97); }
+html.js .site-header:not(.is-scrolled) { background: var(--bone); }
+html.js .site-header:not(.is-scrolled):has(.menu-btn[aria-expanded="true"]) { background: var(--black); }
 
 /* ==========================================================================
    Hero – „Bogen Nº 1“: Tinte im Wasser, Nadel im Papier
@@ -315,7 +317,8 @@ html:not(.js) .site-header { background: rgba(11, 11, 11, .97); }
 .hero-blend { position: absolute; inset: 0; pointer-events: none; }
 
 /* Alles, was auf der Tinte liegt, kehrt sich per Differenz um: schwarz auf Papier, Knochen auf Tinte */
-.hero-frame, .ht-word, .hero-dagger, .hero-copy, .hero-flashlink { color: var(--bone); mix-blend-mode: difference; }
+.ht-word, .hero-dagger, .hero-copy, .hero-flashlink { color: var(--bone); mix-blend-mode: difference; }
+.hero-frame { color: var(--black); }
 .hero-frame {
   position: absolute; inset: calc(var(--header-h) + 6px) var(--gutter) 14px;
   border: 1.5px solid currentColor; pointer-events: none;
@@ -347,7 +350,7 @@ html:not(.js) .site-header { background: rgba(11, 11, 11, .97); }
   transform: rotate(-11deg); transform-origin: 50% 60%;
 }
 .dagger { width: 100%; height: 100%; overflow: visible; }
-.dg-text { font-family: var(--f-text); font-weight: 700; font-size: 15px; letter-spacing: .14em; fill: currentColor; stroke: none; text-transform: uppercase; }
+.dg-text { font-family: var(--f-text); font-weight: 700; font-size: 15px; letter-spacing: .12em; fill: currentColor; stroke: none; text-transform: uppercase; }
 .needle-dot {
   position: absolute; left: 0; top: 0; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%;
   background: var(--red); box-shadow: 0 0 0 3px rgba(179, 18, 27, .25); pointer-events: none; opacity: 0;
@@ -384,8 +387,10 @@ html:not(.js) .site-header { background: rgba(11, 11, 11, .97); }
 html.js:not(.motion-off):not(.reduced) .ht-word { animation: stitch-in 900ms steps(var(--stiche), jump-end) 120ms both; }
 html.js:not(.motion-off):not(.reduced) .hero-needle { animation: needle-run 900ms steps(var(--stiche), jump-end) 120ms both, needle-off 260ms ease 1040ms both; }
 html.js:not(.motion-off):not(.reduced) .hero-seal .stamp-seal { animation: seal-hit 300ms var(--ease-out) 1700ms both; }
-html.js:not(.motion-off):not(.reduced) .hero-copy, html.js:not(.motion-off):not(.reduced) .hero-act { animation: rise-in 700ms var(--ease-lauf) 260ms both; }
-html.js:not(.motion-off):not(.reduced) .hero-act { animation-delay: 380ms; }
+/* Animiert wird jedes Element selbst – ein animierter Elternteil würde die Differenz-Mischung isolieren */
+html.js:not(.motion-off):not(.reduced) .hero-copy, html.js:not(.motion-off):not(.reduced) .hero-act > * { animation: rise-in 700ms var(--ease-lauf) 260ms both; }
+html.js:not(.motion-off):not(.reduced) .hero-act > * { animation-delay: 380ms; }
+html.js:not(.motion-off):not(.reduced) .hero-act > .hero-flashlink { animation-delay: 440ms; }
 @keyframes stitch-in { from { clip-path: inset(-20% 90% -20% 0); } to { clip-path: inset(-20% 0 -20% 0); } }
 @keyframes needle-run { from { opacity: 1; transform: translateX(10%); } to { opacity: 1; transform: translateX(100%); } }
 @keyframes needle-off { to { opacity: 0; } }
@@ -1316,8 +1321,9 @@ html.motion-off *, html.motion-off *::before, html.motion-off *::after { animati
 .sheet { transform: rotate(-.35deg); box-shadow: 0 30px 50px -36px rgba(11, 11, 11, .55); }
 .tape { position: absolute; top: -16px; width: 120px; height: 30px; z-index: 2; background: rgba(214, 205, 186, .82); box-shadow: 0 1px 2px rgba(11, 11, 11, .18); pointer-events: none;
   -webkit-mask: linear-gradient(90deg, transparent 0 3px, #000 3px calc(100% - 3px), transparent 0); mask: linear-gradient(90deg, transparent 0 3px, #000 3px calc(100% - 3px), transparent 0); }
-.tape--l { left: 6%; transform: rotate(-7deg); }
-.tape--r { right: 6%; transform: rotate(5deg); }
+.tape--l { left: -34px; top: 4px; transform: rotate(-38deg); }
+.tape--r { right: -34px; top: 4px; transform: rotate(36deg); }
+.sheet { overflow: visible; }
 html.js:not(.motion-off):not(.reduced) .flash-card .flash-art { stroke-dasharray: 520; stroke-dashoffset: 520; fill-opacity: 0; }
 html.js:not(.motion-off):not(.reduced) .flash-card.is-drawn .flash-art { animation: flash-draw 1200ms steps(24, jump-end) var(--fd, 0ms) forwards, flash-fill 500ms ease calc(var(--fd, 0ms) + 900ms) forwards; }
 @keyframes flash-draw { to { stroke-dashoffset: 0; } }
@@ -1332,7 +1338,7 @@ html.js:not(.motion-off):not(.reduced) .flash-card.is-drawn .flash-art { animati
   opacity: 0; visibility: hidden; transition: opacity 160ms ease, visibility 0s linear 160ms;
 }
 .flash-lens::after { content: ""; position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; background: linear-gradient(var(--red), var(--red)) 50% 0 / 1px 100% no-repeat, linear-gradient(var(--red), var(--red)) 0 50% / 100% 1px no-repeat; opacity: .8; }
-.lens-art { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: visible; }
+.lens-art { position: absolute; left: 0; top: 0; max-width: none; transform-origin: 0 0; overflow: visible; }
 .sheet.lens-on .flash-lens { opacity: 1; visibility: visible; transition: opacity 160ms ease; }
 .sheet.lens-on .flash-art { cursor: zoom-in; }
 @media (hover: hover) and (pointer: fine) { .sheet.has-lens .flash-card:not(.is-taken):hover .flash-art { transform: none; } }
@@ -1429,7 +1435,11 @@ html.motion-off .hero-ink, html.reduced .hero-ink { transition: none; }
   .flash-date { transform: rotate(-1.5deg); }
   .fd-d { font-size: 3.4rem; }
   .sheet { transform: none; }
-  .tape { width: 84px; height: 24px; top: -12px; }
+  .tape { width: 78px; height: 22px; }
+  .tape--l { left: -10px; top: 2px; }
+  .tape--r { right: -10px; top: 2px; }
+  .hero-flashlink { mix-blend-mode: normal; color: var(--black); background-color: var(--bone); padding: .45rem .7rem; box-shadow: inset 0 0 0 1.5px var(--black); background-image: none; }
+  .hero-flashlink::after { display: none; }
 
   .care-rail { display: grid; grid-template-columns: 5.6rem minmax(0, 1fr); gap: 1rem; width: min(100% - 2 * var(--gutter), 1320px); margin-inline: auto; }
   .care-rail .care-track { width: auto; }
@@ -1453,4 +1463,18 @@ html.motion-off .hero-ink, html.reduced .hero-ink { transition: none; }
 }
 @media (max-height: 700px) and (max-width: 899px) {
   .hero-copy .hero-styles { display: none; }
+}
+
+/* Start entlasten: Kapitel weit unterhalb des ersten Bildschirms erst beim Näherkommen layouten */
+.studio, .voices, .visit, .faq { content-visibility: auto; contain-intrinsic-size: auto 900px; }
+
+/* Ablauf: Eine gestochene Naht läuft beim Scrollen an den Schritten entlang (CSS Scroll-driven, sonst statisch weg) */
+.steps { position: relative; }
+@supports (animation-timeline: view()) {
+  html.js:not(.motion-off):not(.reduced) .steps::before {
+    content: ""; position: absolute; left: -.8rem; top: 0; bottom: 0; width: 2px;
+    background: repeating-linear-gradient(var(--red-hi) 0 7px, transparent 7px 12px);
+    transform-origin: 50% 0; animation: seam linear both; animation-timeline: view(); animation-range: entry 10% cover 55%;
+  }
+  @keyframes seam { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 }

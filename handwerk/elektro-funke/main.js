@@ -1,5 +1,8 @@
 /* =========================================================================
    Funke Elektrotechnik – Modell „Impuls“ · main.js
+   Gestaltungsidee „Stromlaufplan“: Hero-Schaltplan, durch den beim Scrollen
+   Strom fließt; Hauptschalter setzt die ganze Seite unter Spannung;
+   Set Pieces: Sonnenbahn (PV), Wippschalter-Panel, Oszilloskop, Schützkette.
    Ohne Build-Schritt. GSAP/ScrollTrigger/Lenis liegen lokal unter assets/vendor.
    ========================================================================= */
 (() => {
@@ -10,6 +13,7 @@
   const root = d.documentElement;
   const MOTION = root.classList.contains('motion-ok');
   const FINE = w.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const DESK = () => w.matchMedia('(min-width: 900px)').matches;
   const $ = (s, c = d) => c.querySelector(s);
   const $$ = (s, c = d) => Array.from(c.querySelectorAll(s));
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -17,8 +21,14 @@
   const nf1 = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   const fmt = (v, dec = 0) => (dec ? nf1 : nf0).format(v);
   const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+  const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
   const hasGsap = !!(w.gsap && w.ScrollTrigger);
   const raf = w.requestAnimationFrame.bind(w);
+  let wizard = { preselect() {}, fromPV() {} };
+
+  // Start in Etappen: alles unterhalb des ersten Bildschirms in kleinen Häppchen
+  const queue = [];
+  const later = (fn) => queue.push(fn);
 
   /* ---------------------------------------------------------------------
      1 · Smooth Scroll (Lenis) + ScrollTrigger
@@ -59,24 +69,63 @@
     }
   }
 
+
   /* ---------------------------------------------------------------------
-     2 · Header: Zustand, Fortschritt, aktive Navigation
+     2 · Header, Fortschritt, Abend-Kapitel, Kabel-Tempo
      --------------------------------------------------------------------- */
   const hdr = $('[data-hdr]');
   const prog = $('[data-progress]');
+  const dusk = $('.dusk');
+  const chapters = $$('[data-dusk]');
   let scrollTick = false;
+  let lastY = w.scrollY;
+  let vel = 0;
+  function updDusk() {
+    if (!MOTION || !dusk) return;
+    const vh = w.innerHeight;
+    let o = 0;
+    chapters.forEach((c) => {
+      const r = c.getBoundingClientRect();
+      const fin = clamp((vh * 0.95 - r.top) / (vh * 0.42), 0, 1);
+      const fout = clamp((r.bottom - vh * 0.05) / (vh * 0.42), 0, 1);
+      o = Math.max(o, Math.min(fin, fout));
+    });
+    dusk.style.opacity = o.toFixed(3);
+    root.classList.toggle('in-dusk', o > 0.5 && root.dataset.power !== 'on');
+  }
   function onScroll() {
     if (scrollTick) return;
     scrollTick = true;
     raf(() => {
       scrollTick = false;
       const y = w.scrollY || root.scrollTop;
-      hdr.classList.toggle('is-scrolled', y > 24);
+      vel = lenis ? lenis.velocity : (y - lastY);
+      lastY = y;
       const max = root.scrollHeight - w.innerHeight;
       prog.style.transform = `scaleX(${max > 0 ? clamp(y / max, 0, 1) : 0})`;
+      updDusk();
+      cableKick(vel);
     });
   }
   w.addEventListener('scroll', onScroll, { passive: true });
+  w.addEventListener('resize', updDusk, { passive: true });
+
+  // Kabel: Druck läuft konstant, Scroll-Tempo schiebt (auch rückwärts), federt zurück
+  const cableTrack = $('[data-cable]');
+  let cableAnim = null, cableRate = 1, cableId = 0;
+  function cableKick(v) {
+    if (!MOTION || !cableTrack || !cableTrack.getAnimations) return;
+    if (!cableAnim) cableAnim = cableTrack.getAnimations()[0] || null;
+    if (!cableAnim) return;
+    cableRate = clamp(1 + v * 0.35, -7, 9);
+    cableAnim.playbackRate = cableRate;
+    if (!cableId) cableId = raf(cableDecay);
+  }
+  function cableDecay() {
+    cableRate += (1 - cableRate) * 0.06;
+    if (Math.abs(cableRate - 1) < 0.02) { cableRate = 1; cableId = 0; } else cableId = raf(cableDecay);
+    if (cableAnim) cableAnim.playbackRate = cableRate;
+  }
   onScroll();
 
   const navLinks = $$('.nav a[href^="#"]');
@@ -90,7 +139,7 @@
         if (a) a.setAttribute('aria-current', 'true');
       });
     }, { rootMargin: '-45% 0px -50% 0px' });
-    $$('main > section[id]').forEach((s) => io.observe(s));
+    $$('main section[id]').forEach((s) => io.observe(s));
   }
 
   /* ---------------------------------------------------------------------
@@ -150,6 +199,7 @@
     if (history.replaceState) history.replaceState(null, '', id);
   });
 
+
   /* ---------------------------------------------------------------------
      5 · Reveal-Choreografie
      --------------------------------------------------------------------- */
@@ -158,16 +208,20 @@
     const sibs = Array.from(el.parentElement.children).filter((c) => c.hasAttribute('data-reveal'));
     el.style.setProperty('--i', Math.min(sibs.indexOf(el), 8));
   });
-  if (MOTION && 'IntersectionObserver' in w) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
-      });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
-    revealEls.forEach((el) => io.observe(el));
-  } else {
-    revealEls.forEach((el) => el.classList.add('is-in'));
+  // Reveal per Positionsprüfung (clip-path verdeckt das Element – IntersectionObserver sähe 0 px)
+  let pendingReveal = MOTION ? revealEls.slice() : [];
+  if (!MOTION) revealEls.forEach((el) => el.classList.add('is-in'));
+  function checkReveal() {
+    if (!pendingReveal.length) return;
+    const vh = w.innerHeight;
+    pendingReveal = pendingReveal.filter((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.top < vh * 0.9 && r.bottom > 0) { el.classList.add('is-in'); return false; }
+      return true;
+    });
   }
+  w.addEventListener('scroll', () => raf(checkReveal), { passive: true });
+  setTimeout(checkReveal, 60);
 
   /* ---------------------------------------------------------------------
      6 · Uhrzeit Europe/Berlin: Bürostatus + Uhren
@@ -204,400 +258,212 @@
   const nowBerlin = updateTime();
   setInterval(updateTime, 30000);
 
+
   /* ---------------------------------------------------------------------
-     7 · Hero „Stromfluss“-Canvas
-     Generative Leiterbahnen im Raster (orthogonal, mit 45°-Fasen),
-     Lichtimpulse laufen darüber. Zeiger zieht einen Lichtkegel nach (Lerp),
-     Impulse in der Nähe werden heller und schneller (gefedert).
+     7 · Hauptschalter „Strom“: ganze Seite unter Spannung (View Transition)
      --------------------------------------------------------------------- */
-  function initFlow(canvas) {
-    const hero = canvas.parentElement;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    // Statische Ebene (Raster, gedimmte Bahnen, Lötaugen) liegt auf eigenem Canvas
-    // und wird nur bei Größenänderung gezeichnet – pro Frame nur Impulse + Lichtkegel.
-    const base = d.createElement('canvas');
-    base.className = 'hero__canvas hero__canvas--base';
-    base.setAttribute('aria-hidden', 'true');
-    canvas.before(base);
-    const bctx = base.getContext('2d');
-    // weicher Kegel als komponierte Ebene (kein Vollflächen-Verlauf pro Frame)
-    const glow = d.createElement('div');
-    glow.className = 'hero__glow';
-    glow.setAttribute('aria-hidden', 'true');
-    canvas.before(glow);
-    const SPOT = 250;               // Radius Lichtkegel (CSS-px)
-    let W = 0, H = 0, DPR = 1, CELL = 28, OX = 0, OY = 0;
-    let traces = [], pulses = [], pads = [];
-    let running = false, inView = true, rafId = 0, last = 0;
-    // Kleine Bildschirme / Touch: 30 fps genügen für die Hintergrund-Animation
-    const FRAME_MS = () => (W < 900 || !FINE ? 33 : 0);
-    const ptr = { tx: 0, ty: 0, x: 0, y: 0, active: false, power: 0 };
-
-    function mulberry32(a) {
-      return function () {
-        a |= 0; a = (a + 0x6D2B79F5) | 0;
-        let t = Math.imul(a ^ (a >>> 15), 1 | a);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-      };
-    }
-    function glowSprite(r, g, b) {
-      const s = d.createElement('canvas');
-      const R = 32;
-      s.width = s.height = R * 2;
-      const c = s.getContext('2d');
-      const grd = c.createRadialGradient(R, R, 0, R, R, R);
-      grd.addColorStop(0, 'rgba(255,255,255,1)');
-      grd.addColorStop(0.12, `rgba(${r},${g},${b},.9)`);
-      grd.addColorStop(0.4, `rgba(${r},${g},${b},.25)`);
-      grd.addColorStop(1, `rgba(${r},${g},${b},0)`);
-      c.fillStyle = grd;
-      c.fillRect(0, 0, R * 2, R * 2);
-      return s;
-    }
-    const SPR = { b: glowSprite(110, 185, 255), v: glowSprite(232, 255, 71) };
-    const RGB = { b: '125,190,255', v: '232,255,71' };
-
-    function toPath(cells) {
-      const corners = [];
-      for (let i = 0; i < cells.length; i++) {
-        if (i === 0 || i === cells.length - 1) { corners.push(cells[i]); continue; }
-        const a = cells[i - 1], b = cells[i], c = cells[i + 1];
-        if (b[0] - a[0] !== c[0] - b[0] || b[1] - a[1] !== c[1] - b[1]) corners.push(b);
-      }
-      const P = corners.map(([x, y]) => [OX + x * CELL, OY + y * CELL]);
-      const CH = CELL * 0.45;
-      const pts = [P[0]];
-      for (let i = 1; i < P.length - 1; i++) {
-        const [px, py] = P[i], [ax, ay] = P[i - 1], [bx, by] = P[i + 1];
-        const inL = Math.hypot(px - ax, py - ay), outL = Math.hypot(bx - px, by - py);
-        const c = Math.min(CH, inL / 2, outL / 2);
-        pts.push([px - ((px - ax) / inL) * c, py - ((py - ay) / inL) * c]);
-        pts.push([px + ((bx - px) / outL) * c, py + ((by - py) / outL) * c]);
-      }
-      pts.push(P[P.length - 1]);
-      const L = [0];
-      for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      pts.forEach(([x, y]) => { minX = Math.min(minX, x); minY = Math.min(minY, y); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); });
-      return { pts, L, len: L[L.length - 1], box: [minX, minY, maxX, maxY] };
-    }
-
-    function build() {
-      const r = canvas.getBoundingClientRect();
-      W = Math.max(1, Math.round(r.width));
-      H = Math.max(1, Math.round(r.height));
-      DPR = Math.min(2, w.devicePixelRatio || 1);
-      canvas.width = base.width = Math.round(W * DPR);
-      canvas.height = base.height = Math.round(H * DPR);
-      CELL = W < 640 ? 24 : 28;
-      const cols = Math.floor(W / CELL) + 2;
-      const rows = Math.floor(H / CELL) + 2;
-      OX = (W - (cols - 1) * CELL) / 2;
-      OY = (H - (rows - 1) * CELL) / 2;
-      const occ = new Uint8Array(cols * rows);
-      const rnd = mulberry32(20090401 + cols * 7 + rows);
-      const dirs = [[1, 0], [0, 1], [-1, 0], [0, -1]];
-      const want = Math.round((cols * rows) / (W < 640 ? 26 : 20));
-      traces = [];
-      pads = [];
-      for (let a = 0; a < want * 6 && traces.length < want; a++) {
-        let cx = Math.floor(rnd() * cols), cy = Math.floor(rnd() * rows);
-        if (occ[cy * cols + cx]) continue;
-        let di = Math.floor(rnd() * 4);
-        const cells = [[cx, cy]];
-        occ[cy * cols + cx] = 1;
-        const maxLen = 5 + Math.floor(rnd() * 24);
-        let since = 0;
-        for (let s = 0; s < maxLen; s++) {
-          if (since > 2 && rnd() < 0.24) { di = (di + (rnd() < 0.5 ? 1 : 3)) % 4; since = 0; }
-          const nx = cx + dirs[di][0], ny = cy + dirs[di][1];
-          if (nx < 0 || ny < 0 || nx >= cols || ny >= rows || occ[ny * cols + nx]) break;
-          cx = nx; cy = ny;
-          occ[cy * cols + cx] = 1;
-          cells.push([cx, cy]);
-          since++;
-        }
-        if (cells.length < 5) continue;
-        const t = toPath(cells);
-        traces.push(t);
-        pads.push(t.pts[0], t.pts[t.pts.length - 1]);
-      }
-      drawBase();
-      // Impulse
-      const n = Math.min(W < 640 ? 26 : 64, Math.round(traces.length * 0.75));
-      pulses = [];
-      for (let i = 0; i < n; i++) pulses.push(spawn({}, true));
-      ptr.x = ptr.tx = W * 0.68;
-      ptr.y = ptr.ty = H * 0.42;
-    }
-
-    function spawn(p, anywhere) {
-      const t = traces[Math.floor(Math.random() * traces.length)];
-      p.t = t;
-      p.len = 36 + Math.random() * 90;
-      p.v = 55 + Math.random() * 115;
-      p.s = anywhere ? Math.random() * (t.len + p.len) : 0;
-      p.c = Math.random() < 0.16 ? 'v' : 'b';
-      p.a = 0.55 + Math.random() * 0.45;
-      p.boost = 1;
-      return p;
-    }
-
-    function pointAt(t, s) {
-      const { pts, L } = t;
-      if (s <= 0) return pts[0];
-      if (s >= t.len) return pts[pts.length - 1];
-      let i = 1;
-      while (i < L.length - 1 && L[i] < s) i++;
-      const k = (s - L[i - 1]) / (L[i] - L[i - 1] || 1);
-      return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * k, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * k];
-    }
-
-    function tracePath(list, c = ctx) {
-      c.beginPath();
-      for (const t of list) {
-        const p = t.pts;
-        c.moveTo(p[0][0], p[0][1]);
-        for (let i = 1; i < p.length; i++) c.lineTo(p[i][0], p[i][1]);
-      }
-    }
-
-    function drawBase() {
-      const c = bctx;
-      c.setTransform(1, 0, 0, 1, 0, 0);
-      c.clearRect(0, 0, base.width, base.height);
-      // Punkt-Raster
-      const tile = d.createElement('canvas');
-      tile.width = tile.height = Math.round(CELL * DPR);
-      const tc = tile.getContext('2d');
-      tc.fillStyle = 'rgba(255,255,255,.06)';
-      tc.fillRect(0, 0, Math.max(1, DPR), Math.max(1, DPR));
-      c.save();
-      c.translate((OX % CELL) * DPR, (OY % CELL) * DPR);
-      c.fillStyle = c.createPattern(tile, 'repeat');
-      c.fillRect(-CELL * DPR, -CELL * DPR, (W + CELL * 2) * DPR, (H + CELL * 2) * DPR);
-      c.restore();
-      c.setTransform(DPR, 0, 0, DPR, 0, 0);
-      // Leiterbahnen (gedimmt)
-      c.lineWidth = 1;
-      c.lineJoin = 'round';
-      c.lineCap = 'round';
-      c.strokeStyle = 'rgba(150,170,200,.12)';
-      tracePath(traces, c);
-      c.stroke();
-      // Pads (Lötaugen)
-      c.fillStyle = '#0A0C0F';
-      c.strokeStyle = 'rgba(150,170,200,.22)';
-      c.beginPath();
-      for (const p of pads) { c.moveTo(p[0] + 2.4, p[1]); c.arc(p[0], p[1], 2.4, 0, Math.PI * 2); }
-      c.fill();
-      c.stroke();
-    }
-
-    function draw(dt, now) {
-      // Zeigerziel: Maus (Desktop) oder ruhige Lissajous-Bahn (Touch/Leerlauf)
-      if (!ptr.active) {
-        const t = now / 1000;
-        ptr.tx = W * (0.64 + 0.2 * Math.sin(t * 0.17));
-        ptr.ty = H * (0.44 + 0.22 * Math.sin(t * 0.29 + 1.2));
-      }
-      const k = 1 - Math.exp(-dt * (ptr.active ? 6.5 : 1.6));
-      ptr.x += (ptr.tx - ptr.x) * k;
-      ptr.y += (ptr.ty - ptr.y) * k;
-      ptr.power += ((ptr.active ? 1 : 0.6) - ptr.power) * (1 - Math.exp(-dt * 2.5));
-
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-
-      // Lichtkegel: Bahnen in Zeigernähe aufhellen
-      const R = SPOT * (0.75 + ptr.power * 0.25);
-      const near = traces.filter((t) => t.box[0] < ptr.x + R && t.box[2] > ptr.x - R && t.box[1] < ptr.y + R && t.box[3] > ptr.y - R);
-      if (near.length) {
-        const g = ctx.createRadialGradient(ptr.x, ptr.y, 0, ptr.x, ptr.y, R);
-        g.addColorStop(0, `rgba(160,210,255,${0.85 * ptr.power})`);
-        g.addColorStop(0.55, `rgba(110,170,255,${0.3 * ptr.power})`);
-        g.addColorStop(1, 'rgba(110,170,255,0)');
-        ctx.strokeStyle = g;
-        ctx.lineWidth = 1.2;
-        tracePath(near);
-        ctx.stroke();
-      }
-      // weicher Kegel: nur Transform/Opacity auf einer eigenen Ebene
-      glow.style.transform = `translate3d(${ptr.x.toFixed(1)}px, ${ptr.y.toFixed(1)}px, 0) scale(${(R / SPOT).toFixed(3)})`;
-      glow.style.opacity = ptr.power.toFixed(3);
-
-      // Impulse
-      for (const p of pulses) {
-        const t = p.t;
-        const head = pointAt(t, Math.min(p.s, t.len));
-        const dist = Math.hypot(head[0] - ptr.x, head[1] - ptr.y);
-        const prox = Math.max(0, 1 - dist / (R * 1.05)) * ptr.power;
-        const target = 1 + prox * 1.9;
-        p.boost += (target - p.boost) * (1 - Math.exp(-dt * 3.5));
-        if (dt > 0) p.s += p.v * p.boost * dt;
-        if (p.s - p.len > t.len) { spawn(p, false); continue; }
-        const s1 = Math.min(p.s, t.len), s0 = Math.max(0, p.s - p.len);
-        if (s1 - s0 < 1) continue;
-        const a = pointAt(t, s0), b = pointAt(t, s1);
-        const alpha = p.a * (0.5 + prox * 0.5);
-        const grad = ctx.createLinearGradient(a[0], a[1], b[0], b[1]);
-        grad.addColorStop(0, `rgba(${RGB[p.c]},0)`);
-        grad.addColorStop(1, `rgba(${RGB[p.c]},${alpha})`);
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 1.5 + prox * 0.8;
-        ctx.beginPath();
-        ctx.moveTo(a[0], a[1]);
-        for (let i = 1; i < t.L.length; i++) if (t.L[i] > s0 && t.L[i] < s1) ctx.lineTo(t.pts[i][0], t.pts[i][1]);
-        ctx.lineTo(b[0], b[1]);
-        ctx.stroke();
-        if (p.s <= t.len) {
-          const sz = 10 + prox * 10;
-          ctx.globalCompositeOperation = 'lighter';
-          ctx.globalAlpha = alpha;
-          ctx.drawImage(SPR[p.c], b[0] - sz, b[1] - sz, sz * 2, sz * 2);
-          ctx.globalAlpha = 1;
-          ctx.globalCompositeOperation = 'source-over';
-        }
-      }
-    }
-
-    function loop(now) {
-      rafId = 0;
-      if (!running) return;
-      const cap = FRAME_MS();
-      if (cap && last && now - last < cap - 2) { rafId = raf(loop); return; }
-      const dt = last ? Math.min(0.066, (now - last) / 1000) : 0.016;
-      last = now;
-      draw(dt, now);
-      rafId = raf(loop);
-    }
-    function start() {
-      if (running || !MOTION) return;
-      running = true;
-      last = 0;
-      rafId = raf(loop);
-    }
-    function stop() {
-      running = false;
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = 0;
-    }
-    function sync() {
-      if (ready && inView && !d.hidden) start(); else stop();
-    }
-
-    // Aufbau erst nach dem ersten Bild: Text + CTA malen zuerst, das Netz blendet danach weich ein
-    let ready = false;
-    const boot = () => {
-      build();
-      ready = true;
-      if (MOTION) {
-        sync();
-        if (typeof canvas.animate === 'function') [base, canvas].forEach((c) => c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 900, easing: 'ease-out' }));
-      } else {
-        ptr.power = 0.8;
-        draw(0, 0);
-      }
-
-      if (MOTION && FINE) {
-        hero.addEventListener('pointermove', (e) => {
-          if (e.pointerType === 'touch') return;
-          const r = hero.getBoundingClientRect();
-          ptr.tx = e.clientX - r.left;
-          ptr.ty = e.clientY - r.top;
-          ptr.active = true;
-        }, { passive: true });
-        hero.addEventListener('pointerleave', () => { ptr.active = false; });
-      }
-      if ('IntersectionObserver' in w) {
-        new IntersectionObserver((en) => { inView = en[0].isIntersecting; sync(); }).observe(hero);
-      }
-      d.addEventListener('visibilitychange', sync);
-
-      let lastW = W, lastH = H, rt = 0;
-      const onResize = () => {
-        clearTimeout(rt);
-        rt = setTimeout(() => {
-          const r = canvas.getBoundingClientRect();
-          if (Math.abs(r.width - lastW) < 2 && Math.abs(r.height - lastH) < 120) return;
-          lastW = r.width; lastH = r.height;
-          build();
-          if (!MOTION) draw(0, 0);
-        }, 180);
-      };
-      if ('ResizeObserver' in w) new ResizeObserver(onResize).observe(hero);
-      else w.addEventListener('resize', onResize);
-    };
-    raf(() => setTimeout(boot, 0));
+  const powerBtns = $$('[data-power-btn]');
+  const themeMeta = $('meta[name="theme-color"]');
+  const powerHooks = [];
+  function applyPower(on) {
+    root.dataset.power = on ? 'on' : 'off';
+    powerBtns.forEach((b) => b.setAttribute('aria-pressed', String(on)));
+    if (themeMeta) themeMeta.setAttribute('content', on ? '#0E1013' : '#E9E7DF');
+    powerHooks.forEach((fn) => fn(on));
+    updDusk();
   }
-  const flowCanvas = $('[data-flow]');
-  if (flowCanvas) initFlow(flowCanvas);
+  function setPower(on, btn) {
+    if (!MOTION || typeof d.startViewTransition !== 'function') { applyPower(on); return; }
+    let x = w.innerWidth - 60, y = 32;
+    if (btn) { const r = btn.getBoundingClientRect(); x = r.left + r.width / 2; y = r.top + r.height / 2; }
+    const R = Math.hypot(Math.max(x, w.innerWidth - x), Math.max(y, w.innerHeight - y));
+    const vt = d.startViewTransition(() => applyPower(on));
+    vt.ready.then(() => {
+      root.animate({ clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${R}px at ${x}px ${y}px)`] },
+        { duration: 780, easing: 'cubic-bezier(0.77, 0, 0.175, 1)', pseudoElement: '::view-transition-new(root)' });
+    }).catch(() => {});
+  }
+  powerBtns.forEach((b) => b.addEventListener('click', () => setPower(root.dataset.power !== 'on', b)));
 
   /* ---------------------------------------------------------------------
-     8 · Leistungen: Spotlight-Rand folgt dem Zeiger (gefedert)
+     8 · Hero: Stromlaufplan – Strom fließt beim Scrollen durch die Abgänge
      --------------------------------------------------------------------- */
-  const spotGrid = $('[data-spot-grid]');
-  if (spotGrid && FINE && MOTION) {
-    let tx = 0, ty = 0, x = 0, y = 0, sr = 0, inside = false, id = 0, fresh = true;
+  const hero = $('[data-hero]');
+  const plans = $$('.plan__svg');
+  const segEls = (n) => plans.map((s) => $(`[data-seg="${n}"]`, s)).filter(Boolean);
+  const segState = {};
+  function setSeg(n, p) {
+    p = clamp(p, 0, 1);
+    if (segState[n] === p) return;
+    segState[n] = p;
+    segEls(n).forEach((el) => { el.style.strokeDashoffset = String(1 - p); });
+    plans.forEach((s) => {
+      const dot = $(`[data-dots="${n}"]`, s);
+      if (dot) dot.classList.toggle('is-on', p >= 0.999);
+      const ld = $(`[data-load="${n}"]`, s);
+      if (ld) ld.classList.toggle('is-on', p >= 0.999);
+    });
+  }
+  function tweenSeg(n, to, dur, delay = 0) {
+    return new Promise((res) => {
+      const from = segState[n] || 0;
+      const t0 = performance.now() + delay;
+      const tick = (now) => {
+        const k = clamp((now - t0) / dur, 0, 1);
+        if (now >= t0) setSeg(n, from + (to - from) * easeInOut(k));
+        if (k < 1) raf(tick); else res();
+      };
+      raf(tick);
+    });
+  }
+  const BRANCHES = [['b2', 0.02, 0.24], ['b3', 0.2, 0.42], ['b4', 0.38, 0.6], ['b1', 0.56, 0.78]];
+  const sig = $('[data-sig]');
+  let heroIntroDone = false;
+  let scrubHero = null;
+  function heroScrub(p) {
+    if (!heroIntroDone) return;
+    BRANCHES.forEach(([n, a, b]) => setSeg(n, (p - a) / (b - a)));
+    if (root.dataset.power === 'on') setSeg('b1', 1);
+    if (sig) sig.classList.toggle('is-signed', p > 0.82);
+  }
+  if (hero && MOTION) {
+    if ('IntersectionObserver' in w) new IntersectionObserver((en) => hero.classList.toggle('is-live', en[0].isIntersecting)).observe(hero);
+    const intro = () => tweenSeg('feed', 1, 650, 480).then(() => tweenSeg('bus', 1, 520)).then(() => {
+      heroIntroDone = true;
+      if (root.dataset.power === 'on') { setSeg('b1', 1); tweenSeg('b1on', 1, 420); }
+      if (!scrubHero) {
+        // Handy / ohne Scroll-Strecke: Abgänge nacheinander zeitgesteuert
+        let p = Promise.resolve();
+        ['b2', 'b3', 'b4', 'b1'].forEach((n) => { p = p.then(() => tweenSeg(n, 1, 420, 90)); });
+        p.then(() => { if (sig) sig.classList.add('is-signed'); });
+      } else heroScrub(scrubHero.progress);
+    });
+    intro();
+  } else if (sig) sig.classList.add('is-signed');
+  powerHooks.push((on) => {
+    if (!MOTION) return;
+    if (on) { setSeg('b1', 1); tweenSeg('b1on', 1, 420); } else tweenSeg('b1on', 0, 260);
+  });
+
+  // Kinetische Schrift: Buchstaben in Zeigernähe werden breiter (gefedert)
+  const chars = $$('.hero__title .c');
+  if (hero && MOTION && FINE && chars.length) {
+    const ht = $('.ht');
+    let cache = [], px = -9999, py = -9999, inside = false, id = 0;
+    const cur = chars.map(() => ({ s: 112, w: 800 }));
+    const measure = () => { cache = chars.map((c) => { const r = c.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }); };
     const step = () => {
       id = 0;
-      const desktop = w.matchMedia('(min-width: 900px)').matches;
-      x += (tx - x) * 0.16;
-      y += (ty - y) * 0.16;
-      sr += ((inside && desktop ? 1 : 0) - sr) * 0.12;
-      spotGrid.style.setProperty('--mx', `${x.toFixed(1)}px`);
-      spotGrid.style.setProperty('--my', `${y.toFixed(1)}px`);
-      spotGrid.style.setProperty('--sr', sr.toFixed(3));
-      if (Math.abs(tx - x) > 0.4 || Math.abs(ty - y) > 0.4 || Math.abs((inside ? 1 : 0) - sr) > 0.01) id = raf(step);
+      let moving = false;
+      chars.forEach((c, i) => {
+        const [cx, cy] = cache[i] || [0, 0];
+        const dd = inside ? Math.hypot(px - cx, (py - cy) * 1.4) : 9999;
+        const k = clamp(1 - dd / 240, 0, 1);
+        const ts = 112 + 13 * k * k, tw = 800 + 100 * k;
+        const o = cur[i];
+        o.s += (ts - o.s) * 0.14; o.w += (tw - o.w) * 0.14;
+        if (Math.abs(ts - o.s) > 0.05) moving = true;
+        c.style.fontStretch = `${o.s.toFixed(2)}%`;
+        c.style.fontWeight = String(Math.round(o.w));
+      });
+      if (moving) id = raf(step);
     };
-    spotGrid.addEventListener('pointermove', (e) => {
-      const r = spotGrid.getBoundingClientRect();
-      tx = e.clientX - r.left;
-      ty = e.clientY - r.top;
-      if (fresh) { x = tx; y = ty; fresh = false; }
-      inside = true;
-      if (!id) id = raf(step);
-    });
-    spotGrid.addEventListener('pointerleave', () => { inside = false; fresh = true; if (!id) id = raf(step); });
+    const arm = () => {
+      if (!DESK()) return;
+      ht.classList.add('ht--done');
+      hero.addEventListener('pointerenter', measure);
+      hero.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'mouse' || !DESK()) return;
+        if (!cache.length) measure();
+        px = e.clientX; py = e.clientY; inside = true;
+        if (!id) id = raf(step);
+      }, { passive: true });
+      hero.addEventListener('pointerleave', () => { inside = false; if (!id) id = raf(step); });
+      w.addEventListener('scroll', () => { cache = []; }, { passive: true });
+      w.addEventListener('resize', () => { cache = []; }, { passive: true });
+    };
+    setTimeout(arm, 1700);
   }
 
   /* ---------------------------------------------------------------------
-     9 · Zähler
+     9 · Magnetische Buttons (nur feiner Zeiger, Feder per Lerp)
      --------------------------------------------------------------------- */
-  const counters = $$('[data-count]');
-  counters.forEach((el) => {
-    if (el.dataset.yearsSince) {
-      const yrs = nowBerlin.year - Number(el.dataset.yearsSince);
-      if (yrs > 0) { el.dataset.to = String(yrs); el.textContent = String(yrs); }
+  if (MOTION && FINE) {
+    $$('.btn--mag, .sos__call').forEach((btn) => {
+      let tx = 0, ty = 0, x = 0, y = 0, id = 0;
+      const step = () => {
+        x += (tx - x) * 0.18; y += (ty - y) * 0.18;
+        btn.style.translate = `${x.toFixed(2)}px ${y.toFixed(2)}px`;
+        id = (Math.abs(tx - x) > 0.05 || Math.abs(ty - y) > 0.05) ? raf(step) : 0;
+      };
+      btn.addEventListener('pointermove', (e) => {
+        const r = btn.getBoundingClientRect();
+        tx = (e.clientX - (r.left + r.width / 2)) * 0.22;
+        ty = (e.clientY - (r.top + r.height / 2)) * 0.3;
+        if (!id) id = raf(step);
+      });
+      btn.addEventListener('pointerleave', () => { tx = 0; ty = 0; if (!id) id = raf(step); });
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+     10 · Leistungen: Verteiler mit 9 Leitungsschutzschaltern (Tabs)
+     --------------------------------------------------------------------- */
+  later(() => {
+    const board = $('[data-board]');
+    if (!board) return;
+    const tabs = $$('[role="tab"]', board);
+    const panels = $$('[role="tabpanel"]', board);
+    let cur = 0;
+    function select(i, focus) {
+      tabs.forEach((t, k) => { t.setAttribute('aria-selected', String(k === i)); t.tabIndex = k === i ? 0 : -1; });
+      panels.forEach((p, k) => {
+        p.hidden = k !== i;
+        if (k === i && MOTION && i !== cur) { p.classList.remove('is-in'); void p.offsetWidth; p.classList.add('is-in'); }
+      });
+      cur = i;
+      if (focus) tabs[i].focus();
+    }
+    select(0);
+    tabs.forEach((t, i) => t.addEventListener('click', () => select(i)));
+    board.querySelector('[role="tablist"]').addEventListener('keydown', (e) => {
+      const i = tabs.indexOf(d.activeElement);
+      if (i < 0) return;
+      let n = -1;
+      if (e.key === 'ArrowRight') n = (i + 1) % tabs.length;
+      else if (e.key === 'ArrowLeft') n = (i - 1 + tabs.length) % tabs.length;
+      else if (e.key === 'Home') n = 0;
+      else if (e.key === 'End') n = tabs.length - 1;
+      if (n < 0) return;
+      e.preventDefault();
+      select(n, true);
+    });
+  });
+
+  /* ---------------------------------------------------------------------
+     11 · Zählwerk: Ziffernrollen wie beim Stromzähler
+     --------------------------------------------------------------------- */
+  later(() => {
+    const drums = $$('[data-drum]');
+    drums.forEach((el) => {
+      if (el.dataset.yearsSince) {
+        const yrs = nowBerlin.year - Number(el.dataset.yearsSince);
+        if (yrs > 0) el.dataset.drum = String(yrs);
+      }
+      const o = makeOdo(el);
+      el._odo = o;
+      o.set(MOTION ? el.dataset.drum.replace(/\d/g, '0') : el.dataset.drum, true);
+    });
+    if (MOTION && 'IntersectionObserver' in w) {
+      const io = new IntersectionObserver((en) => en.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const el = e.target;
+        setTimeout(() => el._odo.set(el.dataset.drum), drums.indexOf(el) * 110);
+        io.unobserve(el);
+      }), { threshold: 0.6 });
+      drums.forEach((el) => io.observe(el));
     }
   });
-  function runCounter(el) {
-    const to = Number(el.dataset.to);
-    const from = Number(el.dataset.from || 0);
-    const thousands = el.dataset.format === 'thousands';
-    const out = (v) => { el.textContent = thousands ? fmt(Math.round(v)) : String(Math.round(v)); };
-    if (!MOTION) { out(to); return; }
-    const dur = 1700;
-    const t0 = performance.now();
-    const tick = (now) => {
-      const p = clamp((now - t0) / dur, 0, 1);
-      out(from + (to - from) * easeOutCubic(p));
-      if (p < 1) raf(tick);
-    };
-    raf(tick);
-  }
-  if (MOTION && 'IntersectionObserver' in w) {
-    counters.forEach((el) => { el.textContent = el.dataset.format === 'thousands' ? fmt(Number(el.dataset.from || 0)) : (el.dataset.from || '0'); });
-    const io = new IntersectionObserver((en) => en.forEach((e) => {
-      if (e.isIntersecting) { runCounter(e.target); io.unobserve(e.target); }
-    }), { threshold: 0.6 });
-    counters.forEach((el) => io.observe(el));
-  }
 
   /* ---------------------------------------------------------------------
      10 · PV-Rechner
@@ -702,6 +568,90 @@
     return { set };
   }
 
+  /* ---------------------------------------------------------------------
+     12 · Sonnenbahn über dem Dach (PV-Set-Piece)
+     --------------------------------------------------------------------- */
+  const sky = (() => {
+    const api = { update() {}, month() {}, scrub() {} };
+    const fig = $('[data-sky]');
+    if (!fig) return api;
+    const svg = $('svg', fig);
+    const arc = $('[data-sky-arc]', fig), sun = $('[data-sky-sun]', fig), mods = $('[data-sky-mods]', fig);
+    const rays = $$('[data-sky-rays] path', fig), info = $('[data-sky-info]', fig), ticks = $('[data-sky-ticks]', fig);
+    const needle = $('[data-sky-needle]', fig), orientT = $('[data-sky-orient]', fig), yieldT = $('[data-sky-yield]', fig), modT = $('[data-sky-mod-t]', fig);
+    const NS = 'http://www.w3.org/2000/svg';
+    const NOON = [17.7, 25.7, 36.7, 48.7, 57.7, 61.7, 59.7, 52.7, 41.7, 29.7, 20.7, 15.7];
+    const MLONG = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    const ORF = { sued: 1, sosw: 0.94, ow: 0.86, nonw: 0.72 };
+    const ORDEG = { sued: 0, sosw: 35, ow: 90, nonw: 145 };
+    let month = 5, t = 0.5, orientF = 1, ry = 0, nMods = -1;
+    const ROWS = [[186, 552, 728], [210, 543, 737], [234, 532, 748]];
+    function buildMods(n) {
+      if (n === nMods) return;
+      nMods = n;
+      mods.textContent = '';
+      let left = n;
+      for (let r = ROWS.length - 1; r >= 0 && left > 0; r--) {
+        const [y, x0, x1] = ROWS[r];
+        const cols = Math.floor((x1 - x0 + 3) / 25);
+        const k = Math.min(cols, left);
+        const off = x0 + ((x1 - x0) - (k * 25 - 3)) / 2;
+        for (let c = 0; c < k; c++) {
+          const rc = d.createElementNS(NS, 'rect');
+          rc.setAttribute('x', (off + c * 25).toFixed(1)); rc.setAttribute('y', y);
+          rc.setAttribute('width', '22'); rc.setAttribute('height', '20');
+          mods.appendChild(rc);
+        }
+        left -= k;
+      }
+    }
+    function geom() {
+      ry = 200 + NOON[month] * 1.6;
+      arc.setAttribute('d', `M60 360A540 ${ry.toFixed(1)} 0 0 1 1140 360`);
+      ticks.textContent = '';
+      for (let h = 1; h < 12; h++) {
+        const [x, y] = pos(h / 12);
+        const c = d.createElementNS(NS, 'path');
+        c.setAttribute('d', `M${x.toFixed(1)} ${(y - 5).toFixed(1)}v10`);
+        ticks.appendChild(c);
+      }
+      info.textContent = `Sonnenbahn Mitte ${MLONG[month]} · Mittagshöhe ${Math.round(NOON[month])}° · Leipzig 51,3° N`;
+    }
+    function pos(tt) { const a = Math.PI * tt; return [600 - 540 * Math.cos(a), 360 - ry * Math.sin(a)]; }
+    function draw() {
+      const [x, y] = pos(t);
+      sun.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(t * 180).toFixed(1)})`);
+      const elev = Math.sin(Math.PI * t) * (NOON[month] / 61.7);
+      const inten = clamp(elev * orientF * 1.1, 0, 1);
+      mods.style.fillOpacity = (0.1 + 0.9 * inten).toFixed(3);
+      const targets = [[566, 196], [640, 190], [716, 196]];
+      rays.forEach((p, i) => {
+        p.setAttribute('d', `M${x.toFixed(1)} ${y.toFixed(1)}L${targets[i][0]} ${targets[i][1]}`);
+        p.style.opacity = (inten * 0.9).toFixed(2);
+      });
+      fig.classList.toggle('is-sunny', inten > 0.3);
+    }
+    const mq = w.matchMedia('(max-width: 640px)');
+    const setVB = () => svg.setAttribute('viewBox', mq.matches ? '290 20 660 370' : '0 0 1200 400');
+    setVB();
+    if (mq.addEventListener) mq.addEventListener('change', setVB);
+    if ('IntersectionObserver' in w) new IntersectionObserver((en) => fig.classList.toggle('is-live', en[0].isIntersecting)).observe(fig);
+    geom(); draw();
+    api.update = (r) => {
+      buildMods(Math.min(r.modules, 23));
+      orientF = ORF[r.orient] || 1;
+      needle.setAttribute('transform', `rotate(${ORDEG[r.orient] || 0})`);
+      orientT.textContent = `Dach: ${ORIENT_LABEL[r.orient]}`;
+      yieldT.textContent = `${fmt(Math.round(r.yieldKwh / 10) * 10)} kWh / Jahr`;
+      modT.textContent = `${r.modules} Module à ${PV.MODULE_WP} Wp`;
+      draw();
+    };
+    api.month = (i) => { const m = i >= 0 ? i : 5; if (m === month) return; month = m; geom(); draw(); };
+    api.scrub = (p) => { t = 0.06 + 0.88 * p; draw(); };
+    return api;
+  })();
+
+  later(() => {
   const pvForm = $('[data-pv-form]');
   const pv = { odos: {}, last: null, started: false };
   if (pvForm) {
@@ -798,6 +748,7 @@
     let hoverIdx = -1;
     function showMonth(i) {
       hoverIdx = i;
+      sky.month(i);
       const r = pv.last;
       if (!r) return;
       cols.forEach((c, k) => c.classList.toggle('is-on', k === i));
@@ -834,6 +785,7 @@
       const s = read();
       const r = pvCalc(s);
       pv.last = r;
+      sky.update(r);
       outEls.area.textContent = `${s.area} m²`;
       outEls.use.textContent = `${fmt(s.use)} kWh`;
       outEls.price.textContent = `${fmt(s.price, s.price % 1 ? 1 : 0)} ct/kWh`;
@@ -889,7 +841,9 @@
       scrollToEl(t, () => focusTarget($('#anfrage-title')));
     });
   }
+  });
 
+  later(() => {
   /* ---------------------------------------------------------------------
      11 · Lichtschalter-Moment
      --------------------------------------------------------------------- */
@@ -960,7 +914,9 @@
       sw.click();
     });
   }
+  });
 
+  later(() => {
   /* ---------------------------------------------------------------------
      12 · Smart-Home-Panel
      --------------------------------------------------------------------- */
@@ -1090,10 +1046,129 @@
     }
     renderHome();
   }
+  });
 
   /* ---------------------------------------------------------------------
-     13 · Referenzen: Filter mit FLIP (WAAPI)
+     13 · Referenzen als Oszilloskop: Kanal = Filter, Liste = Signal
      --------------------------------------------------------------------- */
+  const osc = { onFilter() {}, velocity: 0 };
+  later(() => {
+    const box = $('[data-osc]');
+    if (!box) return;
+    const screen = $('[data-osc-screen]', box);
+    const cv = $('[data-osc-canvas]', box);
+    const ctx = cv.getContext('2d');
+    const items = $$('.ref', box);
+    const chEl = $('[data-osc-ch]', box), waveEl = $('[data-osc-wave]', box), specEl = $('[data-osc-spec]', box);
+    const knobs = $$('.knob i', box);
+    const WAVES = {
+      all: { ch: 'CH1–4', label: '50 Hz' },
+      pv: { ch: 'CH1 · PV', label: 'DC-Welligkeit' },
+      smart: { ch: 'CH2 · KNX', label: 'Telegramm 9,6 kBit/s' },
+      sanierung: { ch: 'CH3 · Bestand', label: 'Oberschwingungen' },
+      gewerbe: { ch: 'CH4 · Drehstrom', label: 'L1 · L2 · L3' },
+    };
+    const BITS = [1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1];
+    let wave = 'all', active = null, phase = 0, amp = 1, running = false, inView = false, last = 0, W = 0, H = 0, DPR = 1;
+    items.forEach((li) => {
+      const m = $('.ref__media', li);
+      if (m) { screen.insertBefore(m, cv); li._media = m; }
+      const h = $('.ref__title', li);
+      const b = d.createElement('button');
+      b.type = 'button';
+      b.className = 'ref__btn';
+      b.textContent = h.textContent;
+      h.textContent = '';
+      h.appendChild(b);
+      const pick = () => activate(li);
+      b.addEventListener('click', pick);
+      b.addEventListener('focus', pick);
+      if (FINE) li.addEventListener('pointerenter', pick);
+    });
+    function activate(li) {
+      if (!li || li === active) return;
+      active = li;
+      items.forEach((x) => x.classList.toggle('is-active', x === li));
+      items.forEach((x) => { if (x._media) x._media.classList.toggle('is-on', x === li); });
+      const cat = li.dataset.cat.split(' ')[0];
+      wave = cat;
+      chEl.textContent = WAVES[cat].ch;
+      waveEl.textContent = WAVES[cat].label;
+      specEl.textContent = $('.ref__spec', li).textContent;
+      if (!MOTION) drawFrame();
+    }
+    osc.onFilter = (f) => {
+      const first = items.find((x) => f === 'all' || x.dataset.cat.split(' ').includes(f));
+      active = null;
+      activate(first);
+      if (f !== 'all') { wave = f; chEl.textContent = WAVES[f].ch; waveEl.textContent = WAVES[f].label; }
+    };
+    function y(type, x, ph, k) {
+      const a = 2 * Math.PI * x;
+      switch (type) {
+        case 'pv': return 0.25 + 0.55 * Math.abs(Math.sin(a * 2 + ph)) - 0.4;
+        case 'smart': { const i = Math.floor(((x * 18) + ph * 1.6) % 18 + 18) % 18; return BITS[i] ? 0.5 : -0.35; }
+        case 'sanierung': { const b = a * 2.5 + ph; return 0.55 * (Math.sin(b) + 0.28 * Math.sin(3 * b) + 0.14 * Math.sin(5 * b + 0.6)); }
+        case 'gewerbe': return 0.62 * Math.sin(a * 2 + ph + k * 2.094);
+        default: return 0.62 * Math.sin(a * 2.5 + ph);
+      }
+    }
+    function size() {
+      const r = screen.getBoundingClientRect();
+      DPR = Math.min(2, w.devicePixelRatio || 1);
+      W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
+      cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    }
+    function drawFrame() {
+      if (!W) size();
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      const n = wave === 'gewerbe' ? 3 : 1;
+      const N = 180;
+      for (let k = 0; k < n; k++) {
+        ctx.beginPath();
+        for (let i = 0; i <= N; i++) {
+          const x = i / N;
+          const yy = H / 2 - y(wave, x, phase, k) * H * 0.34 * amp;
+          if (i) ctx.lineTo(x * W, yy); else ctx.moveTo(0, yy);
+        }
+        const a = k ? 0.55 : 1;
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = `rgba(230,255,58,${0.16 * a})`; ctx.lineWidth = 7; ctx.stroke();
+        ctx.strokeStyle = `rgba(236,255,120,${0.95 * a})`; ctx.lineWidth = 1.8; ctx.stroke();
+      }
+    }
+    function loop(now) {
+      if (!running) return;
+      raf(loop);
+      if (now - last < 33) return; // 30 fps genügen
+      const dt = Math.min(0.1, (now - last) / 1000 || 0.033);
+      last = now;
+      const v = Math.abs(osc.velocity);
+      amp += ((1 + Math.min(v * 0.05, 0.55)) - amp) * 0.12;
+      phase += dt * (1.1 + Math.min(v * 0.25, 6));
+      osc.velocity *= 0.9;
+      drawFrame();
+    }
+    const sync = () => {
+      const should = MOTION && inView && !d.hidden;
+      if (should && !running) { running = true; last = 0; raf(loop); } else if (!should) running = false;
+    };
+    if ('IntersectionObserver' in w) new IntersectionObserver((en) => { inView = en[0].isIntersecting; sync(); }).observe(screen);
+    d.addEventListener('visibilitychange', sync);
+    if ('ResizeObserver' in w) new ResizeObserver(() => { size(); drawFrame(); }).observe(screen);
+    size();
+    activate(items[0]);
+    drawFrame();
+    if (MOTION && hasGsap) {
+      w.ScrollTrigger.create({ trigger: box, start: 'top bottom', end: 'bottom top', onUpdate: (st) => {
+        osc.velocity = st.getVelocity() / 300;
+        knobs.forEach((k, i) => { k.style.transform = `rotate(${(st.progress * (i ? -200 : 300)).toFixed(1)}deg)`; });
+      } });
+    }
+  });
+
+  later(() => {
   const fbar = $('[data-filter-bar]');
   if (fbar) {
     const btns = $$('button', fbar);
@@ -1104,29 +1179,17 @@
     const match = (el, f) => f === 'all' || el.dataset.cat.split(' ').includes(f);
     const canAnim = MOTION && typeof Element.prototype.animate === 'function';
 
-    // Handy: wischbare Leiste – per Tastatur erreichbar, Fortschritt ohne Scroll-Timeline per JS
-    const railMq = w.matchMedia('(max-width: 639px)');
-    const railBar = $('.ref-rail span');
-    const isRail = () => railMq.matches;
-    const syncRail = () => { if (isRail()) list.setAttribute('tabindex', '0'); else list.removeAttribute('tabindex'); };
-    syncRail();
-    if (railMq.addEventListener) railMq.addEventListener('change', syncRail);
-    if (railBar && !(w.CSS && CSS.supports && CSS.supports('animation-timeline', 'scroll()'))) {
-      let rt = 0;
-      const upd = () => { rt = 0; const max = list.scrollWidth - list.clientWidth; railBar.style.setProperty('--rail', String(0.2 + 0.8 * (max > 0 ? list.scrollLeft / max : 1))); };
-      list.addEventListener('scroll', () => { if (!rt) rt = raf(upd); }, { passive: true });
-      upd();
-    }
 
     function apply(f) {
       if (busy) { queued = f; return; }
       if (f === current) return;
       current = f;
+      osc.onFilter(f);
       btns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === f)));
       const n = items.filter((el) => match(el, f)).length;
       const label = (btns.find((b) => b.dataset.filter === f).firstChild.textContent || '').trim();
       live.textContent = `${n} Projekte${f === 'all' ? '' : ` in ${label}`} angezeigt`;
-      if (!canAnim) { items.forEach((el) => { el.hidden = !match(el, f); }); if (isRail()) list.scrollLeft = 0; refreshST(); return; }
+      if (!canAnim) { items.forEach((el) => { el.hidden = !match(el, f); }); refreshST(); return; }
       busy = true;
       const first = new Map();
       items.forEach((el) => { if (!el.hidden) first.set(el, el.getBoundingClientRect()); });
@@ -1138,7 +1201,7 @@
       Promise.all(outs).then(() => {
         leaving.forEach((el) => { el.hidden = true; el.getAnimations().forEach((a) => a.cancel()); });
         items.forEach((el) => { if (match(el, f)) el.hidden = false; });
-        if (isRail()) list.scrollLeft = 0;
+       
         let k = 0;
         const anims = [];
         items.forEach((el) => {
@@ -1180,9 +1243,10 @@
       btns[n].focus();
     });
   }
+  });
 
   /* ---------------------------------------------------------------------
-     14 · Scroll-Choreografie (GSAP): Ablauf, Hero, Parallaxe
+     14 · Scroll-Choreografie (GSAP, ohne Pins – sticky + Scrub)
      --------------------------------------------------------------------- */
   const flowSec = $('[data-flow-section]');
   const flowLine = $('[data-flow-line]');
@@ -1191,7 +1255,7 @@
     const track = $('.flow__track');
     const tr = track.getBoundingClientRect();
     return flowSteps.map((s) => {
-      const n = $('.step__node', s).getBoundingClientRect();
+      const n = $('.step__k', s).getBoundingClientRect();
       return vertical ? (n.top + n.height / 2 - tr.top) / tr.height : (n.left + n.width / 2 - tr.left) / tr.width;
     });
   }
@@ -1200,67 +1264,84 @@
     flowSteps.forEach((s, i) => s.classList.toggle('is-on', p >= stops[i] - 0.002));
   }
 
-  if (hasGsap && MOTION) {
-    const { gsap, ScrollTrigger } = w;
-    const mm = gsap.matchMedia();
+  later(() => {
+    if (hasGsap && MOTION) {
+      const { gsap, ScrollTrigger } = w;
+      const mm = gsap.matchMedia();
 
-    // Hero: Inhalt gleitet beim Scrollen zurück, Canvas blendet ab
-    mm.add('(min-width: 900px)', () => {
-      gsap.to('[data-hero-copy]', { yPercent: -10, opacity: 0.25, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
-      gsap.to('[data-hero-visual]', { y: -70, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
-      gsap.to('.hero__canvas', { opacity: 0.25, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
-    });
+      // Hero: Abgänge werden beim Scrollen der Reihe nach eingeschaltet (sticky Bühne)
+      mm.add('(min-width: 900px)', () => {
+        scrubHero = ScrollTrigger.create({
+          trigger: hero, start: 'top top', end: 'bottom bottom',
+          onUpdate: (st) => heroScrub(st.progress),
+        });
+        return () => { scrubHero.kill(); scrubHero = null; };
+      });
 
-    // Ablauf: Desktop mit Pin (Strom fließt durch die Schritte), sonst ohne Pin
-    if (flowSec && flowLine) {
-      mm.add('(min-width: 900px) and (min-height: 700px)', () => {
-        const proxy = { p: 0 };
-        let stops = flowStops(false);
-        const tl = gsap.to(proxy, {
-          p: 1, ease: 'none',
-          scrollTrigger: {
-            trigger: flowSec, start: () => (flowSec.offsetHeight < w.innerHeight ? 'center center' : 'top top'), end: '+=110%', pin: true, scrub: 0.6, anticipatePin: 1, invalidateOnRefresh: true,
-            onRefresh: () => { stops = flowStops(false); },
-          },
-          onUpdate: () => renderFlow(proxy.p, stops, false),
+      // Sonnenbahn: Sonne wandert mit dem Scroll von Ost nach West
+      ScrollTrigger.create({ trigger: '[data-sky]', start: 'top 85%', end: 'bottom 10%', onUpdate: (st) => sky.scrub(st.progress) });
+
+      // Ablauf: Schützkette – Kontakte schließen nacheinander (Desktop: sticky Bühne)
+      if (flowSec && flowLine) {
+        mm.add('(min-width: 900px) and (min-height: 680px)', () => {
+          const proxy = { p: 0 };
+          let stops = flowStops(false);
+          const tw = gsap.to(proxy, {
+            p: 1, ease: 'none',
+            scrollTrigger: { trigger: flowSec, start: 'top top', end: 'bottom bottom', scrub: 0.5, onRefresh: () => { stops = flowStops(false); } },
+            onUpdate: () => renderFlow(proxy.p, stops, false),
+          });
+          return () => { tw.scrollTrigger && tw.scrollTrigger.kill(); tw.kill(); };
         });
-        return () => { tl.scrollTrigger && tl.scrollTrigger.kill(); tl.kill(); };
-      });
-      mm.add('(min-width: 900px) and (max-height: 699px)', () => {
-        const proxy = { p: 0 };
-        let stops = flowStops(false);
-        gsap.to(proxy, {
-          p: 1, ease: 'none',
-          scrollTrigger: { trigger: '.flow__track', start: 'top 80%', end: 'bottom 45%', scrub: 0.6, onRefresh: () => { stops = flowStops(false); } },
-          onUpdate: () => renderFlow(proxy.p, stops, false),
+        mm.add('(min-width: 900px) and (max-height: 679px)', () => {
+          const proxy = { p: 0 };
+          let stops = flowStops(false);
+          gsap.to(proxy, {
+            p: 1, ease: 'none',
+            scrollTrigger: { trigger: '.flow__track', start: 'top 80%', end: 'bottom 45%', scrub: 0.5, onRefresh: () => { stops = flowStops(false); } },
+            onUpdate: () => renderFlow(proxy.p, stops, false),
+          });
         });
-      });
-      mm.add('(max-width: 899px)', () => {
-        const proxy = { p: 0 };
-        let stops = flowStops(true);
-        gsap.to(proxy, {
-          p: 1, ease: 'none',
-          scrollTrigger: { trigger: '.flow__track', start: 'top 70%', end: 'bottom 55%', scrub: 0.5, onRefresh: () => { stops = flowStops(true); } },
-          onUpdate: () => renderFlow(proxy.p, stops, true),
+        mm.add('(max-width: 899px)', () => {
+          const proxy = { p: 0 };
+          let stops = flowStops(true);
+          gsap.to(proxy, {
+            p: 1, ease: 'none',
+            scrollTrigger: { trigger: '.flow__track', start: 'top 72%', end: 'bottom 55%', scrub: 0.5, onRefresh: () => { stops = flowStops(true); } },
+            onUpdate: () => renderFlow(proxy.p, stops, true),
+          });
         });
+      }
+
+      // Prüfstempel dreht sich beim Durchscrollen ein Stück (wie aufgedrückt)
+      gsap.fromTo('[data-stamp]', { rotate: -24, scale: 1.06 }, { rotate: 6, scale: 1, ease: 'none', scrollTrigger: { trigger: '.voices', start: 'top bottom', end: 'bottom top', scrub: 0.6 } });
+      // Notdienst-Foto: langsamer Zoom
+      const sosImg = $('[data-sos-img]');
+      if (sosImg) gsap.fromTo(sosImg, { scale: 1.12 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: '.sos', start: 'top bottom', end: 'bottom top', scrub: true } });
+      // Über uns: Detailfoto schiebt sich gegen das Hauptfoto
+      mm.add('(min-width: 900px)', () => {
+        gsap.fromTo('.about__detail', { y: 70 }, { y: -30, ease: 'none', scrollTrigger: { trigger: '.about__grid', start: 'top bottom', end: 'bottom top', scrub: true } });
       });
+
+      if (d.fonts && d.fonts.ready) d.fonts.ready.then(refreshST);
+      w.addEventListener('load', refreshST);
+    } else {
+      root.classList.add('no-flow-anim');
+      flowSteps.forEach((s) => s.classList.add('is-on'));
+      sky.scrub(0.5);
     }
+  });
 
-    // Parallaxe
-    $$('[data-parallax]').forEach((img) => {
-      const amt = Number(img.dataset.parallax) || 6;
-      gsap.fromTo(img, { yPercent: amt }, { yPercent: -amt, ease: 'none', scrollTrigger: { trigger: img.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } });
-    });
-    const sosImg = $('[data-sos-img]');
-    if (sosImg) gsap.fromTo(sosImg, { scale: 1.1 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: '.sos', start: 'top bottom', end: 'bottom top', scrub: true } });
+  // Karte + Fußzeile: Animationen nur im Sichtbereich
+  later(() => {
+    const map = $('.map');
+    const word = $('.ftr__word');
+    if (!('IntersectionObserver' in w)) { if (word) word.classList.add('is-on'); return; }
+    if (map) new IntersectionObserver((en) => map.classList.toggle('is-live', en[0].isIntersecting)).observe(map);
+    if (word) new IntersectionObserver((en) => { if (en[0].isIntersecting) word.classList.add('is-on'); }, { threshold: 0.4 }).observe(word);
+  });
 
-    if (d.fonts && d.fonts.ready) d.fonts.ready.then(refreshST);
-    w.addEventListener('load', refreshST);
-  } else {
-    root.classList.add('no-flow-anim');
-    flowSteps.forEach((s) => s.classList.add('is-on'));
-  }
-
+  later(() => {
   /* ---------------------------------------------------------------------
      15 · Einzugsgebiet: Orte hervorheben
      --------------------------------------------------------------------- */
@@ -1298,6 +1379,7 @@
       b.addEventListener('pointerleave', () => highlightTown(townSel));
     }
   });
+  });
 
   /* ---------------------------------------------------------------------
      Formular-Helfer
@@ -1327,6 +1409,7 @@
     });
   }
 
+  later(() => {
   /* ---------------------------------------------------------------------
      16 · Kurzbewerbung
      --------------------------------------------------------------------- */
@@ -1393,11 +1476,13 @@
     });
     meter();
   }
+  });
 
+  later(() => {
   /* ---------------------------------------------------------------------
      17 · Anfrage-Assistent (4 Schritte)
      --------------------------------------------------------------------- */
-  const wizard = (() => {
+  wizard = (() => {
     const form = $('[data-wiz]');
     const api = { preselect() {}, fromPV() {} };
     if (!form) return api;
@@ -1583,6 +1668,18 @@
     };
     return api;
   })();
+  });
 
-  w.__funkeReady = true;
+  // Häppchenweise starten (je ein Modul pro Task), danach einmal ScrollTrigger messen
+  const runQueue = () => {
+    const fn = queue.shift();
+    if (fn) { try { fn(); } catch (err) { if (w.console) console.warn(err); } }
+    if (queue.length) setTimeout(runQueue, 16);
+    else {
+      w.__funkeReady = true;
+      refreshST();
+      updDusk();
+    }
+  };
+  raf(() => setTimeout(runQueue, 30));
 })();

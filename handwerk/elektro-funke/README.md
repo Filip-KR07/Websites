@@ -1,8 +1,20 @@
 # Modell „Impuls“ – Funke Elektrotechnik (Demo)
 
-Demo-Website für einen **fiktiven** Elektro-Meisterbetrieb aus Leipzig. Dunkel, technisch, präzise:
-Raster- und Messlinien, Monospace-Labels, Glas-Panels, ein sparsames Spannungsgelb als Akzent.
+Demo-Website für einen **fiktiven** Elektro-Meisterbetrieb aus Leipzig.
 Statisch (HTML, CSS, JS), ohne Build-Schritt, ohne externe Anfragen, ohne Cookies.
+
+## Gestaltungsidee
+
+Die ganze Seite ist ein **Stromlaufplan**: ein technisches Zeichnungsblatt mit Rahmen, Koordinatenfeldern,
+Schriftfeld und DIN-Schaltzeichen, gesetzt auf leicht gekörntem Papier in Tusche. Gelb ist kein Deko-Akzent,
+sondern der **Textmarker**, mit dem Elektriker geprüfte Leitungen nachziehen – beim Scrollen fließt so der Strom
+vom Hausanschluss über die Sammelschiene in die Abgänge, Verbraucher „schalten ein“, am Ende unterschreibt
+der Meister im Schriftfeld. Der Schalter **S1** im Plan (bzw. „Strom“ im Header) setzt die ganze Seite unter
+Spannung: Per View Transition breitet sich die Nachtansicht kreisförmig vom Schalter aus, der Plan leuchtet.
+Jeder Abschnitt ist ein Bauteil aus dem Alltag des Betriebs – Verteiler mit Leitungsschutzschaltern, Stromzähler,
+Sonnenbahn über dem Dach, Wandschalter, Oszilloskop, Schützkette, Stückliste, Klemmleiste, Prüfstempel.
+Motion-Handschrift „schalten, nicht schweben“: Kontakte rasten kurz mit leichtem Überschwinger ein
+(`--ease-click`), Strom fließt mit konstanter Geschwindigkeit, Abschnitte werden wie geplottet von links aufgedeckt.
 
 ## Dateien
 
@@ -17,36 +29,41 @@ Statisch (HTML, CSS, JS), ohne Build-Schritt, ohne externe Anfragen, ohne Cookie
 
 ## Abschnitte
 
-Hero · Ticker (Normen/Systeme) · Leistungen (9 „Stromkreise“) · Zahlen · PV-Rechner · Lichtplanung ·
-Smart Home · Referenzen · Notdienst-Band · Ablauf · Über uns/Team · Kundenstimmen · Einzugsgebiet ·
-Karriere mit Kurzbewerbung · FAQ · Anfrage-Assistent (4 Schritte) · Footer. Auf dem Handy: feste
-Aktionsleiste unten (Anrufen · Notdienst · Anfrage).
+Hero „Stromlaufplan“ · Kabel mit Normen/Systemen · Leistungen als Verteiler (F1–F9) · Zählwerk · PV-Rechner mit
+Sonnenbahn · Abend-Kapitel (Lichtplanung, Smart Home) · Referenzen als Oszilloskop · Notdienst · Ablauf als
+Schützkette · Über uns mit Stückliste · Kundenstimmen mit Prüfstempel · Einzugsgebiet · Karriere (Klemmleiste,
+Kurzbewerbung) · FAQ · Anfrage-Assistent (4 Schritte) · Footer. Auf dem Handy: feste Aktionsleiste unten
+(Anrufen · Notdienst · Anfrage).
 
 ## Spezial-Features
 
-1. **Stromfluss-Canvas im Hero** – generative Leiterbahnen im Raster, Lichtimpulse laufen darüber.
-   Der Mauszeiger zieht einen Lichtkegel nach (Lerp), Impulse in der Nähe werden heller und schneller.
-   Auf Touch-Geräten läuft eine ruhige Automatik (30 fps). Pausiert außerhalb des Sichtbereichs.
-   Raster und Bahnen liegen auf einem eigenen, nur bei Größenänderung gezeichneten Canvas; pro Frame
-   werden nur Impulse und Lichtkegel gezeichnet (der weiche Kegel ist ein komponiertes `div`).
-   Headline „Strom, der mitdenkt.“ blendet wie eine anlaufende Leuchte ein (kein Flackern).
-   Status-Pillen: Notdienst immer erreichbar, Büro geöffnet/geschlossen nach Uhrzeit (Europe/Berlin).
-2. **PV-Rechner** – Dachfläche, Ausrichtung, Verbrauch (mit Haushalts-Vorgaben), Speicher, Strompreis.
-   Rollende Ziffern, Monatsdiagramm (SVG) mit Hover-Werten, Ergebnis per Knopf in den Anfrage-Assistenten.
-   Alle Richtwerte stehen dokumentiert als Konstanten oben im Abschnitt `PV` in `main.js`.
-3. **Lichtschalter** – großer Schalter (`aria-pressed`), der den Raum per kreisförmigem
-   `clip-path` vom Schalter aus „einschaltet“ – oder von der Stelle, an der man ins Zimmer tippt.
-   Bei reduzierter Bewegung: weicher Crossfade. Messwerte per Container Query 4- oder 2-spaltig.
-4. **Smart-Home-Panel** – Licht + Dimmer, Rollläden, Heizung, Wallbox mit Ladering, drei Szenen.
-   Komplett per Tastatur bedienbar, Änderungen werden für Screenreader angesagt.
-5. **Leistungen als Schaltplan** – Raster mit Spotlight-Rand, der dem Zeiger folgt; Linien-Icons
-   zeichnen sich beim Einblenden und Hovern. Auf dem Handy eine klare Liste.
-6. **Referenzen-Filter** – Photovoltaik / Smart Home / Sanierung / Gewerbe mit FLIP-Animation (WAAPI).
-   Auf dem Handy eine wischbare Leiste (Scroll-Snap) mit Fortschrittslinie (Scroll-driven Animation,
-   JS-Ersatz für ältere Browser).
-7. Außerdem: gepinnter Ablauf, durch den „Strom fließt“ (Desktop), Zähler, Einzugsgebiets-Karte als SVG,
-   Kurzbewerbung „in 60 Sekunden“, mehrstufiger Assistent mit Validierung und Zusammenfassung,
-   Footer-Schriftzug, der beim Hineinscrollen „einschaltet“ (Scroll-driven Animation).
+1. **Hero als Stromlaufplan** (SVG, Desktop- und eigene Handy-Komposition). Intro ≤ 1,2 s: Buchstaben der
+   Headline „laden sich auf“ (Variable-Font-Achsen `wght`/`wdth`), Plan zeichnet sich, Textmarker zieht über
+   „sauber“. Desktop: sticky Bühne – beim Scrollen fließt der Strom in die Abgänge PV, Wallbox, Steckdosen, Licht;
+   danach Unterschrift im Schriftfeld. Handy: zeitgesteuert. Buchstaben in Mausnähe werden breiter (Feder/Lerp).
+   Statusleuchten H1/H2: Notdienst erreichbar, Büro geöffnet/geschlossen nach Uhrzeit (Europe/Berlin).
+2. **Hauptschalter „Strom“** (S1 im Plan oder Header, `aria-pressed`): ganze Seite wechselt in die Nachtansicht
+   (CSS-Variablen in `:root[data-power="on"]`), kreisförmige View Transition vom Schalter aus; Fallback: sofort.
+3. **Leistungen als Verteiler** – 9 Leitungsschutzschalter sind Tabs (`role="tablist"`, Pfeiltasten, Pos1/Ende);
+   der gewählte Hebel rastet nach oben, Beschriftung handschriftlich wie im echten Verteiler. Ohne JS: Liste.
+4. **PV-Rechner mit Sonnenbahn** – Dachfläche, Ausrichtung, Verbrauch (Vorgaben), Speicher, Strompreis.
+   Rollende Ziffern, Monatsdiagramm (SVG) mit Hover-Werten. Darüber eine Szene: Die Sonne wandert beim Scrollen
+   von Ost nach West, Bahnhöhe folgt dem Monat unter dem Zeiger im Diagramm, Module auf dem Dach entsprechen der
+   berechneten Anlage und leuchten je nach Sonnenstand und Ausrichtung. Ergebnis per Knopf in den Assistenten.
+   Richtwerte stehen als Konstanten `PV` in `main.js`.
+5. **Abend-Kapitel** – beim Hineinscrollen dunkelt die ganze Seite ab (fester Hintergrund, Deckkraft per Scroll).
+   **Lichtschalter** mit Wippen-Physik schaltet das Zimmer per `clip-path`-Kreis vom Schalter oder Tippunkt aus ein.
+   **Smart-Home-Panel** mit Wippschaltern, Dimmer, Rollläden, Heizung, Wallbox-Ladering und drei Szenen,
+   komplett per Tastatur bedienbar, Änderungen werden angesagt.
+6. **Referenzen als Oszilloskop** – Filter = Kanäle (CH1–CH4, FLIP-Animation per WAAPI). Jede Kategorie hat ihre
+   Kurve (PV-Welligkeit, KNX-Telegramm, Oberschwingungen, Drehstrom); Zeile anfahren/fokussieren zeigt das
+   Projektfoto als Phosphor-Duoton auf dem Schirm. Canvas mit 30 fps nur im Sichtbereich, Scroll-Tempo ändert
+   Amplitude und Zeitbasis, Drehknöpfe drehen mit.
+7. Außerdem: Kabel-Laufband, dessen Tempo der Scroll-Geschwindigkeit folgt (auch rückwärts), Zählwerk mit
+   Ziffernrollen, Schützkette im Ablauf (sticky, Kontakte schließen nacheinander), Prüfstempel dreht beim Scrollen,
+   Einzugsgebiets-Karte als SVG, Kurzbewerbung „in 60 Sekunden“, mehrstufiger Assistent mit Validierung und
+   Zusammenfassung, magnetische Buttons, Navigations-Links mit Zeichenrolle, Footer-Schriftzug „schaltet ein“
+   (Scroll-driven Animation mit Fallback).
 
 Animationen abschalten: `?motion=off` an die Adresse hängen (oder System-Einstellung „Bewegung reduzieren“).
 Ohne JavaScript sind alle Inhalte sichtbar.
@@ -58,9 +75,11 @@ Ohne JavaScript sind alle Inhalte sichtbar.
   JSON-LD im `<head>` von `index.html` mitpflegen (Adresse, Geo-Koordinaten, Öffnungszeiten, `areaServed`).
 - **Öffnungszeiten:** Text in `index.html` und die Konstanten `OPEN_MIN` / `CLOSE_MIN` in `main.js`
   (steuern die Pille „Büro geöffnet/geschlossen“).
-- **Farben:** `:root` in `style.css` – v. a. `--volt` (Akzent), `--blue` (Zweitakzent), `--bg`, `--surface`,
-  `--text`, `--muted`. Die Farben im Canvas stehen in `main.js` (`RGB`, Abschnitt 7).
-- **Schriften:** `@font-face` oben in `style.css`, Variablen `--f-display`, `--f-body`, `--f-mono`.
+- **Farben:** `:root` in `style.css` – `--paper`, `--ink`, `--volt` (Textmarker/Strom), `--red` (Prüfvermerk),
+  `--pen` (Kugelschreiber); die Nachtansicht überschreibt sie in `:root[data-power="on"], .is-night`.
+  Die Farbe der Oszilloskop-Kurve steht in `main.js` (Abschnitt 13).
+- **Schriften:** `@font-face` oben in `style.css` (Archivo mit Breiten-Achse, JetBrains Mono, „Nothing You Could Do“
+  für Handschrift), Variablen `--f-display`, `--f-body`, `--f-mono`, `--f-hand`.
 - **Bilder:** in `assets/img/` je zwei Breiten ablegen (`name-480.webp`, `name-960.webp`) und in
   `index.html` `src`, `srcset`, `width`/`height` und den deutschen `alt`-Text anpassen.
   Die Fotos sind nur Platzhalter (CC0, StockSnap) – für Kunden immer echte Fotos verwenden.

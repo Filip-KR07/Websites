@@ -220,14 +220,19 @@
       var i = sib.indexOf(el);
       if (i > 0) el.style.setProperty('--d', Math.min(i, 6) * 70 + 'ms');
     });
+    // Überschriften sind per clip-path versteckt – der IntersectionObserver beobachtet darum ihren Elternblock
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
         if (!en.isIntersecting) return;
-        en.target.classList.add('is-in');
+        (en.target.__rv || [en.target]).forEach(function (el) { el.classList.add('is-in'); });
         io.unobserve(en.target);
       });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
-    els.forEach(function (el) { io.observe(el); });
+    els.forEach(function (el) {
+      var t = el.matches('.h2, .h3') ? el.parentNode : el;
+      (t.__rv = t.__rv || []).push(el);
+      if (t.__rv.length === 1) io.observe(t);
+    });
   }
 
   function initIntro() {
@@ -390,7 +395,7 @@
     var panels = qsa('[data-season-panel]');
     var meta = qs('meta[name="theme-color"]');
     var tipTimer = 0;
-    function apply(s, user) {
+    function apply(s, user, instant) {
       if (!SEASONS[s]) s = 'sommer';
       var changed = doc.getAttribute('data-season') !== s;
       doc.setAttribute('data-season', s);
@@ -398,7 +403,7 @@
       if (nameEl) nameEl.textContent = SEASONS[s].name;
       if (icon) icon.setAttribute('href', '#i-' + s);
       if (tipEl) {
-        if (user && !reduced()) {
+        if (user && !reduced() && !instant) {
           tipEl.classList.add('is-swapping');
           clearTimeout(tipTimer);
           tipTimer = setTimeout(function () { tipEl.textContent = SEASONS[s].tip; tipEl.classList.remove('is-swapping'); }, 220);
@@ -409,8 +414,23 @@
       if (user) store('gruenform-season', s);
       if (changed || user) setTimeout(contours.readColor, 30);
     }
+    var lastPointer = 0;
+    qsa('[data-season-switch]').forEach(function (f) { f.addEventListener('pointerdown', function () { lastPointer = performance.now(); }); });
     inputs.forEach(function (i) {
-      i.addEventListener('change', function () { if (i.checked) apply(i.value, true); });
+      i.addEventListener('change', function () {
+        if (!i.checked) return;
+        var v = i.value;
+        // Farbwelle nur bei Klick/Tipp – Pfeiltasten wechseln sofort
+        if (document.startViewTransition && !reduced() && performance.now() - lastPointer < 900 && doc.getAttribute('data-season') !== v) {
+          var r = (i.closest('label') || i).getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+          doc.style.setProperty('--vt-x', Math.round(x) + 'px'); doc.style.setProperty('--vt-y', Math.round(y) + 'px');
+          doc.style.setProperty('--vt-r', Math.ceil(Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))) + 'px');
+          doc.classList.add('vt-season');
+          var t = document.startViewTransition(function () { apply(v, true, true); });
+          var done = function () { doc.classList.remove('vt-season'); };
+          t.finished.then(done, done);
+        } else apply(v, true);
+      });
     });
     apply(doc.getAttribute('data-season'), false);
   }
@@ -604,6 +624,23 @@
     else loadPreset('familie');
     setTool('terrasse');
     renderAll();
+    // Erster Sichtkontakt: der Plan füllt sich vom Haus aus nach hinten, Reihe für Reihe
+    if (!reduced() && 'IntersectionObserver' in window && cells[0].animate) {
+      grid.classList.add('is-drawing');
+      var pio = new IntersectionObserver(function (en) {
+        if (!en[0].isIntersecting) return;
+        pio.disconnect();
+        grid.classList.remove('is-drawing');
+        cells.forEach(function (c, k) {
+          if (!state[k] || !c.firstChild) return;
+          var row = Math.floor(k / GRID.cols), col = k % GRID.cols, dl = (GRID.rows - 1 - row) * 120 + Math.abs(col - 4.5) * 34;
+          var opt = { duration: 460, delay: dl, easing: 'cubic-bezier(0.23, 1, 0.32, 1)', fill: 'backwards' };
+          c.firstChild.animate([{ opacity: 0, transform: 'scale(.55)' }, { opacity: 1, transform: 'none' }], opt);
+          if (state[k] === 'baum') try { c.animate([{ opacity: 0, transform: 'scale(.4)' }, { opacity: 1, transform: 'none' }], { duration: 700, delay: dl + 500, easing: 'cubic-bezier(0.23, 1, 0.32, 1)', fill: 'backwards', pseudoElement: '::before' }); } catch (err) {}
+        });
+      }, { threshold: .3 });
+      pio.observe(grid);
+    }
 
     toolInputs.forEach(function (inp) { inp.addEventListener('change', function () { if (inp.checked) setTool(inp.value); }); });
 
@@ -774,10 +811,18 @@
   function initBeforeAfter() {
     var ba = qs('[data-ba]'), after = qs('[data-ba-after]'), handle = qs('[data-ba-handle]');
     if (!ba || !after || !handle) return;
-    var pos = 50, w = ba.clientWidth, dragging = false, touched = false;
+    var pos = 50, w = ba.clientWidth, dragging = false, touched = false, edge = qs('[data-ba-edge]'), EDGE = [];
+    for (var e0 = 0; e0 <= 16; e0++) EDGE.push(Math.sin(e0 * 1.9) * .9 + Math.sin(e0 * 3.7 + 1.3) * .55);
     function set(p) {
       pos = clamp(p, 0, 100);
-      after.style.clipPath = 'inset(0 0 0 ' + pos.toFixed(2) + '%)';
+      // Pinselkante statt gerader Linie: leicht unruhiger Rand, der an den Enden glatt ausläuft
+      var amp = Math.min(1, pos / 6, (100 - pos) / 6) * 1.5, pts = [], line = [];
+      for (var k = 0; k <= 16; k++) {
+        var y = k / 16 * 100, x = clamp(pos + EDGE[k] * amp, 0, 100);
+        pts.push(x.toFixed(2) + '% ' + y.toFixed(2) + '%'); line.push(x.toFixed(2) + ',' + y.toFixed(2));
+      }
+      after.style.clipPath = 'polygon(' + pts.join(',') + ',100% 100%,100% 0%)';
+      if (edge) edge.setAttribute('points', line.join(' '));
       handle.style.transform = 'translate3d(' + (pos / 100 * w).toFixed(1) + 'px,0,0)';
       var v = Math.round(pos);
       handle.setAttribute('aria-valuenow', v);
@@ -809,20 +854,10 @@
       else if (k === 'End') n = 100;
       if (n !== null) { e.preventDefault(); touched = true; set(n); }
     });
-    // Einmaliger Hinweis beim ersten Sichtkontakt: Regler schwingt kurz
-    if (!reduced() && 'IntersectionObserver' in window) {
-      var io = new IntersectionObserver(function (en) {
-        if (!en[0].isIntersecting) return;
-        io.disconnect();
-        var t0 = performance.now(), D = 1700;
-        (function tick(now) {
-          if (touched) return;
-          var t = clamp((now - t0) / D, 0, 1);
-          set(50 + Math.sin(t * Math.PI * 2) * 14 * (1 - t) * easeOut(Math.min(1, t * 3)));
-          if (t < 1) requestAnimationFrame(tick); else set(50);
-        })(t0);
-      }, { threshold: 0.6 });
-      io.observe(ba);
+    // Scroll-Wisch: beim Hereinscrollen zieht die Maske vom Bestand zum fertigen Garten auf, bis jemand selbst zieht
+    if (hasGSAP && !reduced()) {
+      var wipe = function (self) { if (!touched) set(96 - 46 * easeOut(self.progress)); };
+      ScrollTrigger.create({ trigger: ba, start: 'top 92%', end: 'center 52%', onUpdate: wipe, onRefresh: wipe });
     }
   }
 
@@ -1072,6 +1107,387 @@
   }
 
   /* ------------------------------------------------------------------
+     Hero: generativer Garten im Schnitt (L-System als SVG)
+     Pflanzen wachsen beim Laden aus der Geländelinie, Wurzeln wachsen
+     beim Scrollen tiefer, Mauszeiger und Scroll-Tempo wehen als Wind.
+     ------------------------------------------------------------------ */
+  var GARDEN_NAMES = { staude: 'Purpur-Sonnenhut', dolde: 'Bronzefenchel', strauch: 'Kupfer-Felsenbirne', gras: 'Rutenhirse' };
+  function initGarden() {
+    var hero = qs('.hero'), svg = qs('[data-garden]'), soil = qs('.hx-soil');
+    if (!hero || !svg || !soil) return;
+    var W = 0, H = 0, G = 0, plants = [], built = '', running = false, visible = true, lastX = null, lastY = window.scrollY;
+    var r1 = function (n) { return Math.round(n * 10) / 10; };
+    function rng(seed) {
+      return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+    }
+    function qpt(x0, y0, cx, cy, x1, y1, t) { var u = 1 - t; return [u * u * x0 + 2 * u * t * cx + t * t * x1, u * u * y0 + 2 * u * t * cy + t * t * y1]; }
+    function leaf(x, y, a, s, cls, dl) {
+      return '<path class="lf ' + cls + '" style="--dl:' + Math.round(dl) + 'ms" transform="translate(' + r1(x) + ' ' + r1(y) + ') rotate(' + Math.round(a) + ') scale(' + s.toFixed(2) + ')" d="M0 0C-4.6-3-5.2-8.6 0-13.4C5.2-8.6 4.6-3 0 0Z"/>';
+    }
+    function dot(cls, x, y, r, dl) { return '<circle class="' + cls + '" style="--dl:' + Math.round(dl) + 'ms" cx="' + r1(x) + '" cy="' + r1(y) + '" r="' + r.toFixed(1) + '"/>'; }
+
+    // Eine Pflanze: Segmente (quadratische Kurven) rekursiv verzweigt
+    function grow(o) {
+      var rnd = o.rnd, base = [], crown = [], top = null;
+      var LEAF = ['la', '', 'lc'];
+      function tip(x, y, depth, dl, out) {
+        if (o.type === 'gras') { out.push('<ellipse class="sd" style="--dl:' + Math.round(dl) + 'ms" cx="' + r1(x) + '" cy="' + r1(y - 4) + '" rx="1.6" ry="5"/>'); return; }
+        if (o.type === 'dolde') { out.push(dot('bl b2', x, y, 2.1, dl), dot('sd', x, y, 1.4, dl), dot('sn', x, y - 1.5, 1.8, dl)); return; }
+        if (o.type === 'strauch') { out.push(dot('bl bb', x, y, 2.6, dl), dot('sd', x + 1.5, y + 2, 1.7, dl), dot('sn', x, y - 1.5, 2.6, dl)); return; }
+        var c = ['bl', 'bl b1', 'bl b2'][Math.floor(rnd() * 3)], rr = 3.2 + rnd() * 2.2;
+        out.push(dot(c, x, y, rr, dl), dot(c, x + rr * .9, y + rr * .5, rr * .62, dl + 80), dot('sd', x, y, 1.9, dl), dot('sn', x, y - rr * .7, rr * .8, dl));
+      }
+      function seg(x, y, ang, len, depth, maxD, spread, w, dl) {
+        var bend = (rnd() - .5) * .55;
+        var ex = x + Math.sin(ang) * len, ey = y - Math.cos(ang) * len;
+        var cx = x + Math.sin(ang + bend) * len * .55, cy = y - Math.cos(ang + bend) * len * .55;
+        var out = depth === 0 ? base : crown;
+        out.push('<path class="s' + (o.type === 'gras' ? ' gr' : o.type === 'strauch' && depth < 2 ? ' wd' : '') + '" pathLength="1" stroke-width="' + w.toFixed(2) + '" style="--dl:' + Math.round(dl) + 'ms" d="M' + r1(x) + ' ' + r1(y) + 'Q' + r1(cx) + ' ' + r1(cy) + ' ' + r1(ex) + ' ' + r1(ey) + '"/>');
+        if (depth === 0 && !top) top = [ex, ey];
+        var dl2 = dl + o.step;
+        if (o.leaf && depth >= o.leafFrom) {
+          var nL = o.leaf + (rnd() < .5 ? 1 : 0);
+          for (var k = 0; k < nL; k++) {
+            var t = .35 + rnd() * .6, p = qpt(x, y, cx, cy, ex, ey, t), side = k % 2 ? 1 : -1;
+            out.push(leaf(p[0], p[1], ang * 57.3 + side * (38 + rnd() * 30), o.ls * (.7 + rnd() * .55), LEAF[Math.floor(rnd() * 3)], dl + t * o.step * 1.6));
+          }
+        }
+        if (depth >= maxD) { tip(ex, ey, depth, dl2 + 200, out); return; }
+        var n = o.type === 'dolde' && depth === maxD - 1 ? 7 : (rnd() < o.p3 ? 3 : 2);
+        for (var i = 0; i < n; i++) {
+          var off = n === 1 ? 0 : (i / (n - 1) - .5) * 2;
+          var na = o.type === 'dolde' && n === 7 ? ang + off * 1.05 : ang + off * spread * (.7 + rnd() * .6) + (rnd() - .5) * .3;
+          var nl = o.type === 'dolde' && n === 7 ? o.h * .14 * (.85 + rnd() * .3) : len * o.ratio * (.8 + rnd() * .35);
+          seg(ex, ey, na, nl, depth + 1, maxD, spread * .92, Math.max(.7, w * .66), dl2);
+        }
+      }
+      var x = o.x, d0 = o.delay;
+      if (o.type === 'gras') {
+        var nb = 7 + Math.floor(rnd() * 5);
+        for (var b = 0; b < nb; b++) seg(x + (rnd() - .5) * 8, G, (rnd() - .5) * 1.05, o.h * (.5 + rnd() * .5), 0, 0, 0, 1.3 + rnd() * .5, d0 + b * 35);
+      } else if (o.type === 'strauch') {
+        [-.32, -.05, .26].forEach(function (a, k) { seg(x + (k - 1) * 3, G, a + (rnd() - .5) * .12, o.h * .36, 0, 3, .5, 2.6, d0 + k * 60); });
+      } else if (o.type === 'dolde') {
+        seg(x, G, (rnd() - .5) * .14, o.h * .82, 0, 1, 0, 2, d0);
+      } else {
+        seg(x, G, (rnd() - .5) * .16, o.h * .42, 0, 3, .55, 2.2, d0);
+      }
+      top = top || [x, G - o.h * .4];
+      return { base: base.join(''), crown: crown.join(''), top: top };
+    }
+    function roots(rnd, x, len, maxD, deepFrom, w, dl, spread) {
+      var out = [];
+      (function seg(x, y, ang, len, depth, w, dl) {
+        var bend = (rnd() - .5) * .9;
+        var ex = x + Math.sin(ang) * len, ey = y - Math.cos(ang) * len;
+        if (ey > H - 6) ey = H - 6;
+        var cx = x + Math.sin(ang + bend) * len * .5, cy = y - Math.cos(ang + bend) * len * .5;
+        var deep = depth >= deepFrom;
+        out.push('<path class="r' + (deep ? ' deep' : '') + '" pathLength="1" stroke-width="' + w.toFixed(2) + '" style="--dl:' + Math.round(dl) + 'ms' + (deep ? ';--k:' + (depth - deepFrom) : '') + '" d="M' + r1(x) + ' ' + r1(y) + 'Q' + r1(cx) + ' ' + r1(cy) + ' ' + r1(ex) + ' ' + r1(ey) + '"/>');
+        if (depth >= maxD) return;
+        var n = rnd() < .45 ? 3 : 2;
+        for (var i = 0; i < n; i++) {
+          var off = (i / (n - 1) - .5) * 2;
+          seg(ex, ey, ang + off * spread * (.6 + rnd() * .7) + (rnd() - .5) * .3, len * (.62 + rnd() * .25), depth + 1, Math.max(.5, w * .62), dl + 260);
+        }
+      })(x, G + 1, Math.PI + (rnd() - .5) * .3, len, 0, w, dl);
+      return out.join('');
+    }
+    function obstacles() {
+      var hr = hero.getBoundingClientRect(), list = [];
+      qsa('.hero-title .ln > span, .hx-season, .hx-tag').forEach(function (el) {
+        var r = el.getBoundingClientRect();
+        if (!r.width) return;
+        var isTag = el.classList.contains('hx-tag');
+        var isTitle = !!el.closest('.hero-title');
+        list.push({ l: r.left - hr.left - 10, r: r.right - hr.left + 10, b: isTag ? H : r.bottom - hr.top - (isTitle ? r.height * .2 : -12), tag: isTag, title: isTitle });
+      });
+      return list;
+    }
+    function build(animate) {
+      var hr = hero.getBoundingClientRect();
+      W = Math.round(hr.width); H = Math.round(hero.offsetHeight); G = Math.round(soil.offsetTop);
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var rnd = rng(1709 + (W > 899 ? 1 : 0)), obs = obstacles(), mobile = W < 900;
+      var hdr = headerOffset() + 26, S = H - G;
+      var n = clamp(Math.round(W / (mobile ? 64 : 92)), 6, 16), html = [], rootsHtml = [], deco = [];
+      var cycle = ['staude', 'gras', 'dolde', 'staude', 'strauch', 'gras'], ci = 0, tallest = null;
+      plants = [];
+      for (var i = 0; i < n; i++) {
+        var x = (i + .5 + (rnd() - .5) * .55) / n * W, topLim = hdr, onTag = false;
+        obs.forEach(function (o) { if (x > o.l && x < o.r) { if (o.tag) onTag = true; topLim = Math.max(topLim, o.b); } });
+        if (onTag) continue;
+        var maxH = G - topLim, type, h;
+        if (maxH < 70) { type = 'gras'; h = 16 + rnd() * 18; }
+        else { type = cycle[ci++ % cycle.length]; h = Math.min(maxH * (.62 + rnd() * .3), mobile ? 230 : 420); if (type === 'gras') h *= .7; }
+        var p = grow({ rnd: rnd, x: x, h: h, type: type, delay: 120 + i * 70 + rnd() * 120, step: type === 'gras' ? 0 : 260,
+          leaf: type === 'strauch' ? 2 : type === 'gras' ? 0 : 1, leafFrom: type === 'strauch' ? 1 : 0, ls: type === 'strauch' ? 1.05 : .9 + h / 400,
+          p3: type === 'strauch' ? .45 : .3, ratio: .7, rnd2: 0 });
+        var idx = plants.length;
+        html.push('<g class="pl" data-p="' + idx + '"><g>' + p.base + '</g><g class="pc">' + p.crown + '</g></g>');
+        plants.push({ x: x, top: p.top, a: 0, v: 0, flex: type === 'gras' ? .7 : 1, el: null, crown: null });
+        if (h > 60) rootsHtml.push(roots(rnd, x, Math.min(S * .3, 18 + h * .22), type === 'gras' ? 2 : 3, 2, type === 'strauch' ? 2.2 : 1.5, 500 + i * 60, 1));
+        if (type !== 'gras' && (!tallest || h > tallest.h)) tallest = { x: x, h: h, type: type, top: G - h };
+        if (type !== 'gras') for (var f = 0; f < 3; f++) deco.push(leaf(x + (rnd() - .5) * 60, G - 1, 70 + rnd() * 140, .8 + rnd() * .4, 'fl', 0));
+      }
+      // Hintere Reihe: blasse, hohe Stauden hinter der Schrift – Tiefe, ohne die Lesbarkeit zu stören
+      if (!mobile) for (var j = 0; j < n; j++) {
+        var bx = (j + .05 + rnd() * .3) / n * W, free = G - hdr, blocked = false;
+        if (bx > W - 40) continue;
+        obs.forEach(function (o) { if (bx > o.l - 20 && bx < o.r + 20 && !o.title) blocked = true; });
+        if (blocked) continue;
+        var bt = ['dolde', 'staude', 'gras'][j % 3], bh = free * (.42 + rnd() * .3);
+        var bp = grow({ rnd: rnd, x: bx, h: bh, type: bt, delay: 700 + j * 60, step: bt === 'gras' ? 0 : 240, leaf: bt === 'gras' ? 0 : 1, leafFrom: 0, ls: 1, p3: .25, ratio: .7 });
+        html.unshift('<g class="pl back" data-p="b' + j + '"><g>' + bp.base + '</g><g class="pc">' + bp.crown + '</g></g>');
+        plants.unshift({ x: bx, top: bp.top, a: 0, v: 0, flex: .6, el: null, crown: null });
+      }
+      // Wurzeln aus dem Wort „schlagen.“
+      var word = qs('[data-root-word]');
+      if (word) {
+        var wr = word.getBoundingClientRect();
+        [.07, .27, .49, .7, .9].forEach(function (t, k) {
+          rootsHtml.push(roots(rnd, wr.left - hr.left + wr.width * t, Math.min(S * .32, 30 + rnd() * 40), mobile ? 3 : 4, 2, 1.6, 900 + k * 90, 1.1));
+        });
+      }
+      // Geländelinie (leicht unregelmäßig, von Hand gezogen)
+      var gp = 'M0 ' + G, sp = 'M0 ' + (G - 2.5);
+      for (var gx = 24; gx <= W + 24; gx += 24) {
+        var gy = G + Math.sin(gx * .013) * 1.1 + Math.sin(gx * .047 + 1) * .5;
+        gp += 'L' + gx + ' ' + r1(gy); sp += 'L' + gx + ' ' + r1(gy - 2.5);
+      }
+      var anno = '';
+      if (!mobile && tallest && tallest.x + 190 < W - 30) {
+        var ax = tallest.x + 14, ay = tallest.top + 22;
+        anno = '<path class="anno-l" d="M' + r1(ax) + ' ' + r1(ay) + 'l36 -18h120"/><text class="anno" x="' + r1(ax + 40) + '" y="' + r1(ay - 24) + '">' + GARDEN_NAMES[tallest.type] + '</text>';
+      }
+      // Zwei Etappen: erst Geländelinie und Pflanzen, die Wurzeln im nächsten Task (kein langer Einzeltask)
+      svg.innerHTML = '<g class="rt wait"></g><path class="g-ground" d="' + gp + '"/>' + html.join('') + '<g>' + deco.join('') + '</g><path class="g-snow" d="' + sp + '"/>' + anno;
+      var rootsStr = rootsHtml.join('');
+      setTimeout(function () {
+        var g = svg.firstChild; if (!g) return;
+        g.innerHTML = rootsStr;
+        if (animate) requestAnimationFrame(function () { requestAnimationFrame(function () { g.classList.remove('wait'); }); }); else g.classList.remove('wait');
+      }, 60);
+      qsa('.pl', svg).forEach(function (g, k) { plants[k].el = g; plants[k].crown = g.lastChild; });
+      built = W + 'x' + G;
+      svg.classList.toggle('no-anim', !animate);
+      if (animate) requestAnimationFrame(function () { requestAnimationFrame(function () { svg.classList.add('is-grown'); }); });
+      else svg.classList.add('is-grown');
+      setRoots();
+    }
+    // Wurzeln wachsen mit dem Scrollen tiefer
+    function setRoots() {
+      var p = reduced() ? 1 : clamp(window.scrollY / Math.max(1, hero.offsetHeight * .75), 0, 1);
+      svg.style.setProperty('--rg', (.28 + p * .72).toFixed(3));
+    }
+    // Wind: Feder pro Pflanze, läuft nur solange sich etwas bewegt
+    function frame() {
+      var moving = false;
+      plants.forEach(function (p) {
+        p.v += -p.a * .05; p.v *= .89; p.a = clamp(p.a + p.v, -14, 14);
+        if (Math.abs(p.a) > .01 || Math.abs(p.v) > .01) moving = true;
+        if (p.el) {
+          p.el.setAttribute('transform', 'rotate(' + p.a.toFixed(2) + ' ' + r1(p.x) + ' ' + G + ')');
+          p.crown.setAttribute('transform', 'rotate(' + (p.a * .7).toFixed(2) + ' ' + r1(p.top[0]) + ' ' + r1(p.top[1]) + ')');
+        }
+      });
+      if (moving && visible) requestAnimationFrame(frame); else running = false;
+    }
+    function gust(fn) { if (reduced() || !visible) return; plants.forEach(fn); if (!running) { running = true; requestAnimationFrame(frame); } }
+    if (finePointer.matches) {
+      hero.addEventListener('pointermove', function (e) {
+        if (lastX === null) { lastX = e.clientX; return; }
+        var dx = clamp(e.clientX - lastX, -50, 50), hx = e.clientX - hero.getBoundingClientRect().left; lastX = e.clientX;
+        gust(function (p) { var d = (hx - p.x) / W; p.v += dx * .03 * Math.exp(-d * d * 22) * p.flex; });
+      });
+      hero.addEventListener('pointerleave', function () { lastX = null; });
+    }
+    window.addEventListener('scroll', function () {
+      var dy = window.scrollY - lastY; lastY = window.scrollY;
+      if (!visible) return;
+      setRoots();
+      if (Math.abs(dy) > 2) gust(function (p, k) { p.v += clamp(dy, -40, 40) * .012 * p.flex * (k % 2 ? 1 : .8); });
+    }, { passive: true });
+    visibilityGate(hero, function (on) { visible = on; });
+    var rt = 0;
+    window.addEventListener('resize', function () {
+      clearTimeout(rt);
+      rt = setTimeout(function () {
+        var w = Math.round(hero.getBoundingClientRect().width), g = Math.round(soil.offsetTop);
+        if (built && (Math.abs(w - W) > 24 || Math.abs(g - G) > 16)) build(false);
+      }, 200);
+    });
+    var started = false, start = function () { if (started) return; started = true; build(!reduced()); };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { requestAnimationFrame(start); });
+    setTimeout(start, 700);
+  }
+
+  /* ------------------------------------------------------------------
+     Bodenprobe: Satz baut sich Wort für Wort auf, Zahlen laufen wie ein Zählwerk
+     ------------------------------------------------------------------ */
+  function initFacts() {
+    var p = qs('[data-words]');
+    if (!p) return;
+    var odos = [];
+    qsa('b[data-odo]', p).forEach(function (b) {
+      var txt = b.textContent; b.textContent = '';
+      var sr = document.createElement('span'); sr.className = 'sr-only'; sr.textContent = txt; b.appendChild(sr);
+      var odo = document.createElement('span'); odo.className = 'odo'; odo.setAttribute('aria-hidden', 'true');
+      var k = 0, cols = [];
+      txt.split('').forEach(function (ch) {
+        var s;
+        if (/\d/.test(ch)) {
+          s = document.createElement('span'); s.className = 'odo-c'; s.style.setProperty('--k', k++); s.setAttribute('data-to', ch);
+          for (var i = 0; i <= 9; i++) { var d = document.createElement('span'); d.textContent = i; s.appendChild(d); }
+          cols.push(s);
+        } else { s = document.createElement('span'); s.className = 'odo-s'; s.textContent = ch; }
+        odo.appendChild(s);
+      });
+      b.appendChild(odo);
+      odos.push({ b: b, cols: cols, done: false });
+    });
+    function roll(o) {
+      if (o.done) return; o.done = true;
+      o.cols.forEach(function (c) { c.style.transform = 'translateY(' + (-1.16 * +c.getAttribute('data-to')).toFixed(2) + 'em)'; });
+    }
+    var words = [];
+    Array.prototype.slice.call(p.childNodes).forEach(function (n) {
+      if (n.nodeType === 3) {
+        var frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach(function (t) {
+          if (!t) return;
+          if (/^\s+$/.test(t)) { frag.appendChild(document.createTextNode(t)); return; }
+          var s = document.createElement('span'); s.className = 'w'; s.textContent = t; frag.appendChild(s); words.push(s);
+        });
+        p.replaceChild(frag, n);
+      } else if (n.nodeType === 1) { n.classList.add('w'); words.push(n); }
+    });
+    var lit = 0;
+    function light(n) {
+      n = clamp(n, 0, words.length);
+      if (n === lit) return;
+      for (var i = Math.min(n, lit); i < Math.max(n, lit); i++) words[i].classList.toggle('on', i < n);
+      lit = n;
+      odos.forEach(function (o) { if (o.b.classList.contains('on')) roll(o); });
+    }
+    if (reduced() || !hasGSAP) {
+      var all = function () { words.forEach(function (w) { w.classList.add('on'); }); odos.forEach(roll); };
+      if (motionOff || !('IntersectionObserver' in window)) { all(); return; }
+      var io = new IntersectionObserver(function (en) { if (en[0].isIntersecting) { io.disconnect(); all(); } }, { threshold: .2 });
+      io.observe(p);
+      return;
+    }
+    ScrollTrigger.create({
+      trigger: p, start: 'top 82%', end: 'bottom 52%',
+      onUpdate: function (self) { light(Math.round(self.progress * words.length)); },
+      onRefresh: function (self) { light(Math.round(self.progress * words.length)); }
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     Musterkiste: Kacheln kippen unter dem Zeiger (Feder), Druck-Feedback
+     ------------------------------------------------------------------ */
+  function initMaterials() {
+    if (!finePointer.matches || reduced()) return;
+    qsa('.mk-tile').forEach(function (t) {
+      var sw = qs('.mk-sw', t), cur = { x: 0, y: 0 }, tgt = { x: 0, y: 0 }, raf = 0;
+      if (!sw) return;
+      sw.style.transition = 'scale 140ms cubic-bezier(0.23, 1, 0.32, 1)';
+      function tick() {
+        cur.x += (tgt.x - cur.x) * .12; cur.y += (tgt.y - cur.y) * .12;
+        sw.style.transform = 'rotateX(' + cur.y.toFixed(2) + 'deg) rotateY(' + cur.x.toFixed(2) + 'deg)';
+        if (Math.abs(tgt.x - cur.x) + Math.abs(tgt.y - cur.y) > .04) raf = requestAnimationFrame(tick); else raf = 0;
+      }
+      t.addEventListener('pointermove', function (e) {
+        var r = sw.getBoundingClientRect(), px = clamp((e.clientX - r.left) / r.width, 0, 1), py = clamp((e.clientY - r.top) / r.height, 0, 1);
+        tgt.x = (px - .5) * 18; tgt.y = -(py - .5) * 18;
+        sw.style.setProperty('--lx', (px * 100).toFixed(1) + '%'); sw.style.setProperty('--ly', (py * 100).toFixed(1) + '%');
+        if (!raf) raf = requestAnimationFrame(tick);
+      });
+      t.addEventListener('pointerleave', function () { tgt.x = 0; tgt.y = 0; sw.style.scale = ''; if (!raf) raf = requestAnimationFrame(tick); });
+      t.addEventListener('pointerdown', function () { sw.style.scale = '.97'; });
+      t.addEventListener('pointerup', function () { sw.style.scale = ''; });
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     Ablauf als wachsender Trieb, Stempel dreht mit, Ranke als Fortschritt
+     ------------------------------------------------------------------ */
+  function initProcess() {
+    var list = qs('.process-list');
+    if (!list || !hasGSAP || reduced()) return;
+    var items = qsa('li', list);
+    list.style.setProperty('--grow', '0');
+    ScrollTrigger.create({
+      trigger: list, start: 'top 82%', end: 'bottom 58%',
+      onUpdate: function (s) {
+        var p = s.progress;
+        list.style.setProperty('--grow', p.toFixed(3));
+        items.forEach(function (li, k) { li.classList.toggle('is-reached', p >= k / items.length + .02); });
+      }
+    });
+    var stamp = qs('.stamp'), stampG = qs('.stamp-g'), voices = qs('.voices');
+    if (stamp && voices) ScrollTrigger.create({
+      trigger: voices, start: 'top bottom', end: 'bottom top',
+      onUpdate: function (s) { if (stampG) stampG.setAttribute('transform', 'rotate(' + (-12 + s.progress * 64).toFixed(1) + ' 100 100)'); }
+    });
+  }
+  function initVine() {
+    var vine = qs('.vine'), path = qs('.vine-p'), box = qs('[data-vine-leaves]');
+    if (!vine || !path || !box) return;
+    var mq = window.matchMedia('(min-width: 1100px)'), secs = qsa('main > section[id]').slice(1), leaves = [], marks = [], ticking = false;
+    secs.forEach(function (s, i) {
+      var l = document.createElement('span'); l.className = 'vine-leaf'; l.style.setProperty('--r', (i % 2 ? -32 : 212) + 'deg');
+      box.appendChild(l); leaves.push(l);
+    });
+    function max() { return Math.max(1, document.documentElement.scrollHeight - window.innerHeight); }
+    function measure() {
+      if (!mq.matches) return;
+      var m = max();
+      marks = secs.map(function (s) { return clamp((s.getBoundingClientRect().top + window.scrollY - window.innerHeight * .5) / m, 0, 1); });
+      leaves.forEach(function (l, k) { l.style.top = (marks[k] * 100).toFixed(2) + '%'; });
+      update();
+    }
+    function update() {
+      ticking = false;
+      if (!mq.matches) return;
+      var p = clamp(window.scrollY / max(), 0, 1);
+      path.style.strokeDashoffset = (1 - p).toFixed(4);
+      leaves.forEach(function (l, k) { l.classList.toggle('on', p >= marks[k] - .003); });
+    }
+    window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    if (hasGSAP) ScrollTrigger.addEventListener('refresh', measure);
+    window.addEventListener('resize', measure);
+    measure();
+  }
+  function initRoll() {
+    if (!finePointer.matches || reduced()) return;
+    qsa('.main-nav a').forEach(function (a) {
+      var t = a.textContent.trim(), wrap = document.createElement('span');
+      wrap.className = 'roll'; wrap.setAttribute('aria-hidden', 'true');
+      t.split('').forEach(function (ch, i) { var s = document.createElement('span'); s.textContent = ch; s.style.setProperty('--i', i); wrap.appendChild(s); });
+      a.setAttribute('aria-label', t); a.textContent = ''; a.appendChild(wrap);
+    });
+  }
+  function initMagnet() {
+    if (!finePointer.matches || reduced()) return;
+    qsa('[data-magnet]').forEach(function (el) {
+      var cur = { x: 0, y: 0 }, tgt = { x: 0, y: 0 }, raf = 0;
+      function tick() {
+        cur.x += (tgt.x - cur.x) * .18; cur.y += (tgt.y - cur.y) * .18;
+        el.style.setProperty('--mx', cur.x.toFixed(2) + 'px'); el.style.setProperty('--my', cur.y.toFixed(2) + 'px');
+        if (Math.abs(tgt.x - cur.x) + Math.abs(tgt.y - cur.y) > .1) raf = requestAnimationFrame(tick); else raf = 0;
+      }
+      el.addEventListener('pointermove', function (e) {
+        var r = el.getBoundingClientRect();
+        tgt.x = (e.clientX - r.left - r.width / 2) * .2; tgt.y = (e.clientY - r.top - r.height / 2) * .32;
+        if (!raf) raf = requestAnimationFrame(tick);
+      });
+      el.addEventListener('pointerleave', function () { tgt.x = 0; tgt.y = 0; if (!raf) raf = requestAnimationFrame(tick); });
+    });
+  }
+
+  /* ------------------------------------------------------------------
      Start
      ------------------------------------------------------------------ */
   function init() {
@@ -1082,11 +1498,13 @@
     safe('seasons', initSeasons);
     safe('intro', initIntro);
     safe('contours', initContours);
+    safe('garden', initGarden);
     safe('reveal', initReveal);
     // Danach in eigenen kurzen Tasks (kein langer Start-Task, Intro und Eingaben bleiben flüssig)
     var queue = [
       ['services', initServices], ['form', initForm], ['planner', initPlanner], ['soil', initSoil],
-      ['beforeAfter', initBeforeAfter], ['projects', initProjects], ['plants', initPlants], ['map', initMap]
+      ['beforeAfter', initBeforeAfter], ['projects', initProjects], ['plants', initPlants], ['map', initMap],
+      ['facts', initFacts], ['materials', initMaterials], ['process', initProcess], ['vine', initVine], ['magnet', initMagnet], ['roll', initRoll]
     ];
     (function next() {
       var job = queue.shift();

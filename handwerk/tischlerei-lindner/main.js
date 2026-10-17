@@ -194,45 +194,9 @@
      Hero: Variable-Font-Morph der Überschrift + Ladesequenz
      ------------------------------------------------------------------ */
   function initHeroTitle() {
-    var h = qs('[data-hero-title]');
-    var reveal = function () {
-      if (doc.classList.contains('hero-in')) return;
-      doc.classList.remove('is-loading'); doc.classList.add('hero-in');
-      doc.dispatchEvent(new Event('lindner:hero'));
-    };
-    if (!h || reduced()) { reveal(); return; }
-    h.setAttribute('aria-label', h.textContent.replace(/\s+/g, ' ').trim());
-    var idx = 0;
-    var split = function (node) {
-      Array.prototype.slice.call(node.childNodes).forEach(function (n) {
-        if (n.nodeType === 3) {
-          var frag = document.createDocumentFragment();
-          Array.from(n.textContent).forEach(function (c) {
-            if (/\s/.test(c)) { frag.appendChild(document.createTextNode(c)); return; }
-            var s = document.createElement('span');
-            s.className = 'ch';
-            s.textContent = c;
-            s.style.setProperty('--i', idx++);
-            frag.appendChild(s);
-          });
-          n.parentNode.replaceChild(frag, n);
-        } else if (n.nodeType === 1) { split(n); }
-      });
-    };
-    qsa('.hl-in', h).forEach(function (line) { line.setAttribute('aria-hidden', 'true'); split(line); });
-    var started = false;
-    var start = function () {
-      if (started) return;
-      started = true;
-      qsa('.ch', h).forEach(function (c) { c.classList.add('is-anim'); });
-      qsa('.hl-in', h).forEach(function (line, i) {
-        line.animate([{ transform: 'translateY(.22em)' }, { transform: 'none' }], { duration: 1500, delay: 100 + i * 140, easing: 'cubic-bezier(0.23, 1, 0.32, 1)', fill: 'backwards' });
-      });
-      reveal();
-    };
-    var fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-    fontsReady.then(function () { requestAnimationFrame(start); });
-    setTimeout(start, 1400);
+    // Die Einbrenn-Sequenz läuft rein per CSS ab dem ersten Bild; hier nur das Signal für die Start-Warteschlange.
+    doc.classList.remove('is-loading'); doc.classList.add('hero-in');
+    doc.dispatchEvent(new Event('lindner:hero'));
   }
 
   /* ------------------------------------------------------------------
@@ -240,7 +204,7 @@
      per CSS-Transform bewegt. Jahresringe folgen der Rinde, die Markröhre
      sitzt exzentrisch, Trockenrisse, Markstrahlen, Sägespuren.
      ------------------------------------------------------------------ */
-  function paintSlice(ctx, S) {
+  function sliceStages(ctx, S) {
     var cx = S / 2, cy = S / 2, R = S / 2 * 0.935, k = S / 1000;
     var nA = makeNoise(7), nB = makeNoise(19), nC = makeNoise(41);
     var rs = 90217;
@@ -264,7 +228,9 @@
       path.closePath();
       return path;
     };
-    var disc = ringPath(1, 0);
+    var disc = ringPath(1, 0), widths = [], sum = 0, acc = 0.012;
+    var stages = [];
+    stages.push(function () {
     // Rinde
     var bark = new Path2D();
     for (i = 0; i <= N; i++) {
@@ -292,17 +258,20 @@
     var g = ctx.createRadialGradient(P.x, P.y, 0, P.x, P.y, R * 0.8);
     g.addColorStop(0, 'rgba(150, 96, 52, .35)'); g.addColorStop(0.25, 'rgba(150, 96, 52, 0)'); g.addColorStop(1, 'rgba(150, 96, 52, 0)');
     ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
+    ctx.restore();
+    });
 
     // Jahresringe: Breiten wie echte Jahre – Folgen schmaler und breiter Jahre
-    var widths = [], sum = 0, run = 1;
+    var run = 1;
     for (i = 0; i < 64; i++) {
       if (rnd() < 0.18) run = 0.45 + rnd() * 0.5; else if (rnd() < 0.25) run = 1 + rnd() * 0.6;
       var wv = run * (0.75 + rnd() * 0.5) * (i < 8 ? 1.5 : 1);
       widths.push(wv); sum += wv;
     }
-    var acc = 0.012;
+    var ringStage = function (from, to) { return function () {
+    ctx.save(); ctx.clip(disc);
     ctx.lineJoin = 'round';
-    for (i = 0; i < widths.length; i++) {
+    for (var i = from; i < to; i++) {
       acc += widths[i] / sum * 0.985;
       var sv = Math.min(acc, 0.996), heart = sv < 0.72;
       var rp = ringPath(sv, 0.012 + sv * 0.008);
@@ -316,6 +285,11 @@
       ctx.strokeStyle = heart ? 'rgba(98, 56, 26, ' + (0.42 + rnd() * 0.3).toFixed(2) + ')' : 'rgba(146, 100, 58, ' + (0.36 + rnd() * 0.28).toFixed(2) + ')';
       ctx.stroke(rp);
     }
+    ctx.restore();
+    }; };
+    stages.push(ringStage(0, 22), ringStage(22, 44), ringStage(44, widths.length));
+    stages.push(function () {
+    ctx.save(); ctx.clip(disc);
     // Markstrahlen („Spiegel“) – hell glänzende Radiallinien
     ctx.lineCap = 'round';
     for (i = 0; i < 420; i++) {
@@ -330,6 +304,10 @@
       ctx.strokeStyle = i % 2 ? 'rgba(255, 248, 235, .05)' : 'rgba(60, 34, 14, .045)';
       ctx.beginPath(); ctx.arc(-S * 0.9, S * 0.5, S * 1.25 + i * 9 * k, -0.6, 0.6); ctx.stroke();
     }
+    ctx.restore();
+    });
+    stages.push(function () {
+    ctx.save(); ctx.clip(disc);
     // Trockenrisse
     var cracks = [0.11, 0.3, 0.5];
     var bAt = function (aa, sv) {
@@ -356,6 +334,10 @@
     // Mark
     ctx.fillStyle = 'rgba(70, 38, 16, .75)';
     ctx.beginPath(); ctx.ellipse(P.x, P.y, 5 * k, 3.6 * k, 0.6, 0, TAU); ctx.fill();
+    ctx.restore();
+    });
+    stages.push(function () {
+    ctx.save(); ctx.clip(disc);
     // Korn: feines Rauschen, einmal als Muster
     var tile = document.createElement('canvas'); tile.width = tile.height = 96;
     var tc = tile.getContext('2d'), id = tc.createImageData(96, 96), d = id.data;
@@ -373,6 +355,8 @@
     g3.addColorStop(0, 'rgba(255, 250, 238, .14)'); g3.addColorStop(0.55, 'rgba(255, 250, 238, 0)'); g3.addColorStop(1, 'rgba(40, 20, 8, .16)');
     ctx.fillStyle = g3; ctx.fillRect(0, 0, S, S);
     ctx.restore();
+    });
+    return stages;
   }
 
   function initSlice() {
@@ -387,8 +371,15 @@
       canvas.width = Math.round(S * dpr); canvas.height = Math.round(S * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, S, S);
-      paintSlice(ctx, S);
-      requestAnimationFrame(function () { wrap.classList.add('is-drawn'); });
+      // In Etappen zeichnen (je Etappe ein eigener Task), danach aufdecken
+      var stages = sliceStages(ctx, S), my = S;
+      var step = function () {
+        if (my !== size) return;
+        var fn = stages.shift();
+        if (fn) { fn(); setTimeout(step, 0); }
+        else requestAnimationFrame(function () { wrap.classList.add('is-drawn'); });
+      };
+      step();
     };
     draw();
     var rt = 0;

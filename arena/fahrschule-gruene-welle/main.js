@@ -27,6 +27,8 @@ const PREISE = {
 };
 /** ± Stunden um den typischen Wert, die als „grüner Bereich“ am Regler markiert werden */
 const SPANNE = 6;
+/** Skalenende des Tachos im Kostenrechner (Euro). Darüber steht die Nadel am Anschlag. */
+const TACHO_MAX = 6000;
 
 /** Kurskalender: Kursarten und Regeln. Termine werden ab dem aktuellen Monat erzeugt.
  *  regel: 'b14'  = Mo–Fr, alle 14 Tage ab dem Referenz-Montag
@@ -44,7 +46,7 @@ const THEORIE_WOCHENTAGE = [1, 3]; // Mo & Mi, 18:30 Uhr
 /** Mindestalter je Klasse (für den Hinweis im Formular) */
 const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 };
 
-(() => {
+(async () => {
   'use strict';
 
   const d = document;
@@ -61,6 +63,8 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
   const WD = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
   const MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
   const pad = (n) => String(n).padStart(2, '0');
+  // Start in Etappen: Header + Hero sofort, alles darunter in eigenen Tasks (kein langer Task beim Laden)
+  const tick = () => new Promise((r) => setTimeout(r, 0));
 
   /* ---------------------------------------------------------------------
      1 · Smooth Scroll (Lenis) + ScrollTrigger
@@ -252,18 +256,10 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
   const ampel = $('[data-ampel]');
   const ampelStatus = $('[data-ampel-status]');
   const logoLights = $('[data-logo-lights]');
-  const heroDashes = $('[data-hero-dashes]');
   const SIGNAL_TEXT = { red: 'Rot – bitte warten', redyellow: 'Rot-Gelb – gleich geht’s los', green: 'Grün – los geht’s' };
   const LOGO_CLASS = { red: 'is-r', redyellow: 'is-ry', green: 'is-g' };
   $$('.hl__in').forEach((el, i) => el.style.setProperty('--i', i));
-  // Text, Bild und Aktionen sind sofort da (LCP, CTA im ersten Moment) – nur die Headline wartet an der Haltlinie
-  const fadeDelays = { 'hero__eyebrow': 0, 'ampel-status': 60, 'hero__lede': 120, 'hero__visual': 180, 'hero__ctas': 240, 'hero__trust': 320, 'hero__note': 380 };
-  $$('[data-hero-fade]').forEach((el) => {
-    const key = Object.keys(fadeDelays).find((k) => el.classList.contains(k));
-    el.style.setProperty('--d', key ? fadeDelays[key] : 0);
-  });
   let timers = [];
-  let dashAnim = null;
   function setSignal(s) {
     ampel.dataset.state = s;
     hero.dataset.signal = s;
@@ -271,31 +267,34 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     logoLights.classList.remove('is-r', 'is-ry', 'is-g');
     logoLights.classList.add(LOGO_CLASS[s]);
   }
+  // Intro: Rot → Rot-Gelb → Grün. Mit Grün fahren Headline und Verkehr der Kreuzung los (.is-go, alles CSS).
   function runSignal(replay) {
     timers.forEach(clearTimeout); timers = [];
-    if (replay) {
-      // Headline ohne Übergang zurück an die Haltlinie setzen
-      $$('.hl__in').forEach((el) => { el.style.transition = 'none'; });
+    const start = () => {
       hero.classList.remove('is-go');
-      void hero.offsetWidth;
-      $$('.hl__in').forEach((el) => { el.style.transition = ''; });
-    }
-    setSignal('red');
-    const t1 = MOTION ? 450 : 200, t2 = MOTION ? 950 : 400;
-    timers.push(setTimeout(() => setSignal('redyellow'), t1));
-    timers.push(setTimeout(() => {
-      setSignal('green');
-      hero.classList.add('is-go');
-      if (MOTION && heroDashes.animate) {
-        if (dashAnim) dashAnim.cancel();
-        dashAnim = heroDashes.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-360px)' }], { duration: 2200, easing: 'cubic-bezier(0.77, 0, 0.175, 1)', fill: 'forwards' });
-      }
-    }, t2));
+      setSignal('red');
+      const t1 = MOTION ? 420 : 150, t2 = MOTION ? 900 : 300;
+      timers.push(setTimeout(() => setSignal('redyellow'), t1));
+      timers.push(setTimeout(() => { setSignal('green'); void hero.offsetWidth; hero.classList.add('is-go'); hero.classList.remove('is-swap'); }, t2));
+    };
+    if (replay && MOTION) {
+      // Autos kurz ausblenden, damit sie nicht sichtbar an die Haltlinie springen
+      hero.classList.add('is-swap');
+      timers.push(setTimeout(start, 190));
+    } else start();
   }
   hero.classList.add('is-ready');
   runSignal(false);
+  // Verkehr pausieren, wenn der Hero nicht sichtbar oder der Tab verborgen ist
+  if ('IntersectionObserver' in w) {
+    let heroVisible = true;
+    const sync = () => hero.classList.toggle('is-paused', !heroVisible || d.hidden);
+    new IntersectionObserver((en) => { heroVisible = en[0].isIntersecting; sync(); }).observe(hero);
+    d.addEventListener('visibilitychange', sync);
+  }
   ampel.addEventListener('click', () => runSignal(true));
 
+  await tick();
   /* ---------------------------------------------------------------------
      5 · Fahrbahnlinie: SVG-Pfad durch die Seite, wird beim Scrollen gezeichnet
      --------------------------------------------------------------------- */
@@ -326,7 +325,7 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     const xl = Math.round(clamp(gutter * 0.5, 9, 84));
     const xr = W - xl;
     const h = clamp(W * 0.1 + 40, 90, 210);
-    const road = relRect($('.hero__road'));
+    const road = relRect($('.hero'));
     const end = relRect($('[data-lane-end]'));
     let x = xl;
     let p = `M ${x} ${road.bottom}`;
@@ -392,6 +391,7 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
   let laneT = 0;
   const rebuildLane = () => { clearTimeout(laneT); laneT = setTimeout(buildLane, 120); };
 
+  await tick();
   /* ---------------------------------------------------------------------
      6 · Etappen: horizontale Strecke (Pin + Scrub) ab 900 px
      --------------------------------------------------------------------- */
@@ -407,9 +407,11 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
       const count = $('[data-route-count]');
       const numbered = $$('.stage:not(.stage--photo):not(.stage--goal)', track);
       let D = 0, offs = [];
+      // statt GSAP-Pin: hohe Sektion + position: sticky (kein Pin-Spacer, kein Layoutsprung)
       const measure = () => {
         D = Math.max(0, track.scrollWidth - vp.clientWidth);
         offs = numbered.map((el) => el.offsetLeft + el.offsetWidth * 0.5);
+        route.style.height = `${Math.round(w.innerHeight + D * 1.05)}px`;
       };
       measure();
       const tween = w.gsap.to(track, {
@@ -418,8 +420,7 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
         scrollTrigger: {
           trigger: route,
           start: 'top top',
-          end: () => '+=' + Math.round(D * 1.05),
-          pin: true,
+          end: 'bottom bottom',
           scrub: 0.6,
           invalidateOnRefresh: true,
           onRefreshInit: measure,
@@ -437,6 +438,7 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
       });
       return () => {
         route.classList.remove('is-h');
+        route.style.height = '';
         tween.scrollTrigger && tween.scrollTrigger.kill();
         tween.kill();
         w.gsap.set(track, { clearProps: 'transform' });
@@ -445,6 +447,7 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     });
   }
 
+  await tick();
   /* ---------------------------------------------------------------------
      7 · Führerscheinklassen-Explorer (Tabs)
      --------------------------------------------------------------------- */
@@ -486,6 +489,7 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     pio.observe($('[data-explorer]'));
   }
 
+  await tick();
   /* ---------------------------------------------------------------------
      8 · Kostenrechner
      --------------------------------------------------------------------- */
@@ -500,7 +504,8 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
   const cTotal = $('[data-calc-total]');
   const cLive = $('[data-calc-live]');
   const lines = Object.fromEntries($$('[data-calc-lines] li').map((li) => [li.dataset.k, li]));
-  const segs = Object.fromEntries($$('[data-calc-bar] i').map((i) => [i.dataset.seg, i]));
+  const arcs = Object.fromEntries($$('[data-arc]').map((p) => [p.dataset.arc, p]));
+  const needle = $('[data-tacho-needle]');
   const legendNeben = $('[data-legend-neben]');
   const EXP_LABEL = ['Ersterwerb', 'Ersterwerb mit Vorerfahrung', 'Erweiterung'];
   let shownTotal = 0, totalAnim = 0, liveT = 0, lastCalc = null;
@@ -558,13 +563,16 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     legendNeben.hidden = !cExtra.checked;
     lines.neben.querySelector('b').textContent = fmtEur(v.neben);
 
+    // Tacho: farbige Bögen je Kostenblock bis zur Nadel, Nadel schwingt mit Feder-Kurve nach
+    const fill = Math.min(total / TACHO_MAX, 1) * 100;
     let x = 0;
     ['grund', 'stunden', 'sonder', 'pruef', 'neben'].forEach((key) => {
-      const f = total ? v[key] / total : 0;
-      segs[key].style.setProperty('--x', x.toFixed(4));
-      segs[key].style.setProperty('--w', f.toFixed(4));
+      const f = total ? (v[key] / total) * fill : 0;
+      arcs[key].style.strokeDasharray = `${f.toFixed(2)} 200`;
+      arcs[key].style.strokeDashoffset = (-x).toFixed(2);
       x += f;
     });
+    needle.style.transform = `rotate(${(150 + 2.4 * fill).toFixed(1)}deg)`;
 
     animateTotal(total);
     clearTimeout(liveT);
@@ -600,6 +608,7 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     scrollToEl(sec, () => { if (inp) inp.focus({ preventScroll: true }); });
   }));
 
+  await tick();
   /* ---------------------------------------------------------------------
      9 · Theorie-Quiz
      --------------------------------------------------------------------- */
@@ -618,6 +627,22 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
   let qIdx = 0;
   let qAnswers = [];
   quiz.classList.add('is-live');
+  // Schilder-Karussell: die Zeichen der acht Fragen stehen auf einem Drehkranz.
+  // Die Originalgrafik bleibt (visuell versteckt) für Screenreader in der Frage.
+  const ringWrap = el('div', 'qz__ring');
+  ringWrap.setAttribute('aria-hidden', 'true');
+  const ring = el('div', 'ring');
+  const ringItems = qItems.map((q, k) => {
+    const it = el('div', 'ring__item');
+    it.style.setProperty('--k', k);
+    const svg = $('.q__fig svg', q).cloneNode(true);
+    svg.removeAttribute('role'); svg.removeAttribute('aria-label');
+    it.append(svg); ring.append(it);
+    return it;
+  });
+  ringWrap.append(ring);
+  $('.qz__bar', quiz).after(ringWrap);
+  quiz.classList.add('has-ring');
 
   function qShow(i, swap) {
     qIdx = i;
@@ -625,6 +650,8 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     if (swap) { void qItems[i].offsetWidth; qItems[i].classList.add('is-swap'); }
     qPos.textContent = i + 1;
     qLights.forEach((l, k) => l.classList.toggle('is-now', k === i));
+    ringItems.forEach((it, k) => it.classList.toggle('is-now', k === i));
+    ring.style.setProperty('--a', `${-i * 45}deg`);
     qFeedback.hidden = true;
   }
   function qFehlerpunkte() { return qAnswers.reduce((s, a) => s + (a && !a.ok ? a.points : 0), 0); }
@@ -642,6 +669,7 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
         else x.classList.add('is-dim');
       });
       qLights[qi].classList.add(ok ? 'is-ok' : 'is-bad');
+      ringItems[qi].classList.add(ok ? 'is-ok' : 'is-bad');
       qFp.textContent = qFehlerpunkte();
       const correctText = $('[data-correct] span:last-child', q).textContent;
       qVerdict.textContent = ok ? 'Richtig – grüne Welle.' : `Leider falsch: +${points} Fehlerpunkte`;
@@ -679,6 +707,7 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     const wrong5 = qAnswers.filter((a) => !a.ok && a.points === 5).length;
     const pass = fp <= 10 && wrong5 < 2;
     qList.hidden = true;
+    quiz.classList.add('is-done');
     qFeedback.hidden = true;
     qLights.forEach((l) => l.classList.remove('is-now'));
     qResult.hidden = false;
@@ -711,6 +740,8 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     qAnswers = [];
     qItems.forEach((q) => $$('.ans', q).forEach((b) => { b.disabled = false; b.classList.remove('is-right', 'is-wrong', 'is-dim'); }));
     qLights.forEach((l) => l.classList.remove('is-ok', 'is-bad'));
+    ringItems.forEach((it) => it.classList.remove('is-ok', 'is-bad'));
+    quiz.classList.remove('is-done');
     qFp.textContent = '0';
     qResult.hidden = true;
     qList.hidden = false;
@@ -720,6 +751,7 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
   });
   qShow(0, false);
 
+  await tick();
   /* ---------------------------------------------------------------------
      10 · Kurskalender (Darstellung) + Dialog
      --------------------------------------------------------------------- */
@@ -876,6 +908,7 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     dlgOk.focus();
   });
 
+  await tick();
   /* ---------------------------------------------------------------------
      11 · Anmeldeformular
      --------------------------------------------------------------------- */
@@ -985,6 +1018,7 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     scrollToEl(sec, () => fName.focus({ preventScroll: true }));
   });
 
+  await tick();
   /* ---------------------------------------------------------------------
      12 · Reveal beim Scrollen
      --------------------------------------------------------------------- */
@@ -1012,6 +1046,48 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
     revealEls.forEach((el) => el.classList.add('is-in'));
   }
 
+  await tick();
+  /* ---------------------------------------------------------------------
+     12a · Magnetische Buttons (nur feiner Zeiger): folgen dem Cursor mit Feder
+     --------------------------------------------------------------------- */
+  if (MOTION && w.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    $$('.btn--green, .btn--dark, .ampel').forEach((b) => {
+      let tx = 0, ty = 0, x = 0, y = 0, vx = 0, vy = 0, run = false;
+      const step = () => {
+        // gedämpfte Feder: Steifigkeit 0.16, Dämpfung 0.72
+        vx = (vx + (tx - x) * 0.16) * 0.72; vy = (vy + (ty - y) * 0.16) * 0.72;
+        x += vx; y += vy;
+        b.style.translate = `${x.toFixed(2)}px ${y.toFixed(2)}px`;
+        if (Math.abs(tx - x) + Math.abs(ty - y) + Math.abs(vx) + Math.abs(vy) > 0.05) raf(step); else { run = false; if (!tx && !ty) b.style.translate = ''; }
+      };
+      const kick = () => { if (!run) { run = true; raf(step); } };
+      b.addEventListener('pointermove', (e) => {
+        const r = b.getBoundingClientRect();
+        tx = ((e.clientX - r.left) / r.width - 0.5) * Math.min(14, r.width * 0.08);
+        ty = ((e.clientY - r.top) / r.height - 0.5) * 8;
+        kick();
+      });
+      b.addEventListener('pointerleave', () => { tx = 0; ty = 0; kick(); });
+    });
+  }
+
+  await tick();
+  /* ---------------------------------------------------------------------
+     12b · Verkehrszeichen an den Kapiteln klappen beim Hineinscrollen um
+     (und wieder zurück, wenn man nach oben zurückscrollt – so wiederholt sich die Geste)
+     --------------------------------------------------------------------- */
+  const signEls = $$('[data-sign]');
+  if (MOTION && 'IntersectionObserver' in w) {
+    const sio = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) e.target.classList.add('is-in');
+        else if (e.boundingClientRect.top > 0) e.target.classList.remove('is-in');
+      });
+    }, { rootMargin: '0px 0px -18% 0px', threshold: 0.6 });
+    signEls.forEach((el) => sio.observe(el));
+  } else signEls.forEach((el) => el.classList.add('is-in'));
+
+  await tick();
   /* ---------------------------------------------------------------------
      13 · Layout-Änderungen → Fahrbahnlinie neu berechnen
      --------------------------------------------------------------------- */
@@ -1034,6 +1110,8 @@ const MINDESTALTER = { B: 18, B17: 17, B197: 18, BE: 18, A: 24, A2: 18, AM: 16 }
   if ('requestIdleCallback' in w) w.requestIdleCallback(buildLane, { timeout: 700 });
   else setTimeout(buildLane, 200);
   onScroll();
+  // Alle ScrollTrigger stehen erst jetzt – einmal neu vermessen (löst auch den Aufbau der Fahrbahnlinie aus)
+  if (hasGsap) w.ScrollTrigger.refresh();
 
   w.__gwReady = true;
 })();

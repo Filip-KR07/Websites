@@ -2,6 +2,9 @@
 
 Demo-Website für einen **fiktiven** Betrieb (Tanzschule in Augsburg) aus Filip Kramars Arena. Statisch, ohne Build, ohne externe Requests.
 
+## Gestaltungsidee
+Die Seite ist ein Ballabend in Akten: Ein Vorhang öffnet die Bühne, ein Verfolgerspot sucht die Tanzfläche ab, und zwischen den Kapiteln fällt der Vorhang erneut. Alles, was man auf einem Ball in der Hand hält, wird zur Oberfläche – das Programmheft (Kurse), die Tischkarte (Tanz-Finder), die Tanzkarte mit Bleistift (Kursplan), die Schallplatte mit Preisaufkleber (Hochzeitstanz). Die Bewegung zählt mit: Jede Choreografie folgt dem Dreivierteltakt – die „1“ ist betont (weiter, mit Schwung), „2“ und „3“ folgen leicht; ein Schlag dauert 420&nbsp;ms (`--beat`). Typografie dreht und schwingt (Buchstaben von „drehen“, Rueda-Kreis des Teams, Gewichtsachse der Zählzeiten), Fotos sind einheitlich in Pflaume-Magenta-Champagner getont, Bewertungen stehen als Tintenstempel statt als Zahlenreihe.
+
 ## Abschnitte
 Header mit Menü und Probestunden-CTA · Hero („Erst zählen. Dann drehen.“) · Takt-Band · Kurse (horizontale Strecke) · Tanz-Finder · Schritt-Lehrer · Kursplan · Hochzeitstanz-Paket · Team · Tanzparty · Stimmen · Anfahrt mit SVG-Skizze · FAQ · Anmeldung · Footer. Dazu `impressum.html` und `datenschutz.html` (Muster).
 

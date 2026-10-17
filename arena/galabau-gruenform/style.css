@@ -158,7 +158,7 @@ html:not(.js) .js-only { display: none !important; }
   font-family: var(--f-display); font-weight: 600; font-size: clamp(2.05rem, 1.35rem + 2.5vw, 3.75rem);
   line-height: 1.06; letter-spacing: -.018em; font-optical-sizing: auto; hyphens: manual;
 }
-.h2 em, .hero-title em { font-style: italic; font-weight: 500; color: var(--accent-ink); transition: color .9s ease; }
+.h2 em { font-style: italic; font-weight: 500; }
 .h3 { font-family: var(--f-display); font-weight: 600; font-size: clamp(1.4rem, 1.1rem + .9vw, 1.95rem); line-height: 1.15; letter-spacing: -.01em; }
 .eyebrow {
   display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; font-weight: 600; font-size: .76rem; line-height: 1.35;
@@ -304,7 +304,7 @@ html.menu-open .progress { opacity: 0; }
   position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 999px;
   padding: 4px; background: var(--karte); box-shadow: 0 14px 30px -18px rgba(42, 34, 27, .45); min-width: 0;
 }
-.hero-stage .season-switch { margin-top: -1.65rem; z-index: 3; }
+
 .season-switch label { position: relative; z-index: 1; display: block; }
 .season-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .season-switch label > span {
@@ -1115,10 +1115,431 @@ html.js .quote[data-reveal]:nth-child(2), html.js .quote[data-reveal]:nth-child(
   .pl-tile.pop, .pe-fav.beat svg, html.js .yr-panel.is-active { animation: none; }
 }
 html.motion-off *, html.motion-off *::before, html.motion-off *::after { animation: none !important; transition: none !important; }
-html.motion-off .hero-scene, html.motion-off .hero-stage .season-switch, html.motion-off .hero-tip, html.motion-off .hero-contours { opacity: 1 !important; transform: none !important; }
 html.motion-off .soil-layer, html.motion-off .soil-num { opacity: 1 !important; transform: none !important; }
 html.motion-off .soil-step { opacity: 1 !important; }
 html.motion-off .soil-meter span { transform: none !important; }
 html.motion-off .bar span { transform: scaleX(var(--w)) !important; }
 html.motion-off .quote:nth-child(2), html.motion-off .quote:nth-child(4) { transform: translateY(2rem) !important; }
 @media (max-width: 899px) { html.motion-off .quote:nth-child(2), html.motion-off .quote:nth-child(4) { transform: none !important; } }
+
+/* ==========================================================================
+   NEUGESTALTUNG „Wurzel“ – Schnitt & Draufsicht
+   Jede Seite des Gartenbauers ist entweder ein Schnitt (über und unter der
+   Erde) oder eine Draufsicht (Plan). Bewegungs-Handschrift „Wuchs“: Dinge
+   erscheinen nicht, sie wachsen – von einer Linie aus, langsam im Aufbau,
+   schnell in der Antwort auf Eingaben.
+   ========================================================================== */
+:root {
+  --t-press: 140ms;     /* Druck-Feedback */
+  --t-ui: 220ms;        /* Zustandswechsel in Widgets */
+  --t-grow: 1100ms;     /* Wachsen (Linien, Pflanzen, Masken) */
+  --t-season: 900ms;    /* Farbwechsel der Jahreszeiten */
+  --stagger: 60ms;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --crop: linear-gradient(var(--ink-3), var(--ink-3)) 0 0 / 16px 1px no-repeat, linear-gradient(var(--ink-3), var(--ink-3)) 0 0 / 1px 16px no-repeat,
+          linear-gradient(var(--ink-3), var(--ink-3)) 100% 0 / 16px 1px no-repeat, linear-gradient(var(--ink-3), var(--ink-3)) 100% 0 / 1px 16px no-repeat,
+          linear-gradient(var(--ink-3), var(--ink-3)) 0 100% / 16px 1px no-repeat, linear-gradient(var(--ink-3), var(--ink-3)) 0 100% / 1px 16px no-repeat,
+          linear-gradient(var(--ink-3), var(--ink-3)) 100% 100% / 16px 1px no-repeat, linear-gradient(var(--ink-3), var(--ink-3)) 100% 100% / 1px 16px no-repeat;
+}
+html[data-season="fruehling"] { --sun-rot: -51deg; --yw: 105deg; }
+html[data-season="sommer"], :root { --sun-rot: -28deg; --yw: 195deg; }
+html[data-season="herbst"] { --sun-rot: 51deg; --yw: 285deg; }
+html[data-season="winter"] { --sun-rot: 75deg; --yw: 375deg; }
+
+/* Kein Glas: Kopfzeile und Leisten fast deckend */
+.site-header.is-scrolled, html[data-season] .site-header.is-scrolled {
+  background: color-mix(in srgb, var(--tint) 96%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none;
+  box-shadow: 0 1px 0 var(--line), 0 14px 30px -26px rgba(42, 34, 27, .55);
+}
+.ba-label { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(34, 43, 27, .9); }
+
+/* Unterstreichungen, die sich zeichnen */
+.hero-tip-a, .link-arrow, .site-footer a, .faq-a a, .region-more a {
+  text-decoration: none; background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: background-size .35s var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .hero-tip-a:hover, .link-arrow:hover, .site-footer a:hover, .faq-a a:hover { background-size: 100% 1px; }
+}
+.faq-a a { background-size: 100% 1px; }
+
+/* ---------- Hero: Schnitt durch einen Garten ---------- */
+.hero { position: relative; display: flex; flex-direction: column; min-height: 100vh; min-height: 100svh; overflow: clip; background: var(--tint); }
+.hero-contours { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: .9; transition: opacity 1.2s ease; }
+html.js:not(.is-loaded) .hero-contours { opacity: 0; }
+.hx-garden { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
+.hx-sky {
+  position: relative; z-index: 3; flex: 1 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 20.5rem);
+  column-gap: clamp(1.5rem, 4vw, 4rem); align-items: end; padding-top: calc(var(--header-h) + clamp(1.2rem, 4vh, 3rem));
+  container-type: inline-size;
+}
+.hero-title {
+  position: relative; font-family: var(--f-display); font-weight: 650; font-size: min(10.2rem, calc((100cqi - 24.5rem) / 6.4));
+  line-height: .9; letter-spacing: -.045em; color: var(--ink); font-optical-sizing: auto; margin-bottom: .02em; white-space: nowrap;
+}
+.hero-title .ln { display: block; overflow: hidden; padding: .08em .14em .24em 0; margin: -.08em 0 -.24em; }
+.hero-title .ln > span { display: block; } /* Block statt inline-block: Zeilenhöhe hängt nicht von den Schriftmetriken ab → kein Sprung beim Font-Tausch */
+.hero-title .ln-2 { padding-left: .82em; font-weight: 360; letter-spacing: -.035em; }
+.hero-title .ln-3 { padding-left: .1em; }
+.hx-season { align-self: start; display: grid; gap: 1rem; padding-bottom: 2rem; }
+.hx-sunpath { width: 100%; max-width: 16rem; height: auto; overflow: visible; justify-self: end; }
+.sp-arc { fill: none; stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 2 5; }
+.sp-base { fill: none; stroke: var(--ink-2); stroke-width: 1.2; }
+.sp-ticks path { fill: none; stroke: var(--ink-3); stroke-width: 1; }
+.sp-sun { transform-box: view-box; transform-origin: 120px 116px; transform: rotate(var(--sun-rot)); transition: transform 1.3s var(--ease-in-out); }
+.sp-sun circle { fill: var(--sun); stroke: var(--accent-ink); stroke-width: 1.2; transition: fill var(--t-season) ease, stroke var(--t-season) ease; }
+.sp-ray { fill: none; stroke: var(--accent-ink); stroke-width: 1; stroke-dasharray: 3 4; opacity: .55; }
+.sp-t { font-family: var(--f-display); font-style: italic; font-size: 10.5px; fill: var(--ink-2); opacity: 0; transition: opacity .4s ease; }
+html[data-season="fruehling"] .sp-t--fruehling, html[data-season="sommer"] .sp-t--sommer, html[data-season="herbst"] .sp-t--herbst, html[data-season="winter"] .sp-t--winter { opacity: 1; }
+.hx-season .season-switch label > span { padding: .45rem .3rem; gap: .3rem; font-size: .82rem; }
+.hx-season .season-switch svg { width: .95rem; height: .95rem; }
+.hero-tip { padding-left: .9rem; border-left: 1px solid var(--line-2); }
+.hero-tip-k { font-size: .82rem; font-weight: 600; color: var(--ink-2); }
+.hero-tip-t { margin-top: .25rem; font-family: var(--f-display); font-style: italic; font-size: 1.08rem; line-height: 1.35; color: var(--ink); transition: opacity .25s ease, filter .25s ease; }
+.hero-tip-t.is-swapping { opacity: 0; filter: blur(2px); }
+.hero-tip-a { display: inline-flex; align-items: center; gap: .35rem; margin-top: .55rem; font-size: .86rem; font-weight: 600; color: var(--accent-ink); }
+.hero-tip-a svg { width: .95rem; height: .95rem; transition: transform .25s var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .hero-tip-a:hover svg { transform: translateX(3px); } }
+
+/* Unter der Erde */
+.hx-soil {
+  position: relative; color: var(--licht);
+  background: var(--grain) 0 0 / 160px 160px,
+    linear-gradient(180deg, color-mix(in srgb, var(--soil-1) 82%, #000) 0, var(--soil-1) 9rem, var(--soil-2) 9.05rem, color-mix(in srgb, var(--soil-2) 80%, var(--erde-dd)) 100%);
+  padding: clamp(2.4rem, 5.5vh, 3.8rem) 0 clamp(2rem, 5vh, 3.4rem); min-height: 40vh; min-height: 40svh;
+}
+.hx-soil::before { /* Planum-Linie mit Maß */
+  content: ""; position: absolute; left: 0; right: 0; top: 9rem; height: 0; border-top: 1px dashed rgba(231, 216, 186, .28); pointer-events: none;
+}
+.hx-soil-in { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .55fr) minmax(0, .75fr); gap: 2rem clamp(1.5rem, 3.5vw, 3.5rem); align-items: start; }
+.hero-lead { font-size: clamp(1.02rem, .96rem + .28vw, 1.2rem); line-height: 1.58; color: rgba(244, 241, 232, .88); max-width: 35rem; }
+.hero-ctas { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.6rem; }
+.btn--earth { background: transparent; border-color: rgba(244, 241, 232, .42); color: var(--licht); }
+@media (hover: hover) and (pointer: fine) { .btn--earth:hover { background: rgba(244, 241, 232, .1); border-color: var(--licht); } }
+.btn { translate: var(--mx, 0) var(--my, 0); }
+
+/* Stecketikett mit der Bewertung – steckt in der Erde */
+.hx-tag {
+  position: relative; justify-self: center; display: grid; justify-items: center; gap: .1rem; width: 9.6rem; margin-top: -7.6rem;
+  padding: 1.5rem .8rem 3.9rem; text-align: center; text-decoration: none; color: var(--ink); background: #F3EEE2;
+  clip-path: polygon(10% 0, 90% 0, 100% 7%, 100% 72%, 57% 72%, 50% 100%, 43% 72%, 0 72%, 0 7%);
+  transform: rotate(-4deg); transform-origin: 50% 100%; transition: transform .6s var(--ease-out);
+  filter: drop-shadow(0 10px 12px rgba(20, 14, 8, .35));
+}
+.hx-tag::before { content: ""; position: absolute; top: .55rem; left: 50%; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: var(--soil-1); box-shadow: inset 0 1px 1px rgba(0, 0, 0, .5); }
+.hx-tag::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: linear-gradient(rgba(42, 34, 27, 0), rgba(42, 34, 27, .55)); }
+.hx-tag-k { font-family: var(--f-display); font-style: italic; font-size: .78rem; line-height: 1.25; color: var(--ink-2); }
+.hx-tag-n { font-family: var(--f-display); font-weight: 650; font-size: 3.1rem; line-height: 1; letter-spacing: -.04em; margin-top: .2rem; }
+.hx-tag-stars { display: flex; gap: 2px; color: var(--accent); }
+.hx-tag-stars svg { width: 13px; height: 13px; }
+.hx-tag-stars .is-part { clip-path: inset(0 20% 0 0); }
+.hx-tag-t { font-size: .74rem; font-weight: 600; line-height: 1.3; color: var(--ink-2); margin-top: .2rem; }
+.hx-tag:active { transform: rotate(-4deg) scale(.97); }
+@media (hover: hover) and (pointer: fine) { .hx-tag:hover { transform: rotate(1.5deg); } }
+.hx-tag:focus-visible { outline: none; }
+.hx-tag:focus-visible .hx-tag-n { outline: 2.5px solid var(--accent-ink); outline-offset: 2px; }
+.hx-notes { display: grid; gap: .1rem; align-self: start; }
+.hx-notes li { position: relative; padding: .55rem 0 .55rem 1.6rem; border-bottom: 1px solid rgba(231, 216, 186, .16); font-family: var(--f-display); font-style: italic; font-size: 1rem; line-height: 1.35; color: var(--root); }
+.hx-notes li::before { content: ""; position: absolute; left: 0; top: 1.05rem; width: 1.05rem; height: 1px; background: currentColor; opacity: .6; }
+.hx-notes li::after { content: ""; position: absolute; left: -3px; top: calc(1.05rem - 3px); width: 7px; height: 7px; border-radius: 50%; border: 1px solid currentColor; }
+
+/* Generierter Garten (main.js) */
+.hx-garden .g-ground { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; }
+.hx-garden .g-snow { fill: none; stroke: #fff; stroke-width: 5; stroke-linecap: round; opacity: 0; transition: opacity var(--t-season) ease; }
+html[data-season="winter"] .hx-garden .g-snow { opacity: .95; }
+.hx-garden .s { fill: none; stroke: var(--stem); stroke-linecap: round; stroke-dasharray: 1 1; stroke-dashoffset: 1; transition: stroke-dashoffset var(--t-grow) var(--ease-out) var(--dl, 0ms), stroke var(--t-season) ease; }
+.hx-garden .s.gr { stroke: var(--grass); }
+.hx-garden .s.wd { stroke: var(--erde); }
+.hx-garden .r { fill: none; stroke: var(--root); stroke-linecap: round; stroke-dasharray: 1 1; stroke-dashoffset: 1; opacity: .36; transition: stroke-dashoffset 1.6s var(--ease-out) var(--dl, 0ms); }
+.hx-garden .r.deep { transition: none; stroke-dashoffset: clamp(0, calc(1 - var(--rg, 0) * 2.2 + var(--k, 0) * .45), 1); }
+.hx-garden .lf, .hx-garden .bl, .hx-garden .sd, .hx-garden .sn, .hx-garden .fl { opacity: 0; transition: opacity .6s ease var(--dl, 0ms), fill var(--t-season) ease; }
+.hx-garden .lf { fill: var(--leaf-b); }
+.hx-garden .lf.la { fill: var(--leaf-a); }
+.hx-garden .lf.lc { fill: var(--leaf-c); }
+.hx-garden .bl { fill: var(--bloom-0); }
+.hx-garden .bl.b1 { fill: var(--bloom-1); }
+.hx-garden .bl.b2 { fill: var(--bloom-2); }
+.hx-garden .bl.bb { fill: var(--blossom); }
+.hx-garden .sd { fill: var(--erde); }
+.hx-garden .sn { fill: #fff; }
+.hx-garden .fl { fill: var(--leaf-a); }
+.hx-garden .anno { font-family: var(--f-display); font-style: italic; font-size: 12px; fill: var(--root); opacity: .7; }
+.hx-garden .anno-l { fill: none; stroke: var(--root); stroke-width: 1; opacity: .5; }
+.hx-garden.is-grown .s, .hx-garden.is-grown .r:not(.deep) { stroke-dashoffset: 0; }
+.hx-garden.is-grown .lf, .hx-garden.is-grown .bl { opacity: 1; }
+html[data-season="fruehling"] .hx-garden.is-grown .lf.lc { opacity: .35; }
+html[data-season="herbst"] .hx-garden.is-grown .lf.lc { opacity: 0; }
+html[data-season="herbst"] .hx-garden.is-grown .fl, html[data-season="herbst"] .hx-garden.is-grown .sd,
+html[data-season="winter"] .hx-garden.is-grown .sd { opacity: 1; }
+html[data-season="herbst"] .hx-garden.is-grown .bl:not(.b1) { opacity: 0; }
+html[data-season="winter"] .hx-garden.is-grown .lf, html[data-season="winter"] .hx-garden.is-grown .bl { opacity: 0; }
+html[data-season="winter"] .hx-garden.is-grown .sn { opacity: 1; }
+.hx-garden.no-anim .s, .hx-garden.no-anim .r, .hx-garden.no-anim .lf, .hx-garden.no-anim .bl { transition: none; }
+.hx-garden .back { opacity: .3; }
+.hx-garden .rt.wait .r { stroke-dashoffset: 1 !important; transition: none; }
+
+/* Hero-Auftritt: reine CSS-Animation, wartet nicht auf main.js */
+html.js .hero-title .ln > span { animation: hxRise 1.05s var(--ease-out) both; }
+html.js .hero-title .ln-2 > span { animation-delay: 70ms; }
+html.js .hero-title .ln-3 > span { animation-delay: 140ms; }
+html.js .hx-season { animation: hxFade .8s var(--ease-out) .45s both; }
+html.js .hx-copy, html.js .hx-notes { animation: hxFade .8s var(--ease-out) .25s both; }
+html.js .hx-tag { animation: hxPlant 1s var(--ease-out) .55s both; }
+@keyframes hxRise { from { transform: translateY(108%); } }
+@keyframes hxFade { from { opacity: 0; transform: translateY(10px); } }
+@keyframes hxPlant { from { opacity: 0; transform: translateY(-28px) rotate(-9deg); } }
+
+/* ---------- Bodenprobe: Zahlen als Satz ---------- */
+.facts { border: 0; padding-block: clamp(5rem, 3.5rem + 7vw, 11rem) clamp(3rem, 2rem + 4vw, 6rem); }
+.facts-text {
+  font-family: var(--f-display); font-weight: 500; font-size: clamp(1.6rem, .95rem + 2.75vw, 3.75rem); line-height: 1.16;
+  letter-spacing: -.022em; max-width: 21.5em; text-wrap: pretty; hanging-punctuation: first;
+}
+.facts-text b { font-weight: 700; color: var(--accent-ink); font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; transition: color var(--t-season) ease; }
+html.js .facts-text .w { opacity: .17; transition: opacity .45s ease; }
+html.js .facts-text .w.on { opacity: 1; }
+.odo { display: inline-flex; height: 1.16em; overflow: hidden; vertical-align: top; }
+.odo-c { display: flex; flex-direction: column; transition: transform 1.5s var(--ease-in-out); transition-delay: calc(var(--k, 0) * 90ms); }
+.odo-c > span, .odo-s { display: block; height: 1.16em; line-height: 1.16em; }
+
+/* ---------- Leistungen ---------- */
+.services .section-head { max-width: 62rem; }
+.services .h2 { font-size: clamp(2.2rem, 1.1rem + 3.6vw, 4.9rem); line-height: 1.02; letter-spacing: -.03em; }
+.svc-media { padding: 12px; }
+.svc-media::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: var(--crop); }
+.svc-frame { border-radius: 3px; aspect-ratio: 5 / 5.6; }
+.svc-frame-n { left: auto; right: 1rem; bottom: .2rem; font-size: clamp(4rem, 9vw, 8rem); text-shadow: none; mix-blend-mode: soft-light; color: #fff; }
+.svc-title { font-size: clamp(1.7rem, 1.1rem + 1.9vw, 3rem); letter-spacing: -.02em; }
+.svc-n { font-family: var(--f-display); font-style: italic; font-weight: 500; font-size: 1.05rem; letter-spacing: 0; }
+.svc-price::before { border-radius: 0 60% 0 60%; }
+
+/* Musterkiste: Materialien als Kacheln */
+.mk { margin-top: clamp(4.5rem, 9vw, 8rem); display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 2.2fr); gap: 2rem clamp(2rem, 4vw, 4.5rem); align-items: end; }
+.mk-title { font-family: var(--f-display); font-weight: 600; font-size: clamp(1.6rem, 1.2rem + 1.2vw, 2.4rem); line-height: 1.08; letter-spacing: -.02em; }
+.mk-lead { margin-top: .9rem; font-size: .98rem; color: var(--ink-2); }
+.mk-list { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(.7rem, 1.3vw, 1.2rem); perspective: 900px; }
+.mk-tile { display: grid; align-content: start; min-width: 0; }
+.mk-sw {
+  position: relative; display: block; aspect-ratio: 1; border-radius: 3px; overflow: hidden; transform-style: preserve-3d;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), inset 0 0 0 1px rgba(0, 0, 0, .14), 0 3px 0 -1px rgba(0, 0, 0, .28), 0 22px 30px -22px rgba(42, 34, 27, .85);
+  transition: transform .7s var(--ease-out);
+}
+.mk-sw::after { content: ""; position: absolute; inset: 0; background: var(--grain) 0 0 / 120px 120px; opacity: .45; mix-blend-mode: multiply; }
+.mk-sw::before { content: ""; position: absolute; inset: 0; z-index: 1; background: radial-gradient(circle at var(--lx, 28%) var(--ly, 18%), rgba(255, 255, 255, .34), transparent 58%); mix-blend-mode: soft-light; }
+.mk-name { margin-top: .9rem; font-family: var(--f-display); font-weight: 600; font-size: 1.06rem; line-height: 1.2; }
+.mk-meta { margin-top: .2rem; font-size: .82rem; line-height: 1.4; color: var(--ink-2); }
+.mk--kalk .mk-sw { background:
+  radial-gradient(ellipse 7px 3px at 24% 30%, rgba(110, 88, 52, .5) 55%, transparent 70%), radial-gradient(ellipse 5px 2.5px at 72% 62%, rgba(110, 88, 52, .45) 55%, transparent 70%),
+  radial-gradient(ellipse 4px 6px at 40% 76%, rgba(110, 88, 52, .35) 55%, transparent 70%), radial-gradient(circle at 60% 20%, rgba(255, 252, 238, .7) 1.5px, transparent 2.5px),
+  linear-gradient(90deg, transparent calc(50% - 1px), rgba(92, 72, 42, .4) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+  linear-gradient(160deg, #E6D9B8, #CCB98F); }
+.mk--basalt .mk-sw { background:
+  radial-gradient(circle at 48% 42%, #5B5D56 0 30%, #3E3F3A 58%, #1F201D 66%) 0 0 / 25% 25%,
+  radial-gradient(circle at 48% 42%, #55574F 0 30%, #393A35 58%, #1F201D 66%) 12.5% 12.5% / 25% 25%, #1F201D; }
+.mk--granit .mk-sw { background:
+  radial-gradient(circle, rgba(255, 255, 255, .6) .8px, transparent 1.4px) 0 0 / 7px 7px, radial-gradient(circle, rgba(25, 25, 25, .55) 1px, transparent 1.6px) 3px 4px / 9px 9px,
+  radial-gradient(circle, rgba(150, 110, 100, .5) 1px, transparent 1.6px) 5px 1px / 11px 11px,
+  linear-gradient(#6E6B64 2px, transparent 2px) 0 0 / 100% 33.4%, linear-gradient(90deg, #6E6B64 2px, transparent 2px) 0 0 / 50% 100%,
+  linear-gradient(135deg, #ABA79E, #8D8A82); }
+.mk--laerche .mk-sw { background:
+  linear-gradient(transparent 31%, rgba(55, 32, 14, .7) 31% 33%, transparent 33% 64%, rgba(55, 32, 14, .7) 64% 66%, transparent 66% 97%, rgba(55, 32, 14, .7) 97%),
+  repeating-linear-gradient(1.5deg, rgba(120, 66, 28, .22) 0 2px, transparent 2px 6px, rgba(255, 230, 190, .12) 6px 7px, transparent 7px 11px),
+  radial-gradient(ellipse 9px 4px at 70% 48%, rgba(90, 48, 18, .6), transparent 70%),
+  linear-gradient(180deg, #CFA068, #B5834F); }
+.mk--corten .mk-sw { background:
+  radial-gradient(circle at 28% 30%, rgba(176, 88, 34, .7), transparent 42%), radial-gradient(circle at 72% 76%, rgba(62, 26, 12, .55), transparent 46%),
+  radial-gradient(circle, rgba(214, 120, 56, .55) 1px, transparent 2px) 0 0 / 6px 6px, radial-gradient(circle, rgba(40, 16, 8, .4) 1px, transparent 2px) 3px 2px / 8px 8px,
+  linear-gradient(135deg, #934D27, #643117); }
+
+/* ---------- Gartenplaner ---------- */
+.pl-stamp { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; margin-top: .9rem; border: 1px solid var(--ink-2); background: rgba(255, 255, 255, .45); font-size: .74rem; color: var(--ink-2); }
+.pl-stamp span { padding: .35rem .7rem; border-left: 1px solid var(--line-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-stamp .pl-stamp-b { border-left: 0; font-family: var(--f-display); font-weight: 700; font-size: .82rem; color: var(--ink); }
+html.js .pl-grid.is-drawing .pl-tile, html.js .pl-grid.is-drawing .pl-cell::before { opacity: 0; }
+
+/* ---------- Bodenschnitt: Kante ins Erdreich ---------- */
+.soil-sec { margin-top: 0; }
+.soil-edge { position: absolute; left: 0; top: -89px; width: 100%; height: 90px; pointer-events: none; }
+.soil-edge path:first-child { fill: var(--erde-dd); }
+.soil-edge-g { fill: none; stroke: var(--leaf-b); stroke-width: 2; stroke-linecap: round; transition: stroke var(--t-season) ease; }
+
+/* ---------- Vorher/Nachher: Wisch-Maske mit Pinselkante ---------- */
+.ba { border-radius: 4px; }
+.ba-line { display: none; }
+.ba-edge { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; overflow: visible; }
+.ba-edge polyline { fill: none; stroke: var(--licht); stroke-width: 2.5; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.ba-pane--after { will-change: clip-path; }
+.ba-quote { border-radius: 0; background: none; border: 0; border-left: 2px solid var(--accent); padding: .2rem 0 .2rem 1.2rem; }
+.pj-card img { border-radius: 3px; filter: saturate(.86) contrast(1.04); }
+.pj-cta { border-radius: 3px; }
+
+/* ---------- Pflanzen-Explorer: Stecketiketten ---------- */
+.pe-photo { border-radius: 3px; }
+.pe-card {
+  border: 0; border-radius: 3px; background: var(--karte); rotate: var(--tilt, 0deg); transition: rotate .5s var(--ease-out), box-shadow .3s ease;
+  clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%, 0 18px);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.pe-card::before { content: ""; position: absolute; z-index: 2; left: 50%; top: 9px; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; background: var(--tint); box-shadow: inset 0 1px 2px rgba(0, 0, 0, .35); }
+.pe-card:nth-child(3n+1) { --tilt: -.7deg; }
+.pe-card:nth-child(3n+2) { --tilt: .45deg; }
+.pe-art { background: radial-gradient(120% 90% at 50% 115%, color-mix(in srgb, var(--c) 45%, transparent), transparent 70%), var(--stein-l); }
+.pe-name { font-size: 1.28rem; letter-spacing: -.01em; }
+@media (hover: hover) and (pointer: fine) { .pe-card:hover { rotate: 0deg; box-shadow: inset 0 0 0 1px var(--line-2); } }
+
+/* ---------- Gartenjahr: Jahresrad ---------- */
+.year .section-head--split { grid-template-columns: minmax(0, 1fr) minmax(0, .95fr) clamp(170px, 16vw, 230px); align-items: center; }
+.yr-wheel { min-width: 0; }
+.yw { display: block; width: 100%; height: auto; overflow: visible; }
+.yw-ticks { fill: none; stroke: var(--ink-3); stroke-width: 1; }
+.yw-seg { fill: color-mix(in srgb, var(--ink) 7%, transparent); transition: fill var(--t-season) ease; }
+html[data-season="fruehling"] .yw-fruehling, html[data-season="sommer"] .yw-sommer, html[data-season="herbst"] .yw-herbst, html[data-season="winter"] .yw-winter { fill: var(--accent); }
+.yw-m { font-family: var(--f-sans); font-weight: 700; font-size: 11px; text-anchor: middle; fill: var(--ink-2); transition: fill var(--t-season) ease; }
+html[data-season="fruehling"] .yw-m-fruehling, html[data-season="sommer"] .yw-m-sommer, html[data-season="herbst"] .yw-m-herbst, html[data-season="winter"] .yw-m-winter { fill: #fff; }
+.yw-core { fill: var(--karte); stroke: var(--line-2); }
+.yw-hand { transform-box: view-box; transform-origin: 0 0; transform: rotate(var(--yw)); transition: transform 1.3s var(--ease-in-out); }
+.yw-hand path { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; }
+.yw-hand .yw-leaf { fill: var(--accent); stroke: none; transition: fill var(--t-season) ease; }
+.yw-hand circle { fill: var(--ink); }
+.yw-c { font-family: var(--f-display); font-style: italic; font-size: 17px; text-anchor: middle; fill: var(--ink); opacity: 0; transition: opacity .4s ease; }
+html[data-season="fruehling"] .yw-c--fruehling, html[data-season="sommer"] .yw-c--sommer, html[data-season="herbst"] .yw-c--herbst, html[data-season="winter"] .yw-c--winter { opacity: 1; }
+.yr-photo { position: relative; padding: 12px; }
+.yr-photo::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: var(--crop); }
+.yr-photo img { border-radius: 3px; }
+.yr-we { border-radius: 0; background: none; border-top: 1px solid var(--line-2); padding: .9rem 0 0; }
+.abo { border-radius: 4px; }
+.abo-plans li { border-radius: 3px; }
+
+/* ---------- Über uns ---------- */
+.about-photo img { border-radius: 3px; }
+.process-list { position: relative; }
+.process-list::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 2px; background: var(--moos); transform-origin: 0 50%; transform: scaleX(var(--grow, 1)); }
+.process-list li { border-top: 2px solid var(--line); }
+.process-list li::before { transition: background-color .4s ease, transform .4s var(--ease-out); }
+.process-list li.is-reached::before { background: var(--moos); transform: scale(1.25); }
+
+/* ---------- Stimmen ---------- */
+.stamp { float: right; width: clamp(108px, 10vw, 140px); height: auto; margin: 1.2rem 0 0 1rem; color: var(--accent-ink); overflow: hidden; transition: color var(--t-season) ease; }
+.stamp circle, .stamp-leaf { fill: none; stroke: currentColor; stroke-width: 1.4; }
+.stamp text { font-family: var(--f-sans); font-weight: 700; font-size: 12.4px; letter-spacing: 2.3px; text-transform: uppercase; fill: currentColor; }
+.quote { background: none; border: 0; border-top: 1px solid var(--line-2); border-radius: 0; padding: 1.3rem 0 0; }
+.quote p { font-size: clamp(1.1rem, 1rem + .4vw, 1.32rem); line-height: 1.45; hanging-punctuation: first; text-indent: -.42em; }
+
+/* ---------- Karriere ---------- */
+.career-photo { position: relative; padding: 12px; }
+.career-photo::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: var(--crop); }
+.career-photo img { aspect-ratio: 4 / 5; border-radius: 3px; box-shadow: none; }
+
+/* ---------- Ranke als Scroll-Fortschritt (Desktop) ---------- */
+.vine { position: fixed; right: max(12px, env(safe-area-inset-right)); top: calc(var(--header-h) + 18px); bottom: 22px; width: 22px; z-index: 40; pointer-events: none; display: none; color: var(--accent); }
+.vine svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.vine-bg { fill: none; stroke: var(--line-2); stroke-width: 1; stroke-dasharray: 2 6; vector-effect: non-scaling-stroke; }
+.vine-p { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 1 1; stroke-dashoffset: 1; transition: stroke var(--t-season) ease; }
+.vine-leaves { position: absolute; inset: 0; }
+.vine-leaf {
+  position: absolute; left: 50%; width: 13px; height: 7px; margin: -3.5px 0 0 -1px; border-radius: 0 100% 0 100%; background: currentColor;
+  transform-origin: 0 50%; transform: rotate(var(--r, -30deg)) scale(.2); opacity: 0; transition: transform .5s var(--ease-out), opacity .3s ease;
+}
+.vine-leaf.on { transform: rotate(var(--r, -30deg)); opacity: 1; }
+@media (min-width: 1100px) { html.js .vine { display: block; } html.js .progress { display: none; } }
+html.menu-open .vine { opacity: 0; }
+
+/* ---------- Reveal „Wuchs“: Überschriften wachsen aus ihrer Grundlinie ---------- */
+html.js .h2[data-reveal], html.js .h3[data-reveal] { opacity: 1; transform: translateY(.18em); clip-path: inset(100% -10% 0 -10%); transition: clip-path var(--t-grow) var(--ease-out), transform var(--t-grow) var(--ease-out); transition-delay: var(--d, 0ms); }
+html.js .h2[data-reveal].is-in, html.js .h3[data-reveal].is-in { transform: none; clip-path: inset(-25% -10% -25% -10%); }
+html.js [data-reveal]:not(.h2):not(.h3) { transform: translateY(12px); }
+html.js [data-reveal].is-in:not(.h2):not(.h3) { transform: none; }
+
+/* ---------- Jahreszeiten-Wechsel als Farbwelle (View Transition) ---------- */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+html.vt-season::view-transition-new(root) { animation: seasonWash var(--t-season) var(--ease-in-out) both; }
+@keyframes seasonWash { from { clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 50%)); } to { clip-path: circle(var(--vt-r, 150vmax) at var(--vt-x, 50%) var(--vt-y, 50%)); } }
+html.vt-season *, html.vt-season *::before, html.vt-season *::after { transition-duration: 0s !important; transition-delay: 0s !important; }
+
+/* ---------- Responsiv (Neugestaltung) ---------- */
+@media (max-width: 1100px) {
+  .hx-soil-in { grid-template-columns: minmax(0, 1.2fr) minmax(0, .7fr); }
+  .hx-notes { grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .mk { grid-template-columns: minmax(0, 1fr); }
+  .year .section-head--split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .yr-wheel { grid-column: 1 / -1; width: 200px; }
+}
+@media (max-width: 899px) {
+  .action-bar { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in srgb, var(--tint) 97%, transparent); box-shadow: 0 -10px 24px -18px rgba(42, 34, 27, .5); }
+  .hx-sky { grid-template-columns: minmax(0, 1fr); align-items: start; padding-top: calc(var(--header-h) + 1.3rem); padding-bottom: clamp(8.5rem, 21svh, 12rem); }
+  .hero-title { font-size: min(6.4rem, calc(100cqi / 6.45)); margin-bottom: 0; }
+  .hx-season { padding-bottom: 0; margin-top: 1.1rem; gap: .7rem; max-width: 30rem; }
+  .hx-sunpath { display: none; }
+  .hero-tip { border-left: 0; padding-left: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .4rem; }
+  .hero-tip-k { font-size: .8rem; }
+  .hero-tip-t { font-size: .96rem; margin-top: 0; min-height: 2.7em; }
+  .hero-tip-a { display: none; }
+  .hx-soil { padding-top: 2.2rem; min-height: 0; }
+  .hx-soil-in { grid-template-columns: minmax(0, 1fr); gap: 1.6rem; }
+  .hx-tag { position: absolute; right: 0; top: -9.3rem; width: 7.4rem; margin: 0; padding: 1.1rem .5rem 3.2rem; }
+  .hx-tag-n { font-size: 2.4rem; }
+  .hx-tag-k { font-size: .7rem; }
+  .hx-notes { grid-column: auto; grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .facts-text { font-size: clamp(1.5rem, 1rem + 2.6vw, 2.3rem); }
+  .mk-list { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(150px, 40%); overflow-x: auto; scroll-snap-type: x mandatory; margin-inline: calc(-1 * var(--gutter)); padding: .4rem var(--gutter) 1rem; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
+  .mk-list::-webkit-scrollbar { display: none; }
+  .mk-tile { scroll-snap-align: start; }
+
+  .soil-edge { top: -59px; height: 60px; }
+  .year .section-head--split { grid-template-columns: minmax(0, 1fr); }
+  .yr-wheel { grid-column: auto; width: 170px; }
+  .stamp { width: 104px; }
+}
+@media (max-width: 720px) {
+  .process-list::before { left: 4px; right: auto; top: 0; bottom: 0; width: 2px; height: auto; transform-origin: 50% 0; transform: scaleY(var(--grow, 1)); }
+  .process-list li { border-top: 0; padding: 0 0 0 1.8rem; }
+  .process-list li::before { top: .35rem; }
+}
+@media (max-width: 599px) {
+  .pe-grid { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: min(80vw, 300px); overflow-x: auto; scroll-snap-type: x mandatory; gap: .8rem; margin-inline: calc(-1 * var(--gutter)); padding: .5rem var(--gutter) 1.2rem; scroll-padding-inline: var(--gutter); scrollbar-width: none; align-items: start; }
+  .pe-grid::-webkit-scrollbar { display: none; }
+  .pe-card { flex-direction: column; scroll-snap-align: start; }
+  .pe-art { width: auto; aspect-ratio: 16 / 8; }
+  .pe-grid.is-collapsed .pe-card.is-extra:not(.is-hidden) { display: flex; }
+  .pe-more, .pe-more[hidden] { display: none !important; }
+  .pl-stamp span:nth-child(2) { display: none; }
+  .pl-stamp { grid-template-columns: auto minmax(0, 1fr) auto; }
+}
+@media (max-width: 380px) {
+  .hx-season .season-switch svg { display: none; }
+  .hx-tag { width: 6.6rem; }
+}
+
+/* ---------- Bewegung reduzieren / abschalten (Neugestaltung) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html.js .hero-title .ln > span, html.js .hx-season, html.js .hx-copy, html.js .hx-notes, html.js .hx-tag { animation: hxFadeOnly .6s ease both; }
+  @keyframes hxFadeOnly { from { opacity: 0; } }
+  html.js .h2[data-reveal], html.js .h3[data-reveal] { clip-path: none; transform: none; opacity: 0; transition: opacity .6s ease; }
+  html.js .h2[data-reveal].is-in, html.js .h3[data-reveal].is-in { opacity: 1; }
+  html.js [data-reveal]:not(.h2):not(.h3) { transform: none; }
+  .odo-c { transition: none; }
+  .sp-sun, .yw-hand { transition-duration: .01s; }
+  .mk-sw { transition: none; }
+}
+html.motion-off [data-reveal] { opacity: 1 !important; transform: none !important; clip-path: none !important; }
+html.motion-off .facts-text .w { opacity: 1 !important; }
+html.motion-off .hero-contours { opacity: 1 !important; }
+
+/* Weniger Versal-Etiketten: Beschriftungen als kursive Buchschrift, wie von Hand auf den Plan geschrieben */
+.pj-place, .process-time, .yr-title small, .pe-controls legend, .pl-actions-k, .soil-cap-k, .pj-hint {
+  font-family: var(--f-display); font-style: italic; font-weight: 500; letter-spacing: 0; text-transform: none; font-size: .92rem;
+}
+.yr-title small { font-size: 1rem; }
+
+/* Hecke als Kante vor dem Kontakt-Kapitel */
+.contact { margin-top: 70px; }
+.hedge-edge { position: absolute; left: 0; top: -69px; width: 100%; height: 70px; pointer-events: none; }
+.hedge-edge path { fill: var(--moos-dd); }
+@media (max-width: 899px) { .contact { margin-top: 44px; } .hedge-edge { top: -43px; height: 44px; } }
+
+/* Navigation: Buchstaben rollen beim Überfahren (nur feiner Zeiger) */
+.roll { display: inline-flex; overflow: hidden; vertical-align: top; line-height: 1.3; }
+.roll > span { display: inline-block; white-space: pre; text-shadow: 0 1.3em currentColor; transition: transform .42s var(--ease-out); transition-delay: calc(var(--i, 0) * 18ms); }
+@media (hover: hover) and (pointer: fine) {
+  .main-nav a:hover .roll > span, .main-nav a:focus-visible .roll > span { transform: translateY(-1.3em); }
+}
+@media (prefers-reduced-motion: reduce) { .roll > span { transition: none; } }
