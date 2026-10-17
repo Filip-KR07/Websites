@@ -308,13 +308,13 @@
     const trees = [[0.06, 0.05, 80], [0.15, 0.06, 118], [0.25, 0.05, 70], [0.36, 0.04, 54], [0.55, 0.05, 104], [0.64, 0.08, 150], [0.75, 0.05, 96], [0.88, 0.07, 128], [0.97, 0.04, 70]];
     const shape = {
       erde: (u, l) => 118 + l * 50 + 26 * Math.sin(u * TAU * 1.1 + l * 0.6 + 0.4) + 9 * Math.sin(u * TAU * 3.3 + l * 1.7),
-      feuer: (u, l) => 196 + l * 36 - (150 - l * 26) * Math.exp(-Math.pow((u - 0.64) / (0.12 + l * 0.05), 2)) + 2.5 * Math.sin(u * 44 + l),
+      feuer: (u, l) => 204 + l * 34 - (132 - l * 22) * Math.exp(-Math.pow((u - 0.64) / (0.12 + l * 0.05), 2)) + 2.5 * Math.sin(u * 44 + l),
       see: (u, l) => 150 + Math.pow(l, 1.35) * 46 + (1.4 + l * 2.3) * Math.sin(u * TAU * (17 - l * 3) + l * 1.3),
       baum: (u, l) => {
         if (l > 1) return 214 + (l - 1) * 42 + 5 * Math.sin(u * 7 + l);
         let h = 0;   // Kronendach: weiche, sich überlagernde Baumkronen
         trees.forEach(([c, w, ht]) => { const cc = c + (l ? 0.045 : 0); h += ht * (l ? 0.55 : 0.8) * Math.exp(-Math.pow((u - cc) / (w * 0.85), 2)); });
-        return (l ? 180 : 212) - Math.min(h, 120) - 3 * Math.sin(u * 60 + l);
+        return (l ? 196 : 226) - Math.min(h, 88) * (0.55 + 0.45 * u) - 3 * Math.sin(u * 60 + l);
       }
     };
     const pts = {};
