@@ -178,13 +178,13 @@ html:not(.js) [data-wiz-next], html:not(.js) [data-wiz-back], html:not(.js) .wiz
 }
 @media (hover: hover) and (pointer: fine) { .linkbtn:hover { text-decoration-color: var(--c-orange); text-decoration-thickness: 2px; } }
 
-.pulse { position: relative; width: 8px; height: 8px; background: var(--c-orange); border-radius: 50%; flex: none; }
+/* Baustellen-Warnleuchte: hartes Blinken (2 Takte an, 1 aus) statt weichem Puls */
+.pulse { position: relative; width: 8px; height: 8px; background: var(--c-orange); border-radius: 1px; flex: none; transform: rotate(45deg); }
 .pulse::after {
-  content: ""; position: absolute; inset: 0; border-radius: 50%;
-  border: 2px solid var(--c-orange);
-  animation: pulse 1.8s var(--ease-out) infinite;
+  content: ""; position: absolute; inset: -3px; border: 1.5px solid var(--c-orange); border-radius: 1px;
+  animation: pulse 1.6s steps(1, end) infinite;
 }
-@keyframes pulse { from { transform: scale(1); opacity: .9; } to { transform: scale(2.8); opacity: 0; } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 62% { opacity: 0; } }
 
 /* ---------------------------------------------------------------- Header */
 .hdr {
@@ -977,6 +977,51 @@ html.js:not(.reduce) .crew.is-in .crew__grid li { transform: none; opacity: 1; }
 .values h3 { font: 900 clamp(1.5rem, 2vw, 2rem)/.95 var(--f-sans); font-stretch: 66%; text-transform: uppercase; }
 @media (max-width: 1099px) { .about__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .crew { grid-column: 1 / -1; } }
 @media (max-width: 599px) { .about__grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Werkstattwand: Lochwand-Paneel, die Meisterbriefe hängen an Haken, die Kolonnen-Tafel ist angemagnetet */
+.about__grid {
+  position: relative; padding: clamp(56px, 5vw, 76px) clamp(18px, 2.4vw, 40px) clamp(28px, 3vw, 44px);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(18, 18, 18, .34) 0 2.2px, transparent 2.8px) 0 0 / 24px 24px,
+    linear-gradient(180deg, rgba(255, 255, 255, .18), rgba(0, 0, 0, .04)),
+    #CFC6B4;
+  border: 2px solid var(--c-ink); box-shadow: inset 0 0 0 8px rgba(18, 18, 18, .05);
+}
+.about__grid::before {
+  content: "Lochwand 01 · Werkstatt Eidelstedt"; position: absolute; left: 14px; top: 12px;
+  font: 600 .5625rem/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: rgba(18, 18, 18, .62);
+  background: #CFC6B4; padding: 3px 6px;
+}
+.person, .crew { --tilt: 0deg; rotate: var(--tilt); transform-origin: 50% -38px; position: relative; box-shadow: 0 2px 0 rgba(18, 18, 18, .18), 0 18px 26px -18px rgba(18, 18, 18, .55); }
+.person:nth-child(1) { --tilt: -1.4deg; }
+.person:nth-child(2) { --tilt: 1.1deg; margin-top: 26px; }
+.crew { --tilt: -.5deg; background: #F1EEE6; margin-top: 8px; }
+/* Schnur zum Haken + Haken */
+.person::before {
+  content: ""; position: absolute; left: 18%; right: 18%; bottom: 100%; height: 38px; margin-bottom: 2px; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40' preserveAspectRatio='none'%3E%3Cpath d='M0 40 L50 3 L100 40' fill='none' stroke='%23121212' stroke-width='1.6' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+.person::after {
+  content: ""; position: absolute; left: 50%; top: -46px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #F1F1EE, #7C7C78 70%); border: 1px solid #2c2c2a; pointer-events: none;
+}
+/* Magnete an der Kolonnen-Tafel */
+.crew::before, .crew::after {
+  content: ""; position: absolute; top: -8px; width: 18px; height: 18px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 38% 34%, #FF8A55, var(--c-orange) 55%, #B33A0E); box-shadow: 0 3px 4px -1px rgba(18, 18, 18, .45);
+}
+.crew::before { left: 16px; } .crew::after { right: 16px; }
+html.js:not(.reduce) .person.is-in { animation: swing 1400ms var(--ease-out) backwards; animation-delay: var(--d, 0ms); }
+@keyframes swing {
+  0% { rotate: calc(var(--tilt) - 6deg); } 30% { rotate: calc(var(--tilt) + 3deg); }
+  55% { rotate: calc(var(--tilt) - 1.4deg); } 78% { rotate: calc(var(--tilt) + .5deg); } 100% { rotate: var(--tilt); }
+}
+@media (hover: hover) and (pointer: fine) {
+  .person { transition: rotate 600ms var(--ease-in-out); }
+  .person:hover { rotate: 0deg; }
+}
+@media (max-width: 1099px) { .person:nth-child(2) { margin-top: 0; } }
+@media (max-width: 599px) { .person, .crew { --tilt: 0deg !important; } .about__grid { row-gap: 64px; } }
 @media (max-width: 899px) {
   .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 38vw; }
   .g--a { grid-column: 1 / -1; grid-row: span 1; }
@@ -1469,7 +1514,7 @@ html.reduce .wx__rain { transition: none; }
 .psheet.is-top .psheet__media img { filter: none; }
 .psheet__media::after { content: ""; position: absolute; inset: 0; border: 1px solid rgba(18, 18, 18, .4); pointer-events: none; }
 .psheet__tb { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); border-top: 2px solid var(--c-ink); }
-.psheet__title { grid-column: 1; padding: 12px 14px 4px; font: 900 clamp(1.7rem, 2.6vw, 2.9rem)/.88 var(--f-sans); font-stretch: 62%; text-transform: uppercase; text-wrap: balance; }
+.psheet__title { grid-column: 1; padding: 12px 14px 4px; font: 900 clamp(1.6rem, 2.25vw, 2.6rem)/.88 var(--f-sans); font-stretch: 62%; text-transform: uppercase; text-wrap: balance; overflow-wrap: break-word; }
 .psheet__place { grid-column: 1; padding: 0 14px 12px; font: 800 1rem/1 var(--f-sans); font-stretch: 75%; text-transform: uppercase; color: var(--c-orange-deep); }
 .psheet__meta { grid-column: 2; grid-row: 1 / span 2; display: grid; border-left: 1px solid var(--c-ink); font-family: var(--f-mono); }
 .psheet__meta div { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; align-items: baseline; padding: 7px 12px; border-top: 1px solid var(--c-line); }
@@ -1526,8 +1571,8 @@ html.reduce .wx__rain { transition: none; }
 .ruler__cap { font: 500 .6875rem/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--c-mute); margin-bottom: 14px; }
 .ruler { display: flex; position: relative; height: clamp(210px, 17vw, 260px); container-type: inline-size; }
 .ruler__seg {
-  flex: 1 1 0; min-width: 0; position: relative; display: grid; align-content: end; gap: 6px;
-  padding: 40px clamp(12px, 1.4vw, 22px) 16px;
+  flex: 1 1 0; min-width: 0; position: relative; display: grid; align-content: start; gap: 6px;
+  padding: 52px clamp(12px, 1.4vw, 22px) 16px;
   background: linear-gradient(180deg, rgba(255, 255, 255, .22), transparent 30%, rgba(0, 0, 0, .06)), var(--c-ruler);
   color: var(--c-ink); border: 1.5px solid #1D1A12; border-left-width: 0;
   transform-origin: 0 50%;
@@ -1544,12 +1589,12 @@ html.reduce .wx__rain { transition: none; }
     repeating-linear-gradient(90deg, #1D1A12 0 1.5px, transparent 1.5px 50px) 0 0 / 100% 20px no-repeat,
     repeating-linear-gradient(90deg, #1D1A12 0 1px, transparent 1px 10px) 0 0 / 100% 11px no-repeat;
 }
-.ruler .stat__n { font-size: clamp(3.2rem, 6.6cqi, 8rem); }
+.ruler .stat__n { font-size: clamp(3.2rem, 6.4cqi, 7.6rem); line-height: .9; font-stretch: 72%; font-weight: 800; letter-spacing: -.01em; white-space: nowrap; }
 .ruler .stat__d { color: #2A2A2A; }
 .ruler .stat__plus { color: #C61B22; }
 @media (max-width: 899px) {
   .ruler { flex-direction: column; height: auto; }
-  .ruler__seg { min-height: 150px; border-left-width: 1.5px; border-top-width: 0; padding-top: 54px; }
+  .ruler__seg { flex: none; min-height: 0; padding-bottom: 20px; border-left-width: 1.5px; border-top-width: 0; padding-top: 54px; }
   .ruler__seg:first-child { border-top-width: 1.5px; }
   .ruler__seg:not(:last-child)::after { right: 22px; top: auto; bottom: -8px; margin: 0; }
   .ruler .stat__n { font-size: clamp(3.4rem, 22cqi, 6rem); }
@@ -1624,3 +1669,5 @@ html.reduce .quiz__q.is-enter, html.reduce .wiz__step.is-enter, html.reduce .qui
 @media (max-width: 399px) { .tile__in { font-size: .5625rem; letter-spacing: 0; } }
 
 @media (min-width: 900px) { .hero { padding-bottom: 64px; } }
+@media (prefers-reduced-motion: reduce) { .person { transition: none !important; } }
+html.reduce .person { transition: none !important; }

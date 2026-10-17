@@ -188,9 +188,13 @@
     entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('is-in'); revealIO.unobserve(en.target); } });
   }, { rootMargin: '0px 0px -8% 0px' }) : null;
 
-  function initReveal() {
+  // Zwei Etappen: erst die Überschriften in Wörter zerlegen, dann die Bauteil-Reveals verteilen
+  function initSplit() {
     if (!revealIO) { $$('[data-split]').forEach(el => el.classList.add('is-in')); return; }
     $$('[data-split]').forEach(el => { if (el.closest('.hero')) return; split(el); revealIO.observe(el); });
+  }
+  function initReveal() {
+    if (!revealIO) return;
     const groups = [
       '.sec-lead', '.services__more', '.config__panel', '.ba__steps li', '.compare', '.quiz', '.wx',
       '.storm__side', '.storm__lead', '.call', '.person', '.crew', '.g', '.values li', '.quote', '.rating', '.ruler__cap',
@@ -1016,9 +1020,10 @@
       sheets.forEach((s, i) => {
         const settle = easeOut(clamp(t - (i - 1), 0, 1));
         const off = i < N - 1 ? easeInOut(clamp(t - i, 0, 1)) : 0;
-        const r = rot[i] * (1 - settle) - off * 14;
+        // abgezogen wird schräg nach oben links aus dem Bild – der Planindex links bleibt frei
+        const r = rot[i] * (1 - settle) - off * 9;
         const bx = i * 7 * (1 - settle), by = i * -6 * (1 - settle);
-        s.style.transform = `translate(calc(${bx.toFixed(1)}px - ${(off * 116).toFixed(2)}%), calc(${by.toFixed(1)}px - ${(off * 10).toFixed(2)}%)) rotate(${r.toFixed(2)}deg)`;
+        s.style.transform = `translate(calc(${bx.toFixed(1)}px - ${(off * 46).toFixed(2)}%), calc(${by.toFixed(1)}px - ${(off * 128).toFixed(2)}%)) rotate(${r.toFixed(2)}deg)`;
       });
       setActive(Math.min(N - 1, Math.floor(t + 0.45)));
     }
@@ -1451,8 +1456,10 @@
   });
   const run = fn => { try { fn(); } catch (err) { console.error(err); } };
   const stages = [
-    [initHero, initRoll, initReveal, initCounters, initActionbar],
+    [initHero, initActionbar],
     [initHeroRain],
+    [initRoll, initSplit],
+    [initReveal, initCounters],
     [initStack],
     [initConfig, initPlan],
     [initCompare, initQuiz],

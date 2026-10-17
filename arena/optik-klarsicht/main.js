@@ -3,7 +3,8 @@
    Ohne Build-Schritt. Optional: GSAP + ScrollTrigger, Lenis (assets/vendor).
    Alle Inhalte sind auch ohne JavaScript bzw. mit ?motion=off sichtbar.
    ========================================================================== */
-(function () {
+// Eigener Task statt direkt nach den Bibliotheken: hält den ersten langen Task klein.
+setTimeout(function () {
   'use strict';
 
   /* ------------------------------------------------------------------
@@ -1903,6 +1904,6 @@
 
   safe('refresh', function () {
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ST.refresh(); });
-    window.addEventListener('load', function () { ST.refresh(); });
+    if (document.readyState === 'complete') ST.refresh(); else window.addEventListener('load', function () { ST.refresh(); });
   });
-})();
+}, 0);

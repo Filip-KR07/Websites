@@ -8,7 +8,8 @@
   var R = Math.PI / 180;
 
   // Standpose als Basis, alle anderen Posen überschreiben nur, was sich ändert.
-  var BASE = { hx: 200, hy: G - 208, tb: 3, nk: 0, fA: 206, bA: 190, fL: 0, bL: 0, aF: 8, eF: 12, aB: -8, eB: 10 };
+  var BASE = { hx: 200, hy: G - 208, tb: 3, nk: 0, fA: 206, bA: 190, fL: 0, bL: 0, fY: 0, bY: 0, aF: 8, eF: 12, aB: -8, eB: 10 };
+  // fY/bY: Höhe der Standfläche unter dem vorderen/hinteren Fuß (Treppenstufe, Fuß in der Luft)
 
   function pose(p) { var o = {}, k; for (k in BASE) o[k] = BASE[k]; for (k in p) o[k] = p[k]; return o; }
   function lerp(a, b, t) { return a + (b - a) * t; }
@@ -36,10 +37,10 @@
 
   function solve(p) {
     var H = [p.hx, p.hy];
-    var leg = function (ax, lift) {
+    var leg = function (ax, lift, gy) {
       var ly = Math.min(lift, L.foot - 4), run = Math.sqrt(L.foot * L.foot - ly * ly);
-      var toe = [ax + L.foot, G];
-      var A = [toe[0] - run, G - L.ankle - ly];
+      var toe = [ax + L.foot, G - gy];
+      var A = [toe[0] - run, G - gy - L.ankle - ly];
       return { A: A, K: knee(H, A), T: toe, heel: [A[0] - 6, A[1] + L.ankle * 0.9] };
     };
     var tb = p.tb * R, S = [H[0] + L.trunk * Math.sin(tb), H[1] - L.trunk * Math.cos(tb)];
@@ -53,7 +54,7 @@
       H: H, S: S,
       N: [S[0] + 14 * Math.sin(hn), S[1] - 14 * Math.cos(hn)],
       C: [S[0] + 36 * Math.sin(hn), S[1] - 36 * Math.cos(hn)],
-      F: leg(p.fA, p.fL), B: leg(p.bA, p.bL),
+      F: leg(p.fA, p.fL, p.fY), B: leg(p.bA, p.bL, p.bY),
       AF: arm(p.aF, p.eF), AB: arm(p.aB, p.eB)
     };
   }
@@ -77,7 +78,7 @@
       legF: pts([s.H, s.F.K, s.F.A, s.F.T]) + 'M' + f(s.F.A[0]) + ' ' + f(s.F.A[1]) + 'L' + f(s.F.heel[0]) + ' ' + f(s.F.heel[1]),
       trunk: pts([s.H, s.S, s.N]),
       armF: pts([s.S, s.AF.E, s.AF.W]),
-      joints: [s.H, s.F.K, s.F.A, s.S, s.AF.E, s.AF.W],
+      joints: [s.H, s.F.K, s.F.A, s.S, s.AF.E, s.AF.W, s.B.K],
       head: s.C
     };
   }
@@ -115,7 +116,21 @@
   /* ---------- Bewegungen ---------- */
   var STAND = pose({});
   var SEQ = {
-    // Hero: Kniebeuge mit Armheben
+    // Hero: Treppenstufe hinauf und wieder hinunter (Stufe 64 Einheiten hoch, ab x = 262)
+    treppe: [
+      { t: 0, p: pose({ hx: 196, tb: 4, fA: 200, bA: 186, aF: 6, eF: 14, aB: -6, eB: 12 }) },
+      { t: 0.9, p: pose({ hx: 202, hy: G - 210, tb: 8, fA: 238, fY: 84, bA: 186, aF: -16, eF: 22, aB: 18, eB: 16 }) },
+      { t: 1.5, p: pose({ hx: 212, hy: G - 204, tb: 15, nk: -6, fA: 276, fY: 64, bA: 188, bL: 12, aF: -20, eF: 26, aB: 22, eB: 18 }) },
+      { t: 2.6, p: pose({ hx: 266, hy: G - 268, tb: 9, nk: -4, fA: 280, fY: 64, bA: 238, bY: 74, aF: 20, eF: 18, aB: -16, eB: 22 }) },
+      { t: 3.2, p: pose({ hx: 272, hy: G - 272, tb: 3, fA: 282, fY: 64, bA: 266, bY: 64, aF: 6, eF: 14, aB: -6, eB: 12 }) },
+      { t: 3.9, p: pose({ hx: 272, hy: G - 272, tb: 3, fA: 282, fY: 64, bA: 266, bY: 64, aF: 6, eF: 14, aB: -6, eB: 12 }) },
+      { t: 4.7, p: pose({ hx: 258, hy: G - 252, tb: 10, nk: -4, fA: 282, fY: 64, bA: 226, bY: 50, aF: -14, eF: 20, aB: 16, eB: 16 }) },
+      { t: 5.4, p: pose({ hx: 224, hy: G - 216, tb: 7, fA: 282, fY: 64, bA: 198, bY: 0, aF: 14, eF: 16, aB: -12, eB: 14 }) },
+      { t: 6.1, p: pose({ hx: 202, hy: G - 210, tb: 5, fA: 226, fY: 26, bA: 188, aF: -6, eF: 16, aB: 8, eB: 14 }) },
+      { t: 6.7, p: pose({ hx: 196, tb: 4, fA: 200, bA: 186, aF: 6, eF: 14, aB: -6, eB: 12 }) },
+      { t: 7.6, p: pose({ hx: 196, tb: 4, fA: 200, bA: 186, aF: 6, eF: 14, aB: -6, eB: 12 }) }
+    ],
+    // Hero (alt): Kniebeuge mit Armheben
     hero: [
       { t: 0, p: STAND },
       { t: 1.7, p: pose({ hx: 148, hy: G - 128, tb: 36, nk: -14, aF: 168, eF: 6, aB: 156, eB: 6 }) },
@@ -151,7 +166,17 @@
     ]
   };
 
-  var api = { G: G, L: L, BASE: BASE, pose: pose, mix: mix, sample: sample, solve: solve, parts: parts, angle: angle,
+  /* Stationen für „Ihr Weg“: sitzen → aufstehen → Befund → Behandlung → Heimprogramm → laufen */
+  var WEG = [
+    pose({ hx: 150, hy: G - 116, tb: 8, fA: 216, bA: 204, aF: 70, eF: 70, aB: 60, eB: 70 }),
+    pose({ hx: 166, hy: G - 128, tb: 40, nk: -16, fA: 216, bA: 204, aF: 92, eF: 20, aB: 84, eB: 20 }),
+    pose({ tb: -2, nk: -8, aF: 172, eF: 4, aB: 150, eB: 6 }),
+    pose({ hx: 148, hy: G - 128, tb: 36, nk: -14, aF: 100, eF: 6, aB: 90, eB: 6 }),
+    pose({ hy: G - 226, fL: 20, bL: 20, aF: 56, eF: 30, aB: 50, eB: 32 }),
+    pose({ hx: 206, hy: G - 214, tb: 12, nk: -6, fA: 252, fY: 26, bA: 134, bY: 46, bL: 18, aF: -34, eF: 84, aB: 48, eB: 76 })
+  ];
+
+  var api = { WEG: WEG, G: G, L: L, BASE: BASE, pose: pose, mix: mix, sample: sample, solve: solve, parts: parts, angle: angle,
     markup: markup, bind: bind, draw: draw, SEQ: SEQ, duration: function (k) { return SEQ[k][SEQ[k].length - 1].t; }, f: f };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Figur = api;
 })(typeof window !== 'undefined' ? window : this);

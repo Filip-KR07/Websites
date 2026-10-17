@@ -24,7 +24,8 @@ ist als Plansatz eines Dachdeckers gebaut: Der Hero zeigt den Regelschnitt durch
 Gipskarton), auf dem echter Regen (Canvas) abprallt – beim Scrollen fächern die Schichten wie in einer
 Explosionszeichnung nach innen auf, das Schriftfeld des Plans trägt die Vertrauenssignale. Jeder weitere
 Abschnitt ist ein Blatt aus diesem Plansatz: der Konfigurator als angeklebter Baustellenplan, der Dach-Check als
-Wetter-Simulation, die Referenzen als Planstapel, die Zahlen auf einem Zollstock. Bewegungs-Handschrift
+Wetter-Simulation, die Referenzen als Planstapel, die Zahlen auf einem Zollstock, das Team als Meisterbriefe
+an der Lochwand der Werkstatt. Bewegungs-Handschrift
 „Lage für Lage“: schwer, mechanisch, ohne Federn – Bauteile werden abgesenkt und eingerastet
 (`--m-set`, `--m-shift`, `--m-snap`, `--m-step` in `style.css`).
 
@@ -32,7 +33,7 @@ Wetter-Simulation, die Referenzen als Planstapel, die Zahlen auf einem Zollstock
 
 Hero „Regelschnitt“ (Schriftfeld + Legende) · Laufband im Dachwinkel · Leistungen (7 Karten) ·
 Dach-Konfigurator (Baustellenplan) · Vorher/Nachher · Dach-Check (Wetter-Simulation) · Referenzen (Planstapel) ·
-Sturmschaden-Notdienst · Zahlen (Zollstock) · Ablauf · Betrieb/Team · Kundenstimmen (Prüfstempel) ·
+Sturmschaden-Notdienst · Zahlen (Zollstock) · Ablauf · Betrieb/Team (Lochwand) · Kundenstimmen (Prüfstempel) ·
 Einzugsgebiet (SVG-Karte + PLZ-Check) · Karriere · FAQ · Anfrage-Assistent (4 Schritte) · Footer.
 Auf dem Handy: feste Aktionsleiste „Anrufen / Anfrage“.
 
@@ -59,7 +60,9 @@ Auf dem Handy: feste Aktionsleiste „Anrufen / Anfrage“.
    Handy: Wisch-Schiene mit Scroll-Snap. Ohne JS: Raster.
 9. **Zahlen auf dem Zollstock** – vier Glieder klappen beim Scrollen auf, Zähler laufen hoch.
 10. **Mikro-Interaktionen** – Navigation mit rollenden Zeichen, magnetische Haupt-Buttons (nur feiner Zeiger),
-    Unterstreichungen, die sich neu zeichnen, Prüfstempel für die Bewertung, Papierkörnung.
+    Unterstreichungen, die sich neu zeichnen, Prüfstempel für die Bewertung, Papierkörnung,
+    Meisterbriefe, die beim Erscheinen am Haken auspendeln (und bei Hover gerade hängen),
+    Warnleuchte im Notdienst mit hartem Baustellen-Blinken statt weichem Puls.
 
 Ohne JavaScript, bei `prefers-reduced-motion` und mit `?motion=off` bleibt alles sichtbar und bedienbar
 (Regelschnitt statisch halb aufgefächert, Regen als Standbild, Planblätter als Raster).

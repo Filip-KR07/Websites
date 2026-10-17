@@ -1,5 +1,5 @@
 /* Raumlinie Architekten – Modell „Grundriss“ (Demo)
-   Start in Etappen: Header, Menü und Hero sofort; alles darunter in einer Warteschlange. */
+   Konzept „Planmappe“. Start in Etappen: Header, Menü und Hero sofort; alles darunter in einer Warteschlange. */
 (() => {
   'use strict';
 
@@ -19,6 +19,10 @@
     gehoben: 'Gehoben: große Verglasungen, Naturstein, Einbaumöbel, Lüftungsanlage, Smart Home.',
   };
   const ART_TEXT = { neubau: 'Neubau', umbau: 'Umbau / Sanierung', aufstockung: 'Aufstockung' };
+  /* Bauzeitenplan: Zeitachse in Monaten (Breite der Grafik) */
+  const BZ_MONATE = 24;
+  /* Bildschirm-Pixel → Millimeter (96 dpi) für Fadenkreuz und Satzbreite */
+  const PX_MM = 0.2646;
 
 /*MODEL*/
 /* Hausmodell für die Hero-Zeichnung: Maße in Metern (x = Breite, y = Höhe, z = Tiefe).
@@ -100,11 +104,11 @@ const HAUS = (() => {
 })();
 /*ENDMODEL*/
 
-
   const d = document, html = d.documentElement;
   const $ = (s, r = d) => r.querySelector(s), $$ = (s, r = d) => [...r.querySelectorAll(s)];
   const MOTION = html.classList.contains('motion-ok');
   const REDUCED = !MOTION;
+  const FINE = matchMedia('(hover: hover) and (pointer: fine)');
   const hasGSAP = () => typeof window.gsap !== 'undefined' && typeof window.ScrollTrigger !== 'undefined';
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
   const fmt = n => new Intl.NumberFormat('de-DE').format(n);
@@ -162,11 +166,35 @@ const HAUS = (() => {
     if (!t) return;
     e.preventDefault();
     if (mbtn.getAttribute('aria-expanded') === 'true') setMenu(false);
-    if (lenis) lenis.scrollTo(t, { offset: -70, duration: 1.1 });
+    if (lenis) lenis.scrollTo(t, { offset: -70, duration: 1.2 });
     else t.scrollIntoView({ behavior: MOTION ? 'smooth' : 'auto' });
     history.replaceState(null, '', id);
-    if (id !== '#top') setTimeout(() => { t.setAttribute('tabindex', '-1'); t.focus({ preventScroll: true }); }, MOTION ? 900 : 0);
+    if (id !== '#top') setTimeout(() => { t.setAttribute('tabindex', '-1'); t.focus({ preventScroll: true }); }, MOTION ? 1000 : 0);
   });
+
+  /* ---------- Zeichen-Rollen (Navigation, Haupt-Buttons) ---------- */
+  function initRoll() {
+    if (!MOTION) return;
+    $$('[data-roll]').forEach(el => {
+      const t = el.textContent.trim();
+      const sr = d.createElement('span'); sr.className = 'sr-only'; sr.textContent = t;
+      const vis = d.createElement('span'); vis.className = 'roll'; vis.setAttribute('aria-hidden', 'true');
+      let i = 0;
+      t.split(/\s+/).forEach((word, wi) => {
+        if (wi) vis.appendChild(d.createTextNode(' '));
+        const w = d.createElement('span'); w.className = 'w';
+        [...word].forEach(c => {
+          const ch = d.createElement('span'); ch.className = 'ch'; ch.style.setProperty('--i', i++);
+          const inner = d.createElement('span');
+          const a = d.createElement('span'), b = d.createElement('span');
+          a.textContent = b.textContent = c;
+          inner.append(a, b); ch.appendChild(inner); w.appendChild(ch);
+        });
+        vis.appendChild(w);
+      });
+      el.textContent = ''; el.append(sr, vis);
+    });
+  }
 
   /* ---------- Hero: Ansicht → Axonometrie ---------- */
   const hero = $('#hero'), edges = $$('.hz-edges path'), dimG = $$('.hz-dims .dm');
@@ -189,7 +217,49 @@ const HAUS = (() => {
     degLabel.textContent = Math.round(t * 38) + '°';
   }
 
-  /* ---------- Lenis + ScrollTrigger ---------- */
+  /* Satzbreite der Headline als Maßkette in Millimetern */
+  function measureTitle() {
+    const h1 = $('.hero__title'), m = $('.hero__measure'), lab = $('.js-hm');
+    if (!h1 || !m) return;
+    const r0 = h1.getBoundingClientRect(), rg = d.createRange();
+    let right = 0;
+    $$('.ln > span', h1).forEach(s => { rg.selectNodeContents(s); right = Math.max(right, rg.getBoundingClientRect().right - r0.left); });
+    if (!right) return;
+    m.style.width = Math.round(right) + 'px';
+    lab.textContent = `Satzbreite ${fmt(Math.round(right * PX_MM))} mm`;
+  }
+
+  /* Fadenkreuz mit Koordinaten (nur feiner Zeiger, Desktop) */
+  function initCrosshair() {
+    const board = $('.hero__board'), xh = $('.xh');
+    if (!board || !xh || !MOTION) return;
+    const h = $('.xh__h', xh), v = $('.xh__v', xh), c = $('.xh__c', xh);
+    const P = { x: 0, y: 0, tx: 0, ty: 0 };
+    let raf = 0, on = false, rect = null;
+    const loop = () => {
+      P.x += (P.tx - P.x) * 0.22; P.y += (P.ty - P.y) * 0.22;
+      h.style.transform = `translate3d(0, ${P.y.toFixed(1)}px, 0)`;
+      v.style.transform = `translate3d(${P.x.toFixed(1)}px, 0, 0)`;
+      c.style.transform = `translate3d(${(P.x + 12).toFixed(1)}px, ${(P.y + 12).toFixed(1)}px, 0)`;
+      raf = (Math.abs(P.tx - P.x) + Math.abs(P.ty - P.y) > 0.3) ? requestAnimationFrame(loop) : 0;
+    };
+    board.addEventListener('pointerenter', e => {
+      if (!FINE.matches || e.pointerType !== 'mouse' || innerWidth < 900) return;
+      rect = board.getBoundingClientRect(); on = true;
+      P.x = P.tx = e.clientX - rect.left; P.y = P.ty = e.clientY - rect.top;
+      xh.classList.add('is-on');
+    });
+    board.addEventListener('pointermove', e => {
+      if (!on) return;
+      rect = board.getBoundingClientRect();
+      P.tx = e.clientX - rect.left; P.ty = e.clientY - rect.top;
+      c.textContent = `X ${fmt(Math.round(P.tx * PX_MM))} · Y ${fmt(Math.round(P.ty * PX_MM))} mm`;
+      if (!raf) raf = requestAnimationFrame(loop);
+    });
+    board.addEventListener('pointerleave', () => { on = false; xh.classList.remove('is-on'); });
+  }
+
+  /* ---------- Lenis + ScrollTrigger: Hero sofort, Rest in der Warteschlange ---------- */
   function initScroll() {
     if (!hasGSAP()) return;
     gsap.registerPlugin(ScrollTrigger);
@@ -201,6 +271,8 @@ const HAUS = (() => {
       gsap.ticker.lagSmoothing(0);
     }
     if (!MOTION) return;
+    // Sticky-Höhen früh setzen (Abschnitte liegen unter dem ersten Bildschirm)
+    const sx = $('#bestand'); sx && sx.classList.add('is-live');
     const st = { p: 0 };
     const mm = gsap.matchMedia();
     mm.add('(min-width: 900px)', () => {
@@ -213,6 +285,42 @@ const HAUS = (() => {
     });
   }
 
+  /* ---------- Set Piece: Schnitt Bestand → Abbruch → Neubau ---------- */
+  function initSection() {
+    const sx = $('#bestand');
+    if (!sx || !MOTION || !hasGSAP()) return;
+    const bP = $$('.sx-b path[pathLength]', sx), bF = $$('.sx-b .fillx', sx), bT = $$('.sx-b text, .sx-b .fig', sx);
+    const A = $('.sx-a', sx), nP = $$('.sx-n path[pathLength]', sx), nF = $$('.sx-n .filln', sx), nT = $$('.sx-n text, .sx-n .fig', sx);
+    const D = $('.sx-d', sx), steps = $$('.sx__steps li', sx);
+    [...bP, ...nP].forEach(p => { p.style.strokeDasharray = '1'; });
+    let step = -1;
+    const op = (els, v) => els.forEach(e => { e.style.opacity = v; });
+    const dash = (els, v) => els.forEach(e => { e.style.strokeDashoffset = v; });
+    function render(p) {
+      const b = clamp(p / 0.26), a = clamp((p - 0.3) / 0.2), n = clamp((p - 0.52) / 0.3), m = clamp((p - 0.82) / 0.12);
+      dash(bP, (1 - b).toFixed(3)); op(bF, clamp((b - 0.55) / 0.45).toFixed(2)); op(bT, clamp((b - 0.7) / 0.3).toFixed(2));
+      A.style.opacity = b < 1 ? clamp((b - 0.6) / 0.4) : (1 - a * 0.45).toFixed(2);
+      A.style.transform = `translateY(${(-a * 22).toFixed(1)}px)`;
+      A.classList.toggle('is-solid', a < 0.04);
+      dash(nP, (1 - n).toFixed(3)); op(nF, clamp((n - 0.45) / 0.55).toFixed(2)); op(nT, clamp((n - 0.7) / 0.3).toFixed(2));
+      D.style.opacity = m.toFixed(2);
+      const s = p < 0.3 ? 0 : p < 0.52 ? 1 : 2;
+      if (s !== step) { step = s; steps.forEach((li, i) => li.classList.toggle('is-on', i === s)); }
+    }
+    render(0);
+    ScrollTrigger.create({ trigger: sx, start: 'top top', end: 'bottom bottom', scrub: 0.4, onUpdate: self => render(self.progress) });
+  }
+
+  /* ---------- Set Piece: Lichtpause – Kapitel ziehen ihren Hintergrund von links auf ---------- */
+  function initWipes() {
+    if (!MOTION || !hasGSAP()) return;
+    $$('.sec.tone-dark, .sec.tone-blue').forEach(sec => {
+      const bg = d.createElement('div'); bg.className = 'sec__bg'; bg.setAttribute('aria-hidden', 'true');
+      sec.prepend(bg); sec.classList.add('has-wipe');
+      gsap.fromTo(bg, { clipPath: 'inset(0% 100% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', ease: 'power2.inOut', scrollTrigger: { trigger: sec, start: 'top bottom', end: 'top 50%', scrub: true } });
+    });
+  }
+
   /* ---------- Reveal ---------- */
   function initReveal() {
     const els = $$('[data-reveal]'), groups = $$('[data-reveal-group]');
@@ -222,21 +330,60 @@ const HAUS = (() => {
         if (!en.isIntersecting) return;
         const el = en.target;
         if (el.hasAttribute('data-reveal-group')) {
-          [...el.children].filter(c => !c.hidden).forEach((c, i) => { c.style.transitionDelay = Math.min(i, 9) * 50 + 'ms'; c.classList.add('is-in'); setTimeout(() => { c.style.transitionDelay = ''; }, 1200); });
-        } else el.classList.add('is-in');
+          [...el.children].filter(c => !c.hidden).forEach((c, i) => { c.style.transitionDelay = Math.min(i, 9) * 55 + 'ms'; c.classList.add('is-in'); setTimeout(() => { c.style.transitionDelay = ''; }, 1400); });
+        } else {
+          el.classList.add('is-in');
+          if (el.classList.contains('rg__map')) setTimeout(() => el.classList.add('is-done'), 2100);
+        }
         io.unobserve(el);
       });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
     els.forEach(e => io.observe(e)); groups.forEach(g => io.observe(g));
   }
 
-  /* ---------- Aktive Navigation ---------- */
+  /* ---------- Aktive Navigation + Blatt-Nummer im Planrahmen ---------- */
   function initNav() {
     const links = $$('.nav a'), map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+    const sheet = $('.frame__sheet'), no = $('.js-sheet-no'), tt = $('.js-sheet-t'), ms = $('.js-sheet-m');
+    let cur = null, timer = 0;
     const io = new IntersectionObserver(entries => {
-      entries.forEach(en => { const a = map.get(en.target.id); if (a && en.isIntersecting) { links.forEach(l => l.classList.remove('is-active')); a.classList.add('is-active'); } });
-    }, { rootMargin: '-45% 0px -50% 0px' });
-    map.forEach((a, id) => { const s = d.getElementById(id); s && io.observe(s); });
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        const s = en.target;
+        const a = map.get(s.id);
+        if (a) { links.forEach(l => l.classList.remove('is-active')); a.classList.add('is-active'); }
+        else if (s.id === 'hero' || s.id === 'leistungen') links.forEach(l => l.classList.remove('is-active'));
+        if (s === cur || !s.dataset.sheet) return;
+        cur = s;
+        html.dataset.tone = s.classList.contains('tone-dark') ? 'dark' : s.classList.contains('tone-blue') ? 'blue' : 'paper';
+        const apply = () => { no.textContent = s.dataset.sheet; tt.textContent = s.dataset.sheetT; ms.textContent = s.dataset.sheetM; sheet.classList.remove('is-swap'); };
+        clearTimeout(timer);
+        if (MOTION && sheet.offsetParent !== null) { sheet.classList.add('is-swap'); timer = setTimeout(apply, 180); } else apply();
+      });
+    }, { rootMargin: '-50% 0px -50% 0px' });
+    $$('main > section').forEach(s => io.observe(s));
+  }
+
+  /* ---------- Magnetische Buttons (nur feiner Zeiger) ---------- */
+  function initMagnet() {
+    if (!MOTION) return;
+    $$('.btn--mag').forEach(el => {
+      const P = { x: 0, y: 0, tx: 0, ty: 0 }; let raf = 0;
+      const loop = () => {
+        P.x += (P.tx - P.x) * 0.2; P.y += (P.ty - P.y) * 0.2;
+        el.style.translate = `${P.x.toFixed(2)}px ${P.y.toFixed(2)}px`;
+        raf = (Math.abs(P.tx - P.x) + Math.abs(P.ty - P.y) > 0.05) ? requestAnimationFrame(loop) : 0;
+        if (!raf && !P.tx && !P.ty) el.style.translate = '';
+      };
+      el.addEventListener('pointermove', e => {
+        if (!FINE.matches || e.pointerType !== 'mouse') return;
+        const r = el.getBoundingClientRect();
+        P.tx = clamp((e.clientX - r.left - r.width / 2) * 0.16, -6, 6);
+        P.ty = clamp((e.clientY - r.top - r.height / 2) * 0.3, -4, 4);
+        if (!raf) raf = requestAnimationFrame(loop);
+      });
+      el.addEventListener('pointerleave', () => { P.tx = 0; P.ty = 0; if (!raf) raf = requestAnimationFrame(loop); });
+    });
   }
 
   /* ---------- Projektindex: Filter + Vorschau am Cursor ---------- */
@@ -248,15 +395,14 @@ const HAUS = (() => {
       let k = 0;
       rows.forEach(r => {
         const show = f === 'alle' || r.dataset.type === f;
-        const was = !r.hidden;
         r.hidden = !show;
         r.classList.add('is-in');
-        if (show && MOTION) { r.classList.remove('is-enter'); void r.offsetWidth; r.style.setProperty('--k', k); r.classList.add('is-enter'); }
+        r.classList.remove('is-enter');
+        if (show && MOTION) { void r.offsetWidth; r.style.setProperty('--k', k); r.classList.add('is-enter'); }
         if (show) k++;
-        if (!show && was) r.classList.remove('is-enter');
       });
       count.textContent = k;
-      if (list.scrollLeft) list.scrollTo({ left: 0 });
+      if (list.scrollLeft) list.scrollTo({ left: 0, behavior: MOTION ? 'smooth' : 'auto' });
     }));
     list.addEventListener('animationend', e => e.target.classList.remove('is-enter'));
 
@@ -279,14 +425,14 @@ const HAUS = (() => {
       const k = REDUCED ? 1 : 0.16;
       const dx = pos.tx - pos.x, dy = pos.ty - pos.y;
       pos.x += dx * k; pos.y += dy * k;
-      pos.r += ((clamp(dx * 0.04, -6, 6)) - pos.r) * 0.12;
+      pos.r += ((clamp(dx * 0.04, -5, 5)) - pos.r) * 0.12;
       pv.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0) rotate(${REDUCED ? 0 : pos.r.toFixed(2)}deg)`;
       if (on || Math.abs(dx) + Math.abs(dy) > 0.5) raf = requestAnimationFrame(loop); else raf = 0;
     }
     function target(e) {
       const w = pv.offsetWidth || 340, h = w * 0.75 + 30;
-      let x = e.clientX + 36; if (x + w > innerWidth - 16) x = e.clientX - w - 36;
-      const y = clamp(e.clientY - h / 2, 76, innerHeight - h - 16);
+      let x = e.clientX + 40; if (x + w > innerWidth - 24) x = e.clientX - w - 40;
+      const y = clamp(e.clientY - h / 2, 80, innerHeight - h - 20);
       pos.tx = x; pos.ty = y;
     }
     list.addEventListener('pointerenter', e => {
@@ -300,7 +446,7 @@ const HAUS = (() => {
       if (row && row !== active) {
         active = row;
         Object.values(imgs).forEach(im => im.classList.toggle('is-on', im === imgs[row.dataset.img]));
-        cap.textContent = `${$('.pi__no', row).textContent} — ${$('.pi__t', row).firstChild.textContent.trim()} · ${$('.pi__y', row).textContent}`;
+        cap.textContent = `Blatt ${$('.pi__no', row).textContent} — ${$('.pi__t', row).firstChild.textContent.trim()} · ${$('.pi__o', row).textContent} · ${$('.pi__y', row).textContent}`;
       }
       if (!raf) raf = requestAnimationFrame(loop);
     });
@@ -309,9 +455,25 @@ const HAUS = (() => {
 
   /* ---------- Grundriss-Explorer ---------- */
   function initPlan() {
-    const svg = $('.plan'), rooms = $$('.room', svg), info = $('.gx__info');
+    const svg = $('.plan'), rooms = $$('.room', svg), info = $('.gx__info'), sel = $('.gr-sel', svg);
     const nm = $('.js-rname'), ar = $('.js-rarea'), dm = $('.js-rdim'), or = $('.js-ro'), tx = $('.js-rinfo');
+    const NS = 'http://www.w3.org/2000/svg';
+    const mk = (tag, at) => { const e = d.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); return e; };
+    svg.classList.add('has-sel');
     let timer = 0;
+    // Bemaßung des gewählten Raums: Maßketten innen an Ober- und linker Kante
+    function drawDims(r) {
+      const f = $('.room-fill', r), x = +f.getAttribute('x'), y = +f.getAttribute('y'), w = +f.getAttribute('width'), h = +f.getAttribute('height');
+      sel.textContent = '';
+      const yy = y + 16, xx = x + 16, t = 4;
+      const hp = `M${x + 4} ${yy}H${x + w - 4}M${x + 4 - t} ${yy + t}L${x + 4 + t} ${yy - t}M${x + w - 4 - t} ${yy + t}L${x + w - 4 + t} ${yy - t}`;
+      const vp = `M${xx} ${y + 4}V${y + h - 4}M${xx - t} ${y + 4 + t}L${xx + t} ${y + 4 - t}M${xx - t} ${y + h - 4 + t}L${xx + t} ${y + h - 4 - t}`;
+      sel.append(mk('path', { d: hp, pathLength: 1 }), mk('path', { d: vp, pathLength: 1 }));
+      const lw = 38;
+      if (w > 60) { sel.append(mk('rect', { x: x + w / 2 - lw / 2, y: yy - 8, width: lw, height: 15 })); const t1 = mk('text', { x: x + w / 2, y: yy + 4 }); t1.textContent = r.dataset.w; sel.append(t1); }
+      if (h > 60) { const cx = xx, cy = y + h / 2; sel.append(mk('rect', { x: cx - 8, y: cy - lw / 2, width: 15, height: lw })); const t2 = mk('text', { x: cx + 4, y: cy, transform: `rotate(-90 ${cx + 4} ${cy})` }); t2.textContent = r.dataset.h; sel.append(t2); }
+      sel.classList.remove('is-draw'); sel.getBoundingClientRect(); sel.classList.add('is-draw');
+    }
     function select(r, focus) {
       rooms.forEach(x => x.setAttribute('aria-pressed', String(x === r)));
       const apply = () => {
@@ -321,6 +483,7 @@ const HAUS = (() => {
       };
       clearTimeout(timer);
       if (MOTION) { info.classList.add('is-swap'); timer = setTimeout(apply, 140); } else apply();
+      drawDims(r);
       if (focus) r.focus();
     }
     rooms.forEach((r, i) => {
@@ -332,39 +495,74 @@ const HAUS = (() => {
       });
     });
     rooms[0].setAttribute('aria-pressed', 'true');
+    drawDims(rooms[0]); sel.classList.remove('is-draw');
     $$('.gx__tg input').forEach(inp => {
       const sync = () => svg.classList.toggle('is-' + inp.dataset.layer, inp.checked);
       inp.addEventListener('change', sync); sync();
     });
   }
 
-  /* ---------- Leistungsphasen ---------- */
+  /* ---------- Leistungsphasen als Bauzeitenplan ---------- */
   function initPhases() {
-    const tabs = $$('.ph__tabs [role="tab"]'), panels = $$('.ph__p'), fill = $('.ph__fill'), fee = $$('.ph__fee span');
+    const tabs = $$('.bz__rows [role="tab"]'), panels = $$('.ph__p');
     let cur = 0;
     function sel(i, focus) {
       i = (i + tabs.length) % tabs.length;
       tabs.forEach((t, k) => { t.setAttribute('aria-selected', String(k === i)); t.tabIndex = k === i ? 0 : -1; });
       panels.forEach((p, k) => { p.hidden = k !== i; p.classList.remove('is-enter'); });
       if (MOTION && i !== cur) { void panels[i].offsetWidth; panels[i].classList.add('is-enter'); }
-      fee.forEach((f, k) => f.classList.toggle('is-on', k === i));
-      fill.style.transform = `scaleX(${(i + 1) / tabs.length})`;
       cur = i;
       if (focus) tabs[i].focus();
     }
     tabs.forEach((t, i) => {
       t.addEventListener('click', () => sel(i));
       t.addEventListener('keydown', e => {
-        const k = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+        const k = { ArrowDown: i + 1, ArrowRight: i + 1, ArrowUp: i - 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
         if (k !== undefined) { e.preventDefault(); sel(k, true); }
       });
     });
     $('.js-ph-prev').addEventListener('click', () => sel(cur - 1));
     $('.js-ph-next').addEventListener('click', () => sel(cur + 1));
     sel(0);
+    // Stichtag-Linie läuft mit dem Scrollen durch den Plan, Balken füllen sich
+    if (!MOTION || !hasGSAP()) return;
+    const body = $('.bz__body'), now = $('.bz__now'), line = $('.bz__nowl'), lab = $('.bz__nowt'), out = $('.js-now');
+    const bars = $$('.bz__bar').map(b => ({ i: $('i', b), s: parseFloat(b.style.getPropertyValue('--s')), d: parseFloat(b.style.getPropertyValue('--d')) }));
+    now.classList.add('is-live');
+    let w = now.clientWidth, lastM = -1;
+    function render(p) {
+      const m = p * BZ_MONATE, x = (p * w).toFixed(1);
+      line.style.transform = `translateX(${x}px)`;
+      lab.style.transform = `translateX(${Math.min(+x, w - 70).toFixed(1)}px)`;
+      bars.forEach(b => { b.i.style.transform = `scaleX(${clamp((m - b.s) / b.d).toFixed(3)})`; });
+      const mi = Math.round(m);
+      if (mi !== lastM) { lastM = mi; out.textContent = mi; }
+    }
+    render(0);
+    ScrollTrigger.create({ trigger: body, start: 'top 78%', end: 'bottom 40%', scrub: 0.35, onUpdate: self => render(self.progress), onRefresh: self => { w = now.clientWidth; render(self.progress); } });
   }
 
-  /* ---------- Kostenrahmen-Rechner ---------- */
+  /* ---------- Kostenrahmen-Rechner (mit Ziffernrollen) ---------- */
+  function odo(el, str) {
+    if (!MOTION) { el.textContent = str; return; }
+    if (el.dataset.v === str) return;
+    const chars = [...str];
+    if (!el.dataset.v || el.dataset.v.length !== str.length) {
+      el.textContent = '';
+      chars.forEach(c => {
+        if (/\d/.test(c)) {
+          const dg = d.createElement('span'); dg.className = 'dg';
+          const col = d.createElement('span');
+          for (let n = 0; n < 10; n++) { const s = d.createElement('span'); s.textContent = n; col.appendChild(s); }
+          dg.appendChild(col); el.appendChild(dg);
+        } else { const s = d.createElement('span'); s.className = 'sep'; s.textContent = c; el.appendChild(s); }
+      });
+      el.getBoundingClientRect();
+    }
+    const cols = $$('.dg > span', el), digits = chars.filter(c => /\d/.test(c));
+    cols.forEach((col, k) => { col.style.setProperty('--i', cols.length - 1 - k); col.style.transform = `translateY(${-digits[k]}em)`; });
+    el.dataset.v = str;
+  }
   function initCalc() {
     const form = $('#kr'), range = $('#bgf'), out = $('#bgf-out');
     const el = s => $(s);
@@ -377,7 +575,8 @@ const HAUS = (() => {
       const sum = [bau[0] + neb[0], bau[1] + neb[1]];
       out.textContent = bgf;
       range.style.setProperty('--fill', ((bgf - range.min) / (range.max - range.min) * 100).toFixed(1) + '%');
-      el('.js-kmin').textContent = fmt(sum[0]); el('.js-kmax').textContent = fmt(sum[1]);
+      odo(el('.js-kmin'), fmt(sum[0])); odo(el('.js-kmax'), fmt(sum[1]));
+      el('.js-ksr').textContent = `${fmt(sum[0])} bis ${fmt(sum[1])} €`;
       el('.js-kbau').textContent = `${fmt(bau[0])} – ${fmt(bau[1])} €`;
       el('.js-kneben').textContent = `${fmt(neb[0])} – ${fmt(neb[1])} €`;
       el('.js-kqm').textContent = `${fmt(a)} – ${fmt(b)} €/m² BGF`;
@@ -428,8 +627,12 @@ const HAUS = (() => {
   }
 
   /* ---------- Start ---------- */
+  initRoll();
   initScroll();
-  const queue = [initReveal, initNav, initProjects, initPlan, initPhases, initCalc, initForm, () => { if (hasGSAP()) ScrollTrigger.refresh(); window.__raumReady = true; }];
+  initCrosshair();
+  if (d.fonts && d.fonts.ready) d.fonts.ready.then(measureTitle); else measureTitle();
+  let rz = 0; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(measureTitle, 150); });
+  const queue = [initReveal, initNav, initMagnet, initSection, initWipes, initProjects, initPlan, initPhases, initCalc, initForm, () => { if (hasGSAP()) ScrollTrigger.refresh(); window.__raumReady = true; }];
   const idle = window.requestIdleCallback ? cb => requestIdleCallback(cb, { timeout: 120 }) : cb => setTimeout(cb, 16);
   function run() {
     const t0 = performance.now();

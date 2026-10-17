@@ -29,9 +29,9 @@ Fokus-Hero (Sehtafel-Headline, freigestellte Brille, WebGL-Linse, Siegel) · Seh
 ## Lokal starten
 ```
 cd /home/user/Websites
-python3 -m http.server 8926
+python3 -m http.server 8921
 ```
-Dann http://127.0.0.1:8926/arena/optik-klarsicht/ öffnen. `?motion=off` schaltet Animationen ab; `prefers-reduced-motion` wird respektiert.
+Dann http://127.0.0.1:8921/arena/optik-klarsicht/ öffnen. `?motion=off` schaltet Animationen ab; `prefers-reduced-motion` wird respektiert.
 
 ## Technik
 GSAP 3.13 + ScrollTrigger und Lenis liegen unter `assets/vendor/`. Schrift Onest (Variable Font, nur `latin`) selbst gehostet unter `assets/fonts/`, Lizenz dabei. Keine externen Anfragen, keine Cookies.

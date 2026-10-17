@@ -1423,6 +1423,7 @@
     if (!list || !hasGSAP || reduced()) return;
     var items = qsa('li', list);
     list.style.setProperty('--grow', '0');
+    list.classList.add('is-growing');
     ScrollTrigger.create({
       trigger: list, start: 'top 82%', end: 'bottom 58%',
       onUpdate: function (s) {
@@ -1501,22 +1502,26 @@
     safe('header', initHeader);
     safe('menu', initMenu);
     safe('seasons', initSeasons);
-    safe('intro', initIntro);
-    safe('contours', initContours);
-    safe('garden', initGarden);
-    safe('reveal', initReveal);
+    // Hero-Grafik in eigenen Tasks (Text ist per CSS längst sichtbar) – hält den Start-Task kurz
+    var heroJobs = [['intro', initIntro], ['garden', initGarden], ['contours', initContours], ['reveal', initReveal]];
+    (function hero() {
+      var job = heroJobs.shift();
+      if (!job) { setTimeout(next, 0); return; }
+      safe(job[0], job[1]);
+      setTimeout(hero, 0);
+    })();
     // Danach in eigenen kurzen Tasks (kein langer Start-Task, Intro und Eingaben bleiben flüssig)
     var queue = [
       ['services', initServices], ['form', initForm], ['planner', initPlanner], ['soil', initSoil],
       ['beforeAfter', initBeforeAfter], ['projects', initProjects], ['plants', initPlants], ['map', initMap],
       ['facts', initFacts], ['materials', initMaterials], ['process', initProcess], ['vine', initVine], ['magnet', initMagnet], ['roll', initRoll]
     ];
-    (function next() {
+    function next() {
       var job = queue.shift();
       if (!job) { if (hasGSAP) ScrollTrigger.refresh(); return; }
       safe(job[0], job[1]);
       setTimeout(next, 0);
-    })();
+    }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

@@ -53,6 +53,13 @@
 <body>
 <a class="skip" href="#inhalt">Zum Inhalt springen</a>
 
+<!-- Planrahmen: Feldeinteilung wie auf einem Zeichnungsblatt (nur Desktop, Dekor) -->
+<div class="frame" aria-hidden="true">
+  <div class="frame__x"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span></div>
+  <div class="frame__y"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span></div>
+  <p class="frame__sheet"><span class="frame__k">Blatt</span> <b class="js-sheet-no">A-01</b> <span class="frame__sep"></span> <span class="js-sheet-t">Ansicht Süd → Axonometrie</span> <span class="frame__sep"></span> <span class="js-sheet-m">M 1:100</span> <span class="frame__sep"></span> <span class="frame__k">von 12</span></p>
+</div>
+
 <header class="hdr" id="top">
   <div class="hdr__in">
     <a class="logo" href="/arena/architektur-raumlinie/" aria-label="Raumlinie Architekten – Startseite">
@@ -61,14 +68,14 @@
     </a>
     <nav class="nav" aria-label="Hauptnavigation">
       <ul>
-        <li><a href="#projekte">Projekte</a></li>
-        <li><a href="#grundriss">Grundriss</a></li>
-        <li><a href="#phasen">Ablauf</a></li>
-        <li><a href="#kosten">Kosten</a></li>
-        <li><a href="#buero">Büro</a></li>
+        <li><a href="#projekte" data-roll>Projekte</a></li>
+        <li><a href="#grundriss" data-roll>Grundriss</a></li>
+        <li><a href="#phasen" data-roll>Ablauf</a></li>
+        <li><a href="#kosten" data-roll>Kosten</a></li>
+        <li><a href="#buero" data-roll>Büro</a></li>
       </ul>
     </nav>
-    <a class="hdr__tel" href="tel:+497115552860"><span class="mono">T</span> 0711&nbsp;555&nbsp;28&nbsp;60</a>
+    <a class="hdr__tel" href="tel:+497115552860">0711&nbsp;555&nbsp;28&nbsp;60</a>
     <a class="btn btn--sm hdr__cta" href="#kontakt">Erstgespräch</a>
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menü öffnen"><span></span><span></span></button>
   </div>
@@ -78,13 +85,13 @@
 <div class="menu" id="menu" hidden>
   <nav aria-label="Mobile Navigation">
     <ol>
-      <li><a href="#leistungen"><span class="mono">01</span>Leistungen</a></li>
-      <li><a href="#projekte"><span class="mono">02</span>Projekte</a></li>
-      <li><a href="#grundriss"><span class="mono">03</span>Grundriss</a></li>
-      <li><a href="#phasen"><span class="mono">04</span>Ablauf</a></li>
-      <li><a href="#kosten"><span class="mono">05</span>Kosten</a></li>
-      <li><a href="#buero"><span class="mono">06</span>Büro</a></li>
-      <li><a href="#kontakt"><span class="mono">07</span>Kontakt</a></li>
+      <li><a href="#leistungen"><span class="mono">A-02</span>Leistungen</a></li>
+      <li><a href="#projekte"><span class="mono">A-04</span>Projekte</a></li>
+      <li><a href="#grundriss"><span class="mono">A-05</span>Grundriss</a></li>
+      <li><a href="#phasen"><span class="mono">A-06</span>Ablauf</a></li>
+      <li><a href="#kosten"><span class="mono">A-07</span>Kosten</a></li>
+      <li><a href="#buero"><span class="mono">A-08</span>Büro</a></li>
+      <li><a href="#kontakt"><span class="mono">A-12</span>Kontakt</a></li>
     </ol>
   </nav>
   <p class="menu__meta mono">Rotebühlstraße 121 · 70178 Stuttgart<br>Mo–Fr 9–18&nbsp;Uhr · <a href="tel:+497115552860">0711&nbsp;555&nbsp;28&nbsp;60</a></p>
@@ -92,95 +99,181 @@
 
 <main id="inhalt">
 
-<!-- ============ HERO ============ -->
-<section class="hero" id="hero" aria-labelledby="hero-title">
+<!-- ============ A-01 HERO: Zeichenbrett ============ -->
+<section class="hero" id="hero" aria-labelledby="hero-title" data-sheet="A-01" data-sheet-t="Ansicht Süd → Axonometrie" data-sheet-m="M 1:100">
   <div class="hero__stage">
-    <div class="hero__grid wrap">
-      <div class="hero__text">
-        <p class="eyebrow mono"><span class="dot" aria-hidden="true"></span>Architekturbüro · Stuttgart-West · seit 2009</p>
-        <h1 id="hero-title" class="hero__title">Gebaut wird, was vorher stimmt.</h1>
-        <p class="hero__lead">Wir planen Wohnhäuser, Umbauten im Bestand und Aufstockungen in Stuttgart und der Region – mit einem belastbaren Kostenrahmen ab der ersten Skizze und einer festen Ansprechperson bis zur Schlüsselübergabe.</p>
-        <div class="hero__cta">
-          <a class="btn" href="#kontakt">Erstgespräch vereinbaren</a>
-          <a class="btn btn--ghost" href="#projekte">Projekte ansehen</a>
-        </div>
-        <dl class="hero__facts">
-          <div><dt class="mono">Preise</dt><dd><span class="tn">3</span> Architekturpreise</dd></div>
-          <div><dt class="mono">Realisiert</dt><dd><span class="tn">86</span> Projekte</dd></div>
-          <div><dt class="mono">Kammer</dt><dd>Mitglied AKBW</dd></div>
-        </dl>
-      </div>
+    <div class="hero__board">
+      <h1 id="hero-title" class="hero__title"><span class="ln"><span>Gebaut wird,</span></span> <span class="ln"><span>was vorher</span></span> <span class="ln ln--m"><span>stimmt.</span></span></h1>
+      <div class="hero__measure" aria-hidden="true"><i></i><span class="mono js-hm">Satzbreite</span><i></i></div>
+
       <figure class="hero__draw" aria-label="Linienzeichnung eines Wohnhauses mit Anbau: erst Südansicht, beim Scrollen Axonometrie, mit Bemaßung in Metern">
         <svg class="haus" viewBox="0 100 800 490" role="img" aria-labelledby="haus-t">
           <title id="haus-t">Haus am Killesberg – Ansicht Süd und Axonometrie, bemaßt</title>
           <g class="hz-edges"><path class="e e--k" d="M305 477.6L685 477.6"  pathLength="1" style="--i:0"/><path class="e e--k" d="M685 477.6L685 249.6"  pathLength="1" style="--i:1"/><path class="e e--k" d="M685 249.6L495 135.6"  pathLength="1" style="--i:2"/><path class="e e--k" d="M495 135.6L305 249.6"  pathLength="1" style="--i:3"/><path class="e e--k" d="M305 249.6L305 348.4"  pathLength="1" style="--i:4"/><path class="e e--k" d="M685 477.6L685 249.6"  pathLength="1" style="--i:5"/><path class="e e--k" d="M685 249.6L495 135.6"  pathLength="1" style="--i:6"/><path class="e e--k" d="M495 135.6L305 249.6"  pathLength="1" style="--i:7"/><path class="e e--k" d="M685 477.6L685 477.6"  pathLength="1" style="--i:8"/><path class="e e--k" d="M685 249.6L685 249.6"  pathLength="1" style="--i:9"/><path class="e e--k" d="M305 249.6L305 249.6"  pathLength="1" style="--i:10"/><path class="e e--k" d="M495 135.6L495 135.6"  pathLength="1" style="--i:11"/><path class="e e--h" d="M305 477.6L685 477.6" /><path class="e e--h" d="M305 249.6L305 477.6" /><path class="e e--h" d="M305 477.6L305 477.6" /><path class="e e--k" d="M115 477.6L305 477.6"  pathLength="1" style="--i:15"/><path class="e e--k" d="M115 477.6L115 348.4"  pathLength="1" style="--i:16"/><path class="e e--k" d="M115 348.4L305 348.4"  pathLength="1" style="--i:17"/><path class="e e--k" d="M115 348.4L115 348.4"  pathLength="1" style="--i:18"/><path class="e e--k" d="M115 348.4L305 348.4"  pathLength="1" style="--i:19"/><path class="e e--k" d="M305 348.4L305 348.4"  pathLength="1" style="--i:20"/><path class="e e--h" d="M115 477.6L115 477.6" /><path class="e e--h" d="M115 477.6L115 348.4" /><path class="e e--h" d="M115 477.6L305 477.6" /><path class="e e--f" d="M115 359.8L305 359.8"  pathLength="1" style="--i:24"/><path class="e e--w" d="M350.6 477.6L479.8 477.6L479.8 378.8L350.6 378.8Z"  pathLength="1" style="--i:25"/><path class="e e--w" d="M555.8 477.6L601.4 477.6L601.4 386.4L555.8 386.4Z"  pathLength="1" style="--i:26"/><path class="e e--w" d="M365.8 340.8L441.8 340.8L441.8 287.6L365.8 287.6Z"  pathLength="1" style="--i:27"/><path class="e e--w" d="M548.2 340.8L624.2 340.8L624.2 287.6L548.2 287.6Z"  pathLength="1" style="--i:28"/><path class="e e--w" d="M472.2 226.8L517.8 226.8L517.8 185L472.2 185Z"  pathLength="1" style="--i:29"/><path class="e e--w" d="M137.8 458.6L278.4 458.6L278.4 378.8L137.8 378.8Z"  pathLength="1" style="--i:30"/><path class="e e--f" d="M415.2 477.6L415.2 378.8"  pathLength="1" style="--i:31"/><path class="e e--f" d="M365.8 314.2L441.8 314.2"  pathLength="1" style="--i:32"/><path class="e e--f" d="M548.2 314.2L624.2 314.2"  pathLength="1" style="--i:33"/><path class="e e--w" d="M685 340.8L685 340.8L685 287.6L685 287.6Z"  pathLength="1" style="--i:34"/><path class="e e--w" d="M685 447.2L685 447.2L685 378.8L685 378.8Z"  pathLength="1" style="--i:35"/><path class="e e--w" d="M542.5 164.1L599.5 198.3L599.5 198.3L542.5 164.1Z"  pathLength="1" style="--i:36"/><path class="e e--w" d="M542.5 164.1L599.5 198.3L599.5 198.3L542.5 164.1Z"  pathLength="1" style="--i:37"/><path class="e e--g" d="M39 477.6L742 477.6L742 477.6L39 477.6Z" /></g><g class="hz-dims"><g class="dm dm--x"><path d="M112 519.4L308 519.4M111.5 515.9L118.5 522.9M301.5 515.9L308.5 522.9"/><text x="210" y="513.4" text-anchor="middle">5,00</text></g><g class="dm dm--x"><path d="M302 519.4L688 519.4M301.5 515.9L308.5 522.9M681.5 515.9L688.5 522.9"/><text x="495" y="513.4" text-anchor="middle">10,00</text></g><g class="dm dm--x"><path d="M112 557.4L688 557.4M111.5 553.9L118.5 560.9M681.5 553.9L688.5 560.9"/><text x="400" y="551.4" text-anchor="middle">15,00</text></g><g class="dm dm--y"><path d="M65.6 480.6L65.6 345.4M62.1 481.1L69.1 474.1M62.1 351.9L69.1 344.9"/><text x="56.6" y="416" text-anchor="end">3,40</text></g><g class="dm dm--y"><path d="M65.6 351.4L65.6 246.6M62.1 351.9L69.1 344.9M62.1 253.1L69.1 246.1"/><text x="56.6" y="302" text-anchor="end">2,60</text></g><g class="dm dm--y"><path d="M65.6 252.6L65.6 132.6M62.1 253.1L69.1 246.1M62.1 139.1L69.1 132.1"/><text x="56.6" y="195.6" text-anchor="end">3,00</text></g><g class="dm dm--z"><path d="M734.4 477.6L734.4 477.6M734.4 477.6L734.4 477.6M734.4 477.6L734.4 477.6"/><text x="734.4" y="480.6" text-anchor="middle">8,00</text></g><g class="dm dm--z"><path d="M92.2 348.4L92.2 348.4M92.2 348.4L92.2 348.4M92.2 348.4L92.2 348.4"/><text x="92.2" y="351.4" text-anchor="middle">6,00</text></g></g>
         </svg>
-        <figcaption class="stamp" aria-hidden="true">
-          <span class="stamp__c stamp__c--wide"><b class="mono">Projekt</b>Haus am Killesberg</span>
-          <span class="stamp__c"><b class="mono">Blatt</b><span class="tn">A-01</span></span>
-          <span class="stamp__c"><b class="mono">Maßstab</b><span class="tn">1:100</span></span>
-          <span class="stamp__c stamp__c--wide"><b class="mono">Darstellung</b><span class="js-view">Ansicht Süd</span></span>
-          <span class="stamp__c"><b class="mono">Drehung</b><span class="tn js-deg">0°</span></span>
-          <span class="stamp__c"><b class="mono">Gez.</b>HV / TM</span>
-        </figcaption>
-        <p class="hero__hint mono" aria-hidden="true"><span></span>Scrollen dreht die Zeichnung</p>
+        <span class="hero__north" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="15"/><path d="M20 7L25 27L20 23L15 27Z"/></svg><b class="mono">N</b></span>
       </figure>
+
+      <div class="hero__foot">
+        <p class="hero__lead">Wir planen Wohnhäuser, Umbauten im Bestand und Aufstockungen in Stuttgart und der Region – mit einem belastbaren Kostenrahmen ab der ersten Skizze und einer festen Ansprechperson bis zur Schlüsselübergabe.</p>
+        <div class="hero__cta">
+          <a class="btn btn--mag" href="#kontakt"><span data-roll>Erstgespräch vereinbaren</span></a>
+          <a class="lnk-dim" href="#projekte"><span>Projekte ansehen</span><svg viewBox="0 0 60 12" aria-hidden="true"><path d="M1 6H58M53 1L58 6L53 11M1 1V11"/></svg></a>
+        </div>
+      </div>
+
+      <dl class="tb" aria-label="Schriftfeld">
+        <div class="tb__c tb__c--office"><dt>Büro</dt><dd>Raumlinie Architekten PartGmbB · Stuttgart-West · seit 2009</dd></div>
+        <div class="tb__c tb__c--w"><dt>Projekt</dt><dd>Haus am Killesberg</dd></div>
+        <div class="tb__c"><dt>Blatt</dt><dd class="tn">A-01</dd></div>
+        <div class="tb__c"><dt>Maßstab</dt><dd class="tn">1:100</dd></div>
+        <div class="tb__c tb__c--w"><dt>Darstellung</dt><dd class="js-view">Ansicht Süd</dd></div>
+        <div class="tb__c"><dt>Drehung</dt><dd class="tn js-deg">0°</dd></div>
+        <div class="tb__c"><dt>Gez.</dt><dd>HV / TM</dd></div>
+        <div class="tb__c tb__c--w tb__c--num"><dt>Preise</dt><dd><span class="tn">3</span> Architekturpreise</dd></div>
+        <div class="tb__c tb__c--num"><dt>Realisiert</dt><dd><span class="tn">86</span> Projekte</dd></div>
+        <div class="tb__c tb__c--num"><dt>Kammer</dt><dd>Mitglied AKBW</dd></div>
+      </dl>
+
+      <svg class="seal" viewBox="0 0 160 160" aria-hidden="true">
+        <defs><path id="seal-c" d="M80 80m-58 0a58 58 0 1 1 116 0a58 58 0 1 1-116 0"/></defs>
+        <circle cx="80" cy="80" r="74" class="seal__o"/><circle cx="80" cy="80" r="44" class="seal__i"/>
+        <text class="seal__t"><textPath href="#seal-c">RAUMLINIE ARCHITEKTEN · STUTTGART-WEST · PLANFREIGABE ·</textPath></text>
+        <text x="80" y="76" class="seal__big">geprüft</text><text x="80" y="96" class="seal__sm">seit 2009</text>
+      </svg>
+
+      <p class="hero__hint mono" aria-hidden="true"><span></span>Scrollen dreht die Zeichnung</p>
+      <div class="xh" aria-hidden="true"><span class="xh__h"></span><span class="xh__v"></span><span class="xh__c mono"></span></div>
     </div>
   </div>
 </section>
 
-<!-- ============ LEISTUNGEN ============ -->
-<section class="sec sec--paper" id="leistungen" aria-labelledby="leistungen-t">
+<!-- ============ A-02 LEISTUNGEN: Legende ============ -->
+<section class="sec tone-paper lv" id="leistungen" aria-labelledby="leistungen-t" data-sheet="A-02" data-sheet-t="Legende · Leistungen" data-sheet-m="o. M.">
   <div class="wrap">
-    <header class="sh" data-reveal>
-      <p class="sh__no mono"><span>01</span>Leistungen</p>
-      <h2 id="leistungen-t">Fünf Aufgaben, die wir besonders gut kennen.</h2>
-      <p class="sh__lead">Wir übernehmen alle neun Leistungsphasen – oder genau die, die Sie brauchen. Unser Schwerpunkt liegt dort, wo Planung den größten Unterschied macht: auf engen Grundstücken und in vorhandener Substanz.</p>
-    </header>
-    <ol class="svc">
-      <li class="svc__row" data-reveal>
-        <span class="svc__no mono tn">01</span>
-        <h3 class="svc__t">Wohnhäuser</h3>
-        <p class="svc__d">Einfamilien-, Doppel- und Stadthäuser auf schwierigen Grundstücken: Hanglage, Baulücke, enger Bebauungsplan. Holz- oder Massivbau, nach Ihrem Budget und nicht nach Katalog.</p>
-        <p class="svc__tags mono">Neubau · Effizienzhaus 40 · Holzbau</p>
+    <div class="lv__head">
+      <h2 id="leistungen-t" class="d-xl" data-reveal="wipe">Fünf Aufgaben, die wir besonders gut kennen.</h2>
+      <p class="lv__lead" data-reveal>Wir übernehmen alle neun Leistungsphasen – oder genau die, die Sie brauchen. Unser Schwerpunkt liegt dort, wo Planung den größten Unterschied macht: auf engen Grundstücken und in vorhandener Substanz.</p>
+    </div>
+    <ol class="lv__list">
+      <li class="lv__row" data-reveal="line">
+        <span class="lv__no tn" aria-hidden="true">01</span>
+        <svg class="lv__ico" viewBox="0 0 64 64" aria-hidden="true"><path pathLength="1" d="M6 56H58"/><path pathLength="1" d="M14 56V30L32 13L50 30V56"/><path pathLength="1" class="b" d="M27 56V43H37V56"/><path pathLength="1" d="M20 36H26V42H20Z"/><path pathLength="1" d="M38 36H44V42H38Z"/></svg>
+        <h3 class="lv__t">Wohnhäuser</h3>
+        <p class="lv__d">Einfamilien-, Doppel- und Stadthäuser auf schwierigen Grundstücken: Hanglage, Baulücke, enger Bebauungsplan. Holz- oder Massivbau, nach Ihrem Budget und nicht nach Katalog.</p>
+        <p class="lv__tags mono">Neubau · Effizienzhaus 40 · Holzbau</p>
       </li>
-      <li class="svc__row" data-reveal>
-        <span class="svc__no mono tn">02</span>
-        <h3 class="svc__t">Umbau &amp; Sanierung im Bestand</h3>
-        <p class="svc__d">Gründerzeit, Nachkriegshaus, alte Scheune: Wir messen auf, prüfen die Substanz mit Tragwerksplanung und Gutachtern und planen, was bleiben kann – und was weg muss.</p>
-        <p class="svc__tags mono">Aufmaß · Denkmalschutz · Schadstoffe</p>
+      <li class="lv__row" data-reveal="line">
+        <span class="lv__no tn" aria-hidden="true">02</span>
+        <svg class="lv__ico" viewBox="0 0 64 64" aria-hidden="true"><path pathLength="1" d="M6 56H58"/><path pathLength="1" d="M14 56V32H50V56"/><path pathLength="1" class="dash" d="M12 33L32 17L52 33"/><path pathLength="1" class="b" d="M18 52L26 44M26 52L34 44M34 52L42 44M42 52L46 48"/></svg>
+        <h3 class="lv__t">Umbau &amp; Sanierung im Bestand</h3>
+        <p class="lv__d">Gründerzeit, Nachkriegshaus, alte Scheune: Wir messen auf, prüfen die Substanz mit Tragwerksplanung und Gutachtern und planen, was bleiben kann – und was weg muss.</p>
+        <p class="lv__tags mono">Aufmaß · Denkmalschutz · Schadstoffe</p>
       </li>
-      <li class="svc__row" data-reveal>
-        <span class="svc__no mono tn">03</span>
-        <h3 class="svc__t">Aufstockung</h3>
-        <p class="svc__d">Ein oder zwei Geschosse in Holzbauweise auf ein vorhandenes Haus. Wir klären vorab Statik, Abstandsflächen und Stellplätze, bevor Sie Geld in die Planung stecken.</p>
-        <p class="svc__tags mono">Machbarkeit · Holzrahmenbau · Bauantrag</p>
+      <li class="lv__row" data-reveal="line">
+        <span class="lv__no tn" aria-hidden="true">03</span>
+        <svg class="lv__ico" viewBox="0 0 64 64" aria-hidden="true"><path pathLength="1" d="M6 58H58"/><path pathLength="1" d="M16 58V42H48V58"/><path pathLength="1" class="b" d="M16 42V26H48V42M16 34H48"/><path pathLength="1" class="b" d="M32 20V5M26 11L32 5L38 11"/></svg>
+        <h3 class="lv__t">Aufstockung</h3>
+        <p class="lv__d">Ein oder zwei Geschosse in Holzbauweise auf ein vorhandenes Haus. Wir klären vorab Statik, Abstandsflächen und Stellplätze, bevor Sie Geld in die Planung stecken.</p>
+        <p class="lv__tags mono">Machbarkeit · Holzrahmenbau · Bauantrag</p>
       </li>
-      <li class="svc__row" data-reveal>
-        <span class="svc__no mono tn">04</span>
-        <h3 class="svc__t">Kleine Gewerbebauten</h3>
-        <p class="svc__d">Praxen, Ateliers, Werkstätten und Büros bis etwa 1.500&nbsp;m² – mit klaren Abläufen, robusten Materialien und einer Fassade, die man wiedererkennt.</p>
-        <p class="svc__tags mono">Praxis · Atelier · Büro-Umbau</p>
+      <li class="lv__row" data-reveal="line">
+        <span class="lv__no tn" aria-hidden="true">04</span>
+        <svg class="lv__ico" viewBox="0 0 64 64" aria-hidden="true"><path pathLength="1" d="M6 56H58"/><path pathLength="1" d="M10 56V30L22 22V30L34 22V30L46 22V30L54 26V56"/><path pathLength="1" class="b" d="M18 56V44H30V56"/><path pathLength="1" d="M36 40H48V48H36Z"/></svg>
+        <h3 class="lv__t">Kleine Gewerbebauten</h3>
+        <p class="lv__d">Praxen, Ateliers, Werkstätten und Büros bis etwa 1.500&nbsp;m² – mit klaren Abläufen, robusten Materialien und einer Fassade, die man wiedererkennt.</p>
+        <p class="lv__tags mono">Praxis · Atelier · Büro-Umbau</p>
       </li>
-      <li class="svc__row" data-reveal>
-        <span class="svc__no mono tn">05</span>
-        <h3 class="svc__t">Energieberatung</h3>
-        <p class="svc__d">Individueller Sanierungsfahrplan, Fördermittel-Anträge und Nachweise nach GEG – von zwei Energieeffizienz-Experten im Team, abgestimmt mit der Entwurfsplanung.</p>
-        <p class="svc__tags mono">iSFP · BEG-Förderung · GEG-Nachweis</p>
+      <li class="lv__row" data-reveal="line">
+        <span class="lv__no tn" aria-hidden="true">05</span>
+        <svg class="lv__ico" viewBox="0 0 64 64" aria-hidden="true"><path pathLength="1" d="M6 56H50"/><path pathLength="1" d="M10 56V36L28 22L46 36V56"/><path pathLength="1" class="b" d="M14 40L28 29L42 40M14 46H42"/><path pathLength="1" d="M52 8A6 6 0 1 1 51.9 8M52 2V-1M60 14H63M44 14H41M57.7 8.3L60 6"/></svg>
+        <h3 class="lv__t">Energieberatung</h3>
+        <p class="lv__d">Individueller Sanierungsfahrplan, Fördermittel-Anträge und Nachweise nach GEG – von zwei Energieeffizienz-Experten im Team, abgestimmt mit der Entwurfsplanung.</p>
+        <p class="lv__tags mono">iSFP · BEG-Förderung · GEG-Nachweis</p>
       </li>
     </ol>
   </div>
 </section>
 
-<!-- ============ PROJEKTE ============ -->
-<section class="sec sec--dark" id="projekte" aria-labelledby="projekte-t">
+<!-- ============ A-03 SCHNITT: Bestand → Abbruch → Neubau (Sticky-Storytelling) ============ -->
+<section class="sx" id="bestand" aria-labelledby="bestand-t" data-sheet="A-03" data-sheet-t="Schnitt A–A · Bestand / Abbruch / Neubau" data-sheet-m="M 1:200">
+  <div class="sx__stage">
+    <div class="sx__text wrap">
+      <h2 id="bestand-t" class="sx__q">„Bestand ist für uns kein Hindernis, sondern das erste Baumaterial.“</h2>
+      <p class="sx__by mono">Henrike Vogt · Partnerin</p>
+      <ol class="sx__steps">
+        <li class="is-on"><b class="tn">1</b><div><h3>Bestand aufnehmen</h3><p>Aufmaß vor Ort, Tragwerk und Schadstoffe prüfen – bevor eine einzige Entwurfslinie gezogen wird.</p></div></li>
+        <li><b class="tn">2</b><div><h3>Rückbau festlegen</h3><p>Der alte Dachstuhl kommt runter, die Decke darunter bleibt und wird ertüchtigt. Was weg muss, steht vor der Planung fest.</p></div></li>
+        <li><b class="tn">3</b><div><h3>Zwei Geschosse obendrauf</h3><p>Holzrahmenbau, vorgefertigt und in wenigen Wochen montiert – bei der Aufstockung im Heusteigviertel, während unten weiter gewohnt wurde.</p></div></li>
+      </ol>
+      <ul class="sx__legend mono" aria-label="Legende">
+        <li><i class="lg lg--b"></i>Bestand</li><li><i class="lg lg--a"></i>Abbruch</li><li><i class="lg lg--n"></i>Neubau</li>
+      </ul>
+    </div>
+    <figure class="sx__fig">
+      <svg class="sx__svg" viewBox="0 0 720 580" role="img" aria-labelledby="sx-t">
+        <title id="sx-t">Gebäudeschnitt: zweigeschossiger Bestand mit Keller, gestrichelt der abzubrechende Dachstuhl, in Blau zwei neue Geschosse in Holzbauweise mit Flachdach, bemaßt</title>
+        <defs>
+          <pattern id="hx-b" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V7" stroke="#1C1C1C" stroke-width="1.1"/></pattern>
+          <pattern id="hx-e" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><path d="M0 0V9" stroke="#8A8984" stroke-width=".7"/></pattern>
+        </defs>
+        <g class="sx-b">
+          <rect x="30" y="496" width="140" height="24" fill="url(#hx-e)" class="fillx"/><rect x="550" y="496" width="140" height="24" fill="url(#hx-e)" class="fillx"/>
+          <path pathLength="1" d="M20 496H700"/>
+          <path pathLength="1" d="M180 496V566H540V496"/><path pathLength="1" d="M194 496V552H526V496"/>
+          <rect x="180" y="496" width="14" height="70" class="fillx poche"/><rect x="526" y="496" width="14" height="70" class="fillx poche"/><rect x="180" y="552" width="360" height="14" class="fillx poche"/>
+          <rect x="180" y="486" width="360" height="12" class="fillx poche"/>
+          <rect x="180" y="390" width="360" height="12" class="fillx poche"/>
+          <rect x="180" y="294" width="360" height="12" class="fillx poche"/>
+          <rect x="180" y="306" width="14" height="40" class="fillx poche"/><rect x="180" y="374" width="14" height="16" class="fillx poche"/><rect x="180" y="402" width="14" height="38" class="fillx poche"/><rect x="180" y="470" width="14" height="16" class="fillx poche"/>
+          <rect x="526" y="306" width="14" height="84" class="fillx poche"/><rect x="526" y="402" width="14" height="84" class="fillx poche"/>
+          <path pathLength="1" d="M180 294H540V306H180Z"/><path pathLength="1" d="M180 390H540V402H180Z"/><path pathLength="1" d="M180 486H540V498H180Z"/>
+          <path pathLength="1" d="M180 306V346M194 306V346M180 374V440M194 374V440M180 470V486M194 470V486M526 306V486M540 306V486"/>
+          <path pathLength="1" class="thin" d="M184 346H190M184 374H190M184 440H190M184 470H190M186 346V374M188 346V374M186 440V470M188 440V470"/>
+          <path pathLength="1" class="thin" d="M300 552V538H340V552M300 545H340"/>
+          <g class="fig"><circle cx="252" cy="430" r="5"/><path d="M252 435V463M252 463L246 486M252 463L258 486M244 446L252 440L260 446"/></g>
+          <text x="214" y="380" class="lbl">OG</text><text x="214" y="476" class="lbl">EG</text><text x="214" y="540" class="lbl">KG</text>
+        </g>
+        <g class="sx-a">
+          <path d="M166 296L360 176L554 296"/><path d="M196 294L360 192L524 294"/><path d="M262 254V294M300 230V294M340 206V294M380 206V294M420 230V294M458 254V294"/>
+          <path d="M420 190V158H444V214"/>
+          <text x="560" y="230" class="lbl lbl--a">Abbruch Dachstuhl</text>
+        </g>
+        <g class="sx-n">
+          <rect x="180" y="198" width="360" height="12" class="filln"/><rect x="172" y="96" width="376" height="16" class="filln"/>
+          <rect x="180" y="210" width="14" height="22" class="filln"/><rect x="180" y="276" width="14" height="18" class="filln"/><rect x="180" y="112" width="14" height="22" class="filln"/><rect x="180" y="180" width="14" height="18" class="filln"/>
+          <rect x="526" y="112" width="14" height="182" class="filln"/>
+          <path pathLength="1" d="M172 96H548V112H172Z"/><path pathLength="1" d="M180 198H540V210H180Z"/>
+          <path pathLength="1" d="M180 112V134M194 112V134M180 180V232M194 180V232M180 276V294M194 276V294M526 112V294M540 112V294"/>
+          <path pathLength="1" class="thin" d="M187 134V180M187 232V276M533 120V290M240 112V198M300 112V198M360 112V198M420 112V198M480 112V198"/>
+          <path pathLength="1" d="M172 96V84H548V96"/>
+          <g class="fig"><circle cx="300" cy="238" r="5"/><path d="M300 243V271M300 271L294 294M300 271L306 294M292 254L300 248L308 254"/></g>
+          <text x="214" y="190" class="lbl lbl--n">3. OG</text><text x="214" y="286" class="lbl lbl--n">2. OG</text>
+        </g>
+        <g class="sx-d">
+          <path pathLength="1" d="M600 498V84M594 504L606 492M594 402L606 390M594 306L606 294M594 210L606 198M594 90L606 78"/>
+          <text x="614" y="454">2,90</text><text x="614" y="356">2,90</text><text x="614" y="260">2,90</text><text x="614" y="150">3,10</text>
+          <path pathLength="1" d="M660 498V84M654 504L666 492M654 90L666 78"/><text x="676" y="300" transform="rotate(-90 676 300)">11,80</text>
+          <path d="M120 496L128 486H112Z"/><text x="104" y="490" class="kote">±0,00</text>
+          <path d="M120 294L128 284H112Z"/><text x="104" y="288" class="kote">+5,80</text>
+          <path d="M120 84L128 74H112Z"/><text x="104" y="78" class="kote">+11,80</text>
+          <path class="thin" d="M112 294H172M112 84H164"/>
+        </g>
+        <text x="20" y="574" class="sx-title">Schnitt A–A · M 1:200</text>
+      </svg>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ A-04 PROJEKTE: Planliste ============ -->
+<section class="sec tone-dark pj" id="projekte" aria-labelledby="projekte-t" data-sheet="A-04" data-sheet-t="Planliste · Projektindex" data-sheet-m="—">
   <div class="wrap">
-    <header class="sh sh--split" data-reveal>
-      <p class="sh__no mono"><span>02</span>Projektindex</p>
-      <h2 id="projekte-t">Neun Projekte aus den letzten fünf Jahren.</h2>
-      <p class="sh__lead">Vom Holzhaus in Leonberg bis zur Scheune in Weilimdorf. Fahren Sie über die Liste, um das Projekt zu sehen – oder filtern Sie nach Bauaufgabe.</p>
-    </header>
+    <div class="pj__head">
+      <h2 id="projekte-t" class="d-xl" data-reveal="wipe">Neun Projekte aus den letzten fünf Jahren.</h2>
+      <p class="pj__lead" data-reveal>Vom Holzhaus in Leonberg bis zur Scheune in Weilimdorf. Fahren Sie über die Liste, um das Projekt zu sehen – oder blenden Sie Bauaufgaben ein und aus.</p>
+    </div>
     <div class="pf" role="group" aria-label="Projekte filtern">
+      <span class="pf__k mono" aria-hidden="true">Layer</span>
       <button type="button" class="chip" aria-pressed="true" data-f="alle">Alle <span class="tn">9</span></button>
       <button type="button" class="chip" aria-pressed="false" data-f="wohnhaus">Wohnhaus <span class="tn">4</span></button>
       <button type="button" class="chip" aria-pressed="false" data-f="bestand">Umbau &amp; Bestand <span class="tn">2</span></button>
@@ -191,16 +284,16 @@
     <div class="pi-head mono" aria-hidden="true"><span>Nr.</span><span>Projekt</span><span>Ort</span><span>Bauaufgabe</span><span>BGF</span><span>Jahr</span></div>
     <ul class="pi" data-reveal-group>
       <li class="pi__row" data-type="wohnhaus" data-img="hausdach">
-        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/hausdach-480.webp" srcset="/arena/architektur-raumlinie/assets/img/hausdach-480.webp 480w, /arena/architektur-raumlinie/assets/img/hausdach-960.webp 960w" sizes="(max-width: 639px) 80vw, (max-width: 899px) 45vw, 1px" width="960" height="640" loading="lazy" decoding="async" alt="Wohnhaus mit weit auskragendem Pultdach und Fensterband vor blauem Himmel">
+        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/hausdach-480.webp" srcset="/arena/architektur-raumlinie/assets/img/hausdach-480.webp 480w, /arena/architektur-raumlinie/assets/img/hausdach-960.webp 960w" sizes="(max-width: 899px) 78vw, 1px" width="960" height="640" loading="lazy" decoding="async" alt="Wohnhaus mit weit auskragendem Pultdach und Fensterband vor blauem Himmel">
         <span class="pi__no mono tn">01</span>
-        <h3 class="pi__t">Haus am Killesberg <span class="award mono" title="Auszeichnung">★ Stuttgarter Wohnbaupreis 2024</span></h3>
+        <h3 class="pi__t">Haus am Killesberg <span class="award mono">Stuttgarter Wohnbaupreis 2024</span></h3>
         <span class="pi__o">Stuttgart-Nord</span>
         <span class="pi__k mono">Neubau Wohnhaus</span>
         <span class="pi__m mono tn">286&nbsp;m²</span>
         <span class="pi__y mono tn">2024</span>
       </li>
       <li class="pi__row" data-type="wohnhaus" data-img="terrasse">
-        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/terrasse-480.webp" srcset="/arena/architektur-raumlinie/assets/img/terrasse-480.webp 480w, /arena/architektur-raumlinie/assets/img/terrasse-960.webp 960w" sizes="(max-width: 639px) 80vw, (max-width: 899px) 45vw, 1px" width="960" height="720" loading="lazy" decoding="async" alt="Weiße Terrasse mit Treppe und Wasserbecken über einem bewaldeten Tal">
+        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/terrasse-480.webp" srcset="/arena/architektur-raumlinie/assets/img/terrasse-480.webp 480w, /arena/architektur-raumlinie/assets/img/terrasse-960.webp 960w" sizes="(max-width: 899px) 78vw, 1px" width="960" height="720" loading="lazy" decoding="async" alt="Weiße Terrasse mit Treppe und Wasserbecken über einem bewaldeten Tal">
         <span class="pi__no mono tn">02</span>
         <h3 class="pi__t">Hanghaus Esslingen</h3>
         <span class="pi__o">Esslingen-Sulzgries</span>
@@ -209,25 +302,25 @@
         <span class="pi__y mono tn">2023</span>
       </li>
       <li class="pi__row" data-type="bestand" data-img="scheune">
-        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/scheune-480.webp" srcset="/arena/architektur-raumlinie/assets/img/scheune-480.webp 480w, /arena/architektur-raumlinie/assets/img/scheune-960.webp 960w" sizes="(max-width: 639px) 80vw, (max-width: 899px) 45vw, 1px" width="960" height="642" loading="lazy" decoding="async" alt="Langgestreckte dunkle Scheune mit Satteldach unter wolkenverhangenem Himmel">
+        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/scheune-480.webp" srcset="/arena/architektur-raumlinie/assets/img/scheune-480.webp 480w, /arena/architektur-raumlinie/assets/img/scheune-960.webp 960w" sizes="(max-width: 899px) 78vw, 1px" width="960" height="642" loading="lazy" decoding="async" alt="Langgestreckte dunkle Scheune mit Satteldach unter wolkenverhangenem Himmel">
         <span class="pi__no mono tn">03</span>
-        <h3 class="pi__t">Scheune Weilimdorf <span class="award mono" title="Auszeichnung">★ Preis Raum &amp; Bestand 2022</span></h3>
+        <h3 class="pi__t">Scheune Weilimdorf <span class="award mono">Preis Raum &amp; Bestand 2022</span></h3>
         <span class="pi__o">Stuttgart-Weilimdorf</span>
         <span class="pi__k mono">Umbau zum Wohnhaus</span>
         <span class="pi__m mono tn">318&nbsp;m²</span>
         <span class="pi__y mono tn">2022</span>
       </li>
       <li class="pi__row" data-type="aufstockung" data-img="dachstuhl">
-        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/dachstuhl-480.webp" srcset="/arena/architektur-raumlinie/assets/img/dachstuhl-480.webp 480w, /arena/architektur-raumlinie/assets/img/dachstuhl-960.webp 960w" sizes="(max-width: 639px) 80vw, (max-width: 899px) 45vw, 1px" width="960" height="640" loading="lazy" decoding="async" alt="Offener Dachstuhl aus Holzbalken mit Natursteinwand und Pendelleuchten">
+        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/dachstuhl-480.webp" srcset="/arena/architektur-raumlinie/assets/img/dachstuhl-480.webp 480w, /arena/architektur-raumlinie/assets/img/dachstuhl-960.webp 960w" sizes="(max-width: 899px) 78vw, 1px" width="960" height="640" loading="lazy" decoding="async" alt="Offener Dachstuhl aus Holzbalken mit Natursteinwand und Pendelleuchten">
         <span class="pi__no mono tn">04</span>
-        <h3 class="pi__t">Aufstockung Heusteigviertel <span class="award mono" title="Auszeichnung">★ Neckartaler Holzbaupreis 2024</span></h3>
+        <h3 class="pi__t">Aufstockung Heusteigviertel <span class="award mono">Neckartaler Holzbaupreis 2024</span></h3>
         <span class="pi__o">Stuttgart-Mitte</span>
         <span class="pi__k mono">+2 Geschosse Holzbau</span>
         <span class="pi__m mono tn">196&nbsp;m²</span>
         <span class="pi__y mono tn">2024</span>
       </li>
       <li class="pi__row" data-type="wohnhaus" data-img="reihenhaus">
-        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/reihenhaus-480.webp" srcset="/arena/architektur-raumlinie/assets/img/reihenhaus-480.webp 480w, /arena/architektur-raumlinie/assets/img/reihenhaus-960.webp 960w" sizes="(max-width: 639px) 80vw, (max-width: 899px) 45vw, 1px" width="960" height="640" loading="lazy" decoding="async" alt="Dreigeschossige Stadthäuser mit Holz- und Putzfassade und Balkonen">
+        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/reihenhaus-480.webp" srcset="/arena/architektur-raumlinie/assets/img/reihenhaus-480.webp 480w, /arena/architektur-raumlinie/assets/img/reihenhaus-960.webp 960w" sizes="(max-width: 899px) 78vw, 1px" width="960" height="640" loading="lazy" decoding="async" alt="Dreigeschossige Stadthäuser mit Holz- und Putzfassade und Balkonen">
         <span class="pi__no mono tn">05</span>
         <h3 class="pi__t">Stadthäuser Feuerbach</h3>
         <span class="pi__o">Stuttgart-Feuerbach</span>
@@ -236,7 +329,7 @@
         <span class="pi__y mono tn">2022</span>
       </li>
       <li class="pi__row" data-type="gewerbe" data-img="haus791">
-        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/haus791-480.webp" srcset="/arena/architektur-raumlinie/assets/img/haus791-480.webp 480w, /arena/architektur-raumlinie/assets/img/haus791-960.webp 960w" sizes="(max-width: 639px) 80vw, (max-width: 899px) 45vw, 1px" width="960" height="640" loading="lazy" decoding="async" alt="Moderner Gewerbebau mit grauer Plattenfassade, Pultdach und großer Verglasung">
+        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/haus791-480.webp" srcset="/arena/architektur-raumlinie/assets/img/haus791-480.webp 480w, /arena/architektur-raumlinie/assets/img/haus791-960.webp 960w" sizes="(max-width: 899px) 78vw, 1px" width="960" height="640" loading="lazy" decoding="async" alt="Moderner Gewerbebau mit grauer Plattenfassade, Pultdach und großer Verglasung">
         <span class="pi__no mono tn">06</span>
         <h3 class="pi__t">Atelierhaus Cannstatt</h3>
         <span class="pi__o">Bad Cannstatt</span>
@@ -245,7 +338,7 @@
         <span class="pi__y mono tn">2023</span>
       </li>
       <li class="pi__row" data-type="gewerbe" data-img="loft">
-        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/loft-480.webp" srcset="/arena/architektur-raumlinie/assets/img/loft-480.webp 480w, /arena/architektur-raumlinie/assets/img/loft-960.webp 960w" sizes="(max-width: 639px) 80vw, (max-width: 899px) 45vw, 1px" width="960" height="640" loading="lazy" decoding="async" alt="Heller Büroloft mit Sprossenfenstern, Sitzgruppe und langem Arbeitstisch">
+        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/loft-480.webp" srcset="/arena/architektur-raumlinie/assets/img/loft-480.webp 480w, /arena/architektur-raumlinie/assets/img/loft-960.webp 960w" sizes="(max-width: 899px) 78vw, 1px" width="960" height="640" loading="lazy" decoding="async" alt="Heller Büroloft mit Sprossenfenstern, Sitzgruppe und langem Arbeitstisch">
         <span class="pi__no mono tn">07</span>
         <h3 class="pi__t">Kanzlei im Hinterhof</h3>
         <span class="pi__o">Stuttgart-West</span>
@@ -254,7 +347,7 @@
         <span class="pi__y mono tn">2021</span>
       </li>
       <li class="pi__row" data-type="wohnhaus" data-img="holzhaus">
-        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/holzhaus-480.webp" srcset="/arena/architektur-raumlinie/assets/img/holzhaus-480.webp 480w, /arena/architektur-raumlinie/assets/img/holzhaus-960.webp 960w" sizes="(max-width: 639px) 80vw, (max-width: 899px) 45vw, 1px" width="960" height="636" loading="lazy" decoding="async" alt="Kubisches Holzhaus mit Lärchenfassade zwischen Bäumen im Abendlicht">
+        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/holzhaus-480.webp" srcset="/arena/architektur-raumlinie/assets/img/holzhaus-480.webp 480w, /arena/architektur-raumlinie/assets/img/holzhaus-960.webp 960w" sizes="(max-width: 899px) 78vw, 1px" width="960" height="636" loading="lazy" decoding="async" alt="Kubisches Holzhaus mit Lärchenfassade zwischen Bäumen im Abendlicht">
         <span class="pi__no mono tn">08</span>
         <h3 class="pi__t">Holzhaus Leonberg</h3>
         <span class="pi__o">Leonberg-Eltingen</span>
@@ -263,7 +356,7 @@
         <span class="pi__y mono tn">2025</span>
       </li>
       <li class="pi__row" data-type="bestand" data-img="flur">
-        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/flur-480.webp" srcset="/arena/architektur-raumlinie/assets/img/flur-480.webp 480w, /arena/architektur-raumlinie/assets/img/flur-960.webp 960w" sizes="(max-width: 639px) 80vw, (max-width: 899px) 45vw, 1px" width="960" height="1440" loading="lazy" decoding="async" alt="Langer weißer Flur mit Holzdielen und Blick in eine helle Küche">
+        <img class="pi__img" src="/arena/architektur-raumlinie/assets/img/flur-480.webp" srcset="/arena/architektur-raumlinie/assets/img/flur-480.webp 480w, /arena/architektur-raumlinie/assets/img/flur-960.webp 960w" sizes="(max-width: 899px) 78vw, 1px" width="960" height="1440" loading="lazy" decoding="async" alt="Langer weißer Flur mit Holzdielen und Blick in eine helle Küche">
         <span class="pi__no mono tn">09</span>
         <h3 class="pi__t">Gründerzeitwohnung Süd</h3>
         <span class="pi__o">Stuttgart-Süd</span>
@@ -274,24 +367,25 @@
     </ul>
     <p class="pi__note mono">BGF = Bruttogeschossfläche. Auszeichnungen und Projekte sind Teil der fiktiven Demo.</p>
   </div>
-  <div class="pv" aria-hidden="true"><div class="pv__in"></div><span class="pv__cap mono"></span></div>
+  <div class="pv" aria-hidden="true"><div class="pv__in"></div><span class="pv__cap mono"></span><i class="pv__m pv__m--tl"></i><i class="pv__m pv__m--tr"></i><i class="pv__m pv__m--bl"></i><i class="pv__m pv__m--br"></i></div>
 </section>
 
-<!-- ============ GRUNDRISS ============ -->
-<section class="sec sec--grid" id="grundriss" aria-labelledby="grundriss-t">
+<!-- ============ A-05 GRUNDRISS: Lichtpause ============ -->
+<section class="sec tone-blue gx-sec" id="grundriss" aria-labelledby="grundriss-t" data-sheet="A-05" data-sheet-t="Grundriss EG · Haus am Killesberg" data-sheet-m="M 1:100">
   <div class="wrap">
-    <header class="sh sh--split" data-reveal>
-      <p class="sh__no mono"><span>03</span>Grundriss-Explorer</p>
-      <h2 id="grundriss-t">Ein Grundriss, den Sie anfassen können.</h2>
-      <p class="sh__lead">Haus am Killesberg, Erdgeschoss, M&nbsp;1:100. Wählen Sie einen Raum oder blenden Sie Möblierung, Maße und Achsraster ein und aus – so besprechen wir Entwürfe auch mit Ihnen: am Plan.</p>
-    </header>
+    <div class="gx__head">
+      <h2 id="grundriss-t" class="d-xl" data-reveal="wipe">Ein Grundriss, den Sie anfassen können.</h2>
+      <p class="gx__lead" data-reveal>Haus am Killesberg, Erdgeschoss, M&nbsp;1:100. Wählen Sie einen Raum oder blenden Sie Möblierung, Maße und Achsraster ein und aus – so besprechen wir Entwürfe auch mit Ihnen: am Plan.</p>
+    </div>
     <div class="gx">
-      <div class="gx__plan" data-reveal>
+      <div class="gx__plan" data-reveal="plan">
         <svg class="plan is-furn is-dims" viewBox="0 0 610 480" role="group" aria-label="Grundriss Erdgeschoss mit sieben auswählbaren Räumen">
           <g class="gr-axes" aria-hidden="true"><path d="M77.2 36V442"/><circle cx="77.2" cy="454" r="11"/><text x="77.2" y="458">A</text><path d="M353.6 36V442"/><circle cx="353.6" cy="454" r="11"/><text x="353.6" y="458">B</text><path d="M542.8 36V442"/><circle cx="542.8" cy="454" r="11"/><text x="542.8" y="458">C</text><path d="M46 67.2H572"/><circle cx="584" cy="67.2" r="11"/><text x="584" y="71.2">1</text><path d="M46 271.6H572"/><circle cx="584" cy="271.6" r="11"/><text x="584" y="275.6">2</text><path d="M46 412.8H572"/><circle cx="584" cy="412.8" r="11"/><text x="584" y="416.8">3</text></g><g class="gr-walls" aria-hidden="true"><rect x="70" y="60" width="480" height="360" class="wall"/></g><g class="gr-rooms"><g class="room" id="room-wohnen" role="button" tabindex="0" aria-pressed="false" aria-label="Wohnen / Essen, 32,08 Quadratmeter" data-name="Wohnen / Essen" data-area="32,08" data-w="6,63" data-h="4,83" data-o="Süd · West" data-info="Durchgehender Raum mit zwei bodentiefen Fenstern nach Süden. Der Esstisch steht im Licht, das Sofa an der ruhigen Wand."><rect x="84.6" y="74.6" width="265.4" height="193.4" class="room-fill"/></g><g class="room" id="room-kueche" role="button" tabindex="0" aria-pressed="false" aria-label="Küche, 16,21 Quadratmeter" data-name="Küche" data-area="16,21" data-w="4,46" data-h="3,63" data-o="Süd · Ost" data-info="Offen zum Essplatz, mit Kochinsel und Morgensonne. Die breite Öffnung lässt sich später schließen, ohne die Statik anzufassen."><rect x="357" y="74.6" width="178.4" height="145.4" class="room-fill"/></g><g class="room" id="room-arbeiten" role="button" tabindex="0" aria-pressed="false" aria-label="Arbeiten / Gast, 10,55 Quadratmeter" data-name="Arbeiten / Gast" data-area="10,55" data-w="3,24" data-h="3,26" data-o="West · Nord" data-info="Ruhiger Raum am Eingang – heute Homeoffice, später Gästezimmer oder Schlafzimmer im Erdgeschoss."><rect x="84.6" y="275" width="129.4" height="130.4" class="room-fill"/></g><g class="room" id="room-diele" role="button" tabindex="0" aria-pressed="false" aria-label="Diele, 10,51 Quadratmeter" data-name="Diele" data-area="10,51" data-w="3,23" data-h="3,26" data-o="Nord" data-info="Ankommen mit Garderobe auf ganzer Raumhöhe. Von hier aus erreichen Sie jeden Raum, ohne den Wohnbereich zu queren."><rect x="221" y="275" width="129" height="130.4" class="room-fill"/></g><g class="room" id="room-flur" role="button" tabindex="0" aria-pressed="false" aria-label="Flur, 6,36 Quadratmeter" data-name="Flur" data-area="6,36" data-w="1,42" data-h="4,46" data-o="–" data-info="Verbindet Diele, Treppe, Bad und Küche. 1,43 m breit – genug für einen späteren Treppenlift."><rect x="357" y="227" width="57" height="178.4" class="room-fill"/></g><g class="room" id="room-treppe" role="button" tabindex="0" aria-pressed="false" aria-label="Treppe, 5,79 Quadratmeter" data-name="Treppe" data-area="5,79" data-w="2,86" data-h="2,03" data-o="Ost" data-info="Gerade Treppe mit 15 Steigungen (18,7/26 cm) ins Obergeschoss, belichtet über ein Fenster in der Ostwand."><rect x="421" y="227" width="114.4" height="81" class="room-fill"/></g><g class="room" id="room-bad" role="button" tabindex="0" aria-pressed="false" aria-label="Duschbad, 6,46 Quadratmeter" data-name="Duschbad" data-area="6,46" data-w="2,86" data-h="2,26" data-o="Ost · Nord" data-info="Bodengleiche Dusche, 1,50 m Bewegungsfläche vor dem WC – barrierearm nach DIN 18040-2 vorbereitet."><rect x="421" y="315" width="114.4" height="90.4" class="room-fill"/></g></g><g class="gr-open" aria-hidden="true"><rect x="262" y="405.4" width="40" height="14.6" class="gap"/><rect x="254" y="268" width="40" height="7" class="gap"/><rect x="214" y="324" width="7" height="36" class="gap"/><rect x="350" y="300" width="7" height="80" class="gap"/><rect x="350" y="100" width="7" height="96" class="gap"/><rect x="414" y="236" width="7" height="40" class="gap"/><rect x="414" y="340" width="7" height="34" class="gap"/><rect x="362" y="220" width="44" height="7" class="gap"/><rect x="110" y="60" width="96" height="14.6" class="win"/><path class="win-l" d="M110 65.5H206M110 69.1H206"/><rect x="230" y="60" width="96" height="14.6" class="win"/><path class="win-l" d="M230 65.5H326M230 69.1H326"/><rect x="398" y="60" width="96" height="14.6" class="win"/><path class="win-l" d="M398 65.5H494M398 69.1H494"/><rect x="70" y="108" width="14.6" height="112" class="win"/><path class="win-l" d="M75.5 108V220M79.1 108V220"/><rect x="70" y="308" width="14.6" height="64" class="win"/><path class="win-l" d="M75.5 308V372M79.1 308V372"/><rect x="535.4" y="100" width="14.6" height="80" class="win"/><path class="win-l" d="M540.9 100V180M544.5 100V180"/><rect x="535.4" y="244" width="14.6" height="48" class="win"/><path class="win-l" d="M540.9 244V292M544.5 244V292"/><rect x="535.4" y="340" width="14.6" height="40" class="win"/><path class="win-l" d="M540.9 340V380M544.5 340V380"/><rect x="118" y="405.4" width="56" height="14.6" class="win"/><path class="win-l" d="M118 410.9H174M118 414.5H174"/><path class="door" d="M262 405.4L262 365.4"/><path class="swing" d="M302 405.4A40 40 0 0 0 262 365.4"/><path class="door" d="M294 275L294 315"/><path class="swing" d="M254 275A40 40 0 0 0 294 315"/><path class="door" d="M221 324L257 324"/><path class="swing" d="M221 360A36 36 0 0 0 257 324"/><path class="door" d="M421 236L461 236"/><path class="swing" d="M421 276A40 40 0 0 0 461 236"/><path class="door" d="M421 374L455 374"/><path class="swing" d="M421 340A34 34 0 0 1 455 374"/></g><g class="gr-stair" aria-hidden="true"><path d="M421 227V268M431.4 227V268M441.8 227V268M452.2 227V268M462.6 227V268M473 227V268M483.4 227V268M493.8 227V268M504.2 227V268M514.6 227V268M525 227V268M535.4 227V268M421 268H535.4"/><path class="arrow" d="M430 247.6H522M514.8 243.2L522 247.6L514.8 252"/><circle cx="430" cy="247.6" r="3"/></g><g class="gr-furn" aria-hidden="true"><rect x="100" y="210" width="118" height="40" rx="4"/><rect x="100" y="162" width="36" height="48" rx="4"/><rect x="148" y="164" width="48" height="28" rx="2"/><rect x="226" y="176" width="28" height="28" rx="6"/><rect x="242" y="110" width="88" height="40" rx="2"/><rect x="252" y="92.8" width="16.8" height="14.4" rx="3"/><rect x="252" y="152.8" width="16.8" height="14.4" rx="3"/><rect x="278" y="92.8" width="16.8" height="14.4" rx="3"/><rect x="278" y="152.8" width="16.8" height="14.4" rx="3"/><rect x="304" y="92.8" width="16.8" height="14.4" rx="3"/><rect x="304" y="152.8" width="16.8" height="14.4" rx="3"/><path d="M94 258H226" class="lamp"/><rect x="372" y="80" width="156" height="24"/><rect x="390" y="84" width="28" height="16" rx="3"/><circle cx="482" cy="92" r="3.6"/><circle cx="496" cy="92" r="3.6"/><circle cx="482" cy="92" r="0"/><rect x="402" y="144" width="96" height="36" rx="2"/><circle cx="426" cy="194" r="7.2"/><circle cx="452" cy="194" r="7.2"/><circle cx="478" cy="194" r="7.2"/><rect x="94" y="286" width="68" height="28"/><circle cx="128" cy="330" r="9.6"/><rect x="94" y="342" width="38" height="56" rx="4"/><rect x="194" y="284" width="14" height="112"/><rect x="324" y="284" width="22" height="80"/><rect x="228" y="370" width="24" height="28" rx="3"/><rect x="492" y="320" width="38" height="38"/><path d="M492 320L530 358M530 320L492 358"/><ellipse cx="440" cy="388" rx="7.6" ry="12"/><rect x="430" y="398" width="20" height="6"/><rect x="486" y="382" width="40" height="20" rx="3"/></g><g class="gr-labels" aria-hidden="true"><text class="lbl" x="174" y="122">Wohnen / Essen</text><text class="lbl-a" x="174" y="138">32,08 m²</text><text class="lbl" x="446.2" y="202">Küche</text><text class="lbl-a" x="446.2" y="218">16,21 m²</text><text class="lbl" x="160" y="356">Arbeiten / Gast</text><text class="lbl-a" x="160" y="372">10,55 m²</text><text class="lbl" x="278" y="328">Diele</text><text class="lbl-a" x="278" y="344">10,51 m²</text><text class="lbl lbl--v" x="385.5" y="316.2" transform="rotate(-90 385.5 316.2)">Flur</text><text class="lbl" x="478.2" y="290">Treppe</text><text class="lbl-a" x="478.2" y="306">5,79 m²</text><text class="lbl" x="458" y="348">Duschbad</text><text class="lbl-a" x="458" y="364">6,46 m²</text></g><g class="gr-dims" aria-hidden="true"><path d="M66 18H554M66 22L74 14M546 22L554 14"/><text x="310" y="12">12,00</text><path d="M66 40H354M66 44L74 36M346 44L354 36"/><text x="210" y="34">7,00</text><path d="M346 40H554M346 44L354 36M546 44L554 36"/><text x="450" y="34">5,00</text><path d="M24 56V424M20 64L28 56M20 424L28 416"/><text x="17" y="240" transform="rotate(-90 17 240)">9,00</text><path d="M46 56V272M42 64L50 56M42 272L50 264"/><text x="39" y="164" transform="rotate(-90 39 164)">5,20</text><path d="M46 264V424M42 272L50 264M42 424L50 416"/><text x="39" y="344" transform="rotate(-90 39 344)">3,80</text><g class="gr-dim-in"><path d="M80.6 259.2H354M80.6 263.2L88.6 255.2M346 263.2L354 255.2"/><text x="217.3" y="253.2">6,64</text><path d="M341.2 70.6V272M337.2 78.6L345.2 70.6M337.2 272L345.2 264"/><text x="334.2" y="171.3" transform="rotate(-90 334.2 171.3)">4,84</text><path d="M353 124H539.4M353 128L361 120M531.4 128L539.4 120"/><text x="446.2" y="118">4,46</text></g></g><g class="gr-meta" aria-hidden="true"><g transform="translate(584 22)"><circle r="13"/><path d="M0 -10L5 8L0 4L-5 8Z"/><text y="-17">N</text></g><g transform="translate(70 472)"><path d="M0 0H200M0 -4V4M40 -3V3M80 -3V3M200 -4V4"/><text x="0" y="-8">0</text><text x="40" y="-8">1</text><text x="80" y="-8">2</text><text x="200" y="-8">5 m</text></g></g>
+          <g class="gr-sel" aria-hidden="true"></g>
         </svg>
+        <p class="gx__hint mono" aria-hidden="true">Raum antippen · Pfeiltasten wechseln</p>
       </div>
-      <aside class="gx__panel" data-reveal aria-label="Raumdaten">
+      <aside class="gx__panel" aria-label="Raumdaten">
         <div class="gx__info" aria-live="polite">
           <p class="mono gx__k">Ausgewählter Raum</p>
           <h3 class="gx__name js-rname">Wohnen / Essen</h3>
@@ -318,117 +412,116 @@
   </div>
 </section>
 
-<!-- ============ PHASEN ============ -->
-<section class="sec sec--paper" id="phasen" aria-labelledby="phasen-t">
+<!-- ============ A-06 PHASEN: Bauzeitenplan ============ -->
+<section class="sec tone-paper bz-sec" id="phasen" aria-labelledby="phasen-t" data-sheet="A-06" data-sheet-t="Bauzeitenplan · HOAI LPH 1–9" data-sheet-m="Monate">
   <div class="wrap">
-    <header class="sh sh--split" data-reveal>
-      <p class="sh__no mono"><span>04</span>Leistungsphasen nach HOAI</p>
-      <h2 id="phasen-t">Neun Phasen. Und was Sie in jeder in der Hand haben.</h2>
-      <p class="sh__lead">Die Honorarordnung teilt ein Bauprojekt in neun Leistungsphasen. Hier sehen Sie, was in jeder passiert, was Sie am Ende bekommen und wie lange es ungefähr dauert.</p>
-    </header>
-    <div class="ph" data-reveal>
-      <div class="ph__groups mono" aria-hidden="true">
-        <span style="--s:1;--e:5">Planung</span><span style="--s:5;--e:8">Ausführung &amp; Vergabe</span><span style="--s:8;--e:10">Bau &amp; danach</span>
+    <div class="bz__head">
+      <h2 id="phasen-t"><span class="bz__h1" data-reveal="wipe">Neun Phasen.</span> <span class="bz__h2" data-reveal>Und was Sie in jeder in der Hand haben.</span></h2>
+      <p class="bz__lead" data-reveal>Die Honorarordnung teilt ein Bauprojekt in neun Leistungsphasen. Hier sehen Sie, was in jeder passiert, was Sie am Ende bekommen und wie lange es ungefähr dauert – als Bauzeitenplan eines Einfamilienhauses.</p>
+    </div>
+    <div class="bz">
+      <div class="bz__chart">
+        <div class="bz__scale mono tn" aria-hidden="true"><span class="bz__sk">LPH</span><span class="bz__ticks"><span style="--m:0">0</span><span style="--m:3">3</span><span style="--m:6">6</span><span style="--m:9">9</span><span style="--m:12">12</span><span style="--m:15">15</span><span style="--m:18">18</span><span style="--m:21">21</span><span style="--m:24">24&nbsp;Mon.</span></span><span class="bz__sf">Honorar</span></div>
+        <div class="bz__body">
+          <div class="bz__rows" role="tablist" aria-orientation="vertical" aria-label="Leistungsphasen 1 bis 9">
+            <button type="button" class="bz__row" role="tab" id="pt1" aria-controls="pp1" aria-selected="true"><span class="bz__no tn">1</span><span class="bz__name">Grundlagen</span><span class="bz__track" aria-hidden="true"><span class="bz__bar" style="--s:0;--d:.8"><i></i></span></span><span class="bz__fee tn">2&nbsp;%</span></button>
+            <button type="button" class="bz__row" role="tab" id="pt2" aria-controls="pp2" aria-selected="false" tabindex="-1"><span class="bz__no tn">2</span><span class="bz__name">Vorplanung</span><span class="bz__track" aria-hidden="true"><span class="bz__bar" style="--s:.8;--d:1.5"><i></i></span></span><span class="bz__fee tn">7&nbsp;%</span></button>
+            <button type="button" class="bz__row" role="tab" id="pt3" aria-controls="pp3" aria-selected="false" tabindex="-1"><span class="bz__no tn">3</span><span class="bz__name">Entwurf</span><span class="bz__track" aria-hidden="true"><span class="bz__bar" style="--s:2.3;--d:2"><i></i></span></span><span class="bz__fee tn">15&nbsp;%</span></button>
+            <button type="button" class="bz__row" role="tab" id="pt4" aria-controls="pp4" aria-selected="false" tabindex="-1"><span class="bz__no tn">4</span><span class="bz__name">Genehmigung</span><span class="bz__track" aria-hidden="true"><span class="bz__bar" style="--s:4.3;--d:.7"><i></i></span><span class="bz__bar bz__bar--amt" style="--s:5;--d:4.5"><i></i><em class="mono">Behörde</em></span></span><span class="bz__fee tn">3&nbsp;%</span></button>
+            <button type="button" class="bz__row" role="tab" id="pt5" aria-controls="pp5" aria-selected="false" tabindex="-1"><span class="bz__no tn">5</span><span class="bz__name">Ausführung</span><span class="bz__track" aria-hidden="true"><span class="bz__bar" style="--s:6.2;--d:2.5"><i></i></span></span><span class="bz__fee tn">25&nbsp;%</span></button>
+            <button type="button" class="bz__row" role="tab" id="pt6" aria-controls="pp6" aria-selected="false" tabindex="-1"><span class="bz__no tn">6</span><span class="bz__name">Vergabe vorb.</span><span class="bz__track" aria-hidden="true"><span class="bz__bar" style="--s:8.5;--d:1.2"><i></i></span></span><span class="bz__fee tn">10&nbsp;%</span></button>
+            <button type="button" class="bz__row" role="tab" id="pt7" aria-controls="pp7" aria-selected="false" tabindex="-1"><span class="bz__no tn">7</span><span class="bz__name">Vergabe</span><span class="bz__track" aria-hidden="true"><span class="bz__bar" style="--s:9.4;--d:1.5"><i></i></span></span><span class="bz__fee tn">4&nbsp;%</span></button>
+            <button type="button" class="bz__row" role="tab" id="pt8" aria-controls="pp8" aria-selected="false" tabindex="-1"><span class="bz__no tn">8</span><span class="bz__name">Bauleitung</span><span class="bz__track" aria-hidden="true"><span class="bz__bar bz__bar--bau" style="--s:10.9;--d:11.5"><i></i><em class="mono">Bauzeit</em></span></span><span class="bz__fee tn">32&nbsp;%</span></button>
+            <button type="button" class="bz__row" role="tab" id="pt9" aria-controls="pp9" aria-selected="false" tabindex="-1"><span class="bz__no tn">9</span><span class="bz__name">Betreuung</span><span class="bz__track" aria-hidden="true"><span class="bz__bar bz__bar--open" style="--s:22.4;--d:1.6"><i></i></span></span><span class="bz__fee tn">2&nbsp;%</span></button>
+          </div>
+          <div class="bz__now" aria-hidden="true"><span class="bz__nowl"></span><span class="bz__nowt mono">Monat <b class="js-now tn">0</b></span></div>
+        </div>
+        <p class="bz__cap mono">Anteil am Honorar in&nbsp;% (Objektplanung Gebäude, HOAI 2021 §&nbsp;34) · Zeiten: Erfahrungswerte Einfamilienhaus, Region Stuttgart</p>
       </div>
-      <div class="ph__tabs" role="tablist" aria-label="Leistungsphasen 1 bis 9">
-        <button type="button" role="tab" id="pt1" aria-controls="pp1" aria-selected="true"><span class="tn">1</span><small>Grundlagen</small></button>
-        <button type="button" role="tab" id="pt2" aria-controls="pp2" aria-selected="false" tabindex="-1"><span class="tn">2</span><small>Vorplanung</small></button>
-        <button type="button" role="tab" id="pt3" aria-controls="pp3" aria-selected="false" tabindex="-1"><span class="tn">3</span><small>Entwurf</small></button>
-        <button type="button" role="tab" id="pt4" aria-controls="pp4" aria-selected="false" tabindex="-1"><span class="tn">4</span><small>Genehmigung</small></button>
-        <button type="button" role="tab" id="pt5" aria-controls="pp5" aria-selected="false" tabindex="-1"><span class="tn">5</span><small>Ausführung</small></button>
-        <button type="button" role="tab" id="pt6" aria-controls="pp6" aria-selected="false" tabindex="-1"><span class="tn">6</span><small>Vergabe vorb.</small></button>
-        <button type="button" role="tab" id="pt7" aria-controls="pp7" aria-selected="false" tabindex="-1"><span class="tn">7</span><small>Vergabe</small></button>
-        <button type="button" role="tab" id="pt8" aria-controls="pp8" aria-selected="false" tabindex="-1"><span class="tn">8</span><small>Bauleitung</small></button>
-        <button type="button" role="tab" id="pt9" aria-controls="pp9" aria-selected="false" tabindex="-1"><span class="tn">9</span><small>Betreuung</small></button>
-      </div>
-      <div class="ph__track" aria-hidden="true"><span class="ph__fill"></span></div>
-      <div class="ph__fee" aria-hidden="true">
-        <span style="--p:2">2</span><span style="--p:7">7</span><span style="--p:15">15</span><span style="--p:3">3</span><span style="--p:25">25</span><span style="--p:10">10</span><span style="--p:4">4</span><span style="--p:32">32</span><span style="--p:2">2</span>
-      </div>
-      <p class="ph__feecap mono" aria-hidden="true">Anteil am Honorar in&nbsp;% (Objektplanung Gebäude, HOAI 2021 §&nbsp;34)</p>
 
-      <div class="ph__panels">
-        <article class="ph__p" role="tabpanel" id="pp1" aria-labelledby="pt1" tabindex="0">
-          <p class="ph__no mono">LPH 1 · <span class="tn">2&nbsp;%</span> · ca. 2–4 Wochen</p>
-          <h3>Grundlagenermittlung</h3>
-          <p>Wir sehen uns Grundstück oder Bestand an, klären Ihren Bedarf, das Budget, den Bebauungsplan und den Zeitrahmen. Danach wissen beide Seiten, ob und wie das Projekt funktioniert.</p>
-          <h4 class="mono">Das bekommen Sie</h4>
-          <ul><li>Raumprogramm und Bedarfsliste</li><li>Liste der nötigen Fachplaner und Gutachten</li><li>Termin- und Ablaufskizze</li></ul>
-        </article>
-        <article class="ph__p" role="tabpanel" id="pp2" aria-labelledby="pt2" tabindex="0">
-          <p class="ph__no mono">LPH 2 · <span class="tn">7&nbsp;%</span> · ca. 4–8 Wochen</p>
-          <h3>Vorplanung</h3>
-          <p>Erste Skizzen und ein Massenmodell in zwei bis drei Varianten. Wir stimmen die Grundidee informell mit dem Bauamt ab und schätzen die Kosten zum ersten Mal nach DIN&nbsp;276.</p>
-          <h4 class="mono">Das bekommen Sie</h4>
-          <ul><li>2–3 Entwurfsvarianten mit Lageplan</li><li>Kostenschätzung nach DIN&nbsp;276</li><li>Ergebnis der Bauamts-Voranfrage</li></ul>
-        </article>
-        <article class="ph__p" role="tabpanel" id="pp3" aria-labelledby="pt3" tabindex="0">
-          <p class="ph__no mono">LPH 3 · <span class="tn">15&nbsp;%</span> · ca. 6–10 Wochen</p>
-          <h3>Entwurfsplanung</h3>
-          <p>Die gewählte Variante wird durchgearbeitet: Grundrisse, Schnitte, Ansichten im Maßstab 1:100, abgestimmt mit Tragwerk und Haustechnik. Jetzt entscheidet sich der Großteil der Kosten.</p>
-          <h4 class="mono">Das bekommen Sie</h4>
-          <ul><li>Entwurfspläne M&nbsp;1:100 und Visualisierungen</li><li>Kostenberechnung nach DIN&nbsp;276</li><li>Material- und Konstruktionskonzept</li></ul>
-        </article>
-        <article class="ph__p" role="tabpanel" id="pp4" aria-labelledby="pt4" tabindex="0">
-          <p class="ph__no mono">LPH 4 · <span class="tn">3&nbsp;%</span> · 2–3 Wochen + Behörde</p>
-          <h3>Genehmigungsplanung</h3>
-          <p>Wir stellen den Bauantrag mit allen Nachweisen zusammen und begleiten ihn bis zur Genehmigung. Die Bearbeitung im Amt dauert in Stuttgart erfahrungsgemäß drei bis sechs Monate.</p>
-          <h4 class="mono">Das bekommen Sie</h4>
-          <ul><li>Vollständigen Bauantrag</li><li>Abstimmung mit Nachbarn und Behörde</li><li>Baugenehmigung (Bescheid der Behörde)</li></ul>
-        </article>
-        <article class="ph__p" role="tabpanel" id="pp5" aria-labelledby="pt5" tabindex="0">
-          <p class="ph__no mono">LPH 5 · <span class="tn">25&nbsp;%</span> · ca. 8–12 Wochen</p>
-          <h3>Ausführungsplanung</h3>
-          <p>Werkpläne im Maßstab 1:50 und Details bis 1:5 – das, wonach die Handwerker bauen. Gemeinsam bemustern wir Fenster, Böden, Fliesen und Armaturen.</p>
-          <h4 class="mono">Das bekommen Sie</h4>
-          <ul><li>Werk- und Detailplanung</li><li>Bemusterungsliste mit Ihren Entscheidungen</li><li>Abgestimmte Pläne der Fachplaner</li></ul>
-        </article>
-        <article class="ph__p" role="tabpanel" id="pp6" aria-labelledby="pt6" tabindex="0">
-          <p class="ph__no mono">LPH 6 · <span class="tn">10&nbsp;%</span> · ca. 4–6 Wochen</p>
-          <h3>Vorbereitung der Vergabe</h3>
-          <p>Wir ermitteln Mengen und schreiben für jedes Gewerk ein Leistungsverzeichnis. Vor dem Versand bepreisen wir es selbst – als Kontrolle gegen die Kostenberechnung.</p>
-          <h4 class="mono">Das bekommen Sie</h4>
-          <ul><li>Leistungsverzeichnisse je Gewerk</li><li>Bepreiste Kostenkontrolle vor der Ausschreibung</li><li>Terminplan für die Vergabe</li></ul>
-        </article>
-        <article class="ph__p" role="tabpanel" id="pp7" aria-labelledby="pt7" tabindex="0">
-          <p class="ph__no mono">LPH 7 · <span class="tn">4&nbsp;%</span> · ca. 4–8 Wochen</p>
-          <h3>Mitwirkung bei der Vergabe</h3>
-          <p>Wir holen Angebote ein, prüfen sie rechnerisch und fachlich und führen Bietergespräche. Die Entscheidung treffen Sie – mit einem Preisspiegel auf dem Tisch.</p>
-          <h4 class="mono">Das bekommen Sie</h4>
-          <ul><li>Preisspiegel aller Angebote</li><li>Vergabeempfehlung</li><li>Bauverträge zur Unterschrift</li></ul>
-        </article>
-        <article class="ph__p" role="tabpanel" id="pp8" aria-labelledby="pt8" tabindex="0">
-          <p class="ph__no mono">LPH 8 · <span class="tn">32&nbsp;%</span> · Bauzeit, EFH ca. 9–14 Monate</p>
-          <h3>Objektüberwachung – Bauleitung</h3>
-          <p>Die größte Phase: Wir koordinieren die Baustelle, kontrollieren Qualität und Termine, prüfen jede Rechnung und nehmen die Leistungen mit Ihnen ab.</p>
-          <h4 class="mono">Das bekommen Sie</h4>
-          <ul><li>Wöchentliches Baustellenprotokoll mit Fotos</li><li>Laufende Kostenverfolgung</li><li>Abnahmen, Mängelliste und Bauwerksdokumentation</li></ul>
-        </article>
-        <article class="ph__p" role="tabpanel" id="pp9" aria-labelledby="pt9" tabindex="0">
-          <p class="ph__no mono">LPH 9 · <span class="tn">2&nbsp;%</span> · bis Ende der Gewährleistung</p>
-          <h3>Objektbetreuung</h3>
-          <p>Nach dem Einzug bleiben wir ansprechbar: Wir verfolgen Mängel, die sich erst zeigen, und gehen vor Ablauf der Gewährleistungsfristen mit Ihnen durchs Haus.</p>
-          <h4 class="mono">Das bekommen Sie</h4>
-          <ul><li>Begehung vor Fristablauf</li><li>Mängelverfolgung gegenüber den Firmen</li><li>Freigabe von Sicherheitseinbehalten</li></ul>
-        </article>
-      </div>
-      <div class="ph__nav">
-        <button type="button" class="btn btn--ghost btn--sm js-ph-prev" aria-label="Vorherige Phase">← Zurück</button>
-        <button type="button" class="btn btn--ghost btn--sm js-ph-next" aria-label="Nächste Phase">Weiter →</button>
+      <div class="bz__side">
+        <div class="ph__panels">
+          <article class="ph__p" role="tabpanel" id="pp1" aria-labelledby="pt1" tabindex="0">
+            <p class="ph__no mono">LPH 1 · <span class="tn">2&nbsp;%</span> · ca. 2–4 Wochen</p>
+            <h3>Grundlagenermittlung</h3>
+            <p>Wir sehen uns Grundstück oder Bestand an, klären Ihren Bedarf, das Budget, den Bebauungsplan und den Zeitrahmen. Danach wissen beide Seiten, ob und wie das Projekt funktioniert.</p>
+            <h4 class="mono">Das bekommen Sie</h4>
+            <ul><li>Raumprogramm und Bedarfsliste</li><li>Liste der nötigen Fachplaner und Gutachten</li><li>Termin- und Ablaufskizze</li></ul>
+          </article>
+          <article class="ph__p" role="tabpanel" id="pp2" aria-labelledby="pt2" tabindex="0">
+            <p class="ph__no mono">LPH 2 · <span class="tn">7&nbsp;%</span> · ca. 4–8 Wochen</p>
+            <h3>Vorplanung</h3>
+            <p>Erste Skizzen und ein Massenmodell in zwei bis drei Varianten. Wir stimmen die Grundidee informell mit dem Bauamt ab und schätzen die Kosten zum ersten Mal nach DIN&nbsp;276.</p>
+            <h4 class="mono">Das bekommen Sie</h4>
+            <ul><li>2–3 Entwurfsvarianten mit Lageplan</li><li>Kostenschätzung nach DIN&nbsp;276</li><li>Ergebnis der Bauamts-Voranfrage</li></ul>
+          </article>
+          <article class="ph__p" role="tabpanel" id="pp3" aria-labelledby="pt3" tabindex="0">
+            <p class="ph__no mono">LPH 3 · <span class="tn">15&nbsp;%</span> · ca. 6–10 Wochen</p>
+            <h3>Entwurfsplanung</h3>
+            <p>Die gewählte Variante wird durchgearbeitet: Grundrisse, Schnitte, Ansichten im Maßstab 1:100, abgestimmt mit Tragwerk und Haustechnik. Jetzt entscheidet sich der Großteil der Kosten.</p>
+            <h4 class="mono">Das bekommen Sie</h4>
+            <ul><li>Entwurfspläne M&nbsp;1:100 und Visualisierungen</li><li>Kostenberechnung nach DIN&nbsp;276</li><li>Material- und Konstruktionskonzept</li></ul>
+          </article>
+          <article class="ph__p" role="tabpanel" id="pp4" aria-labelledby="pt4" tabindex="0">
+            <p class="ph__no mono">LPH 4 · <span class="tn">3&nbsp;%</span> · 2–3 Wochen + Behörde</p>
+            <h3>Genehmigungsplanung</h3>
+            <p>Wir stellen den Bauantrag mit allen Nachweisen zusammen und begleiten ihn bis zur Genehmigung. Die Bearbeitung im Amt dauert in Stuttgart erfahrungsgemäß drei bis sechs Monate.</p>
+            <h4 class="mono">Das bekommen Sie</h4>
+            <ul><li>Vollständigen Bauantrag</li><li>Abstimmung mit Nachbarn und Behörde</li><li>Baugenehmigung (Bescheid der Behörde)</li></ul>
+          </article>
+          <article class="ph__p" role="tabpanel" id="pp5" aria-labelledby="pt5" tabindex="0">
+            <p class="ph__no mono">LPH 5 · <span class="tn">25&nbsp;%</span> · ca. 8–12 Wochen</p>
+            <h3>Ausführungsplanung</h3>
+            <p>Werkpläne im Maßstab 1:50 und Details bis 1:5 – das, wonach die Handwerker bauen. Gemeinsam bemustern wir Fenster, Böden, Fliesen und Armaturen.</p>
+            <h4 class="mono">Das bekommen Sie</h4>
+            <ul><li>Werk- und Detailplanung</li><li>Bemusterungsliste mit Ihren Entscheidungen</li><li>Abgestimmte Pläne der Fachplaner</li></ul>
+          </article>
+          <article class="ph__p" role="tabpanel" id="pp6" aria-labelledby="pt6" tabindex="0">
+            <p class="ph__no mono">LPH 6 · <span class="tn">10&nbsp;%</span> · ca. 4–6 Wochen</p>
+            <h3>Vorbereitung der Vergabe</h3>
+            <p>Wir ermitteln Mengen und schreiben für jedes Gewerk ein Leistungsverzeichnis. Vor dem Versand bepreisen wir es selbst – als Kontrolle gegen die Kostenberechnung.</p>
+            <h4 class="mono">Das bekommen Sie</h4>
+            <ul><li>Leistungsverzeichnisse je Gewerk</li><li>Bepreiste Kostenkontrolle vor der Ausschreibung</li><li>Terminplan für die Vergabe</li></ul>
+          </article>
+          <article class="ph__p" role="tabpanel" id="pp7" aria-labelledby="pt7" tabindex="0">
+            <p class="ph__no mono">LPH 7 · <span class="tn">4&nbsp;%</span> · ca. 4–8 Wochen</p>
+            <h3>Mitwirkung bei der Vergabe</h3>
+            <p>Wir holen Angebote ein, prüfen sie rechnerisch und fachlich und führen Bietergespräche. Die Entscheidung treffen Sie – mit einem Preisspiegel auf dem Tisch.</p>
+            <h4 class="mono">Das bekommen Sie</h4>
+            <ul><li>Preisspiegel aller Angebote</li><li>Vergabeempfehlung</li><li>Bauverträge zur Unterschrift</li></ul>
+          </article>
+          <article class="ph__p" role="tabpanel" id="pp8" aria-labelledby="pt8" tabindex="0">
+            <p class="ph__no mono">LPH 8 · <span class="tn">32&nbsp;%</span> · Bauzeit, EFH ca. 9–14 Monate</p>
+            <h3>Objektüberwachung – Bauleitung</h3>
+            <p>Die größte Phase: Wir koordinieren die Baustelle, kontrollieren Qualität und Termine, prüfen jede Rechnung und nehmen die Leistungen mit Ihnen ab.</p>
+            <h4 class="mono">Das bekommen Sie</h4>
+            <ul><li>Wöchentliches Baustellenprotokoll mit Fotos</li><li>Laufende Kostenverfolgung</li><li>Abnahmen, Mängelliste und Bauwerksdokumentation</li></ul>
+          </article>
+          <article class="ph__p" role="tabpanel" id="pp9" aria-labelledby="pt9" tabindex="0">
+            <p class="ph__no mono">LPH 9 · <span class="tn">2&nbsp;%</span> · bis Ende der Gewährleistung</p>
+            <h3>Objektbetreuung</h3>
+            <p>Nach dem Einzug bleiben wir ansprechbar: Wir verfolgen Mängel, die sich erst zeigen, und gehen vor Ablauf der Gewährleistungsfristen mit Ihnen durchs Haus.</p>
+            <h4 class="mono">Das bekommen Sie</h4>
+            <ul><li>Begehung vor Fristablauf</li><li>Mängelverfolgung gegenüber den Firmen</li><li>Freigabe von Sicherheitseinbehalten</li></ul>
+          </article>
+        </div>
+        <div class="ph__nav">
+          <button type="button" class="btn btn--ghost btn--sm js-ph-prev" aria-label="Vorherige Phase">← Zurück</button>
+          <button type="button" class="btn btn--ghost btn--sm js-ph-next" aria-label="Nächste Phase">Weiter →</button>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ============ KOSTEN ============ -->
-<section class="sec sec--grid" id="kosten" aria-labelledby="kosten-t">
+<!-- ============ A-07 KOSTEN: Kostenblatt ============ -->
+<section class="sec tone-paper kr-sec" id="kosten" aria-labelledby="kosten-t" data-sheet="A-07" data-sheet-t="Kostenrahmen · DIN 276" data-sheet-m="€/m² BGF">
   <div class="wrap">
-    <header class="sh sh--split" data-reveal>
-      <p class="sh__no mono"><span>05</span>Kostenrahmen</p>
-      <h2 id="kosten-t">Was kostet das ungefähr?</h2>
-      <p class="sh__lead">Eine erste Größenordnung aus Bruttogeschossfläche und Ausbaustandard – bevor wir uns kennen. Die belastbare Zahl erarbeiten wir gemeinsam in den Leistungsphasen 2 und 3.</p>
-    </header>
-    <div class="kr" data-reveal>
+    <div class="kr__head">
+      <h2 id="kosten-t" class="d-xl" data-reveal="wipe">Was kostet das ungefähr?</h2>
+      <p class="kr__lead" data-reveal>Eine erste Größenordnung aus Bruttogeschossfläche und Ausbaustandard – bevor wir uns kennen. Die belastbare Zahl erarbeiten wir gemeinsam in den Leistungsphasen 2 und 3.</p>
+    </div>
+    <div class="kr">
       <form class="kr__in" id="kr" novalidate>
         <fieldset class="kr__f">
           <legend class="mono">1 · Bauaufgabe</legend>
@@ -441,8 +534,10 @@
         <div class="kr__f">
           <label class="mono kr__lab" for="bgf">2 · Bruttogeschossfläche</label>
           <div class="kr__bgf"><output for="bgf" id="bgf-out">180</output><span>m² BGF</span></div>
-          <input type="range" id="bgf" name="bgf" min="60" max="600" step="10" value="180" aria-describedby="bgf-hint">
-          <div class="kr__scale mono tn" aria-hidden="true"><span>60</span><span>200</span><span>400</span><span>600</span></div>
+          <div class="kr__ruler">
+            <input type="range" id="bgf" name="bgf" min="60" max="600" step="10" value="180" aria-describedby="bgf-hint">
+            <div class="kr__scale mono tn" aria-hidden="true"><span>60</span><span>200</span><span>400</span><span>600</span></div>
+          </div>
           <p class="kr__hint" id="bgf-hint">Faustregel: Wohnfläche × 1,25 bis 1,4 ergibt die Bruttogeschossfläche.</p>
         </div>
         <fieldset class="kr__f">
@@ -456,8 +551,8 @@
         </fieldset>
       </form>
       <div class="kr__out">
-        <p class="mono kr__ok">Orientierung · keine Kostenschätzung</p>
-        <p class="kr__sum" aria-live="polite" aria-atomic="true"><span class="kr__lbl mono">Gesamtkosten ca.</span><span class="kr__big"><span class="js-kmin">612.000</span> – <span class="js-kmax">756.000</span>&nbsp;€</span></p>
+        <p class="kr__ok mono">Orientierung · keine Kostenschätzung</p>
+        <p class="kr__sum"><span class="kr__lbl mono">Gesamtkosten ca.</span><span class="kr__big" aria-hidden="true"><span class="odo js-kmin">612.000</span><span class="kr__dash">–</span><span class="odo js-kmax">756.000</span><span class="kr__eur">€</span></span><span class="sr-only js-ksr" aria-live="polite" aria-atomic="true">612.000 bis 756.000 €</span></p>
         <div class="kr__bar" aria-hidden="true"><span class="kr__range js-krange"></span><span class="kr__ticks mono tn"><span>0</span><span class="js-kscale">1,5 Mio. €</span></span></div>
         <dl class="kr__dl">
           <div><dt>Bauwerk (KG&nbsp;300 + 400)</dt><dd class="tn js-kbau">504.000 – 612.000&nbsp;€</dd></div>
@@ -465,80 +560,85 @@
           <div><dt>Kennwert Bauwerk</dt><dd class="tn js-kqm">2.800 – 3.400&nbsp;€/m² BGF</dd></div>
         </dl>
         <p class="kr__fine">Unverbindliche Beispielrechnung, brutto inkl. 19&nbsp;% MwSt., Preisstand 2026, Region Stuttgart. Nicht enthalten: Grundstück, Erschließung, Außenanlagen (KG&nbsp;500), Ausstattung, Finanzierung. Ersetzt keine Kostenschätzung nach DIN&nbsp;276.</p>
-        <a class="btn js-kcta" href="#kontakt">Kostenrahmen im Erstgespräch prüfen</a>
+        <a class="btn btn--light btn--mag js-kcta" href="#kontakt"><span data-roll>Kostenrahmen im Erstgespräch prüfen</span></a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ============ BÜRO ============ -->
-<section class="sec sec--paper" id="buero" aria-labelledby="buero-t">
+<!-- ============ A-08 BÜRO: Stückliste ============ -->
+<section class="sec tone-paper bu-sec" id="buero" aria-labelledby="buero-t" data-sheet="A-08" data-sheet-t="Büro · Stückliste" data-sheet-m="1 : 1">
+  <div class="bu">
+    <figure class="bu__img" data-reveal="wipe">
+      <img src="/arena/architektur-raumlinie/assets/img/buero-480.webp" srcset="/arena/architektur-raumlinie/assets/img/buero-480.webp 480w, /arena/architektur-raumlinie/assets/img/buero-960.webp 960w" sizes="(max-width: 899px) 100vw, 56vw" width="960" height="640" loading="lazy" decoding="async" alt="Heller Büroraum mit großen Sprossenfenstern und langem weißem Arbeitstisch">
+      <figcaption class="mono">Büro Rotebühlstraße · 2. Hinterhaus · ehemalige Druckerei</figcaption>
+    </figure>
+    <div class="bu__text">
+      <h2 id="buero-t" class="d-xl" data-reveal="wipe">Zwölf Leute an einem langen Tisch.</h2>
+      <p class="bu__lead" data-reveal>Unser Büro liegt im Hinterhaus einer ehemaligen Druckerei in Stuttgart-West. Jedes Projekt hat eine Projektleitung von der ersten Skizze bis zur Abnahme – und einen Partner, der die Entscheidungen mitträgt.</p>
+    </div>
+  </div>
   <div class="wrap">
-    <header class="sh sh--split" data-reveal>
-      <p class="sh__no mono"><span>06</span>Büro</p>
-      <h2 id="buero-t">Zwölf Leute an einem langen Tisch.</h2>
-      <p class="sh__lead">Unser Büro liegt im Hinterhaus einer ehemaligen Druckerei in Stuttgart-West. Jedes Projekt hat eine Projektleitung von der ersten Skizze bis zur Abnahme – und einen Partner, der die Entscheidungen mitträgt.</p>
-    </header>
-    <div class="bu">
-      <figure class="bu__img" data-reveal>
-        <img src="/arena/architektur-raumlinie/assets/img/buero-480.webp" srcset="/arena/architektur-raumlinie/assets/img/buero-480.webp 480w, /arena/architektur-raumlinie/assets/img/buero-960.webp 960w" sizes="(max-width: 899px) 100vw, 620px" width="960" height="640" loading="lazy" decoding="async" alt="Heller Büroraum mit großen Sprossenfenstern und langem weißem Arbeitstisch">
-        <figcaption class="mono">Büro Rotebühlstraße · 2. Hinterhaus</figcaption>
-      </figure>
+    <div class="bu__grid">
       <div class="bu__people">
-        <article class="pp" data-reveal>
-          <span class="pp__mono" aria-hidden="true">HV</span>
-          <div><h3>Henrike Vogt</h3><p class="mono">Dipl.-Ing. Architektin · Partnerin</p><p>Studierte in Stuttgart und Delft, zehn Jahre Bauen im Bestand in Zürich. Verantwortet Umbauten, Sanierung und Denkmalpflege.</p></div>
+        <article class="pp" data-reveal="line">
+          <span class="pp__mono" aria-hidden="true"><b>HV</b><i>Partnerin</i></span>
+          <div><h3>Henrike Vogt</h3><p class="mono pp__role">Dipl.-Ing. Architektin · Partnerin</p><p>Studierte in Stuttgart und Delft, zehn Jahre Bauen im Bestand in Zürich. Verantwortet Umbauten, Sanierung und Denkmalpflege.</p></div>
         </article>
-        <article class="pp" data-reveal>
-          <span class="pp__mono" aria-hidden="true">TM</span>
-          <div><h3>Tarek Mansour</h3><p class="mono">M. A. Architekt · Partner</p><p>Holzbau-Spezialist, Lehrauftrag für Baukonstruktion. Verantwortet Neubau, Aufstockung und Kostenplanung.</p></div>
+        <article class="pp" data-reveal="line">
+          <span class="pp__mono" aria-hidden="true"><b>TM</b><i>Partner</i></span>
+          <div><h3>Tarek Mansour</h3><p class="mono pp__role">M. A. Architekt · Partner</p><p>Holzbau-Spezialist, Lehrauftrag für Baukonstruktion. Verantwortet Neubau, Aufstockung und Kostenplanung.</p></div>
         </article>
-        <dl class="bu__team mono" data-reveal>
-          <div><dt>Architekt:innen</dt><dd class="tn">6</dd></div>
-          <div><dt>Bauzeichnerinnen</dt><dd class="tn">2</dd></div>
-          <div><dt>Energieberater</dt><dd class="tn">2</dd></div>
-          <div><dt>Bauleitung</dt><dd class="tn">1</dd></div>
-          <div><dt>Büro &amp; Organisation</dt><dd class="tn">1</dd></div>
-        </dl>
+      </div>
+      <div class="bu__list" data-reveal="line">
+        <p class="bu__lk mono">Stückliste · Büro Raumlinie</p>
+        <table class="sl">
+          <caption class="sr-only">Team nach Aufgaben</caption>
+          <thead><tr><th scope="col">Pos.</th><th scope="col">Bezeichnung</th><th scope="col">Stk.</th></tr></thead>
+          <tbody>
+            <tr><td class="tn">01</td><td>Architekt:innen</td><td class="tn">6</td></tr>
+            <tr><td class="tn">02</td><td>Bauzeichnerinnen</td><td class="tn">2</td></tr>
+            <tr><td class="tn">03</td><td>Energieberater</td><td class="tn">2</td></tr>
+            <tr><td class="tn">04</td><td>Bauleitung</td><td class="tn">1</td></tr>
+            <tr><td class="tn">05</td><td>Büro &amp; Organisation</td><td class="tn">1</td></tr>
+          </tbody>
+          <tfoot><tr><td></td><td>Summe inkl. Partner</td><td class="tn">12</td></tr></tfoot>
+        </table>
       </div>
     </div>
-    <div class="bu__band">
-      <figure class="bu__s" data-reveal>
-        <img src="/arena/architektur-raumlinie/assets/img/beton-480.webp" srcset="/arena/architektur-raumlinie/assets/img/beton-480.webp 480w, /arena/architektur-raumlinie/assets/img/beton-960.webp 960w" sizes="(max-width: 899px) 50vw, 420px" width="960" height="640" loading="lazy" decoding="async" alt="Sichtbetonwände mit scharfer Licht- und Schattenkante">
-      </figure>
-      <blockquote class="bu__q" data-reveal>
-        <p>„Bestand ist für uns kein Hindernis, sondern das erste Baumaterial.“</p>
-        <footer class="mono">Henrike Vogt</footer>
-      </blockquote>
-      <figure class="bu__s" data-reveal>
-        <img src="/arena/architektur-raumlinie/assets/img/treppe-480.webp" srcset="/arena/architektur-raumlinie/assets/img/treppe-480.webp 480w, /arena/architektur-raumlinie/assets/img/treppe-960.webp 960w" sizes="(max-width: 899px) 50vw, 420px" width="960" height="636" loading="lazy" decoding="async" alt="Weiße Wand mit hölzernem Treppenhandlauf in diagonaler Linie">
-      </figure>
+    <div class="bu__strip">
+      <figure class="bu__s" data-reveal="wipe"><img src="/arena/architektur-raumlinie/assets/img/beton-480.webp" srcset="/arena/architektur-raumlinie/assets/img/beton-480.webp 480w, /arena/architektur-raumlinie/assets/img/beton-960.webp 960w" sizes="(max-width: 899px) 50vw, 30vw" width="960" height="640" loading="lazy" decoding="async" alt="Sichtbetonwände mit scharfer Licht- und Schattenkante"><figcaption class="mono">Abb. 1 · Sichtbeton</figcaption></figure>
+      <figure class="bu__s bu__s--tall" data-reveal="wipe"><img src="/arena/architektur-raumlinie/assets/img/wendel-480.webp" srcset="/arena/architektur-raumlinie/assets/img/wendel-480.webp 480w, /arena/architektur-raumlinie/assets/img/wendel-960.webp 960w" sizes="(max-width: 899px) 50vw, 24vw" width="960" height="720" loading="lazy" decoding="async" alt="Wendeltreppe von oben gesehen, Spirale aus hellen Stufen"><figcaption class="mono">Abb. 2 · Wendel</figcaption></figure>
+      <figure class="bu__s" data-reveal="wipe"><img src="/arena/architektur-raumlinie/assets/img/treppe-480.webp" srcset="/arena/architektur-raumlinie/assets/img/treppe-480.webp 480w, /arena/architektur-raumlinie/assets/img/treppe-960.webp 960w" sizes="(max-width: 899px) 50vw, 30vw" width="960" height="636" loading="lazy" decoding="async" alt="Weiße Wand mit hölzernem Treppenhandlauf in diagonaler Linie"><figcaption class="mono">Abb. 3 · Handlauf</figcaption></figure>
     </div>
-    <ul class="aw" data-reveal>
-      <li><span class="mono tn">2024</span><b>Stuttgarter Wohnbaupreis</b><span>Haus am Killesberg</span></li>
-      <li><span class="mono tn">2024</span><b>Neckartaler Holzbaupreis</b><span>Aufstockung Heusteigviertel</span></li>
-      <li><span class="mono tn">2022</span><b>Preis Raum &amp; Bestand</b><span>Scheune Weilimdorf</span></li>
-    </ul>
+    <div class="aw">
+      <h3 class="aw__t">Drei Preise, drei Bauherrschaften.</h3>
+      <ul class="aw__list">
+        <li class="aw__s" data-reveal="stamp"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="56"/><circle cx="60" cy="60" r="47"/><path d="M28 60H92"/></svg><span class="aw__y tn">2024</span><b>Stuttgarter Wohnbaupreis</b><span class="aw__p">Haus am Killesberg</span></li>
+        <li class="aw__s" data-reveal="stamp"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="56"/><circle cx="60" cy="60" r="47"/><path d="M28 60H92"/></svg><span class="aw__y tn">2024</span><b>Neckartaler Holzbaupreis</b><span class="aw__p">Aufstockung Heusteigviertel</span></li>
+        <li class="aw__s" data-reveal="stamp"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="56"/><circle cx="60" cy="60" r="47"/><path d="M28 60H92"/></svg><span class="aw__y tn">2022</span><b>Preis Raum &amp; Bestand</b><span class="aw__p">Scheune Weilimdorf</span></li>
+      </ul>
+    </div>
   </div>
 </section>
 
-<!-- ============ STIMMEN ============ -->
-<section class="sec sec--dark sec--tight" id="stimmen" aria-labelledby="stimmen-t">
+<!-- ============ A-09 STIMMEN: Baustellenprotokolle ============ -->
+<section class="sec tone-dark qs-sec" id="stimmen" aria-labelledby="stimmen-t" data-sheet="A-09" data-sheet-t="Protokolle · Bauherrschaften" data-sheet-m="—">
   <div class="wrap">
-    <header class="sh" data-reveal>
-      <p class="sh__no mono"><span>07</span>Bauherrschaften</p>
-      <h2 id="stimmen-t">Was Bauherren nach dem Einzug sagen.</h2>
-    </header>
+    <h2 id="stimmen-t" class="d-xl qs__t" data-reveal="wipe">Was Bauherren nach dem Einzug sagen.</h2>
     <div class="qs">
       <figure class="q" data-reveal>
+        <p class="q__h mono"><span>Protokoll Nr. <b class="tn">41</b></span><span>Abnahme</span></p>
         <blockquote><p>„Wir hatten zwei Ordner voller Ideen und ein Budget. Nach Phase&nbsp;3 lagen wir 2&nbsp;% über der ersten Schätzung – und wussten bei jeder Position, warum.“</p></blockquote>
         <figcaption><b>Familie Abele</b><span class="mono">Holzhaus Leonberg · 2025</span></figcaption>
       </figure>
       <figure class="q" data-reveal>
+        <p class="q__h mono"><span>Protokoll Nr. <b class="tn">17</b></span><span>Bestandsaufnahme</span></p>
         <blockquote><p>„Die Scheune stand 30 Jahre leer. Raumlinie hat jeden Balken kartiert, bevor überhaupt gezeichnet wurde. Genau das hat uns überzeugt.“</p></blockquote>
         <figcaption><b>M. und S. Rieger</b><span class="mono">Scheune Weilimdorf · 2022</span></figcaption>
       </figure>
       <figure class="q" data-reveal>
+        <p class="q__h mono"><span>Protokoll Nr. <b class="tn">52</b></span><span>Baustelle</span></p>
         <blockquote><p>„Zwei Geschosse obendrauf, während unten weiter gewohnt wurde. Die Bauleitung hat jeden Freitag ein Protokoll geschickt – ohne Ausnahme.“</p></blockquote>
         <figcaption><b>WEG Heusteigstraße</b><span class="mono">Aufstockung · 2024</span></figcaption>
       </figure>
@@ -547,35 +647,34 @@
   </div>
 </section>
 
-<!-- ============ REGION ============ -->
-<section class="sec sec--paper" id="region" aria-labelledby="region-t">
+<!-- ============ A-10 REGION: Lageplan ============ -->
+<section class="sec tone-paper rg-sec" id="region" aria-labelledby="region-t" data-sheet="A-10" data-sheet-t="Lageplan · Einzugsgebiet" data-sheet-m="schematisch">
   <div class="wrap rg">
-    <header class="sh rg__text" data-reveal>
-      <p class="sh__no mono"><span>08</span>Einzugsgebiet</p>
-      <h2 id="region-t">Stuttgart und 40&nbsp;Kilometer drumherum.</h2>
-      <p class="sh__lead">In der Bauleitung sind wir mindestens einmal pro Woche auf jeder Baustelle. Deshalb arbeiten wir bewusst in der Region: von Ludwigsburg bis Filderstadt, von Leonberg bis Esslingen.</p>
-      <ul class="rg__list mono">
+    <div class="rg__text">
+      <h2 id="region-t" class="d-xl" data-reveal="wipe">Stuttgart und 40&nbsp;Kilometer drumherum.</h2>
+      <p class="rg__lead" data-reveal>In der Bauleitung sind wir mindestens einmal pro Woche auf jeder Baustelle. Deshalb arbeiten wir bewusst in der Region: von Ludwigsburg bis Filderstadt, von Leonberg bis Esslingen.</p>
+      <ul class="rg__list mono" data-reveal="line">
         <li><span>Stuttgart, alle Stadtbezirke</span><span class="tn">0–10 km</span></li>
         <li><span>Ludwigsburg · Fellbach · Esslingen · Leonberg</span><span class="tn">10–25 km</span></li>
         <li><span>Böblingen · Sindelfingen · Waiblingen · Filderstadt</span><span class="tn">15–25 km</span></li>
         <li><span>Weiter entfernt nach Absprache</span><span class="tn">bis 40 km</span></li>
       </ul>
-    </header>
-    <figure class="rg__map" data-reveal>
+    </div>
+    <figure class="rg__map" data-reveal="plan">
       <svg viewBox="0 0 600 460" role="img" aria-labelledby="map-t">
         <title id="map-t">Schematische Karte: Büro in Stuttgart-West, Ringe für 10, 25 und 40 Kilometer, umliegende Städte und der Neckar</title>
         <defs><pattern id="mm" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="currentColor" stroke-opacity=".08"/></pattern></defs>
         <rect width="600" height="460" fill="url(#mm)"/>
-        <g class="map-ring"><circle cx="300" cy="230" r="50"/><circle cx="300" cy="230" r="125"/><circle cx="300" cy="230" r="200" class="map-ring--o"/></g>
+        <g class="map-ring"><circle pathLength="1" cx="300" cy="230" r="50"/><circle pathLength="1" cx="300" cy="230" r="125"/><circle pathLength="1" cx="300" cy="230" r="200" class="map-ring--o"/></g>
         <g class="map-ringl mono"><text x="300" y="173">10 km</text><text x="300" y="98">25 km</text><text x="300" y="23">40 km</text></g>
-        <path class="map-river" d="M560 330C500 300 420 280 375 262C345 250 330 236 333 214C336 196 326 182 318 166C306 140 326 112 316 80C310 60 322 40 316 10"/>
+        <path pathLength="1" class="map-river" d="M560 330C500 300 420 280 375 262C345 250 330 236 333 214C336 196 326 182 318 166C306 140 326 112 316 80C310 60 322 40 316 10"/>
         <text class="map-rl mono" x="438" y="275" transform="rotate(17 438 275)">Neckar</text>
-        <path class="map-road" d="M210 30C220 120 236 200 250 270C262 330 270 390 286 450"/>
-        <path class="map-road" d="M20 300C120 292 200 300 280 312C360 324 450 318 590 300"/>
+        <path pathLength="1" class="map-road" d="M210 30C220 120 236 200 250 270C262 330 270 390 286 450"/>
+        <path pathLength="1" class="map-road" d="M20 300C120 292 200 300 280 312C360 324 450 318 590 300"/>
         <text class="map-rd mono" x="212" y="60">A 81</text><text class="map-rd mono" x="70" y="290">A 8</text>
         <g class="map-towns">
           <g transform="translate(296 160)"><circle r="4"/><text x="9" y="4">Ludwigsburg</text></g>
-                    <g transform="translate(372 186)"><circle r="4"/><text x="9" y="4">Waiblingen</text></g>
+          <g transform="translate(372 186)"><circle r="4"/><text x="9" y="4">Waiblingen</text></g>
           <g transform="translate(352 212)"><circle r="3"/><text x="8" y="4">Fellbach</text></g>
           <g transform="translate(366 262)"><circle r="4"/><text x="9" y="16">Esslingen</text></g>
           <g transform="translate(318 306)"><circle r="4"/><text x="9" y="4">Filderstadt</text></g>
@@ -583,49 +682,44 @@
           <g transform="translate(222 276)"><circle r="3"/><text x="-8" y="4" text-anchor="end">Sindelfingen</text></g>
           <g transform="translate(222 204)"><circle r="4"/><text x="-9" y="4" text-anchor="end">Leonberg</text></g>
         </g>
-        <g class="map-pin" transform="translate(296 232)"><circle r="16" class="map-pulse"/><rect x="-6" y="-6" width="12" height="12"/><text x="-12" y="22" text-anchor="end" class="mono">Raumlinie</text></g>
+        <g class="map-pin" transform="translate(296 232)"><path d="M-14 0H14M0 -14V14" class="map-cross"/><rect x="-5" y="-5" width="10" height="10"/><text x="-12" y="24" text-anchor="end" class="mono">Raumlinie</text></g>
       </svg>
       <figcaption class="mono">Schematisch, nicht maßstäblich · Rotebühlstraße 121, 70178 Stuttgart</figcaption>
     </figure>
   </div>
 </section>
 
-<!-- ============ FAQ ============ -->
-<section class="sec sec--grid" id="faq" aria-labelledby="faq-t">
+<!-- ============ A-11 FAQ: Anmerkungen ============ -->
+<section class="sec tone-paper faq-sec" id="faq" aria-labelledby="faq-t" data-sheet="A-11" data-sheet-t="Anmerkungen · häufige Fragen" data-sheet-m="—">
   <div class="wrap faq">
-    <header class="sh" data-reveal>
-      <p class="sh__no mono"><span>09</span>Fragen</p>
-      <h2 id="faq-t">Was Bauherren uns am häufigsten fragen.</h2>
-    </header>
-    <div class="faq__list" data-reveal>
-      <details><summary>Was kostet ein Architekt?<span class="faq__i" aria-hidden="true"></span></summary><div><p>Das Honorar richtet sich nach den anrechenbaren Kosten, der Honorarzone und den beauftragten Leistungsphasen. Die HOAI dient dabei als Orientierung. Bei einem Einfamilienhaus mit allen neun Phasen liegt es meist zwischen 12 und 18&nbsp;% der Baukosten – das genaue Angebot bekommen Sie nach dem Erstgespräch schriftlich.</p></div></details>
-      <details><summary>Muss ich alle neun Leistungsphasen beauftragen?<span class="faq__i" aria-hidden="true"></span></summary><div><p>Nein. Wir beauftragen meist stufenweise: zuerst Phase 1–2, danach entscheiden Sie, ob es weitergeht. Für eine reine Machbarkeitsstudie oder einen Bauantrag geht auch weniger.</p></div></details>
-      <details><summary>Wie läuft das Erstgespräch ab?<span class="faq__i" aria-hidden="true"></span></summary><div><p>Etwa 60 Minuten im Büro oder auf Ihrem Grundstück. Bringen Sie mit, was Sie haben: Lageplan, Bestandspläne, Fotos, Wunschliste. Danach schicken wir eine kurze Einschätzung und ein Honorarangebot.</p></div></details>
-      <details><summary>Lohnt sich eine Aufstockung bei meinem Haus?<span class="faq__i" aria-hidden="true"></span></summary><div><p>Das hängt vor allem von der Tragfähigkeit, dem Bebauungsplan und den Abstandsflächen ab. Wir bieten dafür eine pauschale Machbarkeitsprüfung an, bevor Sie in die volle Planung einsteigen.</p></div></details>
-      <details><summary>Kümmern Sie sich auch um Fördermittel?<span class="faq__i" aria-hidden="true"></span></summary><div><p>Ja. Unsere Energieeffizienz-Experten erstellen Sanierungsfahrpläne, stellen Anträge für die Bundesförderung und erbringen die Nachweise. Welche Förderung aktuell gilt, prüfen wir für Ihr Projekt jeweils neu.</p></div></details>
-      <details><summary>Wie lange dauert es vom Erstgespräch bis zum Einzug?<span class="faq__i" aria-hidden="true"></span></summary><div><p>Bei einem Einfamilienhaus rechnen wir mit etwa 9–12 Monaten Planung und Genehmigung und 9–14 Monaten Bauzeit. Umbauten sind oft schneller geplant, aber auf der Baustelle schwerer vorherzusagen.</p></div></details>
+    <h2 id="faq-t" class="d-l" data-reveal="wipe">Was Bauherren uns am häufigsten fragen.</h2>
+    <div class="faq__list">
+      <details data-reveal="line"><summary><span class="faq__n mono tn">Anm. 1</span><span class="faq__q">Was kostet ein Architekt?</span><span class="faq__i" aria-hidden="true"></span></summary><div class="faq__a"><p>Das Honorar richtet sich nach den anrechenbaren Kosten, der Honorarzone und den beauftragten Leistungsphasen. Die HOAI dient dabei als Orientierung. Bei einem Einfamilienhaus mit allen neun Phasen liegt es meist zwischen 12 und 18&nbsp;% der Baukosten – das genaue Angebot bekommen Sie nach dem Erstgespräch schriftlich.</p></div></details>
+      <details data-reveal="line"><summary><span class="faq__n mono tn">Anm. 2</span><span class="faq__q">Muss ich alle neun Leistungsphasen beauftragen?</span><span class="faq__i" aria-hidden="true"></span></summary><div class="faq__a"><p>Nein. Wir beauftragen meist stufenweise: zuerst Phase 1–2, danach entscheiden Sie, ob es weitergeht. Für eine reine Machbarkeitsstudie oder einen Bauantrag geht auch weniger.</p></div></details>
+      <details data-reveal="line"><summary><span class="faq__n mono tn">Anm. 3</span><span class="faq__q">Wie läuft das Erstgespräch ab?</span><span class="faq__i" aria-hidden="true"></span></summary><div class="faq__a"><p>Etwa 60 Minuten im Büro oder auf Ihrem Grundstück. Bringen Sie mit, was Sie haben: Lageplan, Bestandspläne, Fotos, Wunschliste. Danach schicken wir eine kurze Einschätzung und ein Honorarangebot.</p></div></details>
+      <details data-reveal="line"><summary><span class="faq__n mono tn">Anm. 4</span><span class="faq__q">Lohnt sich eine Aufstockung bei meinem Haus?</span><span class="faq__i" aria-hidden="true"></span></summary><div class="faq__a"><p>Das hängt vor allem von der Tragfähigkeit, dem Bebauungsplan und den Abstandsflächen ab. Wir bieten dafür eine pauschale Machbarkeitsprüfung an, bevor Sie in die volle Planung einsteigen.</p></div></details>
+      <details data-reveal="line"><summary><span class="faq__n mono tn">Anm. 5</span><span class="faq__q">Kümmern Sie sich auch um Fördermittel?</span><span class="faq__i" aria-hidden="true"></span></summary><div class="faq__a"><p>Ja. Unsere Energieeffizienz-Experten erstellen Sanierungsfahrpläne, stellen Anträge für die Bundesförderung und erbringen die Nachweise. Welche Förderung aktuell gilt, prüfen wir für Ihr Projekt jeweils neu.</p></div></details>
+      <details data-reveal="line"><summary><span class="faq__n mono tn">Anm. 6</span><span class="faq__q">Wie lange dauert es vom Erstgespräch bis zum Einzug?</span><span class="faq__i" aria-hidden="true"></span></summary><div class="faq__a"><p>Bei einem Einfamilienhaus rechnen wir mit etwa 9–12 Monaten Planung und Genehmigung und 9–14 Monaten Bauzeit. Umbauten sind oft schneller geplant, aber auf der Baustelle schwerer vorherzusagen.</p></div></details>
     </div>
   </div>
 </section>
 
-<!-- ============ KONTAKT ============ -->
-<section class="sec sec--paper" id="kontakt" aria-labelledby="kontakt-t">
+<!-- ============ A-12 KONTAKT: Planeingang ============ -->
+<section class="sec tone-paper ct-sec" id="kontakt" aria-labelledby="kontakt-t" data-sheet="A-12" data-sheet-t="Planeingang · Erstgespräch" data-sheet-m="—">
   <div class="wrap ct">
     <div class="ct__side">
-      <header class="sh" data-reveal>
-        <p class="sh__no mono"><span>10</span>Kontakt</p>
-        <h2 id="kontakt-t">Erzählen Sie uns von Ihrem Vorhaben.</h2>
-        <p class="sh__lead">Das Erstgespräch dauert etwa eine Stunde – im Büro oder vor Ort. Wir melden uns innerhalb von zwei Werktagen mit Terminvorschlägen.</p>
-      </header>
-      <dl class="ct__dl" data-reveal>
-        <div><dt class="mono">Telefon</dt><dd><a href="tel:+497115552860">0711&nbsp;555&nbsp;28&nbsp;60</a></dd></div>
-        <div><dt class="mono">E-Mail</dt><dd><a href="mailto:buero@raumlinie.de">buero@raumlinie.de</a></dd></div>
+      <h2 id="kontakt-t" class="d-xl" data-reveal="wipe">Erzählen Sie uns von Ihrem Vorhaben.</h2>
+      <p class="ct__lead" data-reveal>Das Erstgespräch dauert etwa eine Stunde – im Büro oder vor Ort. Wir melden uns innerhalb von zwei Werktagen mit Terminvorschlägen.</p>
+      <dl class="ct__dl" data-reveal="line">
+        <div><dt class="mono">Telefon</dt><dd><a class="ul" href="tel:+497115552860">0711&nbsp;555&nbsp;28&nbsp;60</a></dd></div>
+        <div><dt class="mono">E-Mail</dt><dd><a class="ul" href="mailto:buero@raumlinie.de">buero@raumlinie.de</a></dd></div>
         <div><dt class="mono">Adresse</dt><dd>Rotebühlstraße 121<br>70178 Stuttgart</dd></div>
         <div><dt class="mono">Bürozeiten</dt><dd>Mo–Fr 9–18&nbsp;Uhr</dd></div>
       </dl>
     </div>
-    <div class="ct__formwrap" data-reveal>
+    <div class="ct__formwrap">
       <form class="cf" id="cf" novalidate>
+        <p class="cf__k mono" aria-hidden="true"><span>Anfrage</span><span>Blatt A-12</span></p>
         <div class="cf__row">
           <div class="fld"><label for="cf-name">Name</label><input id="cf-name" name="name" type="text" autocomplete="name" required aria-describedby="cf-name-e"><p class="fld__e" id="cf-name-e"></p></div>
           <div class="fld"><label for="cf-mail">E-Mail</label><input id="cf-mail" name="email" type="email" autocomplete="email" required aria-describedby="cf-mail-e"><p class="fld__e" id="cf-mail-e"></p></div>
@@ -649,6 +743,7 @@
         <p class="cf__demo mono">Demo – das Formular sendet nichts.</p>
       </form>
       <div class="cf__ok" id="cf-ok" hidden tabindex="-1">
+        <svg class="cf__stamp" viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="80" r="72"/><circle cx="80" cy="80" r="62"/><text x="80" y="74">EINGANG</text><text x="80" y="98" class="sm">Raumlinie · Demo</text></svg>
         <p class="mono cf__okk">Planstempel · Anfrage</p>
         <h3>Danke – Ihre Anfrage liegt auf dem Tisch.</h3>
         <dl class="cf__sum"></dl>
@@ -663,13 +758,12 @@
 
 <footer class="ftr">
   <div class="wrap">
-    <div class="ftr__top">
-      <p class="ftr__big">Raumlinie<br>Architekten</p>
-      <div class="ftr__cols">
-        <div><p class="mono">Büro</p><p>Raumlinie Architekten PartGmbB<br>Rotebühlstraße 121<br>70178 Stuttgart</p></div>
-        <div><p class="mono">Kontakt</p><p><a href="tel:+497115552860">0711&nbsp;555&nbsp;28&nbsp;60</a><br><a href="mailto:buero@raumlinie.de">buero@raumlinie.de</a><br>Mo–Fr 9–18&nbsp;Uhr</p></div>
-        <div><p class="mono">Rechtliches</p><p><a href="/arena/architektur-raumlinie/impressum.html">Impressum</a><br><a href="/arena/architektur-raumlinie/datenschutz.html">Datenschutz</a></p></div>
-      </div>
+    <p class="ftr__big" aria-hidden="true"><span>Raumlinie</span><span>Architekten</span></p>
+    <div class="ftr__tb">
+      <div><p class="mono">Büro</p><p>Raumlinie Architekten PartGmbB<br>Rotebühlstraße 121<br>70178 Stuttgart</p></div>
+      <div><p class="mono">Kontakt</p><p><a class="ul" href="tel:+497115552860">0711&nbsp;555&nbsp;28&nbsp;60</a><br><a class="ul" href="mailto:buero@raumlinie.de">buero@raumlinie.de</a><br>Mo–Fr 9–18&nbsp;Uhr</p></div>
+      <div><p class="mono">Rechtliches</p><p><a class="ul" href="/arena/architektur-raumlinie/impressum.html">Impressum</a><br><a class="ul" href="/arena/architektur-raumlinie/datenschutz.html">Datenschutz</a></p></div>
+      <div><p class="mono">Planmappe</p><p>12 Blätter · Stand 2026<br>Gez. HV / TM</p></div>
     </div>
     <div class="ftr__bot">
       <p>Fiktiver Beispielbetrieb – Demo-Website von Filip Kramar. Alle Namen, Daten und Bewertungen sind erfunden.</p>
