@@ -18,3 +18,5 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 | `paar` | 960x641 | Performingarts People | https://stocksnap.io/photo/performingarts-people-CUIYO49W8Q |
 | `park` | 960x640 | Couple Dancing | https://stocksnap.io/photo/couple-dancing-FBVEHKJGXJ |
 | `spitze` | 960x640 | Bricks Ballet | https://stocksnap.io/photo/bricks-ballet-ASJXV7ALQ5 |
+
+Getönte Fassungen `*-duo-960.webp`/`*-duo-480.webp` sind aus denselben Fotos abgeleitet (Graustufen + Farbverlauf Pflaume–Magenta–Champagner). `grain.webp` ist eine selbst erzeugte Rauschtextur.

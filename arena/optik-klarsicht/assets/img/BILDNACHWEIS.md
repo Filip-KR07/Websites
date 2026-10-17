@@ -14,6 +14,7 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 | `etui` | 960x636 | Silhouette Eyeglass | https://stocksnap.io/photo/silhouette-eyeglass-NWLLGNPHL9 |
 | `gleitsicht` | 960x638 | Eyeglasses Book | https://stocksnap.io/photo/eyeglasses-book-OU5DSWRBTQ |
 | `hero` | 960x638 | Eyeglasses Frame | https://stocksnap.io/photo/eyeglasses-frame-6BW3NG180T |
+| `hero-glas` | 855x261 | Freisteller aus `hero` (transparentes WebP, eigene Bearbeitung) | https://stocksnap.io/photo/eyeglasses-frame-6BW3NG180T |
 | `hoeren` | 960x640 | Glass Wall | https://stocksnap.io/photo/glass-wall-J6RKMHOQBO |
 | `kollektion` | 960x640 | Laptop Apple | https://stocksnap.io/photo/laptop-apple-L3VZ0CGUA1 |
 | `lesen` | 960x1440 | Glasses White | https://stocksnap.io/photo/glasses-white-ETYYX6WJQI |

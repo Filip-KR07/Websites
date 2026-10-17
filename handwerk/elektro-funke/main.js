@@ -7,6 +7,7 @@
    ========================================================================= */
 (() => {
   'use strict';
+  const boot = () => {
 
   const d = document;
   const w = window;
@@ -81,17 +82,16 @@
   let lastY = w.scrollY;
   let vel = 0;
   function updDusk() {
-    if (!MOTION || !dusk) return;
+    if (!MOTION || !dusk || !chapters.length) return;
     const vh = w.innerHeight;
-    let o = 0;
-    chapters.forEach((c) => {
-      const r = c.getBoundingClientRect();
-      const fin = clamp((vh * 0.95 - r.top) / (vh * 0.42), 0, 1);
-      const fout = clamp((r.bottom - vh * 0.05) / (vh * 0.42), 0, 1);
-      o = Math.max(o, Math.min(fin, fout));
-    });
+    // Einblenden mit dem ersten Abend-Kapitel; danach bleibt die Nacht hinter den
+    // (deckenden) Papier-Abschnitten liegen – kein grauer Übergangsstreifen beim Verlassen.
+    const r0 = chapters[0].getBoundingClientRect();
+    const o = clamp((vh * 0.95 - r0.top) / (vh * 0.42), 0, 1);
     dusk.style.opacity = o.toFixed(3);
-    root.classList.toggle('in-dusk', o > 0.5 && root.dataset.power !== 'on');
+    const hh = hdr ? hdr.offsetHeight : 64;
+    const under = chapters.some((c) => { const r = c.getBoundingClientRect(); return r.top < hh && r.bottom > hh; });
+    root.classList.toggle('in-dusk', under && o > 0.5 && root.dataset.power !== 'on');
   }
   function onScroll() {
     if (scrollTick) return;
@@ -221,7 +221,6 @@
     });
   }
   w.addEventListener('scroll', () => raf(checkReveal), { passive: true });
-  setTimeout(checkReveal, 60);
 
   /* ---------------------------------------------------------------------
      6 · Uhrzeit Europe/Berlin: Bürostatus + Uhren
@@ -290,7 +289,7 @@
      --------------------------------------------------------------------- */
   const hero = $('[data-hero]');
   const plans = $$('.plan__svg');
-  const segEls = (n) => plans.map((s) => $(`[data-seg="${n}"]`, s)).filter(Boolean);
+  const segEls = (n) => plans.map((s) => $(`[data-cur="${n}"]`, s)).filter(Boolean);
   const segState = {};
   function setSeg(n, p) {
     p = clamp(p, 0, 1);
@@ -571,10 +570,11 @@
   /* ---------------------------------------------------------------------
      12 · Sonnenbahn über dem Dach (PV-Set-Piece)
      --------------------------------------------------------------------- */
-  const sky = (() => {
-    const api = { update() {}, month() {}, scrub() {} };
+  const sky = { update() {}, month() {}, scrub() {} };
+  later(() => {
+    const api = sky;
     const fig = $('[data-sky]');
-    if (!fig) return api;
+    if (!fig) return;
     const svg = $('svg', fig);
     const arc = $('[data-sky-arc]', fig), sun = $('[data-sky-sun]', fig), mods = $('[data-sky-mods]', fig);
     const rays = $$('[data-sky-rays] path', fig), info = $('[data-sky-info]', fig), ticks = $('[data-sky-ticks]', fig);
@@ -648,8 +648,7 @@
     };
     api.month = (i) => { const m = i >= 0 ? i : 5; if (m === month) return; month = m; geom(); draw(); };
     api.scrub = (p) => { t = 0.06 + 0.88 * p; draw(); };
-    return api;
-  })();
+  });
 
   later(() => {
   const pvForm = $('[data-pv-form]');
@@ -1677,9 +1676,19 @@
     if (queue.length) setTimeout(runQueue, 16);
     else {
       w.__funkeReady = true;
-      refreshST();
-      updDusk();
+      // Abschnitte nacheinander rendern (content-visibility), danach einmal messen
+      const parts = $$('main > section:not(.hero), main > .chapter, .ftr');
+      const step = () => {
+        const el = parts.shift();
+        if (el) { el.classList.add('cv-on'); setTimeout(step, 24); return; }
+        refreshST();
+        updDusk();
+        checkReveal();
+      };
+      step();
     }
   };
   raf(() => setTimeout(runQueue, 30));
+  };
+  setTimeout(boot, 0);
 })();

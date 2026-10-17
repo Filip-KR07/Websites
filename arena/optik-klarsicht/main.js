@@ -90,7 +90,7 @@
       safe(j[0], j[1]);
       if (jobs.length && performance.now() - t > 24) { setTimeout(drain, 0); return; }
     }
-    if (anim && window.ScrollTrigger && document.readyState === 'complete') window.ScrollTrigger.refresh();
+    if (anim && window.ScrollTrigger && document.readyState === 'complete') safe('st-refresh', function () { window.ScrollTrigger.refresh(); });
   }
   function el(tag, attrs, parent) {
     var n = document.createElementNS(SVGNS, tag);
@@ -280,7 +280,7 @@
     }
     var s = status();
     qsa('[data-open-status]').forEach(function (n) {
-      var inHero = !!n.closest('.hero-eyebrow');
+      var inHero = false;
       if (inHero) {
         clear(n);
         h('span', 'eb-pre', 'Augenoptik & Hörakustik · ', n);
@@ -372,6 +372,28 @@
     }
     return pts;
   }
+  // Einheitsform mit 64 Punkten je Glas (für flüssige Übergänge zwischen Formen)
+  var UNIT = {};
+  function unitPts(shape) {
+    if (UNIT[shape]) return UNIT[shape];
+    var pts = lensPts(shape, 1, 1);
+    if (pts.length !== 64) {
+      var out = [];
+      for (var i = 0; i < 64; i++) {
+        var t = i / 64 * Math.PI * 2, dx = Math.cos(t), dy = Math.sin(t), best = 1;
+        for (var j = 0; j < pts.length; j++) {
+          var a = pts[j], b = pts[(j + 1) % pts.length], ex = b[0] - a[0], ey = b[1] - a[1];
+          var den = dx * ey - dy * ex;
+          if (Math.abs(den) < 1e-9) continue;
+          var s = (a[0] * ey - a[1] * ex) / den, u = (a[0] * dy - a[1] * dx) / den;
+          if (s > 0 && u >= -1e-6 && u <= 1 + 1e-6) best = s;
+        }
+        out.push([dx * best, dy * best]);
+      }
+      pts = out;
+    }
+    return (UNIT[shape] = pts);
+  }
   function place(pts, cx, cy, side) {
     return pts.map(function (p) { return [cx + p[0] * side, cy + p[1]]; });
   }
@@ -386,8 +408,8 @@
     var k = o.k || 1;
     var a = o.W / 2, b = o.H / 2;
     var E = (o.E != null ? o.E : 10);
-    var rim = m.rim * k;
-    var base = lensPts(o.shape, a, b);
+    var rim = (o.rim != null ? o.rim : m.rim) * k;
+    var base = o.unit ? o.unit.map(function (p) { return [p[0] * a, p[1] * b]; }) : lensPts(o.shape, a, b);
     var lenses = [-1, 1].map(function (side) {
       var lx = o.cx + side * (o.B / 2 + a);
       return { side: side, lx: lx, pts: place(base, lx, o.cy, side) };
@@ -571,7 +593,7 @@
         b.tabIndex = on ? 0 : -1;
         if (on && focus) b.focus();
       });
-      swap();
+      morphTo(lastGeo);
     }
     modelsBox.addEventListener('click', function (e) {
       var b = e.target.closest('.model');
@@ -640,6 +662,19 @@
       })(t0);
     }
 
+    // Fassungswechsel als flüssiger Morph: Form, Breite und Randstärke gleiten mit leichtem Nachschwingen
+    var morph = null, lastGeo = null, mRaf = 0;
+    function morphTo(from) {
+      if (reduced || !from) { morph = null; render(); return; }
+      cancelAnimationFrame(mRaf);
+      var t0 = performance.now(), dur = 620;
+      (function step(now) {
+        var t = clamp((now - t0) / dur, 0, 1);
+        morph = t < 1 ? { from: from, e: 1 - Math.exp(-7 * t) * Math.cos(10 * t) } : null;
+        render();
+        if (t < 1) mRaf = requestAnimationFrame(step);
+      })(t0);
+    }
     var swapT = 0;
     function swap() {
       if (reduced) { render(); return; }
@@ -652,7 +687,14 @@
       var m = MODELS[state.shape];
       var gm = frameGeom(state.shape, state.width);
       drawFace(parts, curPts, curMouth);
-      var box = drawFrame(gFrame, { shape: state.shape, color: state.color, W: gm.W, B: gm.B, H: gm.H, E: gm.E, cx: CX, cy: LENS_Y, k: 1, sun: state.sun, headHalf: function (y) { return halfAt(curPts, y); } });
+      var to = { unit: unitPts(state.shape), W: gm.W, B: gm.B, H: gm.H, rim: m.rim }, g = to;
+      if (morph) {
+        var e = morph.e, f = morph.from;
+        g = { W: lerp(f.W, to.W, e), B: lerp(f.B, to.B, e), H: lerp(f.H, to.H, e), rim: Math.max(1, lerp(f.rim, to.rim, e)),
+          unit: f.unit.map(function (p, i) { return [lerp(p[0], to.unit[i][0], e), lerp(p[1], to.unit[i][1], e)]; }) };
+      }
+      lastGeo = g;
+      var box = drawFrame(gFrame, { shape: state.shape, color: state.color, W: g.W, B: g.B, H: g.H, E: gm.E, cx: CX, cy: LENS_Y, k: 1, sun: state.sun, unit: morph ? g.unit : null, rim: morph ? g.rim : null, headHalf: function (y) { return halfAt(curPts, y); } });
       var y = box.top - 22;
       tmLine.setAttribute('d', 'M' + fx(box.left) + ' ' + fx(y - 5) + 'v10M' + fx(box.left) + ' ' + fx(y) + 'H' + fx(box.right) + 'M' + fx(box.right) + ' ' + fx(y - 5) + 'v10');
       tmText.setAttribute('y', fx(y - 8));
@@ -871,6 +913,40 @@
     qsa('.gx-zones li', root).forEach(function (li) { zones[li.getAttribute('data-zone')] = li; });
     var rows = qsa('.cmp-table tr[data-row]');
     var st = { type: 'ein', ein: 'fern', gleit: 1, blau: 'mit', cat: 2, pol: true };
+    // Brechungs-Übergang: Eine Linse (Verschiebungskarte) fährt durch die Szene,
+    // in ihrer Mitte wechselt die Glasart – wie ein Glas, das man vor das Auge schiebt.
+    var lensView = qs('.gx-lensview', svg), disp = qs('.gx-disp', svg), lensMap = qs('.gx-lensmap', svg);
+    var sweeping = false;
+    function makeLensMap() {
+      var N = 128, c = document.createElement('canvas');
+      c.width = c.height = N;
+      var x = c.getContext('2d'), d = x.createImageData(N, N);
+      for (var j = 0; j < N; j++) for (var i = 0; i < N; i++) {
+        var u = (i + 0.5) / (N / 2) - 1, w = (j + 0.5) / (N / 2) - 1, r2 = u * u + w * w, o = (j * N + i) * 4;
+        var k = r2 < 1 ? (1 - r2) * (1 - r2 * 0.35) : 0;
+        d.data[o] = Math.round(128 - u * k * 127); d.data[o + 1] = Math.round(128 - w * k * 127); d.data[o + 2] = 128; d.data[o + 3] = 255;
+      }
+      x.putImageData(d, 0, 0);
+      return c.toDataURL();
+    }
+    function sweep(cb) {
+      if (!anim || reduced || !lensView || !disp || sweeping) { if (cb) cb(); return; }
+      if (!lensMap.getAttribute('href')) lensMap.setAttribute('href', makeLensMap());
+      sweeping = true;
+      lensView.setAttribute('filter', 'url(#gx-refract)');
+      var t0 = performance.now(), dur = 720, done = !cb;
+      (function step(now) {
+        var t = clamp((now - t0) / dur, 0, 1);
+        var e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        var cx = -240 + e * 1120;
+        lensMap.setAttribute('x', (cx - 240).toFixed(1));
+        disp.setAttribute('scale', (84 * Math.sin(Math.PI * t)).toFixed(1));
+        if (!done && cx >= 320) { done = true; cb(); }
+        if (t < 1) requestAnimationFrame(step);
+        else { lensView.removeAttribute('filter'); sweeping = false; }
+      })(t0);
+    }
+    window.__gxSweep = sweep;
     farR.setAttribute('height', '400');
 
     function zone(name, sharp, text) {
@@ -927,7 +1003,7 @@
       });
       if (focus) tab.focus();
       st.type = type;
-      render();
+      sweep(render);
     }
     tabs.forEach(function (t, i) {
       t.addEventListener('click', function () { select(t); });
@@ -1255,131 +1331,311 @@
   });
 
   /* ------------------------------------------------------------------
-     Fokus-Hero: Linse folgt dem Cursor, Unschärfe drumherum
+     Fokus-Hero: WebGL-Linse über Sehtafel und Brille
+     Die Tafel (Headline) und die Brille werden einmal in eine Textur
+     gezeichnet; ein Shader stellt sie Zeile für Zeile scharf (große
+     Zeilen zuerst, wie beim Lesen einer Sehtafel) und bricht das Bild
+     in der Linse (Vergrößerung, Farbsaum am Rand, Lichtkante).
+     Ohne WebGL oder bei reduzierter Bewegung: CSS stellt sanft scharf.
      ------------------------------------------------------------------ */
-  safe('focus-hero', function () {
+  // Zeitwerte (ms) – identisch zur CSS-Animation heroFocus (.9 s Verzögerung, 1,3 s Dauer)
+  var FOCUS = { DELAY: 900, DUR: 1300, IDLE: 1400, MAX: 5200, D0: -1.75, BLUR: 12, MAG: 1.36 };
+  safe('hero-focus', function () {
     var hero = qs('.hero');
-    var veil = qs('.focus-veil'), lens = qs('.focus-lens'), read = qs('.fl-read');
-    var hint = qs('.hero-hint'), hintDpt = hint && qs('.hh-dpt', hint);
-    if (!hero || !veil || !doc.classList.contains('focus-pending')) return;
-    var useLens = finePointer && !reduced && window.innerWidth >= 900;
-    var BLUR = reduced ? 6 : (useLens ? 12 : 9);
-    // Automatisches Scharfstellen (ms): Wer nichts tut, sieht nach gut zwei Sekunden alles scharf.
-    // Bewegt jemand die Linse, wartet der Autofokus, bis die Maus kurz ruht (spätestens AUTO_MAX).
-    var AUTO_DELAY = reduced ? 300 : 900, AUTO_IDLE = 1400, AUTO_MAX = 4500, AUTO_DUR = reduced ? 1000 : 1400;
-    var R = 100, MAG = 1.12, D0 = -1.75;
-    var t0 = performance.now(), autoStart = 0;
-    var F = { p: 0, scrollP: 0, moveP: 0, autoP: 0, autoFrom: 0, x: 0, y: 0, tx: 0, ty: 0, r: 0, tr: 0, lastMove: 0, done: false, readTxt: '', hintTxt: '', hintP: -1 };
-    var grid = qs('.hero-grid', hero), glass = null, mag = null, gridOff = { x: 0, y: 0, w: 0 };
-
-    function measure() {
-      gridOff.x = grid.offsetLeft; gridOff.y = grid.offsetTop; gridOff.w = grid.offsetWidth;
-      if (mag) mag.style.width = gridOff.w + 'px';
-    }
-    // Lupe erst bei der ersten Mausbewegung bauen (spart Arbeit beim Laden)
-    function buildLens() {
-      glass = document.createElement('span');
-      glass.className = 'fl-glass';
-      mag = grid.cloneNode(true);
-      mag.classList.add('fl-mag');
-      mag.removeAttribute('id');
-      qsa('[id]', mag).forEach(function (n) { n.removeAttribute('id'); });
-      qsa('[aria-labelledby]', mag).forEach(function (n) { n.removeAttribute('aria-labelledby'); });
-      qsa('a, button', mag).forEach(function (n) { n.setAttribute('tabindex', '-1'); });
-      var oImg = qs('.hv-img', grid), cImg = qs('.hv-img', mag);
-      if (cImg) {
-        cImg.removeAttribute('fetchpriority');
-        cImg.removeAttribute('srcset');
-        cImg.removeAttribute('sizes');
-        cImg.src = oImg.currentSrc || oImg.src;
-      }
-      mag.setAttribute('inert', '');
-      glass.appendChild(mag);
-      lens.insertBefore(glass, lens.firstChild);
-      lens.classList.add('is-on');
-      measure();
-      window.addEventListener('resize', measure);
-    }
-
-    if (useLens) {
-      hero.addEventListener('pointermove', function (e) {
-        if (e.pointerType !== 'mouse' || F.done) return;
-        if (!glass) buildLens();
-        var r = hero.getBoundingClientRect();
-        var nx = e.clientX - r.left, ny = e.clientY - r.top;
-        if (F.tr > 0) F.moveP = Math.min(1, F.moveP + Math.hypot(nx - F.tx, ny - F.ty) / 5200);
-        if (F.tr === 0) { F.x = nx; F.y = ny; }
-        F.tx = nx; F.ty = ny; F.tr = R;
-        F.lastMove = performance.now();
-      });
-      hero.addEventListener('pointerleave', function () { F.tr = 0; });
-    }
-    function onScroll() {
-      var hh = hero.offsetHeight || window.innerHeight;
-      F.scrollP = clamp(window.pageYOffset / (hh * 0.42), 0, 1);
-    }
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-
-    function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+    if (!hero) return;
+    var cv = qs('.hero-gl', hero), lensEl = qs('.focus-lens', hero), read = qs('.fl-read', hero), ticks = qs('.fl-ticks', hero);
+    var hint = qs('.hero-hint', hero), hintDpt = hint && qs('.hh-dpt', hint);
+    var coarse = !finePointer;
+    function easeFocus(t) { return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t); }
     function dptText(p) {
-      var dpt = Math.round(D0 * (1 - p) * 4) / 4;
-      return dpt === 0 ? '±0,00 dpt' : '−' + fmtDe(Math.abs(dpt), 2) + ' dpt';
+      var d = Math.round(FOCUS.D0 * (1 - p) * 4) / 4;
+      return d === 0 ? '±0,00 dpt' : '−' + fmtDe(Math.abs(d), 2) + ' dpt';
     }
-    function finish() {
-      F.done = true;
-      F.tr = 0;
-      if (hint) hint.classList.add('is-sharp');
-      doc.classList.add('focus-done');
-      setTimeout(function () {
-        doc.classList.remove('focus-pending');
-        window.removeEventListener('scroll', onScroll);
-        window.removeEventListener('resize', measure);
-        if (glass && glass.parentNode) glass.parentNode.removeChild(glass);
-      }, 1400);
+    var lastTxt = '';
+    function setHint(p) {
+      var t = dptText(p);
+      if (t !== lastTxt) {
+        lastTxt = t;
+        if (hintDpt) hintDpt.textContent = t;
+        if (read) read.textContent = t;
+      }
+      if (hint) hint.style.setProperty('--fp', p.toFixed(3));
+      if (ticks) ticks.style.transform = 'rotate(' + (p * 90).toFixed(1) + 'deg)';
+    }
+    if (motionOff) { setHint(1); hero.classList.add('is-sharp'); return; }
+
+    // Gemeinsame Uhr: Autofokus nach DELAY, pausiert kurz, solange jemand die Linse bewegt
+    var t0 = 0 /* = Navigationsstart, wie die CSS-Animation */, autoAt = 0, lastInput = 0, F = 0, scrollP = 0, moveP = 0, sharp = false;
+    function autoP(now) {
+      if (!autoAt) {
+        var since = now - t0;
+        if (since > FOCUS.MAX || (since > FOCUS.DELAY && (!lastInput || now - lastInput > FOCUS.IDLE))) autoAt = now;
+        else return 0;
+      }
+      return easeFocus((now - autoAt) / FOCUS.DUR);
+    }
+    function onScroll() { scrollP = clamp(window.pageYOffset / (hero.offsetHeight * 0.4), 0, 1); kick(); }
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    var useGL = !reduced && !!window.WebGLRenderingContext;
+    var gl = null, prog = null, tex = null, U = {}, dpr = 1, W = 0, H = 0, ready = false, visible = true;
+    // Render-Maßstab: Solange unscharf, reicht halbe Auflösung (spart 75 % Pixelarbeit);
+    // scharf und mit Linse in voller Auflösung. Ruht die Linse, übernimmt wieder das scharfe DOM.
+    var scale = 0.5, shown = false;
+    var L = { x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, r: 0, tr: 0, mode: 'wander', touchUntil: 0 };
+    var R0 = 1, raf = 0, prev = 0;
+
+    function kick() { if (!raf && visible && !document.hidden) { prev = 0; raf = requestAnimationFrame(frame); } }
+
+    function compile(type, src) {
+      var s = gl.createShader(type);
+      gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+      return s;
+    }
+    var VS = 'attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
+    var FS = [
+      '#ifdef GL_FRAGMENT_PRECISION_HIGH',
+      'precision highp float;',
+      '#else',
+      'precision mediump float;',
+      '#endif',
+      'uniform sampler2D t;uniform vec2 res;uniform vec2 L;uniform float R;uniform float F;uniform float B;uniform float M;',
+      'varying vec2 v;',
+      'vec3 tx(vec2 q){return texture2D(t,q/res).rgb;}',
+      'float hash(vec2 q){q=fract(q*vec2(.1031,.1030));q+=dot(q,q.yx+33.33);return fract((q.x+q.y)*q.x);}',
+      'vec3 blurAt(vec2 q,float r){',
+      '  vec3 c=tx(q);if(r<.4)return c;',
+      '  float j=hash(q)*6.2832;vec3 a=c;',
+      '  for(int i=0;i<16;i++){float fi=float(i);float an=fi*2.39996+j;float rr=r*sqrt((fi+.5)/16.);a+=tx(q+vec2(cos(an),sin(an))*rr);}',
+      '  return a/17.;',
+      '}',
+      'void main(){',
+      '  vec2 q=v*res;',
+      '  float yn=1.-v.y;',
+      // Sehtafel-Wellenfront: oben (große Zeilen) zuerst scharf
+      '  float f=clamp(F*1.5-yn*.5,0.,1.);',
+      '  float r=B*(1.-smoothstep(0.,1.,f));',
+      '  vec3 col=blurAt(q,r);',
+      '  if(R>1.){',
+      '    vec2 d=q-L;float dist=length(d);float k=dist/R;',
+      // Schlagschatten der Linse (leicht nach unten versetzt)
+      '    float sd=length(q-L+vec2(0.,R*.06))/R;',
+      '    col*=1.-.09*smoothstep(1.25,1.,sd)*step(1.,k);',
+      '    if(k<1.){',
+      '      float m=mix(1./M,1.,k*k*k);',
+      '      float ca=.018*k*k;',
+      '      vec3 lc=vec3(tx(L+d*m*(1.+ca)).r,tx(L+d*m).g,tx(L+d*m*(1.-ca)).b);',
+      '      lc*=1.-.12*smoothstep(.7,1.,k);',
+      '      float an=atan(d.y,d.x);',
+      '      float spec=smoothstep(.80,.9,k)*(1.-smoothstep(.9,.97,k))*smoothstep(.55,1.,cos(an-2.3));',
+      '      lc+=spec*.42;',
+      '      float aa=1.-smoothstep(1.-1.6/R,1.,k);',
+      '      col=mix(col,lc,aa);',
+      '    }',
+      '    col*=1.-.32*(1.-smoothstep(0.,1.4,abs(dist-R)));',
+      '  }',
+      '  gl_FragColor=vec4(col,1.);',
+      '}'
+    ].join('\n');
+
+    function initGL() {
+      gl = cv.getContext('webgl', { alpha: false, antialias: false, depth: false, stencil: false, premultipliedAlpha: false, powerPreference: 'low-power' });
+      if (!gl) return false;
+      prog = gl.createProgram();
+      gl.attachShader(prog, compile(gl.VERTEX_SHADER, VS));
+      gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FS));
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return false;
+      gl.useProgram(prog);
+      var buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+      var loc = gl.getAttribLocation(prog, 'p');
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      ['t', 'res', 'L', 'R', 'F', 'B', 'M'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+      tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      cv.addEventListener('webglcontextlost', function (e) { e.preventDefault(); ready = false; show(false); });
+      return true;
+    }
+
+    // Tafel + Brille in eine 2D-Leinwand zeichnen – exakt an die Stellen der DOM-Elemente
+    function paint() {
+      W = hero.clientWidth; H = hero.clientHeight;
+      dpr = Math.min(1.5, window.devicePixelRatio || 1);
+      if (W * dpr > 4096) dpr = 4096 / W;
+      var cw = Math.round(W * dpr), ch = Math.round(H * dpr);
+      var c2 = document.createElement('canvas');
+      c2.width = cw; c2.height = ch;
+      var x = c2.getContext('2d');
+      x.scale(dpr, dpr);
+      x.fillStyle = getComputedStyle(hero).backgroundColor || '#fff';
+      x.fillRect(0, 0, W, H);
+      var hr = hero.getBoundingClientRect();
+      qsa('.ht-t', hero).forEach(function (sp) {
+        var cs = getComputedStyle(sp), r = sp.getBoundingClientRect();
+        x.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+        if ('letterSpacing' in x) x.letterSpacing = cs.letterSpacing;
+        x.fillStyle = cs.color;
+        x.textBaseline = 'alphabetic';
+        var txt = sp.textContent;
+        var m = x.measureText(txt);
+        var asc = m.fontBoundingBoxAscent, desc = m.fontBoundingBoxDescent;
+        var lh = parseFloat(cs.lineHeight);
+        if (!(lh > 0)) lh = asc + desc;
+        x.fillText(txt, r.left - hr.left + parseFloat(cs.paddingLeft), r.top - hr.top + parseFloat(cs.paddingTop) + (lh - (asc + desc)) / 2 + asc);
+      });
+      var img = qs('.hg-img', hero);
+      if (img && img.naturalWidth) {
+        var ir = img.getBoundingClientRect();
+        x.drawImage(img, ir.left - hr.left, ir.top - hr.top, ir.width, ir.height);
+      }
+      setScale(sharp ? Math.min(dpr, 1.25) : (W > 1100 ? 0.4 : 0.5), true);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c2);
+      R0 = (coarse || W < 900 ? 74 : 112);
+      // Glas der Brille als Ruhepunkt der wandernden Linse
+      if (img) {
+        var gr = img.getBoundingClientRect();
+        L.home = { x: gr.left - hr.left + gr.width * 0.27, y: gr.top - hr.top + gr.height * 0.55, w: gr.width, h: gr.height, x0: gr.left - hr.left, y0: gr.top - hr.top };
+      }
+    }
+
+    function setScale(s2, force) {
+      if (!force && s2 === scale) return;
+      scale = s2;
+      cv.width = Math.round(W * scale); cv.height = Math.round(H * scale);
+      gl.viewport(0, 0, cv.width, cv.height);
+    }
+    function show(on) {
+      if (on === shown) return;
+      shown = on;
+      hero.classList.toggle('gl-on', on);
+      if (on) hero.classList.add('gl-ready');
+    }
+    function draw() {
+      gl.uniform1i(U.t, 0);
+      gl.uniform2f(U.res, cv.width, cv.height);
+      gl.uniform2f(U.L, L.x * scale, cv.height - L.y * scale);
+      gl.uniform1f(U.R, L.r * scale);
+      gl.uniform1f(U.F, F);
+      gl.uniform1f(U.B, FOCUS.BLUR * scale);
+      gl.uniform1f(U.M, FOCUS.MAG);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
     function frame(now) {
-      if (F.done && F.r < 0.5) return;
-      if (!autoStart && !F.done) {
-        var since = now - t0;
-        if (since > AUTO_MAX || (since > AUTO_DELAY && (!F.lastMove || now - F.lastMove > AUTO_IDLE))) {
-          autoStart = now;
-          F.autoFrom = F.p;
+      raf = 0;
+      var dt = prev ? Math.min(48, now - prev) / 1000 : 1 / 60;
+      prev = now;
+      var ap = autoP(now);
+      var p = Math.max(ap, scrollP, moveP);
+      var changed = Math.abs(p - F) > 0.0005;
+      F = p;
+      setHint(F);
+      if (F >= 1 && !sharp) { sharp = true; hero.classList.add('is-sharp'); }
+      var active = !sharp || changed;
+      if (ready) {
+        // Linse: wandert (Touch, Start) oder folgt dem Zeiger mit Feder
+        if (L.mode === 'wander' && L.home) {
+          var tt = (now - t0) / 1000, h = L.home;
+          L.tx = h.x + Math.sin(tt * 0.9) * h.w * 0.32 + Math.sin(tt * 2.1) * 14;
+          L.ty = h.y + Math.cos(tt * 1.3) * h.h * 0.5 - h.h * 0.15;
+          L.tr = sharp && now - t0 > FOCUS.DELAY + FOCUS.DUR + 900 ? 0 : R0;
+        } else if (L.mode === 'touch' && now > L.touchUntil) L.tr = 0;
+        var k = 170, c = 2 * Math.sqrt(k) * 0.82;
+        L.vx += ((L.tx - L.x) * k - L.vx * c) * dt; L.vy += ((L.ty - L.y) * k - L.vy * c) * dt;
+        L.x += L.vx * dt; L.y += L.vy * dt;
+        L.r += (L.tr - L.r) * Math.min(1, dt * 9);
+        if (Math.abs(L.r - L.tr) < 0.3) L.r = L.tr;
+        var moving = Math.abs(L.vx) + Math.abs(L.vy) > 2 || L.r !== L.tr || L.mode === 'wander' && L.tr > 0;
+        if (sharp && L.r < 0.5 && L.tr === 0) show(false);
+        else {
+          if (sharp) setScale(Math.min(dpr, 1.25));
+          show(true);
+          draw();
         }
+        var s = L.r / R0;
+        lensEl.style.opacity = Math.min(1, s * 1.4).toFixed(3);
+        lensEl.style.transform = 'translate3d(' + L.x.toFixed(1) + 'px,' + L.y.toFixed(1) + 'px,0) scale(' + (L.r / 100).toFixed(3) + ')';
+        active = active || moving;
       }
-      // Wird die Linse gerade bewegt, hält der Autofokus kurz an (nicht länger als AUTO_MAX)
-      if (autoStart && F.lastMove && now - F.lastMove < AUTO_IDLE && now - t0 < AUTO_MAX && F.autoP < 0.85) autoStart += now - (F.prev || now);
-      F.prev = now;
-      if (autoStart) F.autoP = F.autoFrom + (1 - F.autoFrom) * clamp((now - autoStart) / AUTO_DUR, 0, 1);
-      var p = Math.max(F.scrollP, F.moveP, F.autoP);
-      F.p = p;
-      var blur = BLUR * (1 - easeOut(p));
-      veil.style.setProperty('--fb', blur.toFixed(2) + 'px');
-      var dTxt = dptText(p);
-      if (hintDpt && dTxt !== F.hintTxt) { hintDpt.textContent = dTxt; F.hintTxt = dTxt; }
-      if (hint && Math.abs(p - F.hintP) > 0.004) { hint.style.setProperty('--fp', p.toFixed(3)); F.hintP = p; }
-      if (useLens && glass) {
-        F.x += (F.tx - F.x) * 0.2;
-        F.y += (F.ty - F.y) * 0.2;
-        F.r += (F.tr - F.r) * 0.16;
-        if (Math.abs(F.r - F.tr) < 0.3) F.r = F.tr;
-        veil.style.setProperty('--lx', F.x.toFixed(1) + 'px');
-        veil.style.setProperty('--ly', F.y.toFixed(1) + 'px');
-        veil.style.setProperty('--lr', F.r.toFixed(1) + 'px');
-        var k = F.r / R;
-        lens.style.opacity = k.toFixed(3);
-        lens.style.transform = 'translate3d(' + (F.x - R).toFixed(1) + 'px,' + (F.y - R).toFixed(1) + 'px,0) scale(' + (0.86 + 0.14 * k).toFixed(3) + ')';
-        var ox = F.x - gridOff.x, oy = F.y - gridOff.y;
-        mag.style.transformOrigin = ox.toFixed(1) + 'px ' + oy.toFixed(1) + 'px';
-        mag.style.transform = 'translate3d(' + (gridOff.x - F.x + R).toFixed(1) + 'px,' + (gridOff.y - F.y + R).toFixed(1) + 'px,0) scale(' + MAG + ')';
-        var txt = dTxt + (p >= 1 ? ' · scharf' : '');
-        if (txt !== F.readTxt) { read.textContent = txt; F.readTxt = txt; }
-      }
-      if (p >= 1 && !F.done) finish();
-      requestAnimationFrame(frame);
+      if (active && visible && !document.hidden) raf = requestAnimationFrame(frame);
     }
-    requestAnimationFrame(frame);
+
+    function pointerAt(e) {
+      var r = hero.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    }
+    hero.addEventListener('pointermove', function (e) {
+      if (!ready) return;
+      var p = pointerAt(e);
+      if (e.pointerType === 'mouse') {
+        if (L.mode !== 'mouse') { L.mode = 'mouse'; }
+        if (!sharp) moveP = Math.min(0.92, moveP + Math.hypot(p.x - L.tx, p.y - L.ty) / 6000);
+        L.tx = p.x; L.ty = p.y; L.tr = R0;
+      } else {
+        L.mode = 'touch'; L.tx = p.x; L.ty = p.y; L.tr = R0; L.touchUntil = performance.now() + 1500;
+      }
+      lastInput = performance.now();
+      kick();
+    }, { passive: true });
+    hero.addEventListener('pointerdown', function (e) {
+      if (!ready || e.pointerType === 'mouse') return;
+      var p = pointerAt(e);
+      if (L.mode !== 'touch' && L.r < 2) { L.x = p.x; L.y = p.y; }
+      L.mode = 'touch'; L.tx = p.x; L.ty = p.y; L.tr = R0; L.touchUntil = performance.now() + 1600;
+      kick();
+    }, { passive: true });
+    hero.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') { L.tr = 0; kick(); } });
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (visible) kick(); }).observe(hero);
+    }
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) kick(); });
+
+    function start() {
+      try {
+        if (!initGL()) return;
+      } catch (err) { if (window.console) console.warn('[Klarsicht] WebGL:', err); return; }
+      setTimeout(start2, 16);
+    }
+    function start2() {
+      try {
+        paint();
+        ready = true;
+        if (L.home) { L.x = L.home.x; L.y = L.home.y; L.tx = L.x; L.ty = L.y; }
+        if (!sharp || L.mode !== 'wander') L.r = 0;
+        kick();
+        var rw = window.innerWidth, rt = 0;
+        window.addEventListener('resize', function () {
+          if (window.innerWidth === rw) return;
+          rw = window.innerWidth;
+          clearTimeout(rt);
+          rt = setTimeout(function () { if (ready) { paint(); kick(); } }, 160);
+        });
+      } catch (err) {
+        ready = false; show(false);
+        if (window.console) console.warn('[Klarsicht] WebGL:', err);
+      }
+    }
+    kick();
+    if (useGL) {
+      var img = qs('.hg-img', hero);
+      var imgReady = img && img.decode ? img.decode().catch(function () {}) : Promise.resolve();
+      var fontReady = document.fonts && document.fonts.load ? document.fonts.load('620 100px Onest').catch(function () {}) : Promise.resolve();
+      Promise.all([imgReady, fontReady]).then(function () {
+        // Erst wenn der Main-Thread kurz frei ist – die Schrift im DOM ist da schon sichtbar
+        (window.requestIdleCallback || function (f) { setTimeout(f, 30); })(start, { timeout: 400 });
+      });
+    }
   });
 
   /* ------------------------------------------------------------------
@@ -1389,117 +1645,259 @@
   if (!anim) return;
   var ST = window.ScrollTrigger;
 
-  safe('hero-intro', function () {
-    var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    var H = '.hero > .hero-grid ';
-    tl.fromTo(H + '.hero-eyebrow', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6 }, 0.1)
-      .fromTo(H + '.hero-title .cl-t', { opacity: 0, yPercent: 38 }, { opacity: 1, yPercent: 0, duration: 1.1, ease: 'expo.out', stagger: 0.08 }, 0.15)
-      .fromTo(H + '.hero-visual', { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 1.3 }, 0.3)
-      .fromTo(H + '.hv-scale', { rotation: -24 }, { rotation: 0, duration: 1.8, ease: 'power4.out', transformOrigin: '50% 50%' }, 0.3)
-      .fromTo(H + '.hero-copy > *', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.07, clearProps: 'transform' }, 0.55);
-    // Leichte Parallaxe beim Herausscrollen
-    gsap.to('.hv-disc', { yPercent: -6, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+  // Bewegungs-Handschrift „Fokusring“: schnell an, weich aus (entspricht --ease-focus)
+  var EASE_FOCUS = 'expo.out';
+
+  // Leistungen: Zeilen der Tafel stellen sich nacheinander scharf
+  later('services', function () {
+    var rows = qsa('.svc');
+    if (!('IntersectionObserver' in window)) { rows.forEach(function (r) { r.classList.add('is-in'); }); return; }
+    var io = new IntersectionObserver(function (en) {
+      var i = 0;
+      en.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.style.setProperty('--sd', (i++ * 70) + 'ms');
+        qsa('.svc-name, .svc-body', e.target).forEach(function (n) { n.style.animationDelay = 'calc(var(--sd) + ' + (n.classList.contains('svc-body') ? 90 : 0) + 'ms)'; });
+        e.target.classList.add('is-in');
+        io.unobserve(e.target);
+      });
+    }, { rootMargin: '0px 0px -12% 0px' });
+    rows.forEach(function (r) { io.observe(r); });
   });
 
+  // Leistungen: Vorschau-Linse folgt dem Zeiger (Feder), nur feiner Zeiger
+  later('services-lens', function () {
+    if (!finePointer || window.innerWidth < 900) return;
+    qsa('.svc-link').forEach(function (link) {
+      var media = qs('.svc-media', link);
+      if (!media) return;
+      var s = { x: 0, y: 0, tx: 0, ty: 0, vx: 0, vy: 0, on: false }, raf = 0, last = 0;
+      function step(now) {
+        var dt = last ? Math.min(40, now - last) / 1000 : 1 / 60; last = now;
+        var k = 120, c = 2 * Math.sqrt(k) * 0.75;
+        s.vx += ((s.tx - s.x) * k - s.vx * c) * dt; s.vy += ((s.ty - s.y) * k - s.vy * c) * dt;
+        s.x += s.vx * dt; s.y += s.vy * dt;
+        media.style.transform = 'translate3d(' + s.x.toFixed(1) + 'px,' + s.y.toFixed(1) + 'px,0) rotate(' + clamp(s.vx * 0.004, -6, 6).toFixed(2) + 'deg)';
+        raf = (s.on || Math.abs(s.vx) + Math.abs(s.vy) > 1) ? requestAnimationFrame(step) : 0;
+      }
+      link.addEventListener('pointerenter', function (e) {
+        if (e.pointerType !== 'mouse') return;
+        var r = link.getBoundingClientRect();
+        s.x = s.tx = e.clientX - r.left; s.y = s.ty = e.clientY - r.top; s.vx = s.vy = 0;
+        s.on = true; link.classList.add('is-lens');
+        if (!raf) { last = 0; raf = requestAnimationFrame(step); }
+      });
+      link.addEventListener('pointermove', function (e) {
+        if (e.pointerType !== 'mouse') return;
+        var r = link.getBoundingClientRect();
+        s.tx = e.clientX - r.left; s.ty = e.clientY - r.top;
+        if (!raf) { last = 0; raf = requestAnimationFrame(step); }
+      });
+      link.addEventListener('pointerleave', function () { s.on = false; link.classList.remove('is-lens'); });
+    });
+  });
+
+  // Überschriften: aus der Unschärfe
   later('reveals', function () {
     qsa('.reveal-focus').forEach(function (n) {
-      gsap.fromTo(n, { opacity: 0, filter: 'blur(12px)', y: 10 }, {
-        opacity: 1, filter: 'blur(0px)', y: 0, duration: 1.05, ease: 'power3.out', clearProps: 'filter,transform',
+      gsap.fromTo(n, { opacity: 0, filter: 'blur(12px)', scale: 1.03 }, {
+        opacity: 1, filter: 'blur(0px)', scale: 1, duration: 1.1, ease: EASE_FOCUS, clearProps: 'filter,transform',
         scrollTrigger: { trigger: n, start: 'top 88%', once: true }
       });
     });
-    var groups = ['.svc', '.person', '.quote', '.about-facts li', '.fact', '.hear-list li', '.qa'];
+    var wide = window.matchMedia('(min-width: 900px)').matches;
+    var groups = ['.person', '.quote', '.hear-list li', '.qa'].concat(wide ? [] : ['.station']);
     groups.forEach(function (sel) {
       var items = qsa(sel);
       if (!items.length) return;
-      gsap.set(items, { opacity: 0, y: 22 });
+      gsap.set(items, { opacity: 0 });
       ST.batch(items, {
-        start: 'top 90%',
-        once: true,
-        onEnter: function (batch) { gsap.to(batch, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.06, overwrite: true, clearProps: 'transform' }); }
+        start: 'top 92%', once: true,
+        onEnter: function (batch) { gsap.fromTo(batch, { opacity: 0, filter: 'blur(8px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.9, ease: EASE_FOCUS, stagger: 0.06, overwrite: true, clearProps: 'filter' }); }
       });
     });
-    // Bilder: Masken-Reveal
-    qsa('.svc-media, .about-media img, .hear-media > img').forEach(function (n) {
-      gsap.fromTo(n, { clipPath: 'inset(0 0 100% 0 round 12px)' }, { clipPath: 'inset(0 0 0% 0 round 12px)', duration: 1.1, ease: 'power3.inOut', clearProps: 'clipPath', scrollTrigger: { trigger: n, start: 'top 90%', once: true } });
+    // Bilder: Blende öffnet sich (Iris statt Fade-up)
+    qsa('.about-media img, .hear-media > img' + (wide ? '' : ', .station .st-media')).forEach(function (n) {
+      gsap.fromTo(n, { clipPath: 'circle(8% at 50% 50%)' }, { clipPath: 'circle(75% at 50% 50%)', duration: 1.3, ease: 'power3.inOut', clearProps: 'clipPath', scrollTrigger: { trigger: n, start: 'top 88%', once: true } });
     });
+    // Zeitleiste „Über uns“ zeichnet sich
+    var facts = qs('.about-facts');
+    if (facts) gsap.fromTo(facts, { '--tl': 0 }, { '--tl': 1, duration: 1.4, ease: 'power2.inOut', scrollTrigger: { trigger: facts, start: 'top 90%', once: true } });
   });
 
+  // Statement: Sehtafel aus Worten – jedes Wort stellt sich beim Scrollen scharf
   later('statement', function () {
     var p = qs('[data-focus-words]');
     if (!p) return;
-    var words = p.textContent.trim().split(/\s+/);
-    clear(p);
-    var spans = words.map(function (w, i) {
-      var s = h('span', 'w', w, p);
-      if (i < words.length - 1) p.appendChild(document.createTextNode(' '));
-      return s;
-    });
-    gsap.fromTo(spans, { opacity: 0.14, filter: 'blur(7px)' }, {
-      opacity: 1, filter: 'blur(0px)', ease: 'none', stagger: 0.12,
-      scrollTrigger: { trigger: p, start: 'top 82%', end: 'bottom 52%', scrub: 0.6 }
-    });
-  });
-
-  later('counters', function () {
-    qsa('.fact-n[data-count]').forEach(function (n) {
-      var to = parseFloat(n.getAttribute('data-count'));
-      var dec = parseInt(n.getAttribute('data-decimals') || '0', 10);
-      var o = { v: 0 };
-      n.textContent = fmtDe(0, dec);
-      gsap.to(o, {
-        v: to, duration: 1.6, ease: 'power2.out',
-        onUpdate: function () { n.textContent = fmtDe(o.v, dec); },
-        scrollTrigger: { trigger: n, start: 'top 90%', once: true }
+    var spans = [];
+    qsa('.sc-row', p).forEach(function (row) {
+      var words = row.textContent.trim().split(/\s+/);
+      clear(row);
+      words.forEach(function (w, i) {
+        spans.push(h('span', 'w', w, row));
+        if (i < words.length - 1) row.appendChild(document.createTextNode(' '));
       });
     });
+    gsap.fromTo(spans, { opacity: 0.1, filter: 'blur(9px)' }, {
+      opacity: 1, filter: 'blur(0px)', ease: 'none', stagger: 0.1,
+      scrollTrigger: { trigger: p, start: 'top 85%', end: 'bottom 50%', scrub: 0.5 }
+    });
   });
 
+  // Sehtafel-Laufband: Tempo und Bewegungsunschärfe folgen der Scroll-Geschwindigkeit
+  later('chart-run', function () {
+    var run = qs('.chart-run');
+    if (!run || !run.getAnimations) return;
+    var a = run.getAnimations()[0];
+    if (!a) return;
+    var vel = 0, cur = 1, blur = 0, visible = true;
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (en) { visible = en[0].isIntersecting; }).observe(run);
+    if (lenis) lenis.on('scroll', function (e) { vel = e.velocity || 0; });
+    else { var ly = window.pageYOffset; window.addEventListener('scroll', function () { vel = window.pageYOffset - ly; ly = window.pageYOffset; }, { passive: true }); }
+    gsap.ticker.add(function () {
+      if (!visible) return;
+      var target = 1 + clamp(vel, -40, 40) * 0.6;
+      cur += (target - cur) * 0.08;
+      vel *= 0.9;
+      if (Math.abs(cur - a.playbackRate) > 0.01) a.playbackRate = cur;
+      var b = Math.min(3, Math.abs(cur - 1) * 0.12);
+      if (Math.abs(b - blur) > 0.05) { blur = b; run.style.filter = b > 0.1 ? 'blur(' + b.toFixed(2) + 'px)' : ''; }
+    });
+  });
+
+  // Glas-Explorer: Linse fährt beim ersten Erscheinen einmal durch die Szene
+  later('glass-enter', function () {
+    var view = qs('.gx-svg');
+    if (!view || !window.__gxSweep) return;
+    ST.create({ trigger: view, start: 'top 70%', once: true, onEnter: function () { window.__gxSweep(null); } });
+  });
+
+  // Audiogramm zeichnet sich
   later('audiogram', function () {
     var card = qs('.audio-card');
     if (!card) return;
     var tl = gsap.timeline({ scrollTrigger: { trigger: card, start: 'top 85%', once: true } });
     tl.fromTo('.ag-r', { strokeDasharray: 1, strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.4, ease: 'power2.inOut' })
       .fromTo('.ag-l', { opacity: 0 }, { opacity: 1, duration: 0.6 }, 0.6)
-      .fromTo('.ag-pts circle', { opacity: 0, scale: 0.4, transformOrigin: '50% 50%' }, { opacity: 1, scale: 1, duration: 0.4, stagger: 0.12, ease: 'back.out(2)' }, 0.1);
+      .fromTo('.ag-pts circle', { opacity: 0, scale: 0.6, transformOrigin: '50% 50%' }, { opacity: 1, scale: 1, duration: 0.4, stagger: 0.12, ease: EASE_FOCUS }, 0.1);
   });
 
+  // Weg zur Brille: Fokus-Zoom-Strecke (klebende Bühne mit position: sticky, kein Pin)
   later('path', function () {
     var section = qs('.path'), track = qs('.path-track');
     if (!section || !track) return;
+    var stations = qsa('.station', track);
+    var rTrack = qs('.pr-track', section);
     var cut = qs('.edge-cut');
-    var ppFill = qs('.pp-fill'), ppNow = qs('.pp-now');
     var mm = gsap.matchMedia();
     mm.add('(min-width: 900px)', function () {
-      // Statt GSAP-Pin: CSS position: sticky (.path-pin) in einer Sektion, die so hoch ist
-      // wie Bildschirm + horizontale Strecke. Kein Umschalten auf position: fixed, kein Layout-Sprung.
-      var pin = qs('.path-pin', section);
-      function dist() { return Math.max(0, track.scrollWidth - window.innerWidth); }
-      function size() { section.style.height = (pin.offsetHeight + dist()) + 'px'; }
+      section.classList.add('is-zoom');
+      var n = stations.length, STEP = 0.9; // Scrollweg je Station in Bildschirmhöhen
+      var parts = stations.map(function (st) {
+        return { st: st, img: qs('.st-media img, .st-media svg', st), media: qs('.st-media', st), body: qs('.st-body', st), num: qs('.st-n', st), last: '' };
+      });
+      function size() { section.style.height = Math.round(window.innerHeight * (1 + (n - 1) * STEP + 0.35)) + 'px'; }
       size();
       ST.addEventListener('refreshInit', size);
-      var tween = gsap.to(track, {
-        x: function () { return -dist(); },
-        ease: 'none',
-        scrollTrigger: {
-          trigger: section, start: 'top top', end: 'bottom bottom',
-          scrub: 0.6, invalidateOnRefresh: true,
-          onUpdate: function (self) {
-            if (ppFill) ppFill.style.setProperty('--pp', self.progress.toFixed(3));
-            if (ppNow) ppNow.textContent = '0' + (Math.min(4, Math.round(self.progress * 4)) + 1);
+      function apply(p) {
+        var pos = p * (n - 1);
+        parts.forEach(function (o, i) {
+          var d = pos - i, ad = Math.abs(d);
+          // Plateau: in der Mitte jeder Station steht das Bild scharf
+          var e = Math.max(0, ad - 0.16) / 0.84;
+          var vis = ad < 1.05;
+          var key = vis ? e.toFixed(3) + (d < 0 ? '-' : '+') : 'off';
+          if (key === o.last) return;
+          o.last = key;
+          o.st.style.visibility = vis ? 'visible' : 'hidden';
+          if (!vis) return;
+          var scale = d < 0 ? 1 + 0.42 * e : 1 - 0.14 * e;
+          var blur = Math.round(e * 14 * 2) / 2;
+          if (o.img) {
+            o.img.style.transform = 'scale(' + scale.toFixed(4) + ')';
+            o.img.style.filter = blur > 0 ? 'blur(' + blur + 'px)' : 'none';
           }
-        }
+          o.media.style.opacity = clamp(1 - e * 1.1, 0, 1).toFixed(3);
+          o.body.style.opacity = clamp(1 - e * 1.9, 0, 1).toFixed(3);
+          o.body.style.transform = 'translate3d(0,' + (d * -46).toFixed(1) + 'px,0)';
+          if (o.num) o.num.style.transform = 'translate3d(0,' + (d * -26).toFixed(1) + 'px,0)';
+        });
+        if (rTrack) rTrack.style.transform = 'translate3d(' + (-(pos * 240 + 120)).toFixed(1) + 'px,0,0)';
+        if (cut) cut.style.strokeDashoffset = clamp(1 - (pos - 2.6) / 0.6, 0, 1).toFixed(3);
+      }
+      apply(0);
+      var trig = ST.create({
+        trigger: section, start: 'top top', end: 'bottom bottom', scrub: true,
+        onUpdate: function (self) { apply(self.progress); },
+        onRefresh: function (self) { apply(self.progress); }
       });
-      if (cut) gsap.fromTo(cut, { strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: '.station-svg', containerAnimation: tween, start: 'left 75%', end: 'center 45%', scrub: true } });
-      qsa('.station .st-media img').forEach(function (img) {
-        gsap.fromTo(img, { scale: 1.12 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: img, containerAnimation: tween, start: 'left right', end: 'right left', scrub: true } });
-      });
-      return function () { ST.removeEventListener('refreshInit', size); section.style.height = ''; };
+      // Blende: Der dunkle Raum öffnet sich kreisförmig beim Hereinscrollen
+      var iris = gsap.fromTo(section, { clipPath: 'circle(18% at 50% 0%)' }, { clipPath: 'circle(150% at 50% 0%)', ease: 'none', scrollTrigger: { trigger: section, start: 'top bottom', end: 'top top', scrub: true } });
+      return function () {
+        trig.kill(); iris.scrollTrigger && iris.scrollTrigger.kill(); iris.kill();
+        ST.removeEventListener('refreshInit', size);
+        section.classList.remove('is-zoom');
+        section.style.height = ''; section.style.clipPath = '';
+        parts.forEach(function (o) {
+          o.st.style.visibility = ''; o.media.style.opacity = ''; o.body.style.opacity = ''; o.body.style.transform = '';
+          if (o.img) { o.img.style.transform = ''; o.img.style.filter = ''; }
+          if (o.num) o.num.style.transform = '';
+        });
+      };
     });
     mm.add('(max-width: 899px)', function () {
-      gsap.set(qsa('.station'), { opacity: 0, y: 24 });
-      ST.batch('.station', { start: 'top 90%', once: true, onEnter: function (b) { gsap.to(b, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.06, clearProps: 'transform' }); } });
       if (cut) gsap.fromTo(cut, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.4, ease: 'power2.inOut', scrollTrigger: { trigger: '.station-svg', start: 'top 75%', once: true } });
+      // Handy: jedes Bild stellt sich beim Hereinscrollen scharf
+      qsa('.station .st-media img').forEach(function (img) {
+        gsap.fromTo(img, { filter: 'blur(10px)', scale: 1.12 }, { filter: 'blur(0px)', scale: 1, ease: 'none', clearProps: 'filter', scrollTrigger: { trigger: img, start: 'top 95%', end: 'center 60%', scrub: 0.4 } });
+      });
+    });
+  });
+
+  // Fußzeile: Buchstaben der Tafel stellen sich nacheinander scharf
+  later('foot-word', function () {
+    var letters = qsa('.foot-word span');
+    if (!letters.length) return;
+    gsap.fromTo(letters, { filter: 'blur(14px)', opacity: 0.25 }, { filter: 'blur(0px)', opacity: 1, ease: 'none', stagger: 0.12, scrollTrigger: { trigger: '.foot-word', start: 'top 98%', end: 'bottom 80%', scrub: 0.6 } });
+  });
+
+  // Skizze der Anprobe zeichnet sich mit dem Scroll
+  later('sketch', function () {
+    var p = qs('.sketch path');
+    if (p) gsap.fromTo(p, { strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: p, start: 'top 92%', end: 'top 45%', scrub: 0.6 } });
+  });
+
+  // Magnetische Buttons (nur feiner Zeiger)
+  later('magnetic', function () {
+    if (!finePointer) return;
+    qsa('.hero-cta .btn, .head-act .btn-primary, .eg-copy .btn, .hear-copy .btn, .book-submit, .to-cta').forEach(function (b) {
+      var raf = 0, tx = 0, ty = 0;
+      function set() { raf = 0; b.style.setProperty('--mx', tx.toFixed(1) + 'px'); b.style.setProperty('--my', ty.toFixed(1) + 'px'); }
+      b.addEventListener('pointermove', function (e) {
+        if (e.pointerType !== 'mouse') return;
+        var r = b.getBoundingClientRect();
+        tx = (e.clientX - r.left - r.width / 2) * 0.22; ty = (e.clientY - r.top - r.height / 2) * 0.3;
+        if (!raf) raf = requestAnimationFrame(set);
+      });
+      b.addEventListener('pointerleave', function () { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(set); });
+    });
+  });
+
+  // Zeichen-Rollen auf Buttons und Navigation (nur feiner Zeiger)
+  later('roll', function () {
+    if (!finePointer) return;
+    qsa('[data-roll], .nav a').forEach(function (n) {
+      var txt = n.textContent;
+      if (!txt.trim()) return;
+      clear(n);
+      h('span', 'vh', txt, n);
+      var r = h('span', 'roll', null, n);
+      r.setAttribute('aria-hidden', 'true');
+      Array.prototype.forEach.call(txt, function (c, i) {
+        var sp = h('span', null, c, r);
+        sp.setAttribute('data-c', c);
+        sp.style.setProperty('--i', i);
+      });
     });
   });
 

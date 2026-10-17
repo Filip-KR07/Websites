@@ -304,6 +304,8 @@ main > section, main > .cable { position: relative; background-color: var(--pape
 .s1-blade { transform-box: view-box; transform: rotate(-36deg); transition: transform var(--t-switch) var(--ease-click); }
 :root[data-power="on"] .s1-blade { transform: none; }
 :root[data-power="on"] .ht__l--mark { color: #141619; }
+:root[data-power="on"] .ht__marker { height: .84em; bottom: .03em; box-shadow: 0 0 28px rgba(230, 255, 58, .45); }
+.ht__marker { transition: height 300ms var(--ease-out); }
 :root[data-power="on"] .plan .w .load[data-load="b1"] { fill: var(--volt); }
 :root[data-power="on"] .plan .cur { filter: drop-shadow(0 0 5px rgba(230, 255, 58, .55)); }
 :root[data-power="on"] .plan .dots path { stroke: #141619; }
@@ -315,7 +317,7 @@ main > section, main > .cable { position: relative; background-color: var(--pape
 @media (hover: hover) and (pointer: fine) { .plan__s1:hover { border-color: var(--red); } }
 
 .hero__lead { max-width: 33rem; }
-.hero__lead p { font-size: clamp(15.5px, 1.15vw, 18px); line-height: 1.55; color: var(--ink-2); text-wrap: pretty; }
+.hero__lead p { font-size: clamp(15.5px, 1.15vw, 18px); line-height: 1.55; color: var(--ink-2); }
 .hero__ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 26px; margin-top: 22px; }
 
 .tblock { display: grid; grid-template-columns: 1.3fr 1fr 1fr; border: 1.5px solid var(--ink); background: var(--paper); font-size: 13px; line-height: 1.3; align-self: end; }
@@ -334,8 +336,8 @@ main > section, main > .cable { position: relative; background-color: var(--pape
   .hero__title { grid-column: 1; grid-row: 1; }
   .lamps { grid-column: 1; grid-row: 2; margin-top: clamp(18px, 2.4vh, 30px); }
   .hero__lead { grid-column: 1; grid-row: 4; align-self: end; }
-  .hero__plan { grid-column: 2; grid-row: 1 / 4; container-type: size; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
-  .plan { width: min(100cqw, calc(100cqh * 640 / 600)); aspect-ratio: 640 / 600; }
+  .hero__plan { grid-column: 2; grid-row: 1 / 4; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; min-height: 0; }
+  .plan { width: min(100%, calc((max(100svh, 620px) - var(--hdr-h) - 250px) * 640 / 600)); aspect-ratio: 640 / 600; }
   .tblock { grid-column: 2; grid-row: 4; }
 }
 @media (max-width: 899px) {
@@ -365,12 +367,12 @@ html.motion-ok .c { animation: charge 760ms var(--ease-out) calc(120ms + var(--i
 @media (max-width: 899px) { @keyframes charge { from { font-weight: 260; font-stretch: 70%; } to { font-weight: 800; font-stretch: 100%; } } }
 html.motion-ok .ht__marker { transform: scaleX(0); animation: marker 620ms var(--ease-in-out) 980ms forwards; }
 @keyframes marker { to { transform: scaleX(1); } }
-html.motion-ok .plan .w { animation: plan-in 900ms var(--ease-out) 200ms both; }
-html.motion-ok .plan .lbl, html.motion-ok .plan .hand-note { animation: plan-in 700ms ease 700ms both; }
+html.motion-ok .plan .w { animation: plan-in 900ms var(--ease-out) 200ms backwards; }
+html.motion-ok .plan .lbl, html.motion-ok .plan .hand-note { animation: plan-in 700ms ease 700ms backwards; }
 @keyframes plan-in { from { opacity: 0; } to { opacity: 1; } }
 html:not(.motion-ok) .plan .cur path { stroke-dashoffset: 0; }
-html:not(.motion-ok) .plan .cur path[data-seg="b1on"] { stroke-dashoffset: 1; }
-:root:not(.motion-ok)[data-power="on"] .plan .cur path[data-seg="b1on"] { stroke-dashoffset: 0; }
+html:not(.motion-ok) .plan .cur path[data-cur="b1on"] { stroke-dashoffset: 1; }
+:root:not(.motion-ok)[data-power="on"] .plan .cur path[data-cur="b1on"] { stroke-dashoffset: 0; }
 html:not(.motion-ok) .plan .w .load:not([data-load="b1"]) { fill: var(--volt); }
 html.motion-ok .tblock__sig { clip-path: inset(-20% 100% -20% 0); transition: clip-path 900ms var(--ease-out); }
 html.motion-ok .tblock__sig.is-signed { clip-path: inset(-20% -10% -20% 0); }
@@ -1205,3 +1207,10 @@ html.motion-off *, html.motion-off *::before, html.motion-off *::after { animati
 html.motion-off .c { font-weight: 800; font-stretch: 112%; }
 @media (max-width: 899px) { html.motion-off .c { font-stretch: 100%; } }
 ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+
+/* Raster-Kinder dürfen schrumpfen (kein Überlauf durch min-content) */
+.inquiry__grid > *, .faq__grid > *, .jobs__grid > *, .area__grid > *, .light__grid > *, .smart__grid > *, .voices__grid > * { min-width: 0; }
+.voices { overflow-x: clip; }
+
+/* Erst-Layout entlasten: Abschnitte unterhalb des Heros werden nach dem Start einzeln (je ein Task) gerendert */
+html.js main > section:not(.hero):not(.cv-on), html.js main > .chapter:not(.cv-on), html.js .ftr:not(.cv-on) { content-visibility: auto; contain-intrinsic-size: auto 1100px; }

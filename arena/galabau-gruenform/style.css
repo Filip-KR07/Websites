@@ -1173,7 +1173,7 @@ html.js:not(.is-loaded) .hero-contours { opacity: 0; }
   container-type: inline-size;
 }
 .hero-title {
-  position: relative; font-family: var(--f-display); font-weight: 650; font-size: min(10.2rem, calc((100cqi - 24.5rem) / 6.4));
+  position: relative; font-family: var(--f-display); font-weight: 650; font-size: min(10.2rem, calc((100cqi - 24.5rem) / 6.4), calc((60svh - var(--header-h) - 3rem) / 3.1));
   line-height: .9; letter-spacing: -.045em; color: var(--ink); font-optical-sizing: auto; margin-bottom: .02em; white-space: nowrap;
 }
 .hero-title .ln { display: block; overflow: hidden; padding: .08em .14em .24em 0; margin: -.08em 0 -.24em; }
@@ -1181,6 +1181,7 @@ html.js:not(.is-loaded) .hero-contours { opacity: 0; }
 .hero-title .ln-2 { padding-left: .82em; font-weight: 360; letter-spacing: -.035em; }
 .hero-title .ln-3 { padding-left: .1em; }
 .hx-season { align-self: start; display: grid; gap: 1rem; padding-bottom: 2rem; }
+@media (min-width: 900px) { .hx-season { position: absolute; top: calc(var(--header-h) + clamp(1.2rem, 4vh, 3rem)); right: var(--gutter); width: 20.5rem; } }
 .hx-sunpath { width: 100%; max-width: 16rem; height: auto; overflow: visible; justify-self: end; }
 .sp-arc { fill: none; stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 2 5; }
 .sp-base { fill: none; stroke: var(--ink-2); stroke-width: 1.2; }
@@ -1250,8 +1251,11 @@ html[data-season="winter"] .hx-garden .g-snow { opacity: .95; }
 .hx-garden .s.gr { stroke: var(--grass); }
 .hx-garden .s.wd { stroke: var(--erde); }
 .hx-garden .r { fill: none; stroke: var(--root); stroke-linecap: round; stroke-dasharray: 1 1; stroke-dashoffset: 1; opacity: .36; transition: stroke-dashoffset 1.6s var(--ease-out) var(--dl, 0ms); }
-.hx-garden .r.deep { transition: none; stroke-dashoffset: clamp(0, calc(1 - var(--rg, 0) * 2.2 + var(--k, 0) * .45), 1); }
-.hx-garden .lf, .hx-garden .bl, .hx-garden .sd, .hx-garden .sn, .hx-garden .fl { opacity: 0; transition: opacity .6s ease var(--dl, 0ms), fill var(--t-season) ease; }
+.hx-garden .rt-deep path { fill: none; stroke: var(--root); stroke-linecap: round; opacity: .36; }
+/* Blätter & Blüten blenden gruppenweise ein (ein animiertes Element pro Pflanze statt hunderter) */
+.hx-garden .dec { opacity: 0; transition: opacity .9s ease var(--dl, 0ms); }
+.hx-garden.is-grown .dec { opacity: 1; }
+.hx-garden .sd, .hx-garden .sn, .hx-garden .fl { opacity: 0; }
 .hx-garden .lf { fill: var(--leaf-b); }
 .hx-garden .lf.la { fill: var(--leaf-a); }
 .hx-garden .lf.lc { fill: var(--leaf-c); }
@@ -1264,16 +1268,14 @@ html[data-season="winter"] .hx-garden .g-snow { opacity: .95; }
 .hx-garden .fl { fill: var(--leaf-a); }
 .hx-garden .anno { font-family: var(--f-display); font-style: italic; font-size: 12px; fill: var(--root); opacity: .7; }
 .hx-garden .anno-l { fill: none; stroke: var(--root); stroke-width: 1; opacity: .5; }
-.hx-garden.is-grown .s, .hx-garden.is-grown .r:not(.deep) { stroke-dashoffset: 0; }
-.hx-garden.is-grown .lf, .hx-garden.is-grown .bl { opacity: 1; }
-html[data-season="fruehling"] .hx-garden.is-grown .lf.lc { opacity: .35; }
-html[data-season="herbst"] .hx-garden.is-grown .lf.lc { opacity: 0; }
-html[data-season="herbst"] .hx-garden.is-grown .fl, html[data-season="herbst"] .hx-garden.is-grown .sd,
-html[data-season="winter"] .hx-garden.is-grown .sd { opacity: 1; }
-html[data-season="herbst"] .hx-garden.is-grown .bl:not(.b1) { opacity: 0; }
-html[data-season="winter"] .hx-garden.is-grown .lf, html[data-season="winter"] .hx-garden.is-grown .bl { opacity: 0; }
-html[data-season="winter"] .hx-garden.is-grown .sn { opacity: 1; }
-.hx-garden.no-anim .s, .hx-garden.no-anim .r, .hx-garden.no-anim .lf, .hx-garden.no-anim .bl { transition: none; }
+.hx-garden.is-grown .s, .hx-garden.is-grown .r { stroke-dashoffset: 0; }
+html[data-season="fruehling"] .hx-garden .lf.lc { opacity: .35; }
+html[data-season="herbst"] .hx-garden .lf.lc { opacity: 0; }
+html[data-season="herbst"] .hx-garden .fl, html[data-season="herbst"] .hx-garden .sd, html[data-season="winter"] .hx-garden .sd { opacity: 1; }
+html[data-season="herbst"] .hx-garden .bl:not(.b1) { opacity: 0; }
+html[data-season="winter"] .hx-garden .lf, html[data-season="winter"] .hx-garden .bl { opacity: 0; }
+html[data-season="winter"] .hx-garden .sn { opacity: 1; }
+.hx-garden.no-anim .s, .hx-garden.no-anim .r, .hx-garden.no-anim .dec { transition: none; }
 .hx-garden .back { opacity: .3; }
 .hx-garden .rt.wait .r { stroke-dashoffset: 1 !important; transition: none; }
 
@@ -1468,6 +1470,7 @@ html.vt-season *, html.vt-season *::before, html.vt-season *::after { transition
   .hx-sky { grid-template-columns: minmax(0, 1fr); align-items: start; padding-top: calc(var(--header-h) + 1.3rem); padding-bottom: clamp(8.5rem, 21svh, 12rem); }
   .hero-title { font-size: min(6.4rem, calc(100cqi / 6.45)); margin-bottom: 0; }
   .hx-season { padding-bottom: 0; margin-top: 1.1rem; gap: .7rem; max-width: 30rem; }
+  .soil-cap { min-height: 3.2em; }
   .hx-sunpath { display: none; }
   .hero-tip { border-left: 0; padding-left: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .4rem; }
   .hero-tip-k { font-size: .8rem; }
@@ -1543,3 +1546,6 @@ html.motion-off .hero-contours { opacity: 1 !important; }
   .main-nav a:hover .roll > span, .main-nav a:focus-visible .roll > span { transform: translateY(-1.3em); }
 }
 @media (prefers-reduced-motion: reduce) { .roll > span { transition: none; } }
+
+/* Weit unten liegende Kapitel erst rendern, wenn sie in die Nähe kommen (kürzerer Start-Task) */
+.voices, .region, .career, .faq, .site-footer { content-visibility: auto; contain-intrinsic-size: auto 900px; }

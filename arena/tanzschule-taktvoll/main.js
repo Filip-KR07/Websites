@@ -1,5 +1,6 @@
 /* ==========================================================================
    Tanzschule Taktvoll – Modell „Drehung“ · main.js
+   Bewegung im Dreivierteltakt: Vorhang, Spot, Zählzeit, Rueda, Schallplatte.
    Ohne Build, ohne externe Requests. GSAP/ScrollTrigger/Lenis liegen lokal.
    ========================================================================== */
 (function () {
@@ -103,6 +104,7 @@
 
   /* ------------------------------------------------------------------------ */
   var doc = document, root = doc.documentElement;
+  var BASE = ((doc.currentScript && doc.currentScript.src) || '/arena/tanzschule-taktvoll/main.js').replace(/main\.js.*$/, '');
   var $ = function (s, c) { return (c || doc).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || doc).querySelectorAll(s)); };
   var REDUCE = root.classList.contains('reduce');
@@ -180,6 +182,56 @@
     }
   }
 
+  /* ---------- 1b) Intro (Einzählen + Vorhang) überspringbar ---------- */
+  function initIntro() {
+    if (!root.classList.contains('intro')) return;
+    var done = function () {
+      root.classList.add('intro-done');
+      ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (t) { window.removeEventListener(t, done, true); });
+    };
+    ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (t) { window.addEventListener(t, done, { capture: true, passive: true }); });
+    setTimeout(done, 1200);
+  }
+
+  /* ---------- 1c) Navigation: Zeichen rollen beim Hover ---------- */
+  function initNavRoll() {
+    if (REDUCE || !finePointer) return;
+    $$('.nav a').forEach(function (a) {
+      var text = a.textContent;
+      a.setAttribute('aria-label', text);
+      while (a.firstChild) a.removeChild(a.firstChild);
+      text.split('').forEach(function (ch, i) {
+        var sp = doc.createElement('span');
+        sp.className = 'roll'; sp.setAttribute('aria-hidden', 'true');
+        sp.textContent = ch === ' ' ? '\u00a0' : ch;
+        sp.setAttribute('data-c', sp.textContent);
+        sp.style.transitionDelay = (i * 18) + 'ms';
+        a.appendChild(sp);
+      });
+    });
+  }
+
+  /* ---------- 1d) Magnetische Buttons (nur feiner Zeiger) ---------- */
+  function initMagnetic() {
+    if (REDUCE || !finePointer) return;
+    $$('.magnetic').forEach(function (el) {
+      var cur = { x: 0, y: 0 }, tgt = { x: 0, y: 0 }, raf = 0;
+      function tick() {
+        cur.x += (tgt.x - cur.x) * 0.18; cur.y += (tgt.y - cur.y) * 0.18;
+        el.style.translate = cur.x.toFixed(2) + 'px ' + cur.y.toFixed(2) + 'px';
+        if (Math.abs(tgt.x - cur.x) > 0.05 || Math.abs(tgt.y - cur.y) > 0.05) raf = requestAnimationFrame(tick); else raf = 0;
+      }
+      el.addEventListener('pointermove', function (e) {
+        if (e.pointerType !== 'mouse') return;
+        var r = el.getBoundingClientRect();
+        tgt.x = (e.clientX - (r.left + r.width / 2)) * 0.22;
+        tgt.y = (e.clientY - (r.top + r.height / 2)) * 0.32;
+        if (!raf) raf = requestAnimationFrame(tick);
+      });
+      el.addEventListener('pointerleave', function () { tgt.x = 0; tgt.y = 0; if (!raf) raf = requestAnimationFrame(tick); });
+    });
+  }
+
   /* ---------- 2) Hero: Spotlight folgt der Maus ---------- */
   function initHero() {
     var hero = $('.hero'), spot = $('.hero__spot'), cone = $('.hero__cone');
@@ -190,6 +242,20 @@
     }
     doc.addEventListener('visibilitychange', function () { hero.classList.toggle('is-paused', doc.hidden); });
     if (REDUCE || !finePointer) return;   // Touch: Spotlight wandert per CSS-Animation
+
+    // „drehen“: jeder Buchstabe dreht sich einmal um die eigene Achse – im Takt versetzt
+    var turn = $('.ht-turn'), spinning = false;
+    if (turn && turn.animate) {
+      turn.addEventListener('pointerenter', function () {
+        if (spinning) return; spinning = true;
+        var letters = $$('i', turn), last = null;
+        letters.forEach(function (l, n) {
+          last = l.animate([{ transform: 'rotateY(0deg)' }, { transform: 'rotateY(360deg)' }],
+            { duration: 840, delay: n * 60, easing: 'cubic-bezier(0.77, 0, 0.175, 1)' });
+        });
+        if (last) last.onfinish = function () { spinning = false; };
+      });
+    }
 
     var pos = null, target = { x: 0, y: 0 }, raf = 0;
     function readCurrent() {
@@ -233,36 +299,144 @@
 
   function initScrollMotion() {
     if (!hasGSAP() || REDUCE) return;
-    // Takt-Band läuft mit dem Scrollen
-    var band = $('.beat-band__track');
-    if (band) {
-      gsap.fromTo(band, { x: 0 }, { x: function () { return -Math.max(0, band.scrollWidth - window.innerWidth) * 0.6; }, ease: 'none',
-        scrollTrigger: { trigger: '.beat-band', start: 'top bottom', end: 'bottom top', scrub: 0.5, invalidateOnRefresh: true } });
-    }
-    // Kurse: horizontale Strecke per position: sticky, nur Bewegung per Scrub
-    var sec = $('.kurse'), track = $('.kurse__track'), vp = $('.kurse__viewport'), now = $('.kurse__counter-now');
     var mm = gsap.matchMedia();
-    mm.add('(min-width: 900px)', function () {
-      sec.classList.add('is-h');
-      var dist = 0;
-      function measure() {
-        sec.style.height = '';
-        dist = Math.max(0, track.scrollWidth - vp.clientWidth);
-        sec.style.height = (window.innerHeight + dist) + 'px';
-      }
-      measure();
-      ScrollTrigger.addEventListener('refreshInit', measure);
-      var count = track.children.length;
-      var tw = gsap.to(track, { x: function () { return -dist; }, ease: 'none',
-        scrollTrigger: { trigger: sec, start: 'top top', end: function () { return '+=' + dist; }, scrub: 0.6, invalidateOnRefresh: true,
-          onUpdate: function (st) { var i = Math.min(count, Math.round(st.progress * (count - 1)) + 1); if (now) now.textContent = (i < 10 ? '0' : '') + i; } } });
-      return function () {
-        ScrollTrigger.removeEventListener('refreshInit', measure);
-        tw.scrollTrigger && tw.scrollTrigger.kill(); tw.kill();
-        gsap.set(track, { clearProps: 'transform' });
-        sec.classList.remove('is-h'); sec.style.height = '';
-      };
+
+    // Hero: „drehen“ schwingt beim Wegscrollen aus, der Stempel dreht sich mit
+    var letters = $$('.ht-turn b');
+    if (letters.length) {
+      gsap.to(letters, { rotation: function (i) { return (i - 3) * 13; }, yPercent: function (i) { return Math.abs(i - 3) * 9; },
+        transformOrigin: '50% 160%', ease: 'none',
+        scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.5 } });
+    }
+    var stamp = $('.hero__seal');
+    if (stamp) gsap.to(stamp, { rotation: 110, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.8 } });
+
+    // Akt-Vorhänge: öffnen sich mit dem Scrollen in das Kapitel hinein
+    root.classList.add('acts');
+    $$('.act').forEach(function (act) {
+      var sec = act.parentElement;
+      var tl = gsap.timeline({ scrollTrigger: { trigger: sec, start: 'top 92%', end: 'top 12%', scrub: 0.45 } });
+      tl.fromTo($('.act__half--l', act), { xPercent: 0 }, { xPercent: -101, ease: 'power2.inOut' }, 0)
+        .fromTo($('.act__half--r', act), { xPercent: 0 }, { xPercent: 101, ease: 'power2.inOut' }, 0)
+        .fromTo($('.act__card', act), { opacity: 1, y: 0 }, { opacity: 0, y: -50, ease: 'power1.in', duration: 0.45 }, 0.1);
     });
+
+    // Schallplatte gleitet aus der Hülle, der Tonarm senkt sich
+    var vinyl = $('#vinyl'), sleeve = $('.sleeve');
+    if (vinyl && sleeve) {
+      vinyl.style.translate = '0 0';
+      gsap.fromTo(vinyl, { xPercent: 0, rotation: -40 }, { xPercent: 46, rotation: 0, ease: 'power2.out',
+        scrollTrigger: { trigger: sleeve, start: 'top 88%', end: 'top 38%', scrub: 0.6,
+          onUpdate: function (st) { sleeve.classList.toggle('vinyl-out', st.progress > 0.9); } } });
+    }
+
+    // Plakat: „Freitag“ zieht quer durchs Bild
+    var huge = $('.party__huge');
+    if (huge) gsap.fromTo(huge, { xPercent: 8 }, { xPercent: -30, ease: 'none', scrollTrigger: { trigger: '.party', start: 'top bottom', end: 'bottom top', scrub: 0.4 } });
+
+    // Programmheft: große „6“ dreht sich in den Takt
+    var six = $('.kurse__big');
+    if (six) gsap.fromTo(six, { rotation: -14, yPercent: 10 }, { rotation: 0, yPercent: 0, ease: 'none', transformOrigin: '50% 100%', scrollTrigger: { trigger: '.kurse', start: 'top bottom', end: 'top 30%', scrub: 0.5 } });
+    mm.add('(min-width: 900px)', function () { return function () {}; });
+  }
+
+  /* ---------- 3b) Notenzeile: Laufband reagiert auf Scroll-Tempo ---------- */
+  function initScore() {
+    var band = $('.score'), track = $('.score__track');
+    if (!band || !track || REDUCE) return;
+    var setW = 0, x = 0, lastY = window.pageYOffset, vel = 0, skew = 0, raf = 0, inView = false;
+    function measure() { var s = $('.score__set', track); setW = s ? s.offsetWidth : 0; }
+    measure();
+    window.addEventListener('resize', measure);
+    function frame() {
+      raf = 0;
+      if (!inView || doc.hidden) return;
+      var y = window.pageYOffset, d = y - lastY; lastY = y;
+      vel += (d - vel) * 0.12;
+      var dir = vel < -0.2 ? -1 : 1;
+      x -= dir * 0.55 + vel * 0.32;
+      if (setW) { x = x % setW; if (x > 0) x -= setW; }
+      skew += (Math.max(-9, Math.min(9, -vel * 0.35)) - skew) * 0.15;
+      track.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,0) skewX(' + skew.toFixed(2) + 'deg)';
+      raf = requestAnimationFrame(frame);
+    }
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (en) { inView = en[0].isIntersecting; if (inView && !raf) { lastY = window.pageYOffset; raf = requestAnimationFrame(frame); } }).observe(band);
+    }
+    doc.addEventListener('visibilitychange', function () { if (!doc.hidden && inView && !raf) raf = requestAnimationFrame(frame); });
+  }
+
+  /* ---------- 3c) Zählzeit: Sticky-Erzählung, Wort für Wort im Takt ---------- */
+  function initTempo() {
+    var sec = $('.tempo');
+    if (!sec || REDUCE || !hasGSAP()) return;
+    var lines = $$('.tempo__line', sec), nums = $$('.tempo__nums span', sec), wash = $('.tempo__wash', sec), spin = $('.tempo__spin', sec);
+    var words = lines.map(function (line) {
+      var out = [];
+      Array.prototype.slice.call(line.childNodes).forEach(function (node) {
+        if (node.nodeType === 3) {
+          var frag = doc.createDocumentFragment();
+          node.textContent.split(/(\s+)/).forEach(function (part) {
+            if (!part) return;
+            if (/^\s+$/.test(part)) { frag.appendChild(doc.createTextNode(part)); return; }
+            var w = doc.createElement('span'); w.className = 'w'; w.textContent = part; frag.appendChild(w); out.push(w);
+          });
+          line.replaceChild(frag, node);
+        } else if (node.nodeType === 1) { node.classList.add('w'); out.push(node); }
+      });
+      return out;
+    });
+    root.classList.add('tempo-on');
+    if (nums[0]) nums[0].classList.add('is-on');
+    var spun = false, lastBeat = 0;
+    ScrollTrigger.create({ trigger: sec, start: 'top top', end: 'bottom bottom',
+      onUpdate: function (st) {
+        var p = st.progress, beat = Math.min(2, Math.floor(p / 0.29));
+        words.forEach(function (ws, li) {
+          var local = Math.max(0, Math.min(1, (p - li * 0.29) / 0.24));
+          var n = Math.round(local * ws.length);
+          ws.forEach(function (w, k) { w.classList.toggle('on', k < n); });
+        });
+        if (beat !== lastBeat) { lastBeat = beat; nums.forEach(function (s, k) { s.classList.toggle('is-on', k === beat); }); }
+        var wv = Math.max(0, Math.min(1, (p - 0.66) / 0.2));
+        wash.style.opacity = wv.toFixed(3);
+        sec.classList.toggle('is-wash', wv > 0.5);
+        if (p > 0.88 && !spun && spin.animate) {
+          spun = true;
+          spin.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 1260, easing: 'cubic-bezier(0.77, 0, 0.175, 1)' });
+        } else if (p < 0.8) spun = false;
+      } });
+  }
+
+  /* ---------- 3d) Rueda: Team-Kreis dreht sich mit ---------- */
+  function initRing() {
+    var rot = $('.ring__rot'), name = $('#ring-name');
+    if (!rot) return;
+    var ms = $$('.ring__m', rot), people = $$('.person'), current = -1, hover = -1, deg = 0;
+    var names = people.map(function (p) { return $('.person__n', p).textContent; });
+    function mark(k) {
+      if (k === current) return; current = k;
+      ms.forEach(function (m, i) { m.classList.toggle('is-on', i === k); });
+      people.forEach(function (p, i) { p.classList.toggle('is-on', i === k); });
+      name.textContent = names[k] || '';
+    }
+    function nearest() {
+      var best = 0, bd = 999;
+      for (var k = 0; k < ms.length; k++) { var a = ((k * 360 / ms.length + deg) % 360 + 360) % 360; var d = Math.min(a, 360 - a); if (d < bd) { bd = d; best = k; } }
+      return best;
+    }
+    people.forEach(function (p, i) {
+      p.addEventListener('pointerenter', function () { hover = i; mark(i); });
+      p.addEventListener('pointerleave', function () { hover = -1; mark(nearest()); });
+    });
+    mark(0);
+    if (REDUCE || !hasGSAP()) return;
+    ScrollTrigger.create({ trigger: '.team', start: 'top bottom', end: 'bottom top',
+      onUpdate: function (st) {
+        deg = -st.progress * 360 * 6 / 7;
+        rot.style.setProperty('--rot', deg.toFixed(2) + 'deg');
+        if (hover < 0) mark(nearest());
+      } });
   }
 
   /* ---------- 4) Reveals ---------- */
@@ -272,6 +446,7 @@
     els.forEach(function (el) {
       var sib = $$('[data-reveal]', el.parentElement).filter(function (s) { return s.parentElement === el.parentElement; });
       var i = sib.indexOf(el);
+      el.setAttribute('data-beat', String(i % 3 + 1));
       if (i > 0) el.style.transitionDelay = Math.min(i, 4) * 70 + 'ms';
     });
     var io = new IntersectionObserver(function (en) {
@@ -539,14 +714,24 @@
           var lv = li.getAttribute('data-level');
           var show = level === 'alle' || lv === level || lv === 'offen';
           li.classList.toggle('is-out', !show);
-          if (show) c++;
+          if (show) { li.style.setProperty('--i', c); c++; }
         });
         $('.plan-empty', sec).hidden = c > 0;
         if (on) visible = c;
       });
       if (announce) status.textContent = DAY_NAMES[day] + ': ' + visible + (visible === 1 ? ' Kurs' : ' Kurse') + ' für ' + LEVEL_NAMES[level] + '.';
     }
+    var pencil = $('.pencil'), card = $('.dancecard');
+    function swing() {
+      if (!pencil || REDUCE) return;
+      pencil.classList.remove('is-swing'); void pencil.getBoundingClientRect(); pencil.classList.add('is-swing');
+    }
+    if (card && 'IntersectionObserver' in window) {
+      var cio = new IntersectionObserver(function (en) { if (en[0].isIntersecting) { card.classList.add('is-drawn'); swing(); cio.disconnect(); } }, { threshold: 0.2 });
+      cio.observe(card);
+    } else if (card) card.classList.add('is-drawn');
     function select(d, focus) {
+      if (d !== day) swing();
       day = d; apply(true);
       if (focus) { var b = $('#tab-' + d); if (b) b.focus(); }
     }
@@ -565,7 +750,7 @@
       c.addEventListener('click', function () {
         level = c.getAttribute('data-level');
         chips.forEach(function (x) { x.setAttribute('aria-pressed', String(x === c)); });
-        apply(true);
+        swing(); apply(true);
       });
     });
     apply(false);
@@ -586,7 +771,7 @@
       if ('IntersectionObserver' in window) {
         new IntersectionObserver(function (en) {
           inView = en[0].isIntersecting;
-          if (inView && !doc.hidden) { spin.play(); vinyl.classList.add('is-playing'); } else { spin.pause(); vinyl.classList.remove('is-playing'); }
+          if (inView && !doc.hidden) spin.play(); else spin.pause();
         }).observe(vinyl);
       }
       doc.addEventListener('visibilitychange', function () { if (doc.hidden) spin.pause(); else if (inView) spin.play(); });
@@ -688,10 +873,11 @@
   }
 
   /* ---------- Start in Etappen ---------- */
+  initIntro();
   initHeader();
   initHero();
 
-  var queue = [initSmooth, initReveal, initNavSpy, initFinder, initSteps, initPlan, initWedding, initForm, initParty, initScrollMotion];
+  var queue = [initSmooth, initNavRoll, initMagnetic, initReveal, initNavSpy, initFinder, initSteps, initPlan, initWedding, initForm, initParty, initScore, initTempo, initRing, initScrollMotion];
   var idle = window.requestIdleCallback ? function (fn) { window.requestIdleCallback(fn, { timeout: 200 }); } : function (fn) { setTimeout(fn, 16); };
   function runQueue() {
     var fn = queue.shift();
@@ -702,5 +888,17 @@
     try { fn(); } catch (err) { if (window.console) console.warn('Taktvoll:', fn.name, err); }
     idle(runQueue);
   }
-  setTimeout(function () { idle(runQueue); }, 60);
+  // GSAP/ScrollTrigger/Lenis erst nach dem ersten Bild laden – der erste Bildschirm wartet auf nichts.
+  // Bei reduzierter Bewegung werden sie gar nicht gebraucht.
+  function loadVendors(done) {
+    if (REDUCE) { done(); return; }
+    var files = ['assets/vendor/gsap.min.js', 'assets/vendor/ScrollTrigger.min.js', 'assets/vendor/lenis.min.js'], left = files.length;
+    files.forEach(function (f) {
+      var s = doc.createElement('script');
+      s.src = BASE + f; s.async = false;
+      s.onload = s.onerror = function () { if (--left === 0) done(); };
+      doc.head.appendChild(s);
+    });
+  }
+  requestAnimationFrame(function () { setTimeout(function () { loadVendors(function () { idle(runQueue); }); }, 60); });
 })();

@@ -16,3 +16,5 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 | `pendler` | 960x640 | Cycling City | https://stocksnap.io/photo/cycling-city-E5BW2K6ZYK |
 | `regal` | 960x640 | Road Bike | https://stocksnap.io/photo/road-bike-NLRDNDHXUS |
 | `stadtrad` | 960x640 | Bicycle Bike | https://stocksnap.io/photo/bicycle-bike-Y2KCFMGHD1 |
+
+Bearbeitung: `stadtrad`, `gravel`, `korb`, `ebike`, `pendler` als Duoton (Asphalt → Türkis) mit ImageMagick umgefärbt (`-colorspace Gray +level-colors "#0F1314","#8FEBDC"`).

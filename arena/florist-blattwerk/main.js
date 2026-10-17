@@ -84,7 +84,9 @@
   var MON = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 
   function safe(name, fn) {
+    var t0 = performance.now();
     try { fn(); } catch (err) { if (window.console) console.warn('[Blattwerk] ' + name + ':', err); }
+    if (window.__bwT) window.__bwT.push([name, Math.round(t0), Math.round(performance.now() - t0)]);
   }
   function eur(n, dec) {
     var d = dec === undefined ? 2 : dec;
@@ -164,6 +166,7 @@
 
   function scrollToEl(target, focusAfter) {
     if (!target) return;
+    if (!doc.classList.contains('cv-off')) { doc.classList.add('cv-off'); void doc.offsetHeight; }
     var off = -(hdrH() + 8);
     if (lenis) {
       lenis.scrollTo(target, { offset: off, duration: 1.15, easing: function (t) { return t === 1 ? 1 : 1 - Math.pow(2, -10 * t); } });
@@ -184,16 +187,21 @@
      ------------------------------------------------------------------ */
   function initHeader() {
     var hdr = qs('[data-hdr]'), bar = qs('[data-progress]');
-    var ticking = false;
+    var ticking = false, maxH = 0, scrolled = null;
+    // Seitenhöhe nur messen, wenn sie sich ändert (kein erzwungenes Layout pro Scroll-Frame)
+    var measure = function () { maxH = doc.scrollHeight - window.innerHeight; };
+    measure();
+    if ('ResizeObserver' in window) new ResizeObserver(function () { measure(); }).observe(document.body);
     var update = function () {
       ticking = false;
       var y = window.pageYOffset || doc.scrollTop;
-      hdr.classList.toggle('is-scrolled', y > 24);
-      var max = doc.scrollHeight - window.innerHeight;
+      var sc = y > 24;
+      if (sc !== scrolled) { scrolled = sc; hdr.classList.toggle('is-scrolled', sc); }
+      var max = maxH;
       if (bar) bar.style.transform = 'scaleX(' + (max > 0 ? clamp(y / max, 0, 1) : 0).toFixed(4) + ')';
     };
     window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
-    window.addEventListener('resize', update, { passive: true });
+    window.addEventListener('resize', function () { measure(); update(); }, { passive: true });
     update();
 
     var links = qsa('.nav a');
@@ -877,23 +885,27 @@
 
     function transformStr(x, y, rot, s) { return 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) rotate(' + rot.toFixed(1) + 'deg) scale(' + s.toFixed(3) + ')'; }
 
+    // Gesammelt statt pro Knoten: alle Startzustände setzen, EIN Reflow, dann im nächsten Frame die Endzustände
+    // (vorher erzwang jeder neue Kopf einen eigenen Layout-Durchlauf → langer Task beim ersten Aufblühen).
+    var pend = [], pendRaf = 0;
+    function flushEnter() {
+      pendRaf = 0;
+      var list = pend; pend = [];
+      svg.getBoundingClientRect();
+      list.forEach(function (it) { it.node.style.transitionDelay = it.delay + 'ms'; });
+      requestAnimationFrame(function () { list.forEach(function (it) { it.fin(); }); });
+    }
     function enter(node, finalT, delay, isStem) {
       if (isStem) {
         node.style.strokeDashoffset = '1';
-        node.getBoundingClientRect();
-        node.style.transitionDelay = delay + 'ms';
-        requestAnimationFrame(function () { node.style.strokeDashoffset = '0'; });
-        return;
+        pend.push({ node: node, delay: delay, fin: function () { node.style.strokeDashoffset = '0'; } });
+      } else {
+        var m = /^(.*)scale\(([\d.]+)\)$/.exec(finalT);
+        node.style.transform = m ? m[1] + 'scale(' + (parseFloat(m[2]) * 0.25).toFixed(3) + ')' : finalT;
+        node.style.opacity = '0';
+        pend.push({ node: node, delay: delay, fin: function () { node.style.transform = finalT; node.style.opacity = '1'; } });
       }
-      var m = /^(.*)scale\(([\d.]+)\)$/.exec(finalT);
-      node.style.transform = m ? m[1] + 'scale(' + (parseFloat(m[2]) * 0.25).toFixed(3) + ')' : finalT;
-      node.style.opacity = '0';
-      node.getBoundingClientRect();
-      node.style.transitionDelay = delay + 'ms';
-      requestAnimationFrame(function () {
-        node.style.transform = finalT;
-        node.style.opacity = '1';
-      });
+      if (!pendRaf) pendRaf = requestAnimationFrame(flushEnter);
     }
     function exit(node, isStem) {
       node.classList.add('is-out');
@@ -1500,12 +1512,8 @@
     safe('header', initHeader);
     safe('menu', initMenu);
     safe('anchors', initAnchors);
-    safe('open', initOpenState);
-    safe('hero', initHero);
-    safe('petals', initPetals);
-    safe('poppy', initPoppy);
-    safe('magnet', initMagnet);
     var queue = [
+      ['hero', initHero], ['petals', initPetals], ['poppy', initPoppy], ['magnet', initMagnet], ['open', initOpenState],
       ['season-data', readSeason], ['ticker', initTicker], ['ticker-speed', initTickerSpeed], ['roll', initRoll],
       ['reveals', initReveals], ['services', initServices], ['season', initSeason], ['configurator', initConfigurator],
       ['abo', initAbo], ['delivery', initDelivery], ['form', initForm], ['ink', initInk], ['gsap', initGSAP]
@@ -1517,7 +1525,7 @@
       if (queue.length) later(next);
       else if (hasGSAP) window.ScrollTrigger.refresh();
     }
-    later(next);
+    setTimeout(next, 0);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();

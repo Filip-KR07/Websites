@@ -192,8 +192,8 @@
     if (!revealIO) { $$('[data-split]').forEach(el => el.classList.add('is-in')); return; }
     $$('[data-split]').forEach(el => { if (el.closest('.hero')) return; split(el); revealIO.observe(el); });
     const groups = [
-      '.sec-lead', '.services__more', '.config__stage', '.config__panel', '.ba__steps li', '.compare', '.quiz', '.check__fig',
-      '.prow', '.storm__side', '.storm__lead', '.call', '.stat', '.person', '.crew', '.g', '.values li', '.quote', '.rating',
+      '.sec-lead', '.services__more', '.config__panel', '.ba__steps li', '.compare', '.quiz', '.wx',
+      '.storm__side', '.storm__lead', '.call', '.person', '.crew', '.g', '.values li', '.quote', '.rating', '.ruler__cap',
       '.towns', '.plz', '.area__map', '.career__lead', '.career__fig', '.benefits li', '.azubi', '.faq__box', '.qa', '.wiz', '.contact', '.step'
     ];
     groups.forEach(sel => {
@@ -210,93 +210,157 @@
     if (crew) $$('.crew__grid li', crew).forEach((li, i) => li.style.setProperty('--n', i));
   }
 
-  /* ------------------------------------------------------------ Hero „Giebel“ */
+  /* ------------------------------------------------------------ Hero „Regelschnitt“: Schichten fächern auf */
+  // Die Außenhaut (Ziegel) bleibt stehen – der Regen prallt weiter daran ab –, die inneren
+  // Lagen wandern beim Scrollen nach innen ins Dachgeschoss. Desktop: Bühne klebt per CSS sticky.
   function initHero() {
     const hero = $('[data-hero]');
-    if (!hero) return;
-    const title = $('.hero__title', hero);
-    if (!REDUCE) split(title);
-    const delays = [['.hero__kicker', 0], ['.hero__fig', 140], ['.hero__lead', 260], ['.hero__cta', 360], ['.hero__phone', 420]];
-    delays.forEach(([s, t]) => { const el = $(s, hero); if (el) el.style.setProperty('--d', t + 'ms'); });
-    $$('.trust li', hero).forEach((li, i) => li.style.setProperty('--d', 480 + i * 60 + 'ms'));
-    requestAnimationFrame(() => requestAnimationFrame(() => { hero.classList.add('is-loaded'); title.classList.add('is-in'); }));
-
-    const frame = $('[data-gable]', hero);
-    const mask = $('[data-gable-mask]', hero);
-    const img = $('.hero__img', hero);
-    const svg = $('[data-gable-dims]', hero);
-    const pitchOut = $('[data-gable-pitch]', hero);
-    const el = n => $('.' + n, svg);
-    const E = { outline: el('gd-outline'), over: el('gd-over'), w: el('gd-wline'), wt: el('gd-wt'), h: el('gd-hline'), ht: el('gd-ht'), arc: el('gd-arc'), at: el('gd-at'), ridge: el('gd-ridge') };
-    const M = 48;
-    let W = 0, H = 0, gw = 0, last = -1;
-    const comma = (v, n = 1) => v.toFixed(n).replace('.', ',');
-
-    function measure() {
-      W = frame.clientWidth; H = frame.clientHeight;
-      gw = Math.min(W * 0.56, H * 0.92);
-      svg.setAttribute('viewBox', `${-M} ${-M} ${W + 2 * M} ${H + 2 * M}`);
-      last = -1;
+    const svg = hero && $('[data-xsec]', hero);
+    if (!svg) return;
+    const legend = $$('[data-hero-legend] li', hero);
+    let ex = -1, lit = -1;
+    function setEx(v) {
+      v = clamp(v, 0, 1);
+      if (Math.abs(v - ex) < 0.0015) return;
+      ex = v;
+      svg.style.setProperty('--ex', v.toFixed(4));
+      const n = v < 0.06 ? 0 : clamp(Math.ceil(v * 8.4), 1, 8);
+      if (n !== lit) { lit = n; legend.forEach((li, i) => li.classList.toggle('is-on', i < n)); }
     }
-    function render(p) {
-      if (!W) return;
-      if (Math.abs(p - last) < 0.0005) return;
-      last = p;
-      const q = easeInOut(clamp(p, 0, 1));
-      const rise0 = gw / 2;
-      const xl = lerp((W - gw) / 2, 0, q), xr = W - xl;
-      const ye = lerp(rise0, 0, q);
-      const half = W / 2 - xl;
-      const th = Math.atan2(ye, half);
-      const deg = th * 180 / Math.PI;
-      const small = W < 520;
-      mask.style.clipPath = `polygon(${xl}px ${H}px, ${xl}px ${ye}px, ${W / 2}px 0px, ${xr}px ${ye}px, ${xr}px ${H}px)`;
-      img.style.transform = `scale(${lerp(1.14, 1, q)})`;
-      E.outline.setAttribute('points', `${xl},${H} ${xl},${ye} ${W / 2},0 ${xr},${ye} ${xr},${H}`);
-      const ov = small ? 14 : 24, cx = Math.cos(th) * ov, cy = Math.sin(th) * ov;
-      E.over.setAttribute('d', `M${xl} ${ye}L${xl - cx} ${ye + cy}M${xr} ${ye}L${xr + cx} ${ye + cy}`);
-      // Breite
-      const by = H + (small ? 14 : 20);
-      E.w.setAttribute('d', `M${xl} ${H + 4}V${by + 6}M${xr} ${H + 4}V${by + 6}M${xl} ${by}H${xr}M${xl - 5} ${by + 5}L${xl + 5} ${by - 5}M${xr - 5} ${by + 5}L${xr + 5} ${by - 5}`);
-      E.wt.setAttribute('x', W / 2); E.wt.setAttribute('y', by + 16); E.wt.setAttribute('text-anchor', 'middle');
-      E.wt.textContent = `B ${comma((xr - xl) / gw * 11.4, 2)} m`;
-      // Höhe
-      const hx = xr + (small ? 12 : 22);
-      E.h.setAttribute('d', `M${xr + 4} 0H${hx + 6}M${xr + 4} ${H}H${hx + 6}M${hx} 0V${H}M${hx - 5} 5L${hx + 5} -5M${hx - 5} ${H + 5}L${hx + 5} ${H - 5}`);
-      E.ht.setAttribute('x', hx + 14); E.ht.setAttribute('y', H / 2);
-      E.ht.setAttribute('transform', `rotate(-90 ${hx + 14} ${H / 2})`); E.ht.setAttribute('text-anchor', 'middle');
-      // Neigungswinkel (außen an der Traufe)
-      const r = small ? 26 : 38;
-      E.arc.setAttribute('d', `M${xl - r - 20} ${ye}H${xl}M${xl - r} ${ye}A${r} ${r} 0 0 0 ${xl - r * Math.cos(th)} ${ye + r * Math.sin(th)}`);
-      E.at.setAttribute('x', xl - r - 6); E.at.setAttribute('y', ye + (small ? 16 : 20)); E.at.setAttribute('text-anchor', 'end');
-      E.at.textContent = `${Math.round(deg)}°`;
-      E.at.style.opacity = deg < 3 ? 0 : 1;
-      E.ridge.setAttribute('d', `M${W / 2 - 7} -16L${W / 2 + 7} -16L${W / 2} -5Z`);
-      if (pitchOut) pitchOut.textContent = `${comma(deg)}°`;
-    }
-
-    measure(); render(0);
-    if ('ResizeObserver' in window) new ResizeObserver(() => { const p = last < 0 ? 0 : last; measure(); render(p); }).observe(frame);
-
     if (REDUCE || !hasGSAP) return;
-    const proxy = { p: 0 };
     const mm = gsap.matchMedia();
     mm.add('(min-width: 900px)', () => {
-      const t = gsap.to(proxy, {
-        p: 1, ease: 'none',
-        onUpdate: () => render(proxy.p),
-        scrollTrigger: { trigger: hero, start: 'top top', end: '+=70%', pin: true, scrub: 0.6, anticipatePin: 1, invalidateOnRefresh: true }
+      const st = ScrollTrigger.create({
+        trigger: hero, start: 'top top', end: 'bottom bottom',
+        onUpdate: s => setEx(easeInOut(clamp(s.progress / 0.86, 0, 1)))
       });
-      return () => { t.scrollTrigger && t.scrollTrigger.kill(); t.kill(); proxy.p = 0; render(0); };
+      setEx(easeInOut(clamp(st.progress / 0.86, 0, 1)));
+      return () => { st.kill(); setEx(0); };
     });
     mm.add('(max-width: 899px)', () => {
-      const t = gsap.to(proxy, {
-        p: 1, ease: 'none',
-        onUpdate: () => render(proxy.p),
-        scrollTrigger: { trigger: frame, start: 'top 62%', end: 'bottom 30%', scrub: 0.5 }
+      const st = ScrollTrigger.create({
+        trigger: hero, start: 'top top', end: 'bottom top',
+        onUpdate: s => setEx(easeInOut(clamp(s.progress * 1.7, 0, 1)))
       });
-      return () => { t.scrollTrigger && t.scrollTrigger.kill(); t.kill(); proxy.p = 0; render(0); };
+      return () => { st.kill(); setEx(0); };
     });
+  }
+
+  /* ------------------------------------------------------------ Hero: Regen, der am Dach abprallt */
+  // Ein Canvas, ein Pfad pro Tropfen-Ebene. Kollision gegen die Dachhaut (Giebelform im
+  // viewBox-Raum der Zeichnung), Spritzer mit Schwerkraft. Mit feinem Zeiger: Der Cursor ist
+  // ein Schirm. Läuft nur sichtbar; nach 2,5 s ohne Eingabe mit halber Bildrate.
+  function initHeroRain() {
+    const hero = $('[data-hero]');
+    const c = $('[data-hero-rain]');
+    const svg = $('[data-xsec]');
+    if (!hero || !c || !svg || !c.getContext) return;
+    const ctx = c.getContext('2d');
+    const WIND = 0.17;
+    let w = 0, h = 0, drops = [], parts = [], M = null, dirty = true;
+    let running = false, visible = true, last = 0, flip = false, lastInput = performance.now();
+    let px = -9999, py = -9999, umbrella = false;
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    const drop = (init) => ({ x: rnd(-h * WIND, w), y: init ? rnd(-h, h * 0.15) : rnd(-160, -20), v: rnd(760, 1280), l: rnd(12, 34), g: (Math.random() * 3) | 0 });
+    // Dachhaut im viewBox (siehe Generator): Traufe links 565/723, First 1320/132, Traufe rechts 2075/723
+    const surf = xv => (xv < 565 || xv > 2075) ? null : (xv <= 1320 ? 723 - 0.7825 * (xv - 565) : 723 - 0.7825 * (2075 - xv));
+    function measure() {
+      const m = svg.getScreenCTM();
+      const r = c.getBoundingClientRect();
+      if (m) M = { a: m.a, d: m.d, e: m.e - r.left, f: m.f - r.top };
+      dirty = false;
+    }
+    function resize() {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      w = c.clientWidth; h = c.clientHeight;
+      c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const n = Math.round(clamp(w * h / 6500, 60, 240));
+      drops = Array.from({ length: n }, () => drop(true));
+      parts.length = 0;
+      measure();
+    }
+    function splash(x, y, side, k = 3) {
+      for (let i = 0; i < k && parts.length < 360; i++) {
+        parts.push({ x, y, vx: side * rnd(30, 170) + rnd(-40, 40), vy: -rnd(90, 280), t: rnd(0.22, 0.42) });
+      }
+    }
+    const ALPHA = [0.16, 0.28, 0.45];
+    function step(dt) {
+      if (dirty) measure();
+      if (!M) return;
+      ctx.clearRect(0, 0, w, h);
+      ctx.lineCap = 'round';
+      for (let g = 0; g < 3; g++) {
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(214,226,234,${ALPHA[g]})`;
+        ctx.lineWidth = 0.8 + g * 0.4;
+        const sp = 0.78 + g * 0.18;
+        for (const p of drops) {
+          if (p.g !== g) continue;
+          if (dt) {
+            const py0 = p.y;
+            p.y += p.v * dt * sp; p.x += p.v * dt * sp * WIND;
+            const xv = (p.x - M.e) / M.a, s = surf(xv);
+            if (s !== null) {
+              const sy = M.f + s * M.d;
+              if (p.y >= sy && py0 < sy + 4) { splash(p.x, sy, xv < 1320 ? -1 : 1, g === 2 ? 3 : 2); Object.assign(p, drop(false)); continue; }
+            }
+            if (umbrella) {
+              const dx = p.x - px, dy = p.y - py;
+              if (dy < 0 && dx * dx + dy * dy < 4900) { splash(p.x, p.y, dx < 0 ? -1 : 1, 2); Object.assign(p, drop(false)); continue; }
+            }
+            if (p.y - p.l > h || p.x - p.l * WIND > w) Object.assign(p, drop(false));
+          }
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x - p.l * WIND, p.y - p.l);
+        }
+        ctx.stroke();
+      }
+      if (parts.length) {
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(236,234,229,.62)';
+        ctx.lineWidth = 1.1;
+        for (let i = parts.length - 1; i >= 0; i--) {
+          const q = parts[i];
+          q.t -= dt; q.vy += 1500 * dt; q.x += q.vx * dt; q.y += q.vy * dt;
+          if (q.t <= 0) { parts[i] = parts[parts.length - 1]; parts.pop(); continue; }
+          ctx.moveTo(q.x, q.y);
+          ctx.lineTo(q.x - q.vx * 0.014, q.y - q.vy * 0.014);
+        }
+        ctx.stroke();
+      }
+    }
+    function tick(now) {
+      if (!running) return;
+      requestAnimationFrame(tick);
+      const idle = now - lastInput > 2500;
+      if (idle && (flip = !flip)) return;
+      const dt = Math.min(0.05, (now - (last || now)) / 1000);
+      last = now;
+      step(dt);
+    }
+    const start = () => { if (running || REDUCE || !visible || d.hidden) return; running = true; last = 0; requestAnimationFrame(tick); };
+    const stop = () => { running = false; };
+    resize();
+    if (REDUCE) {
+      // Standbild: Regen ist da, bewegt sich aber nicht
+      drops.forEach(p => { p.y = rnd(0, h); });
+      measure(); step(0);
+      return;
+    }
+    let rt;
+    window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { resize(); }, 150); });
+    window.addEventListener('scroll', () => { dirty = true; lastInput = performance.now(); }, { passive: true });
+    if (mqFine.matches) {
+      hero.addEventListener('pointermove', e => { if (e.pointerType !== 'mouse') return; const r = c.getBoundingClientRect(); px = e.clientX - r.left; py = e.clientY - r.top; umbrella = true; lastInput = performance.now(); });
+      hero.addEventListener('pointerleave', () => { umbrella = false; });
+    }
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([en]) => { visible = en.isIntersecting; visible ? start() : stop(); }).observe(c);
+    }
+    d.addEventListener('visibilitychange', () => { d.hidden ? stop() : start(); });
+    start();
   }
 
   /* ------------------------------------------------------------ Laufband im Dachwinkel */
@@ -811,6 +875,32 @@
     const answers = new Array(N).fill(null);
     let idx = 0, busy = false;
 
+    // Wetter-Simulation: jede Frage verschärft das Wetter, jede Antwort verändert das Haus
+    const wx = $('[data-wx]');
+    const NB = '\u00a0';
+    const WX = [['Bft 4 · 24 km/h', '2 mm/h'], ['Bft 6 · 45 km/h', '6 mm/h'], ['Bft 8 · 68 km/h', '12 mm/h'], ['Bft 9 · 82 km/h', '25 mm/h'], ['Bft 10 · 96 km/h', '40 mm/h']];
+    const yr = new Date().getFullYear();
+    function wxSet(step) {
+      if (!wx) return;
+      const a = answers.map(x => (x ? x.v : null));
+      const [age, leak, heat, dmg, insp] = a;
+      wx.dataset.step = step;
+      wx.dataset.moss = ((age !== null && age >= 2) || (dmg !== null && dmg >= 1)) ? '1' : '0';
+      wx.dataset.loose = dmg === 3 ? '1' : '0';
+      wx.dataset.drip = leak === 3 ? '2' : (leak === 2 || dmg === 3) ? '1' : '0';
+      wx.dataset.heat = heat === null ? '0' : String(heat);
+      const r = WX[Math.min(step, 4)];
+      $('[data-wx-wind]', wx).textContent = r[0].replace(/ (?=\d|km)/g, NB);
+      $('[data-wx-rain]', wx).textContent = r[1].replace(' ', NB);
+      $('[data-wx-insp]', wx).textContent = insp === null ? '–' : insp === 0 ? String(yr - 1) : insp === 1 ? String(yr - 4) : 'nie';
+      const st = $('[data-wx-state]', wx);
+      const drip = wx.dataset.drip;
+      const txt = drip === '2' ? 'undicht' : drip === '1' ? 'tropft' : dmg === 3 ? 'Ziegel lose' : heat === 2 ? 'hält, verliert Wärme' : 'hält';
+      st.textContent = txt;
+      st.classList.toggle('is-bad', txt !== 'hält');
+    }
+    if (wx && 'IntersectionObserver' in window) new IntersectionObserver(([en]) => wx.classList.toggle('is-paused', !en.isIntersecting)).observe(wx);
+
     function show(i, focus) {
       qs.forEach((q, k) => { q.hidden = k !== i; });
       result.hidden = true; top.hidden = false;
@@ -821,6 +911,7 @@
       bars.forEach((b, k) => b.classList.toggle('is-on', k <= i));
       back.hidden = i === 0;
       idx = i;
+      if (wx) { wx.classList.remove('is-done'); wxSet(i); }
       if (focus) $('.quiz__title', q).focus({ preventScroll: true });
     }
     qs.forEach((q, qi) => {
@@ -878,6 +969,12 @@
       root.dataset.summary = `Online-Dach-Check – Empfehlung: ${L.t.replace(/\.$/, '')}\n` + answers.map((a, k) => `${labels[k]}: ${a ? a.label : '–'}`).join('\n');
       root.dataset.level = level;
       root.dataset.heat = heat;
+      if (wx) {
+        wxSet(5);
+        wx.dataset.level = level;
+        $('[data-wx-stamp]', wx).textContent = ['Dicht', 'Reparieren', 'Sanieren'][level];
+        wx.classList.add('is-done');
+      }
     }
     $('[data-q-restart]', root).addEventListener('click', () => {
       answers.fill(null);
@@ -896,75 +993,129 @@
     show(0, false);
   }
 
-  /* ------------------------------------------------------------ Projekte: Bild folgt dem Cursor */
-  function initProjects() {
-    const list = $('[data-plist]');
-    if (!list) return;
-    const rows = $$('.prow', list);
-    let cursor = null, inner = null, imgs = [], tag = null;
-    let x = 0, y = 0, tx = 0, ty = 0, rot = 0, raf = 0, active = -1, on = false;
-    function build() {
-      cursor = d.createElement('div'); cursor.className = 'pcursor'; cursor.setAttribute('aria-hidden', 'true');
-      inner = d.createElement('div'); inner.className = 'pcursor__in';
-      rows.forEach(r => {
-        const src = $('img', r);
-        const im = d.createElement('img');
-        im.alt = ''; im.decoding = 'async'; im.loading = 'lazy';
-        im.sizes = '300px'; im.srcset = src.getAttribute('srcset'); im.src = src.getAttribute('src');
-        inner.appendChild(im); imgs.push(im);
-      });
-      tag = d.createElement('span'); tag.className = 'pcursor__tag';
-      inner.appendChild(tag);
-      cursor.appendChild(inner);
-      d.body.appendChild(cursor);
-    }
-    function loop() {
-      const k = REDUCE ? 1 : 0.15;
-      const nx = lerp(x, tx, k), ny = lerp(y, ty, k);
-      const vx = nx - x;
-      x = nx; y = ny;
-      rot = REDUCE ? 0 : lerp(rot, clamp(vx * 0.35, -9, 9), 0.12);
-      cursor.style.transform = `translate3d(${(x - 150).toFixed(1)}px, ${(y - 200).toFixed(1)}px, 0) rotate(${rot.toFixed(2)}deg)`;
-      if (on || Math.abs(tx - x) > 0.5 || Math.abs(rot) > 0.05) raf = requestAnimationFrame(loop); else raf = 0;
-    }
+  /* ------------------------------------------------------------ Referenzen als Planstapel */
+  // Desktop: Stapel aus Planblättern in einer klebenden Bühne – beim Scrollen wird das oberste
+  // Blatt abgezogen, das nächste richtet sich gerade aus. Handy: Wisch-Schiene (CSS).
+  function initPlanStack() {
+    const root = $('[data-pstack]');
+    if (!root) return;
+    const sheets = $$('.psheet', root);
+    const idx = $$('[data-pidx] li', root);
+    const odo = $('[data-odo]', root);
+    const N = sheets.length;
+    const rot = sheets.map(s => parseFloat(s.style.getPropertyValue('--r')) || 0);
+    let cur = -1;
     function setActive(i) {
-      if (i === active) return;
-      active = i;
-      rows.forEach((r, k) => r.classList.toggle('is-active', k === i));
-      imgs.forEach((im, k) => im.classList.toggle('is-on', k === i));
-      if (i >= 0) tag.textContent = `${$('.prow__place', rows[i]).textContent} · ${$('.prow__meta dd', rows[i]).textContent}`;
+      if (i === cur) return;
+      cur = i;
+      sheets.forEach((s, k) => s.classList.toggle('is-top', k === i));
+      idx.forEach((l, k) => l.classList.toggle('is-on', k === i));
+      if (odo) odo.style.transform = `translateY(${-i}em)`;
     }
-    function enable() {
-      if (!cursor) build();
-      list.addEventListener('pointermove', onMove);
-      list.addEventListener('pointerleave', onLeave);
-      rows.forEach((r, i) => r.addEventListener('pointerenter', r._pe = () => setActive(i)));
+    function render(t) {
+      sheets.forEach((s, i) => {
+        const settle = easeOut(clamp(t - (i - 1), 0, 1));
+        const off = i < N - 1 ? easeInOut(clamp(t - i, 0, 1)) : 0;
+        const r = rot[i] * (1 - settle) - off * 14;
+        const bx = i * 7 * (1 - settle), by = i * -6 * (1 - settle);
+        s.style.transform = `translate(calc(${bx.toFixed(1)}px - ${(off * 116).toFixed(2)}%), calc(${by.toFixed(1)}px - ${(off * 10).toFixed(2)}%)) rotate(${r.toFixed(2)}deg)`;
+      });
+      setActive(Math.min(N - 1, Math.floor(t + 0.45)));
     }
-    function disable() {
-      list.removeEventListener('pointermove', onMove);
-      list.removeEventListener('pointerleave', onLeave);
-      rows.forEach(r => r._pe && r.removeEventListener('pointerenter', r._pe));
-      onLeave();
-    }
-    function onMove(e) {
-      if (e.pointerType !== 'mouse') return;
-      tx = e.clientX; ty = e.clientY;
-      if (!on) {
-        on = true; x = tx; y = ty;
-        list.classList.add('is-hover'); cursor.classList.add('is-on');
-      }
-      if (!raf) raf = requestAnimationFrame(loop);
-    }
-    function onLeave() {
-      on = false;
-      list.classList.remove('is-hover');
-      if (cursor) cursor.classList.remove('is-on');
-      setActive(-1);
-    }
-    const mq = matchMedia('(hover: hover) and (pointer: fine) and (min-width: 900px)');
-    const apply = () => (mq.matches ? enable() : disable());
-    mq.addEventListener('change', apply);
-    apply();
+    if (REDUCE || !hasGSAP) { sheets.forEach(s => s.classList.add('is-top')); return; }
+    const mm = gsap.matchMedia();
+    mm.add('(min-width: 900px)', () => {
+      const st = ScrollTrigger.create({ trigger: root, start: 'top top', end: 'bottom bottom', onUpdate: s => render(s.progress * (N - 1)) });
+      render(st.progress * (N - 1));
+      return () => { st.kill(); cur = -1; sheets.forEach(s => { s.style.transform = ''; s.classList.remove('is-top'); }); };
+    });
+    mm.add('(max-width: 899px)', () => {
+      sheets.forEach(s => s.classList.add('is-top'));
+      return () => sheets.forEach(s => s.classList.remove('is-top'));
+    });
+  }
+
+  /* ------------------------------------------------------------ Zahlen als Zollstock: klappt beim Scrollen auf */
+  function initRuler() {
+    const r = $('[data-ruler]');
+    if (!r || REDUCE || !hasGSAP) return;
+    const segs = $$('.ruler__seg', r);
+    const N = segs.length;
+    const mm = gsap.matchMedia();
+    mm.add('(min-width: 900px)', () => {
+      let W = segs[0].offsetWidth;
+      const apply = p => {
+        const A = 58 * (1 - p) * Math.PI / 180;
+        const pts = [];
+        let x = 0, y = 0;
+        for (let i = 0; i < N; i++) {
+          const th = (i % 2 ? -1 : 1) * A * (i === 0 ? 0.6 : 1);
+          pts.push([x, y, th]);
+          x += W * Math.cos(th); y += W * Math.sin(th);
+        }
+        const dx = (N * W - x) / 2, dy = -y / 2;
+        segs.forEach((s, i) => {
+          const [hx, hy, th] = pts[i];
+          s.style.transform = `translate(${(hx + dx - i * W).toFixed(1)}px, ${(hy + dy).toFixed(1)}px) rotate(${(th * 180 / Math.PI).toFixed(2)}deg)`;
+        });
+      };
+      const st = ScrollTrigger.create({
+        trigger: r, start: 'top 92%', end: 'top 38%',
+        onRefreshInit: () => { segs.forEach(s => { s.style.transform = ''; }); },
+        onRefresh: s => { W = segs[0].offsetWidth; apply(easeInOut(s.progress)); },
+        onUpdate: s => apply(easeInOut(s.progress))
+      });
+      apply(easeInOut(st.progress));
+      return () => { st.kill(); segs.forEach(s => { s.style.transform = ''; }); };
+    });
+  }
+
+  /* ------------------------------------------------------------ Konfigurator: Plan wird aufgerollt */
+  function initPlan() {
+    const st = $('[data-plan]');
+    if (!st || REDUCE || !hasGSAP) return;
+    const o = { u: 0 };
+    st.style.setProperty('--u', '0');
+    const set = () => st.style.setProperty('--u', o.u.toFixed(4));
+    ScrollTrigger.create({
+      trigger: st.parentElement, start: 'top 78%', once: true,
+      onEnter: () => gsap.to(o, { u: 1, duration: 1.1, ease: easeInOut, onUpdate: set })
+    });
+    // Failsafe: spätestens nach 2 s sichtbar, falls der Abschnitt schon im Bild ist
+    setTimeout(() => { const r = st.getBoundingClientRect(); if (r.top < window.innerHeight && o.u === 0) { o.u = 1; set(); } }, 2000);
+  }
+
+  /* ------------------------------------------------------------ Mikro-Interaktionen */
+  function initRoll() {
+    $$('.roll').forEach(r => {
+      const t = r.textContent;
+      r.textContent = '';
+      Array.from(t).forEach((ch, i) => {
+        const s = d.createElement('span');
+        s.className = 'ch'; s.style.setProperty('--c', i); s.textContent = ch;
+        r.appendChild(s);
+      });
+    });
+  }
+  function initMagnet() {
+    if (REDUCE || !mqFine.matches) return;
+    $$('[data-magnet]').forEach(el => {
+      let tx = 0, ty = 0, x = 0, y = 0, raf = 0;
+      const loop = () => {
+        x = lerp(x, tx, 0.16); y = lerp(y, ty, 0.16);
+        el.style.translate = `${x.toFixed(2)}px ${y.toFixed(2)}px`;
+        if (Math.abs(x - tx) + Math.abs(y - ty) > 0.08) raf = requestAnimationFrame(loop);
+        else { raf = 0; if (!tx && !ty) el.style.translate = ''; }
+      };
+      el.addEventListener('pointermove', e => {
+        if (e.pointerType !== 'mouse') return;
+        const r = el.getBoundingClientRect();
+        tx = (e.clientX - (r.left - x + r.width / 2)) * 0.2;
+        ty = (e.clientY - (r.top - y + r.height / 2)) * 0.32;
+        if (!raf) raf = requestAnimationFrame(loop);
+      });
+      el.addEventListener('pointerleave', () => { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(loop); });
+    });
   }
 
   /* ------------------------------------------------------------ Regen-Canvas */
@@ -1300,13 +1451,14 @@
   });
   const run = fn => { try { fn(); } catch (err) { console.error(err); } };
   const stages = [
-    [initHero, initReveal, initCounters, initActionbar],
+    [initHero, initRoll, initReveal, initCounters, initActionbar],
+    [initHeroRain],
     [initStack],
-    [initConfig],
+    [initConfig, initPlan],
     [initCompare, initQuiz],
-    [initProjects, initArea, initWizard],
-    [initProcess],
-    [initRidge, initRain]
+    [initPlanStack, initArea, initWizard],
+    [initProcess, initRuler],
+    [initRidge, initRain, initMagnet]
   ];
   (async () => {
     for (let i = 0; i < stages.length; i++) {

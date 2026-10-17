@@ -1,7 +1,7 @@
 # FIRSTWERK – Dach & Holzbau · Demo-Modell „Kante“
 
 Demo-Website für einen **fiktiven** Dachdecker- und Zimmerei-Meisterbetrieb in Hamburg.
-Designsprache „Kante“: Swiss/Brutalist, harte Raster, Versal-Headlines in schmaler Archivo,
+Designsprache „Kante“: industriell und wetterfest, harte Raster, Versal-Headlines in schmaler Archivo,
 technische Labels in JetBrains Mono, Signal-Orange als sparsamer Akzent – und die Dachneigung
 als wiederkehrendes Motiv. Statisch, ohne Build-Schritt, ohne externe Requests.
 
@@ -17,38 +17,52 @@ als wiederkehrendes Motiv. Statisch, ohne Build-Schritt, ohne externe Requests.
 | `assets/img/` | Fotos (`-480`/`-960.webp`), siehe `assets/img/BILDNACHWEIS.md` |
 | `assets/fonts/` | Archivo (variabel, `wght` + `wdth`), JetBrains Mono – selbst gehostet |
 
+## Gestaltungsidee
+
+**„Regelschnitt“ – ein Dach ist eine Folge von Schichten, die das Wetter draußen halten.** Die ganze Seite
+ist als Plansatz eines Dachdeckers gebaut: Der Hero zeigt den Regelschnitt durch ein Steildach (Tonziegel bis
+Gipskarton), auf dem echter Regen (Canvas) abprallt – beim Scrollen fächern die Schichten wie in einer
+Explosionszeichnung nach innen auf, das Schriftfeld des Plans trägt die Vertrauenssignale. Jeder weitere
+Abschnitt ist ein Blatt aus diesem Plansatz: der Konfigurator als angeklebter Baustellenplan, der Dach-Check als
+Wetter-Simulation, die Referenzen als Planstapel, die Zahlen auf einem Zollstock. Bewegungs-Handschrift
+„Lage für Lage“: schwer, mechanisch, ohne Federn – Bauteile werden abgesenkt und eingerastet
+(`--m-set`, `--m-shift`, `--m-snap`, `--m-step` in `style.css`).
+
 ## Abschnitte
 
-Hero „Giebel“ · Laufband im Dachwinkel · Leistungen (7 Karten) · Dach-Konfigurator ·
-Vorher/Nachher · Dach-Check · Projekte · Sturmschaden-Notdienst · Zahlen · Ablauf ·
-Betrieb/Team · Kundenstimmen · Einzugsgebiet (SVG-Karte + PLZ-Check) · Karriere · FAQ ·
-Anfrage-Assistent (4 Schritte) · Footer. Auf dem Handy: feste Aktionsleiste „Anrufen / Anfrage“.
+Hero „Regelschnitt“ (Schriftfeld + Legende) · Laufband im Dachwinkel · Leistungen (7 Karten) ·
+Dach-Konfigurator (Baustellenplan) · Vorher/Nachher · Dach-Check (Wetter-Simulation) · Referenzen (Planstapel) ·
+Sturmschaden-Notdienst · Zahlen (Zollstock) · Ablauf · Betrieb/Team · Kundenstimmen (Prüfstempel) ·
+Einzugsgebiet (SVG-Karte + PLZ-Check) · Karriere · FAQ · Anfrage-Assistent (4 Schritte) · Footer.
+Auf dem Handy: feste Aktionsleiste „Anrufen / Anfrage“.
 
 ## Spezial-Features
 
-1. **Hero „Giebel“** – Foto in einer giebelförmigen `clip-path`-Maske, die sich beim Scrollen
-   (gepinnt, Scrub) zu einem breiten Rahmen öffnet. Bemaßung (Breite, Höhe, Neigungsbogen) und die
-   Mono-Anzeige „Neigung 45,0°“ rechnen live mit.
-2. **Laufband im Dachwinkel** – zwei Bänder treffen sich als Dachfirst (16°); der Text läuft über
-   den First weiter und wird beim Scrollen schneller.
-3. **Leistungen als Karten-Stapel** – Desktop: Sticky-Stacking mit Nummern 01–07 und technischen
-   Detailzeichnungen (Inline-SVG, Positionsnummern + Legende). Handy/Tablet: Wisch-Deck mit
-   Scroll-Snap, Zähler „01 / 07“, Fortschrittsbalken und Pfeil-Buttons (ohne JS: normale Liste).
-4. **Dach-Konfigurator** – 5 Dachformen × 5 Eindeckungen. Das Haus ist ein echtes 3D-Modell
-   (isometrisch projiziert), die Punkte werden weich interpoliert; die Eindeckung ist ein SVG-Muster,
-   das perspektivisch auf jede Dachfläche gelegt wird. Steckbrief mit Neigung, Lebensdauer, Gewicht,
-   Pflege, Preisniveau und Plausibilitätsprüfung („Tonziegel auf Flachdach geht nicht“).
-   Tastaturbedienbar (Radiogruppen, Pfeiltasten). „Diese Kombination anfragen“ füllt die Anfrage vor.
-5. **Vorher/Nachher-Slider** – `clip-path: inset()`, Pointer-Capture, Pfeiltasten/Home/End,
-   `role="slider"` mit `aria-valuenow`/`aria-valuetext`.
-6. **Dach-Check** – 5 Fragen → Empfehlung (Inspektion / Reparatur / Sanierung + Dämmung) mit
-   Begründung; „Termin für Dach-Check“ übernimmt das Ergebnis in den Anfrage-Assistenten.
-7. **Projektliste** – Desktop: große Typo-Zeilen, das Bild folgt dem Cursor mit Feder (Giebelmaske);
-   Handy: Karten mit Bild.
-8. **Notdienst-Band** mit Regen-Canvas (pausiert außerhalb des Viewports / bei verstecktem Tab).
+1. **Hero „Regelschnitt“** – Inline-SVG-Schnitt mit acht Schichten (beide Dachseiten), die beim Laden von außen
+   nach innen „verlegt“ werden (CSS, ≤ 1,2 s, blockiert nichts). Desktop: Die Bühne klebt (`position: sticky`),
+   beim Scrollen wandern die Lagen nach innen ins Dachgeschoss, Positionsnummern und Legende leuchten auf.
+   Handy: eigene Komposition (Giebel groß angeschnitten unter dem Text), Auffächern beim Wegscrollen.
+2. **Regen-Canvas mit Physik** – Tropfen prallen an der Dachhaut ab (Kollision gegen die Giebelform im
+   Koordinatensystem der Zeichnung) und spritzen hangabwärts; mit Maus ist der Cursor ein Schirm.
+   Pausiert außerhalb des Bildes und bei verstecktem Tab, im Leerlauf halbe Bildrate, DPR ≤ 2.
+3. **Laufband im Dachwinkel** – zwei Bänder treffen sich als First, laufen schneller beim Scrollen.
+4. **Leistungen als Karten-Stapel** – Desktop Sticky-Stacking mit Detailzeichnungen, Handy Wisch-Deck.
+5. **Dach-Konfigurator als Baustellenplan** – 5 Dachformen × 5 Eindeckungen, isometrisches 3D-Modell,
+   Steckbrief mit Plausibilitätsprüfung. Der Plan wird beim ersten Sichtkontakt aufgerollt (Planrolle,
+   Klebeband, Beschnittmarken, Schriftfeld).
+6. **Vorher/Nachher-Slider** – `role="slider"`, Ziehen oder Pfeiltasten.
+7. **Dach-Check als Wetter-Simulation** – 5 Fragen; jede Frage verschärft das Wetter (Bft 4 → 10, Regen-Ebenen,
+   Wind dreht den Regen), jede Antwort verändert das Haus (Moos, lose Ziegel, Tropfen im Dachboden,
+   Wärmeverlust, Prüfplakette). Ergebnis als Stempel; „Termin für Dach-Check“ übernimmt alles in die Anfrage.
+8. **Referenzen als Planstapel** – Desktop: Stapel aus fünf Planblättern in einer klebenden Bühne, beim
+   Scrollen wird das oberste Blatt abgezogen, Zählwerk und Planindex laufen mit, das oberste Blatt wird farbig.
+   Handy: Wisch-Schiene mit Scroll-Snap. Ohne JS: Raster.
+9. **Zahlen auf dem Zollstock** – vier Glieder klappen beim Scrollen auf, Zähler laufen hoch.
+10. **Mikro-Interaktionen** – Navigation mit rollenden Zeichen, magnetische Haupt-Buttons (nur feiner Zeiger),
+    Unterstreichungen, die sich neu zeichnen, Prüfstempel für die Bewertung, Papierkörnung.
 
-Ohne JavaScript, bei `prefers-reduced-motion` und mit `?motion=off` bleibt alles sichtbar und
-bedienbar (der Konfigurator zeigt dann ein statisches Satteldach, der Assistent alle Felder).
+Ohne JavaScript, bei `prefers-reduced-motion` und mit `?motion=off` bleibt alles sichtbar und bedienbar
+(Regelschnitt statisch halb aufgefächert, Regen als Standbild, Planblätter als Raster).
 
 ## Anpassen
 
@@ -64,7 +78,8 @@ bedienbar (der Konfigurator zeigt dann ein statisches Satteldach, der Assistent 
 - **Bilder:** gleiche Dateinamen in `assets/img/` ersetzen (jeweils `-480` und `-960.webp`,
   max. 960 px breit) oder `src`/`srcset`/`width`/`height`/`alt` im HTML anpassen.
 - **Konfigurator-Daten** (Steckbrief, Kombinationen): Objekte `SHAPES`, `MATS`, `FIT` in `main.js`.
-- **Dach-Check-Logik:** Funktion `finish()` in `initQuiz()` (`main.js`).
+- **Dach-Check-Logik:** Funktion `finish()` in `initQuiz()` (`main.js`); Wetterstufen in `WX`, Hausreaktion in `wxSet()`.
+- **Regelschnitt im Hero:** Inline-SVG `.xsec` in `index.html`; Schichtfarben `.x-*` in `style.css`.
 - **Pfade:** Alle Links auf Dateien sind absolut (`/handwerk/firstwerk-dach/…`), damit die Seite
   auf Vercel mit `cleanUrls`/`trailingSlash: false` auch ohne Schrägstrich am Ende funktioniert.
   Wird der Ordner verschoben, diese Pfade per Suchen/Ersetzen anpassen.
@@ -73,9 +88,9 @@ bedienbar (der Konfigurator zeigt dann ein statisches Satteldach, der Assistent 
 
 ```bash
 cd /home/user/Websites
-python3 -m http.server 8773
-# → http://127.0.0.1:8773/handwerk/firstwerk-dach/
-# Animationen aus: http://127.0.0.1:8773/handwerk/firstwerk-dach/?motion=off
+python3 -m http.server 8907
+# → http://127.0.0.1:8907/handwerk/firstwerk-dach/
+# Animationen aus: http://127.0.0.1:8907/handwerk/firstwerk-dach/?motion=off
 ```
 
 ## Hinweise

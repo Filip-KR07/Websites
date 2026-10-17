@@ -852,13 +852,13 @@ p, li, blockquote { hanging-punctuation: first; }
 
 
 /* Hero-Choreografie (nur mit Bewegung) – startet per CSS, wartet auf kein JS */
-@keyframes l-grow { from { opacity: 0; transform: translateY(.42em) scaleY(.55) rotate(-4deg); } }
+@keyframes l-grow { from { transform: translateY(.3em) scaleY(.5) rotate(-4deg); } }
 @keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes unfurl { from { transform: scale(.2) rotate(-24deg); opacity: 0; } }
 @keyframes bloom { from { transform: rotate(calc(var(--r) * .12)) scale(.16, .34); } }
 @keyframes pop-in { from { transform: scale(.35); opacity: 0; } }
-@keyframes lay { from { opacity: 0; transform: translateY(-26px) rotate(-6deg) scale(1.04); } }
-@keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+@keyframes lay { from { transform: translateY(-26px) rotate(-6deg) scale(1.04); } }
+@keyframes rise { from { opacity: .35; transform: translateY(16px); } }
 html.anim .hero__title i { animation: l-grow var(--dur-grow) var(--ease-out) backwards; animation-delay: calc(110ms + var(--i) * 24ms); }
 html.anim .hero__lede, html.anim .hero__cta { animation: rise 800ms var(--ease-out) backwards; animation-delay: 520ms; }
 html.anim .hero__cta { animation-delay: 620ms; }
@@ -1227,3 +1227,16 @@ html.motion-off .story__text .wd, html.reduced .story__text .wd { opacity: 1 !im
 .plz__try button { border-radius: 0; clip-path: polygon(8px 0, 100% 0, 100% 100%, 8px 100%, 0 50%); padding-left: 14px; }
 .plz .btn, .res { border-radius: 2px; }
 .del__check .plz { border-radius: 2px; }
+@media (max-width: 899px) {
+  .table { inset: -8px -6px; rotate: 0deg; }
+  .tier__circle { right: -4px; width: min(240px, 66%); }
+  .stamp { right: 8px; width: 100px; }
+  .tape--tr { right: -6px; }
+  .voices__head h2 { padding-right: 104px; }
+}
+.sec { overflow-x: clip; }
+.wheel__rot { will-change: transform; }
+@media (min-width: 900px) and (max-width: 1280px) { .hero__print { left: -5%; width: 46%; } .hero__lede { max-width: 34ch; } }
+/* Unterhalb des letzten Scroll-Set-Pieces: Rendering erst bei Annäherung (spart Stil/Layout beim Laden) */
+#lieferung, #team, #stimmen, #faq, #kontakt, .ftr { content-visibility: auto; contain-intrinsic-size: auto 1100px; }
+html.cv-off #lieferung, html.cv-off #team, html.cv-off #stimmen, html.cv-off #faq, html.cv-off #kontakt, html.cv-off .ftr { content-visibility: visible; }
