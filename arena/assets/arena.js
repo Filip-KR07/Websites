@@ -164,13 +164,21 @@
     if (next !== current) { current = next; if (next) programm.dataset.current = next; else delete programm.dataset.current; }
 
     // Lesezeile für die Bühne: der Zeiger, sonst 45 % der Fensterhöhe
-    if (stage.ready) {
+    const focused = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.card') : null;
+    const fr = focused && !focused.hidden && !ptr.inList ? focused.getBoundingClientRect() : null;
+    if (stage.ready && fr && fr.bottom > 0 && fr.top < window.innerHeight) stage.request(focused, true);
+    else if (stage.ready) {
       const line = ptr.inList ? ptr.listY : window.innerHeight * 0.45;
+      let best = null, dist = Infinity;
       for (const card of cards) {
         if (card.hidden) continue;
         const r = card.getBoundingClientRect();
-        if (r.top <= line && r.bottom > line) { stage.request(card, !ptr.inList); break; }
+        if (r.bottom < 0 || r.top > window.innerHeight) continue;
+        const d = r.top <= line && r.bottom > line ? 0 : Math.min(Math.abs(r.top - line), Math.abs(r.bottom - line));
+        if (d < dist) { dist = d; best = card; }
+        if (!d) break;
       }
+      if (best && (!ptr.inList || !dist)) stage.request(best, !ptr.inList);
     }
 
     if (odo && !still) {

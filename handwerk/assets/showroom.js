@@ -20,6 +20,7 @@
   const outro = document.querySelector('.outro');
   const scissors = document.querySelector('[data-scissors]');
   let scene = '';
+  const tilt = plates.map(() => ({ x: 0, y: 0, tx: 0, ty: 0 }));
 
   const render = () => {
     const vh = window.innerHeight;
@@ -42,7 +43,10 @@
     const hr = hero.getBoundingClientRect();
     if (hr.bottom > 0) {
       const p = clamp(-hr.top / hr.height, 0, 1);
-      plates.forEach((a, i) => { a.style.transform = p ? `translate3d(0, ${(-p * (30 + i * 70)).toFixed(1)}px, 0)` : ''; });
+      plates.forEach((a, i) => {
+        const t = tilt[i];
+        a.style.transform = p || t.x || t.y ? `translate3d(0, ${(-p * (30 + i * 70)).toFixed(1)}px, 0) rotateX(${(t.y * -7).toFixed(2)}deg) rotateY(${(t.x * 9).toFixed(2)}deg)` : '';
+      });
       title.style.transform = p ? `translate3d(0, ${(p * 60).toFixed(1)}px, 0)` : '';
     }
 
@@ -78,6 +82,26 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll);
   render();
+
+  // Musterplatten neigen sich zum Zeiger, als hielte man sie ins Licht (Feder über Lerp)
+  if (fine && !still) {
+    let raf = 0;
+    const tick = () => {
+      let moving = false;
+      tilt.forEach((t) => { t.x += (t.tx - t.x) * 0.1; t.y += (t.ty - t.y) * 0.1; if (Math.abs(t.tx - t.x) + Math.abs(t.ty - t.y) > 0.002) moving = true; });
+      render();
+      raf = moving ? requestAnimationFrame(tick) : 0;
+    };
+    plates.forEach((a, i) => {
+      a.addEventListener('pointermove', (e) => {
+        const r = a.getBoundingClientRect();
+        tilt[i].tx = (e.clientX - r.left) / r.width - 0.5;
+        tilt[i].ty = (e.clientY - r.top) / r.height - 0.5;
+        if (!raf) raf = requestAnimationFrame(tick);
+      });
+      a.addEventListener('pointerleave', () => { tilt[i].tx = 0; tilt[i].ty = 0; if (!raf) raf = requestAnimationFrame(tick); });
+    });
+  }
 
   // Magnetische Knöpfe (nur feiner Zeiger)
   if (fine && !still) {
