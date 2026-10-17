@@ -90,3 +90,4 @@ Die zehn Demos der zweiten Runde (Bäckerei bis Bestattungshaus) wurden von Anfa
 ## Neugestaltung „Handarbeit statt KI-Look“ (Oktober 2026)
 
 Alle 33 Demos und beide Übersichten wurden mit den Skills design-critique, emil-design-eng, animate und find-animation-opportunities komplett neu gestaltet: ein eigenes Konzept aus der Branche je Seite (z. B. Blattgold-Schaufenster, Zeitungs-Titelseite, Dunkelkammer, Röstprotokoll, Planmappe), ein Hero mit eigenem „Wow“-Moment, mindestens drei scroll-getriebene Set Pieces, Mikro-Interaktionen und handgemachte SVG-/WebGL-Details. Die Gestaltungsidee steht jeweils in der README der Demo.
+
