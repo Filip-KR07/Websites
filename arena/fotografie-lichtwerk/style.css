@@ -318,6 +318,12 @@ html.motion .hero.is-lit .hero-hint { opacity: 1; transition: opacity .8s ease 1
 .sheet-paper::before { content: ""; position: absolute; inset: 0; background: var(--grain) 0 0 / 180px 180px; opacity: .16; mix-blend-mode: multiply; pointer-events: none; }
 .sheet-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; }
 .sheet.has-gl .sheet-canvas { opacity: 1; }
+/* Lichtleck vom rechten Filmrand – wächst beim Wegscrollen */
+.sheet-leak {
+  position: absolute; inset: 0 0 0 26%; z-index: 2; pointer-events: none; opacity: 0; will-change: transform, opacity;
+  background: linear-gradient(100deg, rgba(232, 70, 30, 0) 0%, rgba(232, 70, 30, .5) 34%, rgba(255, 140, 60, .72) 58%, rgba(255, 214, 160, .9) 80%, #FFF4E6 100%);
+}
+html:not(.motion) .sheet-leak { display: none; }
 .loupe {
   position: absolute; left: 0; top: 0; z-index: 3; width: 16cqi; height: 16cqi; margin: -8cqi 0 0 -8cqi;
   border: .55cqi solid #1E1C1A; border-radius: 3px; pointer-events: none; opacity: 0;
@@ -581,7 +587,7 @@ html.motion .lb.is-closing::backdrop { animation: fadeOut 260ms var(--ease-out) 
 .sf-cap p { color: var(--on-night-mute); font-size: .97rem; }
 .story-outro { flex: none; width: clamp(18rem, 32vw, 30rem); display: grid; align-content: center; justify-items: start; gap: 1.6rem; padding: 2rem 2rem 2rem clamp(2rem, 4vw, 4rem); scroll-snap-align: center; }
 .story-outro-text { font-family: var(--font-display); font-size: clamp(1.9rem, 2.8vw, 2.9rem); line-height: 1.04; }
-.story-can { display: none; }
+.story-can, .story-mask { display: none; }
 
 /* Scroll-Strecke (ab 900 px, mit Bewegung): Bühne klebt, Film läuft aus der Dose */
 html.story-h .story { height: var(--story-h, 400vh); }
@@ -608,6 +614,8 @@ html.story-h .story-outro {
 html.story-h .story-outro-text { font-size: clamp(1.7rem, 2.4vw, 2.5rem); }
 html.story-h .story-can { display: block; position: absolute; right: calc(var(--gutter) * .5); top: calc(37% - min(31vh, 42vw * .66) * .2); height: calc(min(31vh, 42vw * .66) * 1.45 + 68px); z-index: 3; filter: drop-shadow(-18px 18px 30px rgba(0, 0, 0, .6)); }
 html.story-h .story-can svg { height: 100%; width: auto; }
+/* Rechts der Dose verschwindet der Film in der Patrone */
+html.story-h .story-mask { display: block; position: absolute; z-index: 2; right: 0; top: 37%; bottom: 0; left: calc(100% - var(--gutter) * .5 - (min(31vh, 42vw * .66) * 1.45 + 68px) * .7059 * .45); background: var(--night); }
 .can-word { font-family: var(--font-display); font-size: 17.5px; fill: #111; letter-spacing: .02em; }
 .can-small { font-family: var(--font-text); font-size: 8.5px; font-weight: 650; letter-spacing: .14em; fill: #111; }
 .can-big { font-family: var(--font-display); font-size: 34px; fill: #111; }
@@ -933,7 +941,6 @@ html.reduced .quote, html.motion-off .quote { filter: none; }
 .map { margin: 0; margin-right: -2.5vw; }
 .map svg { width: 100%; height: auto; overflow: visible; }
 .map-elbe { stroke-dasharray: 1; stroke-dashoffset: 0; }
-html.motion .map.is-scrub .map-elbe { stroke-dashoffset: var(--elbe, 1); }
 .map-river { font-family: var(--font-display); font-style: italic; font-size: 30px; fill: #8C8982; }
 .map-places circle { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
 .map-places .is-out circle { fill: var(--paper); stroke: var(--silver); }
@@ -986,7 +993,10 @@ html.motion .faq-item[open] .faq-body { animation: develop 500ms var(--ease-out)
 /* ==========================================================================
    ANFRAGE – Licht aus
    ========================================================================== */
-.contact { background: var(--table); color: var(--on-night); padding: clamp(5rem, 10vw, 8.5rem) 0; }
+.contact { position: relative; background: var(--table); color: var(--on-night); padding: clamp(6.5rem, 12vw, 10rem) 0 clamp(5rem, 10vw, 8.5rem); }
+/* Ende der Rolle: Perforation als Kapitelkante */
+.contact::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 34px; background-color: var(--film); background-image: var(--holes-dark), var(--holes); background-repeat: repeat-x; background-size: 30px 13px, 30px 13px; background-position: 6px 4px, 21px 17px; opacity: .9; }
+.contact::before { background-image: var(--holes); background-position: 6px 11px; }
 .contact-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.25fr); gap: clamp(2.5rem, 6vw, 6rem); align-items: start; }
 .contact-title { font-family: var(--font-display); font-size: clamp(2.7rem, 5.6vw, 5.8rem); line-height: .92; letter-spacing: -.02em; margin-bottom: 1.5rem; }
 .contact-copy > p { color: var(--on-night-mute); max-width: 28rem; margin-bottom: 2rem; }
@@ -1095,6 +1105,9 @@ html.motion .faq-item[open] .faq-body { animation: develop 500ms var(--ease-out)
 .contact { content-visibility: auto; contain-intrinsic-size: auto 1200px; }
 .site-footer { content-visibility: auto; contain-intrinsic-size: auto 800px; }
 @media (max-width: 899px) {
+  /* mobil hängt kein ScrollTrigger an Galerie und Love Story – beide dürfen warten */
+  .gallery { content-visibility: auto; contain-intrinsic-size: auto 2600px; }
+  .story { content-visibility: auto; contain-intrinsic-size: auto 3200px; }
   .packages { contain-intrinsic-size: auto 3000px; }
   .about { contain-intrinsic-size: auto 2600px; }
   .avail, .contact { contain-intrinsic-size: auto 1500px; }

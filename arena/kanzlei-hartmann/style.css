@@ -30,12 +30,6 @@
   --kraft-edge: #CDBDA3;
   --error: #9B2335;
 
-  /* Kapitel „Papier“ (Standard) */
-  --bg: #F7F4EE; --fg: #121212; --fg-2: #4A4A4A; --fg-3: #6B655D;
-  --line: rgba(18, 18, 18, .16); --line-2: rgba(18, 18, 18, .42);
-  --accent: #6E1E2B; --surface: #FCFAF6; --tint: #F1E4E3;
-  --btn-bg: #6E1E2B; --btn-fg: #F7F4EE; --btn-bg-h: #121212;
-
   /* Schrift */
   --font-display: "Spectral", "Iowan Old Style", Georgia, "Times New Roman", serif;
   --font-text: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -61,27 +55,35 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
 
-/* Kapitel: ohne Kapitel-Animation tragen die Abschnitte ihre Farben selbst … */
-html:not(.chapters) [data-chapter="ink"], html.chapters[data-ch="ink"] {
+/* Kapitel „Papier“ (Standard) */
+:root, html.chapters [data-cur="paper"] {
+  --bg: #F7F4EE; --fg: #121212; --fg-2: #4A4A4A; --fg-3: #6B655D;
+  --line: rgba(18, 18, 18, .16); --line-2: rgba(18, 18, 18, .42);
+  --accent: #6E1E2B; --surface: #FCFAF6; --tint: #F1E4E3;
+  --btn-bg: #6E1E2B; --btn-fg: #F7F4EE; --btn-bg-h: #121212;
+}
+/* Kapitel: ohne Kapitel-Animation tragen die Abschnitte ihre Farben selbst; mit Animation
+   bekommen nur die Abschnitte in Sichtnähe die aktuelle Kapitelfarbe (data-cur) – günstiger Stil-Durchlauf */
+html:not(.chapters) [data-chapter="ink"], html.chapters [data-cur="ink"] {
   --bg: #131211; --fg: #F2EDE4; --fg-2: #BEB7AC; --fg-3: #A29B91;
   --line: rgba(242, 237, 228, .16); --line-2: rgba(242, 237, 228, .44);
   --accent: #E3A9B2; --surface: #1D1B19; --tint: #2C1E21;
   --btn-bg: #F2EDE4; --btn-fg: #131211; --btn-bg-h: #E3A9B2;
 }
-html:not(.chapters) [data-chapter="wine"], html.chapters[data-ch="wine"] {
+html:not(.chapters) [data-chapter="wine"], html.chapters [data-cur="wine"] {
   --bg: #6E1E2B; --fg: #F7F4EE; --fg-2: #EEDDD9; --fg-3: #DCC2BD;
   --line: rgba(247, 244, 238, .24); --line-2: rgba(247, 244, 238, .55);
   --accent: #F7F4EE; --surface: #7A2734; --tint: #85323F;
   --btn-bg: #F7F4EE; --btn-fg: #6E1E2B; --btn-bg-h: #121212;
 }
-html:not(.chapters) [data-chapter="news"], html.chapters[data-ch="news"] {
+html:not(.chapters) [data-chapter="news"], html.chapters [data-cur="news"] {
   --bg: #E9E3D8; --fg: #121212; --fg-2: #45413C; --fg-3: #5F5952;
   --line: rgba(18, 18, 18, .16); --line-2: rgba(18, 18, 18, .42);
   --accent: #6E1E2B; --surface: #F5F1EA; --tint: #E7D5D0;
   --btn-bg: #6E1E2B; --btn-fg: #F7F4EE; --btn-bg-h: #121212;
 }
 /* … mit Kapitel-Animation wechselt das ganze Papier: Hintergrund gleitet (nur body/Kopf),
-   die Farbwerte (html[data-ch]) springen in der Mitte des Übergangs – ein einziger Stil-Durchlauf */
+   die Farbwerte springen in der Mitte des Übergangs */
 html.chapters body { transition: background-color 560ms var(--ease-in-out); }
 html.chapters .site-head { transition: background-color 560ms var(--ease-in-out), border-color var(--t-ui) ease, box-shadow var(--t-ui) ease; }
 html.chapters .ch { background-color: transparent; }
@@ -257,14 +259,13 @@ html:not(.js) .ribbon { display: none; }
    TITELSEITE
    ========================================================================== */
 .front { padding-top: calc(var(--head-h) + 12px); padding-bottom: clamp(2.5rem, 5vw, 4.5rem); overflow-x: clip; }
-.front-in { container-type: inline-size; }
 .dateline { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .5rem 0; font-size: .78rem; font-weight: 500; letter-spacing: .02em; color: var(--fg-2); font-variant-numeric: tabular-nums; }
 .dateline::before, .dateline::after { content: ""; position: absolute; left: 0; right: 0; height: 1px; background: var(--line-2); transform-origin: 0 50%; }
 .dateline::before { top: 0; }
 .dateline::after { bottom: 0; }
 .dt { white-space: nowrap; }
 .dt-c { font-family: var(--font-display); font-style: italic; font-size: .95rem; color: var(--fg); }
-.nameplate { font-family: var(--font-display); font-weight: 300; font-size: 9.32cqi; line-height: .9; letter-spacing: -.02em; text-align: center; white-space: nowrap; margin: .1em 0 .04em; color: var(--fg); }
+.nameplate { font-family: var(--font-display); font-weight: 300; font-size: calc((min(100vw, var(--wrap)) - 2 * var(--gutter)) * .0915); line-height: .9; letter-spacing: -.02em; text-align: center; white-space: nowrap; margin: .1em 0 .04em; color: var(--fg); }
 .np { display: inline-block; }
 .np-w { display: inline-block; overflow: hidden; padding: .1em .02em .02em; margin: -.1em 0 0; vertical-align: top; }
 .np-w > span { display: inline-block; }
@@ -282,9 +283,8 @@ html:not(.js) .ribbon { display: none; }
 .front-grid > :last-child { padding-right: 0; }
 .front-grid > * + *::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: var(--line); transform-origin: 50% 0; }
 
-.lead-story { container-type: inline-size; }
 .overline { font-size: .74rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-bottom: .9rem; }
-.front .h1 { font-size: clamp(3rem, 16.5cqi, 7rem); }
+.front .h1 { font-size: clamp(3rem, 6.6vw, 6.8rem); }
 .ln { display: block; overflow: hidden; padding-bottom: .08em; margin-bottom: -.08em; }
 .ln-in { display: block; }
 .standfirst { font-family: var(--font-display); font-weight: 300; font-size: clamp(1.15rem, .95rem + .6vw, 1.42rem); line-height: 1.4; margin-top: 1.2rem; max-width: 34rem; }
@@ -485,7 +485,7 @@ html:not(.js) .cap-hint { display: none; }
 .dl-date-row { display: flex; align-items: center; gap: .7rem; border-bottom: 2px solid var(--fg); margin-top: .4rem; }
 .dl-date-row .ico { color: var(--fg-3); }
 .dl-date-row input { flex: 1; min-width: 0; min-height: 56px; border: 0; background: none; font-family: var(--font-display); font-size: clamp(1.4rem, 1rem + 1vw, 1.8rem); color: var(--fg); padding: 0; }
-html[data-ch="ink"] .deadline input, html:not(.chapters) [data-chapter="ink"] input { color-scheme: dark; }
+html.chapters [data-cur="ink"] .deadline input, html:not(.chapters) [data-chapter="ink"] input { color-scheme: dark; }
 .dl-date-row input:focus-visible { outline: none; }
 .dl-date-row:focus-within { border-bottom-color: var(--accent); box-shadow: 0 2px 0 var(--accent); }
 .dl-help { font-size: .86rem; color: var(--fg-3); margin-top: .6rem; max-width: 26rem; }
@@ -605,7 +605,7 @@ html:not(.anim) .tl-line-fill { transform: none; }
 .tariff th, .tariff td { padding: 1rem 0; vertical-align: baseline; text-align: left; }
 .tariff th { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.25rem, 1rem + .8vw, 1.7rem); white-space: nowrap; padding-right: 1rem; width: 1%; }
 .tf-dots { width: 40%; min-width: 2rem; background-image: radial-gradient(circle, var(--fg-3) 1.1px, transparent 1.5px); background-size: 9px 4px; background-repeat: repeat-x; background-position: 0 calc(100% - 1.45rem); }
-.tf-sum { font-family: var(--font-display); font-weight: 300; font-size: clamp(1.8rem, 1.2rem + 1.8vw, 3rem); line-height: 1; white-space: nowrap; width: 4.4em; padding-inline: 1rem 2rem !important; font-variant-numeric: tabular-nums; }
+.tf-sum { font-family: var(--font-display); font-weight: 300; font-size: clamp(1.8rem, 1.2rem + 1.8vw, 3rem); line-height: 1; white-space: nowrap; width: 5.8em; padding-inline: 1rem 2rem !important; font-variant-numeric: tabular-nums; }
 .tf-note { font-size: .92rem; color: var(--fg-2); max-width: 26rem; }
 
 /* ==========================================================================
@@ -859,7 +859,7 @@ html:not(.js) .wz-step { display: block; margin-bottom: 2rem; }
 .counter-bar span { position: absolute; inset: 0; background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); transition: transform 160ms var(--ease-out); }
 .counter-min { position: absolute; left: 5%; top: -4px; width: 1px; height: 10px; background: var(--fg-2); }
 .field-error { margin-top: .45rem; font-size: .86rem; font-weight: 600; color: var(--error); }
-[data-ch="ink"] .field-error { color: #F0A0A8; }
+[data-cur="ink"] .field-error { color: #F0A0A8; }
 .frist-field { border-left: 2px solid var(--accent); padding-left: 1rem; margin-top: 1rem; }
 .frist-warn { margin-top: .5rem; font-size: .88rem; color: var(--fg-2); }
 .frist-warn a { color: var(--accent); font-weight: 600; white-space: nowrap; }
@@ -894,7 +894,7 @@ html:not(.js) .wz-step { display: block; margin-bottom: 2rem; }
    FUSS
    ========================================================================== */
 .site-foot { padding-top: clamp(3rem, 7vw, 6rem); padding-bottom: calc(2rem + var(--safe-b)); overflow-x: clip; }
-.foot-plate { font-family: var(--font-display); font-weight: 300; font-size: clamp(5rem, 22vw, 21rem); line-height: .78; letter-spacing: -.04em; color: var(--fg); opacity: .2; margin-bottom: clamp(1.6rem, 4vw, 3rem); white-space: nowrap; }
+.site-foot .foot-plate { font-family: var(--font-display); font-weight: 300; font-size: clamp(5rem, 22vw, 21rem); line-height: .78; letter-spacing: -.04em; color: var(--fg); opacity: .2; margin-bottom: clamp(1.6rem, 4vw, 3rem); white-space: nowrap; }
 .foot-top { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; padding-bottom: 2.4rem; border-bottom: 1px solid var(--line); }
 .foot-h { font-size: .7rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--fg-3); margin-bottom: .7rem; }
 .site-foot address { font-style: normal; line-height: 1.6; color: var(--fg-2); }
@@ -1024,7 +1024,7 @@ html.gs .bp-line { stroke-dasharray: 1; stroke-dashoffset: 1; }
   .dateline { font-size: .7rem; padding: .4rem 0; }
   .dt-a, .dt-d { display: none; }
   .dateline .dt-b { order: 2; }
-  .nameplate { font-size: 24.4cqi; margin: .06em 0 0; text-align: left; }
+  .nameplate { font-size: calc((100vw - 2 * var(--gutter)) * .235); margin: .06em 0 0; text-align: left; }
   .np-w2 { display: none; }
   .np { display: block; }
   .motto { grid-template-columns: minmax(0, 1fr); padding: .45rem 0 .5rem; font-size: .66rem; }
@@ -1087,7 +1087,7 @@ html.gs .bp-line { stroke-dasharray: 1; stroke-dashoffset: 1; }
   .stamp { width: 86px; height: 86px; }
 
   .files { grid-template-columns: minmax(0, 1fr); }
-  .files-stage { position: relative; top: auto; height: auto; margin-bottom: 1rem; overflow: clip; padding: 2.4rem 0 .6rem; }
+  .files-stage { position: relative; top: auto; height: auto; margin-bottom: 1rem; overflow: clip; overflow-clip-margin: 0px; padding: 2.4rem 0 .6rem; }
   .fan { width: min(76%, 300px); }
   .files-count { display: none; }
   .tl-line { left: .4rem; }

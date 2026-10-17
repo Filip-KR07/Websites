@@ -225,7 +225,11 @@
      ------------------------------------------------------------------ */
 
   function initScroll() {
-    if (hasGSAP) gsap.registerPlugin(ScrollTrigger);
+    if (hasGSAP) {
+      gsap.registerPlugin(ScrollTrigger);
+      // Refresh steuern wir selbst (einmal nach dem Etappen-Start, nach Fonts, bei Resize)
+      ScrollTrigger.config({ autoRefreshEvents: 'visibilitychange,resize' });
+    }
     if (!reduced() && window.Lenis && hasGSAP) {
       lenis = new window.Lenis({ lerp: 0.11, smoothWheel: true, anchors: false });
       window.__lenis = lenis;
@@ -268,10 +272,13 @@
 
   function initHeader() {
     var hdr = qs('.hdr'), bar = qs('.progress__bar');
-    var lastY = window.pageYOffset, ticking = false;
+    var lastY = window.pageYOffset, ticking = false, maxY = 1;
+    var measureMax = function () { maxY = Math.max(1, doc.scrollHeight - window.innerHeight); };
+    if ('ResizeObserver' in window) new ResizeObserver(function () { measureMax(); }).observe(document.body); else window.addEventListener('resize', measureMax);
+    measureMax();
     function update() {
       ticking = false;
-      var y = window.pageYOffset, max = Math.max(1, doc.scrollHeight - window.innerHeight);
+      var y = window.pageYOffset, max = maxY;
       if (bar) bar.style.transform = 'scaleX(' + clamp(y / max, 0, 1).toFixed(4) + ')';
       hdr.classList.toggle('is-solid', y > 40);
       var menuOpen = qs('#menu') && qs('#menu').open;
@@ -366,57 +373,116 @@
   }
 
   /* ------------------------------------------------------------------
-     Klapptafel (Split-Flap): jede Zelle kippt über 2–4 Zufallszeichen
-     zum Zielzeichen. Ein gemeinsamer rAF-Takt für alle Tafeln, nur
-     solange etwas kippt; die Kippbewegung selbst ist eine WAAPI-
-     Transform-Animation (läuft auf dem Compositor).
+     Klapptafel (Split-Flap), gezeichnet auf Canvas: eine Zeile = ein
+     Canvas. Jede Zelle kippt über 2–4 Zufallszeichen zum Ziel; beim
+     Kippen fällt die obere Klappe zum Falz, die untere klappt auf.
+     Ein gemeinsamer rAF-Takt, nur solange etwas kippt (sonst Ruhe).
+     DOM bleibt schlank – der Text steht zusätzlich als Klartext im DOM.
      ------------------------------------------------------------------ */
-  var FLAP_CHARS = 'ABCDEFGHIJKLMNOPRSTUVWXYZ0123456789:·-+';
-  var flapJobs = [], flapRaf = 0;
-  function flapTick(t) {
+  var FLAP_CHARS = 'ABCDEFGHIJKLMNOPRSTUVWXYZ0123456789:-+';
+  var FLAP_FONT = '"Big Shoulders", "Arial Narrow", sans-serif', FLIP_MS = 76;
+  var flapSet = [], flapRaf = 0;
+  function flapLoop(t) {
     flapRaf = 0;
-    var keep = [];
-    for (var i = 0; i < flapJobs.length; i++) {
-      var job = flapJobs[i];
-      if (job.dead) continue;
-      if (t < job.at) { keep.push(job); continue; }
-      var ch = job.steps.shift();
-      job.cell.g.textContent = ch === ' ' ? ' ' : ch;
-      if (job.cell.g.animate) job.cell.g.animate([{ transform: 'rotateX(-86deg)' }, { transform: 'rotateX(0deg)' }], { duration: 70, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
-      if (job.steps.length) { job.at = t + 52 + Math.random() * 26; keep.push(job); }
-      else job.cell.job = null;
-    }
-    flapJobs = keep;
-    if (flapJobs.length) flapRaf = requestAnimationFrame(flapTick);
+    var any = false;
+    for (var i = 0; i < flapSet.length; i++) if (flapSet[i].step(t)) any = true;
+    if (any) flapRaf = requestAnimationFrame(flapLoop);
   }
-  function Flap(node, n) {
-    this.n = n; this.cells = [];
+  function flapKick() { if (!flapRaf) flapRaf = requestAnimationFrame(flapLoop); }
+  function Flap(node, n, o) {
+    o = o || {};
+    var self = this;
+    this.n = n; this.gap = o.gap || 2; this.node = node; this.hot = false; this.dirty = true;
+    this.cells = [];
+    for (var i = 0; i < n; i++) this.cells.push({ ch: ' ', prev: ' ', target: ' ', steps: [], at: 0, flipT: -1 });
     node.textContent = '';
-    this.row = el('span', 'sf');
-    for (var i = 0; i < n; i++) {
-      var c = el('span', 'sf__c'), g = el('span', 'sf__g', ' ');
-      c.appendChild(g); this.row.appendChild(c);
-      this.cells.push({ c: c, g: g, ch: ' ', job: null });
-    }
-    node.appendChild(this.row);
+    // Höhe vor dem Einhängen messen (ein Canvas ohne Höhe hätte 2:1-Eigenmaß)
+    var h0 = node.clientHeight;
+    this.cv = document.createElement('canvas');
+    this.cv.className = 'flap';
+    this.cv.setAttribute('aria-hidden', 'true');
+    if (h0) this.fixedH = h0; else { this.autoH = true; this.cv.style.height = '0px'; }
+    node.appendChild(this.cv);
+    this.ctx = this.cv.getContext('2d');
+    this.resize();
+    if ('ResizeObserver' in window) new ResizeObserver(function () { self.resize(); }).observe(node);
+    flapSet.push(this);
+    if (document.fonts && document.fonts.load) document.fonts.load('700 20px "Big Shoulders"').then(function () { self.dirty = true; flapKick(); }, function () {});
   }
+  Flap.prototype.resize = function () {
+    var W = this.node.clientWidth || 300, cw = (W - (this.n - 1) * this.gap) / this.n, H;
+    if (this.autoH) { H = Math.round(cw * 1.95); this.cv.style.height = H + 'px'; }
+    else H = this.node.clientHeight || this.fixedH;
+    if (W === this.W && H === this.H) return;
+    var dpr = dprMax();
+    this.W = W; this.H = H; this.cw = cw;
+    this.cv.width = Math.round(W * dpr); this.cv.height = Math.round(H * dpr);
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.dirty = true; flapKick();
+  };
+  Flap.prototype.setHot = function (on) { if (this.hot !== !!on) { this.hot = !!on; this.dirty = true; flapKick(); } };
   Flap.prototype.set = function (text, o) {
     o = o || {};
     text = String(text).toUpperCase();
     var instant = o.instant || reduced() || document.hidden, t0 = performance.now() + (o.delay || 0);
     for (var i = 0; i < this.n; i++) {
-      var target = text.charAt(i) || ' ', cell = this.cells[i];
-      if (cell.ch === target) continue;
-      cell.ch = target;
-      if (cell.job) { cell.job.dead = true; cell.job = null; }
-      if (instant) { cell.g.textContent = target === ' ' ? ' ' : target; continue; }
-      var steps = [], k = 2 + Math.floor(Math.random() * 3);
-      for (var s = 0; s < k; s++) steps.push(FLAP_CHARS.charAt(Math.floor(Math.random() * FLAP_CHARS.length)));
-      steps.push(target);
-      cell.job = { cell: cell, steps: steps, at: t0 + i * (o.stagger || 14) };
-      flapJobs.push(cell.job);
+      var target = text.charAt(i) || ' ', c = this.cells[i];
+      if (c.target === target) continue;
+      c.target = target;
+      if (instant) { c.ch = c.prev = target; c.steps = []; c.flipT = -1; continue; }
+      c.steps = [];
+      for (var k = 2 + Math.floor(Math.random() * 3); k > 0; k--) c.steps.push(FLAP_CHARS.charAt(Math.floor(Math.random() * FLAP_CHARS.length)));
+      c.steps.push(target);
+      c.at = t0 + i * (o.stagger || 14);
     }
-    if (flapJobs.length && !flapRaf) flapRaf = requestAnimationFrame(flapTick);
+    this.dirty = true; flapKick();
+  };
+  Flap.prototype.step = function (t) {
+    var busy = false, draw = this.dirty;
+    for (var i = 0; i < this.n; i++) {
+      var c = this.cells[i];
+      if (c.flipT >= 0) {
+        if (t - c.flipT >= FLIP_MS) { c.flipT = -1; c.prev = c.ch; } else busy = true;
+        draw = true;
+      }
+      if (c.flipT < 0 && c.steps.length) {
+        busy = true;
+        if (t >= c.at) { c.prev = c.ch; c.ch = c.steps.shift(); c.flipT = t; c.at = t + FLIP_MS + 8 + Math.random() * 18; draw = true; }
+      }
+    }
+    if (draw) this.draw(t);
+    this.dirty = false;
+    return busy;
+  };
+  Flap.prototype.draw = function (t) {
+    var x = this.ctx, H = this.H, cw = this.cw, mid = Math.round(H / 2), fs = Math.min(H * 0.74, cw * 1.5);
+    var ink = this.hot ? '#FF3B2F' : '#F2F2EE';
+    x.clearRect(0, 0, this.W, H);
+    x.font = '700 ' + fs.toFixed(1) + 'px ' + FLAP_FONT;
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    var glyph = function (ch, cx, top, sc, bg) {
+      x.save();
+      x.beginPath(); x.rect(cx, top ? 0 : mid, cw, top ? mid : H - mid); x.clip();
+      if (sc !== 1) { x.translate(0, mid); x.scale(1, Math.max(0.001, sc)); x.translate(0, -mid); }
+      if (bg) { x.fillStyle = top ? '#232428' : '#1A1B1E'; x.fillRect(cx, top ? 0 : mid, cw, top ? mid : H - mid); }
+      if (ch !== ' ') { x.fillStyle = ink; x.fillText(ch, cx + cw / 2, mid + fs * 0.03); }
+      x.restore();
+    };
+    for (var i = 0; i < this.n; i++) {
+      var c = this.cells[i], cx = i * (cw + this.gap);
+      x.fillStyle = '#1F2023'; x.fillRect(cx, 0, cw, mid);
+      x.fillStyle = '#16171A'; x.fillRect(cx, mid, cw, H - mid);
+      if (c.flipT >= 0) {
+        var p = clamp((t - c.flipT) / FLIP_MS, 0, 1);
+        glyph(c.ch, cx, true, 1, false);                       // neue Oberhälfte liegt dahinter
+        glyph(p < 0.5 ? c.prev : c.ch, cx, false, 1, false);   // untere Hälfte: alt, bis die Klappe da ist
+        if (p < 0.5) glyph(c.prev, cx, true, 1 - p * 2, true); // alte obere Klappe fällt zum Falz
+        else glyph(c.ch, cx, false, p * 2 - 1, true);          // neue untere Klappe schlägt auf
+      } else if (c.ch !== ' ') {
+        x.fillStyle = ink; x.fillText(c.ch, cx + cw / 2, mid + fs * 0.03);
+      }
+      x.fillStyle = '#050505'; x.fillRect(cx, mid - 0.5, cw, 1);  // Falz
+    }
   };
 
   /* Abfahrtstafel im Kursplan: nächste Kurse ab jetzt, folgt den Filtern */
@@ -437,7 +503,7 @@
   function makeBoard(root, form) {
     var face = qs('.board__face', root), rowsEl = qs('[data-board-rows]', root), cols = qs('.board__cols', root), sr = qs('[data-board-sr]', root);
     var flaps = [], mode = '', seen = false;
-    function build() {
+    function head() {
       mode = mqDesk.matches ? 'desk' : 'mob';
       var def = BOARD_COLS[mode];
       var n = def.reduce(function (a, c) { return a + c[1]; }, 0) + def.length - 1;
@@ -447,12 +513,16 @@
         s.hidden = !c;
         if (c) s.style.setProperty('--k', c[1]);
       });
+      return n;
+    }
+    function build() {
+      var n = head();
       rowsEl.textContent = '';
       flaps = [];
       for (var r = 0, rows = mode === 'desk' ? 5 : 4; r < rows; r++) {
         var line = el('div', 'board__line');
         rowsEl.appendChild(line);
-        flaps.push(new Flap(line, n));
+        flaps.push(new Flap(line, n, { gap: mode === 'desk' ? 3 : 2 }));
       }
     }
     function status(x, w) {
@@ -494,14 +564,15 @@
         var x = list[r];
         var txt = x ? rowText(x) : (r === 0 ? (mode === 'desk' ? '----- KEIN KURS PASST ZU DIESEM FILTER' : 'KEIN KURS PASST') : '');
         f.set(txt, { delay: o.first ? 100 + r * 70 : r * 35, stagger: o.first ? 9 : 6, instant: o.instant });
-        f.row.classList.toggle('is-live', !!(x && x.live));
+        f.setHot(!!(x && x.live));
         if (x) said.push(x.k.name + ' (' + (x.live ? 'läuft gerade' : TAGE[x.k.day] + ', ' + x.k.start + ' Uhr') + ', ' + COACHES[x.k.coach] + ')');
       });
       if (sr) sr.textContent = said.length ? 'Als Nächstes laut Tafel: ' + said.join('; ') + '.' : 'Kein Kurs passt zum gewählten Filter.';
     }
-    build();
-    watchVisible(root, function (v) { if (v && !seen) { seen = true; update({ first: true }); } }, '0px 0px -15% 0px');
-    var onMode = function () { build(); update({ instant: true }); };
+    // Zellen erst kurz vor dem Sichtkontakt bauen (spart beim Start ~550 Elemente)
+    watchVisible(root, function (v) { if (v && !seen) { build(); seen = true; update({ first: true }); } }, '0px 0px -15% 0px');
+    head();
+    var onMode = function () { if (!seen) { head(); return; } build(); update({ instant: true }); };
     if (mqDesk.addEventListener) mqDesk.addEventListener('change', onMode); else mqDesk.addListener(onMode);
     return { update: update };
   }
@@ -1436,8 +1507,7 @@
   function initDisc() {
     var items = qsa('.disc__item'), imgs = qsa('[data-disc-img]'), frame = qs('[data-disc-frame]'), noEl = qs('[data-disc-no]'), cutBar = qs('.disc__cut');
     if (!items.length || !imgs.length) return;
-    var cur = 0, flap = null;
-    if (noEl && !reduced()) { flap = new Flap(noEl, 2); flap.set('01', { instant: true }); }
+    var cur = 0;
     items[0].classList.add('is-active');
     function show(i) {
       if (i < 0 || i === cur) return;
@@ -1451,7 +1521,10 @@
       }
       cur = i;
       items.forEach(function (it, k) { it.classList.toggle('is-active', k === i); });
-      if (flap) flap.set(pad2(i + 1), { stagger: 40 }); else if (noEl) noEl.textContent = pad2(i + 1);
+      if (noEl) {
+        noEl.textContent = pad2(i + 1);
+        if (!reduced() && noEl.animate) noEl.animate([{ clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)' }], { duration: 300, easing: 'steps(3, jump-end)' });
+      }
     }
     if ('IntersectionObserver' in window) {
       var io = new IntersectionObserver(function (es) {
@@ -1797,32 +1870,34 @@
   }
 
   /* ------------------------------------------------------------------
-     Start in Etappen: Erster Bildschirm sofort (Header, Menü, Status,
-     Kursplan-Daten + Hero-Klapptafel), alles darunter nach dem ersten
-     Frame in Häppchen von ≤ 20 ms, danach einmal ScrollTrigger.refresh().
+     Start in Etappen: sofort nur, was kein Layout liest (Menü, Status,
+     Intro-Status); alles andere nach dem ersten Frame in Häppchen von
+     ≤ 18 ms (Lenis, Header, Kursplan + Hero-Klapptafel zuerst), danach
+     einmal ScrollTrigger.refresh() in eigener Aufgabe.
      ------------------------------------------------------------------ */
-  var BOOT_NOW = [
-    ['scroll', initScroll], ['header', initHeader], ['menu', initMenu], ['status', initStatus],
-    ['intro', initHeroIntro], ['plan', initPlan]
-  ];
+  var BOOT_NOW = [['menu', initMenu], ['status', initStatus], ['intro', initHeroIntro]];
   var BOOT_LATER = [
-    ['kinetic', initHeroKinetic], ['canvas', initHeroCanvas], ['tapes', initTapes], ['roll', initRoll], ['magnet', initMagnet],
+    ['scroll', initScroll], ['header', initHeader], ['plan', initPlan], ['kinetic', initHeroKinetic], ['canvas', initHeroCanvas], ['tapes', initTapes], ['roll', initRoll], ['magnet', initMagnet],
     ['cursor', initCursor], ['tear', initTear], ['disc', initDisc], ['cfg', initCfg], ['gen', initGen], ['coaches', initCoaches],
     ['crew', initCrew], ['day', initDayStrip], ['laps', initLaps], ['tally', initTally], ['form', initForm],
     ['counters', initCounters], ['reveal', initReveal]
   ];
-  BOOT_NOW.forEach(function (b) { safe(b[0], b[1]); });
+  var bootTimes = window.__forgeBoot = [];
+  BOOT_NOW.forEach(function (b) { var tb = performance.now(); safe(b[0], b[1]); bootTimes.push(b[0] + ' ' + Math.round(performance.now() - tb)); });
   var fontsPending = !!(document.fonts && document.fonts.status !== 'loaded');
   var afterFrame = function (fn) { if (window.requestAnimationFrame && !document.hidden) requestAnimationFrame(function () { setTimeout(fn, 0); }); else setTimeout(fn, 0); };
   afterFrame(function next() {
     var t0 = performance.now();
     while (BOOT_LATER.length) {
-      var b = BOOT_LATER.shift();
+      var b = BOOT_LATER.shift(), tb = performance.now();
       safe(b[0], b[1]);
+      bootTimes.push(b[0] + ' ' + Math.round(performance.now() - tb));
       if (performance.now() - t0 > 18) break;
     }
     if (BOOT_LATER.length) { setTimeout(next, 0); return; }
-    if (hasGSAP && document.readyState === 'complete') ScrollTrigger.refresh();
-    if (hasGSAP && fontsPending && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
+    // Refresh in einer eigenen Aufgabe (nicht im selben Task wie die letzten Initialisierungen)
+    if (hasGSAP) setTimeout(function () { ScrollTrigger.refresh(); }, 0);
+    if (hasGSAP && fontsPending && document.fonts.ready) document.fonts.ready.then(function () { setTimeout(function () { ScrollTrigger.refresh(); }, 0); });
+    if (hasGSAP && document.readyState !== 'complete') window.addEventListener('load', function () { setTimeout(function () { ScrollTrigger.refresh(); }, 60); });
   });
 })();

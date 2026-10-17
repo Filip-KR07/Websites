@@ -112,8 +112,9 @@ h1, h2, h3, h4, p, ul, ol, dl, dd, figure, blockquote { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 table { border-collapse: collapse; }
 b, strong { font-weight: 650; }
-:where(h1, h2, h3, .h2) { text-wrap: balance; }
-p { text-wrap: pretty; hanging-punctuation: first; }
+:where(h1, .h2) { text-wrap: balance; }
+p { hanging-punctuation: first; }
+.hero__lead, .disc__lead, .plan__lead, .halle__lead { text-wrap: pretty; }
 [hidden] { display: none !important; }
 .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 .sr-only {
@@ -278,6 +279,8 @@ html:not(.js) .progress { display: none; }
   display: inline-flex; align-items: center; gap: .5rem; font-size: .8rem; color: var(--grau);
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
+/* feste Breite: der Text wechselt nach dem Laden, ohne dass etwas springt */
+.status__text { display: inline-block; width: 12.6rem; overflow: hidden; text-overflow: ellipsis; }
 .status__dot { width: 8px; height: 8px; background: var(--grau); flex: none; transform: skewX(-18deg); }
 .status.is-open .status__dot { background: var(--glut); animation: blink 1.6s steps(2, jump-none) infinite; }
 .status.is-open .status__text b { color: var(--kreide); font-weight: 600; }
@@ -325,8 +328,7 @@ html:not(.js) .progress { display: none; }
 .menu__in {
   min-height: 100%; display: flex; flex-direction: column; gap: 2rem;
   padding: 0 var(--gut) calc(1.5rem + var(--safe-b));
-  background: var(--grain-light) 0 0 / 240px auto, var(--asphalt);
-  background-blend-mode: soft-light, normal;
+  background: var(--asphalt);
 }
 .menu__top { height: var(--hdr); display: flex; align-items: center; justify-content: space-between; }
 .menu__top .logo__word { font-size: 1.8rem; }
@@ -360,9 +362,9 @@ html:not(.js) .progress { display: none; }
 .sec--glut { background: var(--glut); color: var(--asphalt); }
 .sec--chalk::before, .sec--iron::before, .hero::before, .sec--glut::before {
   content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -1;
-  background-image: var(--grain-light); background-size: 240px; opacity: .05; mix-blend-mode: soft-light;
+  background-image: var(--grain-light); background-size: 240px; opacity: .045;
 }
-.sec--chalk::before, .sec--glut::before { background-image: var(--grain-dark); opacity: .42; mix-blend-mode: multiply; }
+.sec--chalk::before, .sec--glut::before { background-image: var(--grain-dark); opacity: .32; }
 /* schräger Schnitt: Kapitel schiebt sich über das vorige */
 .cut-top {
   margin-top: calc(var(--slant) * -1);
@@ -413,7 +415,7 @@ html:not(.js) .progress { display: none; }
   font-size: var(--kin); line-height: .8; letter-spacing: -.012em;
   pointer-events: none;
 }
-.kin { display: block; white-space: nowrap; contain: layout style; }
+.kin { display: block; white-space: nowrap; height: .8em; contain: size layout style; }
 .kin__w {
   position: relative; display: inline-block; padding-right: .05em;
   font-variation-settings: 'wght' 800, 'opsz' 72;
@@ -500,7 +502,7 @@ html.js .kin__w::before { opacity: calc(var(--e, 0) * .2); transform: translateX
 /* Live-Kurs als Klapptafel */
 .live {
   grid-column: 9 / 13; grid-row: 4; align-self: end; position: relative; z-index: 3;
-  display: grid; gap: .5rem; padding: .85rem 1rem 1rem;
+  display: grid; gap: .5rem; padding: .85rem 1rem 1rem; container-type: inline-size;
   background: #0A0A0B; box-shadow: inset 0 0 0 1px var(--line); color: var(--kreide); text-decoration: none;
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
   transition: box-shadow 200ms ease, transform var(--t-press) var(--ease-out);
@@ -510,10 +512,11 @@ html.js .kin__w::before { opacity: calc(var(--e, 0) * .2); transform: translateX
 .live__head { display: flex; align-items: center; gap: .5rem; font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--grau); }
 .live__dot { width: 8px; height: 8px; background: var(--grau); flex: none; transform: skewX(-18deg); }
 .live.is-now .live__dot { background: var(--glut); animation: blink 1.2s steps(2, jump-none) infinite; }
-.live__clock { margin-left: auto; font-variant-numeric: tabular-nums; }
-.live__flap { container-type: inline-size; display: block; font-family: var(--ff-display); font-weight: 800; font-size: 1.5rem; line-height: 1.1; letter-spacing: .06em; min-height: 1.4em; }
-.live__flap .sf { --n: 22; --g: 2px; --cw: calc((100cqi - (var(--n) - 1) * var(--g)) / var(--n)); font-size: calc(var(--cw) * 1.45); }
-.live__meta { font-size: .8rem; color: var(--grau); font-variant-numeric: tabular-nums; }
+.live__clock { margin-left: auto; min-width: 6.5em; text-align: right; font-variant-numeric: tabular-nums; }
+.live__head > span:nth-child(2) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+/* Höhe fest aus der Zellbreite berechnet: Fallback-Text und Klappzellen sind gleich hoch (kein Sprung) */
+.live__flap { --n: 22; --g: 2px; --cw: calc((100cqi - (var(--n) - 1) * var(--g)) / var(--n)); display: block; height: calc(var(--cw) * 1.45 * 1.3); overflow: hidden; font-family: var(--ff-display); font-weight: 800; font-size: calc(var(--cw) * 1.45); line-height: 1.3; letter-spacing: .06em; white-space: nowrap; }
+.live__meta { font-size: .8rem; color: var(--grau); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .live__bar { display: block; height: 3px; background: var(--line); overflow: hidden; }
 .live__bar i { display: block; height: 100%; background: var(--glut); transform: scaleX(var(--p, 0)); transform-origin: 0 50%; transition: transform 600ms var(--ease-out); }
 
@@ -571,16 +574,22 @@ html.js .kin__w::before { opacity: calc(var(--e, 0) * .2); transform: translateX
 @media (max-width: 899px) { .band--a { transform: translateY(-62%) rotate(-4deg); } .band--b { transform: translateY(-28%) rotate(3deg); } }
 
 /* ==========================================================================
-   Klapptafel-Zellen (Hero-Live, Abfahrtstafel, Disziplin-Nummer)
+   Klapptafel (Canvas je Zeile) – Fallback-Text ohne JS bleibt sichtbar
+   ========================================================================== */
+.flap { display: block; width: 100%; height: 100%; }
+.board__line { display: block; }
+
+/* ==========================================================================
+   Klapptafel-Zellen (DOM-Variante, nicht mehr im Einsatz)
    ========================================================================== */
 .sf { display: flex; gap: var(--g, 2px); }
 .sf__c {
-  position: relative; flex: none; display: grid; place-items: center;
+  position: relative; flex: none; display: block; text-align: center; line-height: 1.3em;
   width: var(--cw, .7em); height: 1.3em; overflow: hidden; border-radius: 1.5px;
   background: linear-gradient(180deg, #222327 0%, #1B1C1F 49.4%, #050505 49.4%, #050505 50.6%, #17181B 50.6%, #121315 100%);
   color: var(--kreide); font-family: var(--ff-display); font-weight: 700; line-height: 1; text-transform: uppercase;
   font-variation-settings: 'opsz' 28;
-  perspective: 5em;
+  contain: strict;
 }
 .sf__g { display: block; transform-origin: 50% 50%; backface-visibility: hidden; }
 .sf__c.is-hot { color: var(--glut); }
@@ -675,13 +684,15 @@ html.js .kin__w::before { opacity: calc(var(--e, 0) * .2); transform: translateX
 .board__cols { display: flex; gap: var(--g); padding-bottom: .5rem; font-size: .66rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--grau); }
 .board__cols span { flex: none; width: calc(var(--cw) * var(--k, 6) + (var(--k, 6) - 1) * var(--g)); }
 .board__cols span + span { margin-left: calc(var(--cw) + var(--g)); }
-.board__rows { display: grid; gap: 5px; }
+/* Höhe vorab reserviert (5 bzw. 4 Klappzeilen), damit beim Aufbau der Tafel nichts springt */
+.board__rows { --rows: 5; display: grid; align-content: start; gap: 5px; min-height: calc(var(--rows) * var(--cw) * 1.5 * 1.3 + (var(--rows) - 1) * 5px); }
 .board__row { font-family: var(--ff-display); font-weight: 700; text-transform: uppercase; font-size: clamp(1.1rem, 2.4vw, 1.9rem); letter-spacing: .14em; line-height: 1.3; padding: .2rem .4rem; background: #17181B; overflow-wrap: anywhere; }
 .board__rows .sf { font-size: calc(var(--cw) * 1.5); }
 .board__rows .sf.is-live .sf__c { color: var(--glut); }
 @media (max-width: 899px) {
   .board { margin-inline: calc(var(--gut) * -1); clip-path: none; }
   .board__face { --n: 24; --g: 2px; }
+  .board__rows { --rows: 4; }
   .board__cols .c-coach, .board__cols .c-ort { display: none; }
 }
 
@@ -915,6 +926,18 @@ select:focus-visible, input:focus-visible, textarea:focus-visible { outline: non
   transition: box-shadow 180ms ease, background-color 180ms ease, color 180ms ease, transform var(--t-press) var(--ease-out);
 }
 .opt:active .opt__box { transform: scale(.98); }
+/* Hantelscheibe lugt aus der Ecke: Farbe nach Tarifstufe */
+.opt__box { overflow: hidden; padding-right: 4.2rem; }
+.opt__box::after {
+  content: ""; position: absolute; right: -1.6rem; bottom: -1.6rem; width: 5.4rem; height: 5.4rem; border-radius: 50%;
+  background: radial-gradient(circle, #8E9097 0 12%, rgba(13, 13, 15, .55) 12% 15%, var(--pc, var(--eisen)) 15% 62%, rgba(13, 13, 15, .25) 62% 64%, var(--pc, var(--eisen)) 64% 100%);
+  transition: transform 420ms var(--ease-slam);
+}
+.opt:nth-child(1) .opt__box { --pc: #3A3D42; }
+.opt:nth-child(2) .opt__box { --pc: var(--glut); }
+.opt:nth-child(3) .opt__box { --pc: #1E1F23; }
+.opt input:checked + .opt__box::after { transform: rotate(-24deg) translate(-.35rem, -.35rem); }
+@media (hover: hover) and (pointer: fine) { .opt:hover .opt__box::after { transform: rotate(-12deg); } }
 .opt__name { font-family: var(--ff-display); font-weight: 800; font-size: 1.55rem; text-transform: uppercase; line-height: 1; letter-spacing: .02em; }
 .opt__price { font-family: var(--ff-display); font-weight: 700; font-size: 1.1rem; font-variant-numeric: tabular-nums; color: var(--grau-ink); }
 .opt__desc { font-size: .86rem; line-height: 1.45; color: var(--grau-ink); }
@@ -1402,8 +1425,8 @@ html.has-laps .lap.is-on { opacity: 1; }
 .map__walk rect { fill: var(--asphalt); stroke: var(--glut); stroke-width: 2; }
 .map__walk text { fill: var(--kreide); font-family: var(--ff-text); font-weight: 700; font-size: 13px; }
 .map__dot { fill: var(--glut); stroke: var(--asphalt); stroke-width: 4; }
-.map__pulse { fill: var(--glut); opacity: .35; transform-box: fill-box; transform-origin: center; animation: pulse 2.4s var(--ease-out) infinite; }
-@keyframes pulse { 0% { transform: scale(.5); opacity: .55; } 100% { transform: scale(1.9); opacity: 0; } }
+/* Standort-Marke blinkt hart wie eine Signallampe (kein weiches Pulsieren) */
+.map__pulse { fill: none; stroke: var(--glut); stroke-width: 3; animation: blink 1.4s steps(2, jump-none) infinite; }
 .map__flag { fill: var(--glut); }
 .map__flag-t { fill: var(--asphalt); font-family: var(--ff-display); font-weight: 900; font-size: 15px; letter-spacing: .06em; }
 .map__north path { fill: var(--kreide); }
@@ -1599,12 +1622,13 @@ html.js.mv .hero__marks { animation: fadeIn 300ms ease 900ms backwards; }
 html.js .hero__canvas { opacity: 0; transition: opacity 900ms ease; }
 html.js .hero__canvas.is-on { opacity: 1; }
 
-/* Überschriften: setzen hart auf und „spannen an“ (Gewichtsachse 240 → 800 mit Nachfedern) */
+/* Überschriften: fallen von oben in den Satz und federn beim Aufsetzen nach (nur transform + clip-path,
+   die Schriftbreite bleibt fest – kein Umbruch-Springen) */
 html.js.mv [data-slam] {
-  clip-path: inset(0 0 100% 0); transform: translateY(.2em); font-variation-settings: 'wght' 240;
-  transition: clip-path 460ms var(--ease-out), transform 520ms var(--ease-out), font-variation-settings 720ms var(--ease-slam) 120ms;
+  clip-path: inset(0 0 100% 0); transform: translateY(-.35em) scaleY(1.18); transform-origin: 0 100%;
+  transition: clip-path 420ms var(--ease-out), transform 640ms var(--ease-slam);
 }
-html.js.mv [data-slam].is-in { clip-path: inset(-.25em -.25em -.35em -.25em); transform: none; font-variation-settings: 'wght' 800; }
+html.js.mv [data-slam].is-in { clip-path: inset(-.25em -.25em -.35em -.25em); transform: none; }
 /* Bilder: harter Schnitt in vier Stufen statt Überblendung */
 html.js.mv .rv-cut img { clip-path: inset(0 0 100% 0); transition: clip-path var(--t-cut) var(--cut); transition-delay: var(--d, 0ms); }
 html.js.mv .rv-cut.is-in img { clip-path: inset(0 0 0 0); }

@@ -29,10 +29,6 @@
       setTimeout(function () { if (!window.__forgeReady) d.classList.remove('js'); }, 4000);
     })();
   </script>
-  <script src="/arena/fitness-forge/assets/vendor/gsap.min.js" defer></script>
-  <script src="/arena/fitness-forge/assets/vendor/ScrollTrigger.min.js" defer></script>
-  <script src="/arena/fitness-forge/assets/vendor/lenis.min.js" defer></script>
-  <script src="/arena/fitness-forge/main.js" defer></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -224,7 +220,7 @@
     <!-- ============ ABSPERRBAND ============ -->
     <div class="tapes" aria-hidden="true">
       <div class="band band--a"><div class="band__track" data-marquee="-1"><span>Strength <i></i> Conditioning <i></i> Boxing <i></i> Mobility <i></i> 06–23 Uhr <i></i> Probetraining 0&nbsp;€ <i></i> </span><span>Strength <i></i> Conditioning <i></i> Boxing <i></i> Mobility <i></i> 06–23 Uhr <i></i> Probetraining 0&nbsp;€ <i></i> </span></div></div>
-      <div class="band band--b"><div class="band__track" data-marquee="1"><span>Kreide · Eisen · Schweiß · Fortschritt · Kreide · Eisen · Schweiß · Fortschritt · </span><span>Kreide · Eisen · Schweiß · Fortschritt · Kreide · Eisen · Schweiß · Fortschritt · </span></div></div>
+      <div class="band band--b"><div class="band__track" data-marquee="1"><span>Revaler Straße 99 · 6 Min. ab S+U Warschauer Straße · Mo–Fr 06–23 · Sa/So 08–20 · </span><span>Revaler Straße 99 · 6 Min. ab S+U Warschauer Straße · Mo–Fr 06–23 · Sa/So 08–20 · </span></div></div>
     </div>
 
     <!-- ============ DISZIPLINEN: harte Schnitte ============ -->
@@ -1475,6 +1471,14 @@
     </div>
   </footer>
 
+  <script>
+    /* Skripte erst nach dem ersten Frame laden: Erstes Bild wartet auf nichts, jede Datei läuft in eigener Aufgabe */
+    (function () {
+      var base = '/arena/fitness-forge/', list = ['assets/vendor/gsap.min.js', 'assets/vendor/ScrollTrigger.min.js', 'assets/vendor/lenis.min.js', 'main.js'];
+      function go() { list.forEach(function (f) { var s = document.createElement('script'); s.src = base + f; s.async = false; document.body.appendChild(s); }); }
+      if (window.requestAnimationFrame && !document.hidden) requestAnimationFrame(function () { setTimeout(go, 0); }); else setTimeout(go, 0);
+    })();
+  </script>
   <nav class="actionbar" aria-label="Schnellaktionen">
     <a class="actionbar__btn" href="tel:+49305558120"><svg aria-hidden="true"><use href="#i-phone"/></svg>Anrufen</a>
     <a class="actionbar__btn actionbar__btn--glut" href="#probetraining">Probetraining <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>

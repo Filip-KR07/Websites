@@ -6,6 +6,8 @@
    ========================================================================== */
 (function () {
   'use strict';
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', main); else main();
+  function main() {
 
   /* ===== Konstanten (hier anpassen) ===================================== */
 
@@ -352,14 +354,22 @@
   function today() { var n = new Date(); return noon(n.getFullYear(), n.getMonth(), n.getDate()); }
   function toISO(dt) { return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0'); }
   function fromISO(s) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? noon(+m[1], +m[2] - 1, +m[3]) : null; }
-  var fmtLong = new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  var fmtMid = new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: 'numeric', month: 'long' });
-  var fmtMonth = new Intl.DateTimeFormat('de-DE', { month: 'short' });
-  var fmtMonthLong = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' });
+  // Datumsformate erst bei Bedarf anlegen (Intl-Objekte sind teuer)
+  function lazyFmt(opts) { var f = null; return { format: function (x) { if (!f) f = new Intl.DateTimeFormat('de-DE', opts); return f.format(x); } }; }
+  var fmtLong = lazyFmt({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  var fmtMid = lazyFmt({ weekday: 'short', day: 'numeric', month: 'long' });
+  var fmtMonth = lazyFmt({ month: 'short' });
+  var fmtMonthLong = lazyFmt({ month: 'long', year: 'numeric' });
   function dayDiff(a, b) { return Math.round((b - a) / 864e5); }
 
   // „Jetzt“ in Nürnberg
+  var nowCache = null;
   function berlinNow() {
+    if (nowCache) return nowCache;
+    nowCache = berlinNowRaw();
+    return nowCache;
+  }
+  function berlinNowRaw() {
     try {
       var parts = new Intl.DateTimeFormat('en-GB', { timeZone: OPENING.tz, weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
       var get = function (t) { var p = parts.filter(function (x) { return x.type === t; })[0]; return p ? p.value : ''; };
@@ -690,27 +700,45 @@
     });
   });
 
-  // Kapitel: das ganze Papier wechselt die Farbe (Hintergrund gleitet, Farben springen zur Mitte)
+  // Kapitel: das ganze Papier wechselt die Farbe. Der Hintergrund gleitet (body/Kopf), die Farbwerte
+  // springen zur Mitte – und zwar nur in Abschnitten in Sichtnähe (fernere ziehen nach, wenn sie näher kommen).
   later(function chapters() {
-    if (!ANIM || !('IntersectionObserver' in window)) return;
+    if (!root.classList.contains('chapters')) return;
+    if (!('IntersectionObserver' in window)) { root.classList.remove('chapters'); return; }
     var meta = $('meta[name="theme-color"]');
     var secs = $$('[data-chapter]');
-    var cur = null, swapT = 0;
-    function set(ch, now) {
-      if (cur === ch || !CHAPTER_BG[ch]) return;
+    var cur = 'paper', shown = null, swapT = 0, near = [];
+    function apply(s) {
+      if (s.getAttribute('data-cur') === cur) return;
+      if (!s.hasAttribute('data-cur') && cur === 'paper') return;
+      s.setAttribute('data-cur', cur);
+    }
+    function swap(ch) {
       cur = ch;
+      near.forEach(apply);
+      if (head) head.setAttribute('data-cur', ch);
+    }
+    function set(ch, now) {
+      if (shown === ch || !CHAPTER_BG[ch]) return;
+      shown = ch;
       var col = CHAPTER_BG[ch];
       d.body.style.backgroundColor = col;
       if (head) head.style.backgroundColor = col;
       if (meta) meta.setAttribute('content', col);
       clearTimeout(swapT);
-      if (now) root.setAttribute('data-ch', ch);
-      else swapT = setTimeout(function () { root.setAttribute('data-ch', ch); }, 230);
+      if (now) swap(ch); else swapT = setTimeout(function () { swap(ch); }, 230);
     }
+    var nearIO = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        var k = near.indexOf(e.target);
+        if (e.isIntersecting) { if (k < 0) near.push(e.target); apply(e.target); }
+        else if (k > -1) near.splice(k, 1);
+      });
+    }, { rootMargin: '100% 0px 100% 0px' });
+    secs.forEach(function (s) { nearIO.observe(s); });
     var mid = window.innerHeight / 2, start = 'paper';
     secs.forEach(function (s) { var r = s.getBoundingClientRect(); if (r.top <= mid && r.bottom > mid) start = s.getAttribute('data-chapter'); });
     set(start, true);
-    root.classList.add('chapters');
     var io = new IntersectionObserver(function (es) {
       es.forEach(function (e) { if (e.isIntersecting) set(e.target.getAttribute('data-chapter')); });
     }, { rootMargin: '-50% 0px -50% 0px' });
@@ -1719,4 +1747,5 @@
   });
   window.addEventListener('load', function () { measureRibbon(); onScroll(); softRefresh(200); });
   onScroll();
+}
 })();

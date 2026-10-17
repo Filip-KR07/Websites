@@ -223,14 +223,14 @@
   function initTones() {
     var layer = $('[data-tone-layer]');
     var rh = $('[data-running-head]'), rhNum = $('[data-rh-num]'), rhName = $('[data-rh-name]');
-    var secs = $$('main [data-tone]');
+    var secs = $$('main [data-tone], .site-footer[data-tone]');
     if (!layer || !secs.length || !('IntersectionObserver' in window)) return;
     root.classList.add('toned');
     var current = null, swapT = 0;
     function apply(sec) {
       if (sec === current) return;
       current = sec;
-      var tone = sec.dataset.tone, dark = tone === 'pflaume';
+      var tone = sec.dataset.tone, dark = tone === 'pflaume' || tone === 'night';
       if (!dark) layer.dataset.tone = tone === 'quiz' ? 'cream' : tone;
       header.classList.toggle('on-dark', dark);
       header.style.setProperty('--hdr-bg', dark ? 'rgba(59, 31, 43, .97)' : (TONE_HEX[tone] || TONE_HEX.puder));
@@ -302,6 +302,14 @@
     var gl = null;
     try { gl = canvas.getContext('webgl', { antialias: false, alpha: true, premultipliedAlpha: true, preserveDrawingBuffer: false }); } catch (e) { gl = null; }
     if (!gl) { root.classList.add('silk-none'); return; }
+    /* Software-Rendering (kein Grafikchip, z. B. SwiftShader/llvmpipe): ein ruhendes Bild statt Animation –
+       derselbe Endzustand, den die adaptive Qualität sonst nach einigen ruckeligen Frames erreichen würde. */
+    var softGL = false;
+    try {
+      var dbg = gl.getExtension('WEBGL_debug_renderer_info');
+      var rname = String(gl.getParameter(dbg ? dbg.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
+      softGL = /swiftshader|llvmpipe|softpipe|software|basic render/i.test(rname);
+    } catch (e) {}
 
     var vs = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
     var fs = [
@@ -321,11 +329,13 @@
       '}',
       // Falten: schräg laufendes Plissee, das langsam wandert, dazu eine Welle, die durch die Bahn läuft
       'float fo(float d,float u,float t){',
-      '  float f=6.+2.6*sin(u*1.2+.7);',          // Faltendichte ändert sich längs der Bahn (fächert auf)
-      '  float h=.55*sin(d*f+u*1.6+t*.45+1.6*sin(u*1.1-t*.25));',
-      '  h+=.2*sin(d*f*1.9-u*2.3-t*.6+1.);',
-      '  h+=.42*sin(u*4.2-t*.85+d*2.6)*(1.-d*d);',
-      '  h+=.35*d*d*d*d;',
+      '  float f=4.6+2.2*sin(u*1.1+.7);',          // Faltendichte ändert sich längs der Bahn (fächert auf)
+      '  float ph=d*f+u*1.4+t*.4+1.8*sin(u*.9-t*.22);',
+      '  float h=.62*abs(sin(ph*.5));',             // runde Bäuche, scharfe Knicke – wie hängender Stoff
+      '  h+=.16*sin(d*f*2.1-u*2.4-t*.55+1.);',
+      '  h+=.5*sin(u*1.7-t*.3+d*.8);',              // große, weiche Wölbung über die ganze Bahn
+      '  h+=.3*sin(u*4.-t*.8+d*2.4)*(1.-d*d);',
+      '  h+=.3*d*d*d*d;',
       '  return h;',
       '}',
       'float hg(vec2 p,float t,float ex){',
@@ -351,12 +361,12 @@
       '    float e=1.5/uRes.y;',
       '    float h0=hg(p,t,ex);',
       '    vec2 g=vec2(hg(p+vec2(e,0.),t,ex)-h0,hg(p+vec2(0.,e),t,ex)-h0)/e;',
-      '    vec3 n=normalize(vec3(-g*.028,1.));',
+      '    vec3 n=normalize(vec3(-g*.024,1.));',
       '    vec3 L=normalize(vec3(uLight-p,.7));',
       '    vec3 H=normalize(L+vec3(0.,0.,1.));',
       '    float wr=clamp((dot(n,L)+.3)/1.3,0.,1.);',
       '    float nh=max(dot(n,H),0.);',
-      '    float sp=pow(nh,22.)*.17+pow(nh,90.)*.26;',
+      '    float sp=pow(nh,10.)*.1+pow(nh,48.)*.2;',
       '    float ao=smoothstep(-1.1,.8,h0);',
       '    vec3 cDeep=vec3(.65,.48,.455),cMid=vec3(.855,.715,.655),cHi=vec3(.975,.925,.89);',
       '    col=mix(cDeep,cMid,smoothstep(.12,.62,wr));',
@@ -398,12 +408,12 @@
 
     /* Adaptive Qualität: Schafft das Gerät die Seide nicht flüssig (mittlere Frame-Zeit > 40 ms),
        sinkt die Auflösung stufenweise; bei sehr langsamer Grafik (> 120 ms) bleibt ein Standbild stehen. */
-    var level = 1, floor = 0, RES = SILK.QUALITY[1]; // startet vorsichtig, steigt auf schnellen Geräten auf
+    var level = SILK.QUALITY.length - 1, floor = 0, RES = SILK.QUALITY[level]; // startet klein, steigt auf schnellen Geräten auf
     var SLOW_MS = 40, VERY_SLOW_MS = 120;
     var w = 0, h = 0, cssW = 0, cssH = 0, band = SILK.wide;
     var m = { x: 0.3, y: 0.1, tx: 0.3, ty: 0.1, lift: 0, tlift: 0, lx: -0.35, ly: 0.45, tlx: -0.35, tly: 0.45 };
     var t0 = performance.now(), tBase = 14.0, tNow = tBase;
-    var intro = MOTION ? 0 : 1, introStart = 0;
+    var intro = MOTION && !softGL ? 0 : 1, introStart = 0;
     var running = false, inView = true, raf = 0, frozen = false, active = 0, lastFrame = 0, idleSkip = false;
     var lastTs = 0, warm = 2, acc = 0, n = 0;
 
@@ -471,7 +481,7 @@
       raf = requestAnimationFrame(frame);
     }
     function update() {
-      var should = MOTION && inView && !document.hidden && !frozen;
+      var should = MOTION && !softGL && inView && !document.hidden && !frozen;
       if (should && !running) { running = true; lastTs = 0; warm = 2; acc = 0; n = 0; if (!raf) raf = requestAnimationFrame(frame); }
       else if (!should && running) { running = false; if (raf) { cancelAnimationFrame(raf); raf = 0; } }
     }
@@ -486,6 +496,12 @@
       }, { passive: true });
       document.documentElement.addEventListener('pointerleave', function () { m.tlift = 0; }, { passive: true });
     }
+    // Aufwärmen: ein winziger Zeichenvorgang lässt den Treiber den Shader fertig übersetzen,
+    // bevor die volle Fläche gezeichnet wird (vermeidet einen langen ersten Frame).
+    canvas.width = 8; canvas.height = 8; gl.viewport(0, 0, 8, 8);
+    w = 8; h = 8; draw(tNow);
+    setTimeout(start, 120);
+    function start() {
     if ('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas);
     else window.addEventListener('resize', resize);
     resize();
@@ -496,7 +512,9 @@
     }
     document.addEventListener('visibilitychange', update);
     update();
+    if (softGL) frozen = true;
     silk.redraw = function () { if (!running && !frozen) draw(tNow); };
+    }
     }
   }
 
@@ -672,10 +690,11 @@
       spans.push(s);
     });
     var shown = 0, idleT = 0, done = false;
+    var last = [];
     function paint(k) {
       for (var i = 0; i < spans.length; i++) {
-        var f = clamp(k - i, 0, 1);
-        spans[i].style.opacity = (0.2 + 0.8 * f).toFixed(3);
+        var v = Math.round((0.2 + 0.8 * clamp(k - i, 0, 1)) * 50) / 50; // nur geänderte Wörter anfassen
+        if (last[i] !== v) { last[i] = v; spans[i].style.opacity = v; }
       }
     }
     function finish() {

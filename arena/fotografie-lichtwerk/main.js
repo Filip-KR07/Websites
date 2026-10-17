@@ -446,7 +446,7 @@
       if (!W || !H) return false;
       paintedW = W; paintedH = H;
       var dpr = Math.min(window.devicePixelRatio || 1, 2);
-      var sA = Math.min(dpr * 1.5, 2.5);
+      var sA = fine ? Math.min(dpr * 1.5, 2.5) : dpr; // mit Lupe: mehr Reserve fürs Vergrößern
       atlas.width = Math.round(W * sA); atlas.height = Math.round(H * sA);
       actx.setTransform(sA, 0, 0, sA, 0, 0);
       actx.clearRect(0, 0, W, H);
@@ -484,8 +484,11 @@
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, atlas);
       return true;
     }
+    // Während der Entwicklung rechnet der Shader mit halber Auflösung und 30 Bildern/s
+    // (weiches Korn, halbe Last); fixiert wird in voller Auflösung.
+    var resScale = 0.5;
     function size() {
-      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var dpr = Math.min(window.devicePixelRatio || 1, 2) * resScale;
       dprC = dpr;
       var w = Math.max(2, Math.round(W * dpr)), h = Math.max(2, Math.round(H * dpr));
       if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
@@ -495,7 +498,7 @@
 
     // --- Zustand & Schleife (läuft nur bei Bewegung) ---
     var P = 0, developing = false, t0 = 0, raf = 0, visible = true;
-    var leak = 0, leakT = 0, lp = 0, lpT = 0, mx = 0, my = 0, tx = 0, ty = 0;
+    var leak = 0, lp = 0, lpT = 0, mx = 0, my = 0, tx = 0, ty = 0;
     function draw(now) {
       if (!texReady) return;
       gl.uniform1f(U.uP, P);
@@ -510,21 +513,22 @@
       raf = 0;
       if (!visible || document.hidden) return;
       var more = false;
+      var skip = false;
       if (developing) {
+        if (now - lastDraw < 30 && lpT === 0) { raf = requestAnimationFrame(frame); return; }
         var raw = clamp((now - t0) / ENTWICKLUNG_MS, 0, 1);
         P = easeIO(raw); setStep(raw);
-        if (raw >= 1) developing = false; else more = true;
+        if (raw >= 1) { developing = false; resScale = 1; size(); } else more = true;
       }
       lp += (lpT - lp) * 0.2; mx += (tx - mx) * 0.24; my += (ty - my) * 0.24;
       if (Math.abs(lpT - lp) > 0.003 || Math.abs(tx - mx) > 0.3 || Math.abs(ty - my) > 0.3) more = true; else { lp = lpT; mx = tx; my = ty; }
-      leak += (leakT - leak) * 0.22;
-      if (Math.abs(leakT - leak) > 0.002) more = true; else leak = leakT;
       if (loupe) loupe.style.transform = 'translate(' + mx.toFixed(1) + 'px,' + my.toFixed(1) + 'px)';
-      draw(now);
+      if (!skip) { draw(now); lastDraw = now; }
       if (more) raf = requestAnimationFrame(frame);
     }
     function kick() { if (!raf && visible && !document.hidden) raf = requestAnimationFrame(frame); }
-    function develop() { reset(); P = 0; t0 = performance.now(); developing = true; setStep(0); kick(); }
+    var lastDraw = 0;
+    function develop() { reset(); P = 0; t0 = performance.now(); developing = true; resScale = 0.5; if (texReady) size(); setStep(0); kick(); }
 
     // Bilder + Schrift abwarten, dann Atlas zeichnen und entwickeln
     var imgs = $$('[data-strip] .fr img', paper).filter(function (im) { return im.closest('[data-strip]').offsetWidth > 0; });
@@ -532,10 +536,13 @@
     var bitmaps = new Map();
     var waits = imgs.map(function (im) {
       return new Promise(function (res) {
-        var dec = function () {
-          if (window.createImageBitmap) createImageBitmap(im).then(function (bm) { bitmaps.set(im, bm); res(); }, res);
-          else if (im.decode) im.decode().then(res, res); else res();
-        };
+        // Blob → ImageBitmap dekodiert in einem Hilfsthread (aus dem Cache, kein zweiter Download)
+        if (window.createImageBitmap && window.fetch) {
+          fetch(im.currentSrc || im.src).then(function (r) { return r.blob(); }).then(function (bl) { return createImageBitmap(bl); })
+            .then(function (bm) { bitmaps.set(im, bm); res(); }, function () { if (im.decode) im.decode().then(res, res); else res(); });
+          return;
+        }
+        var dec = function () { if (im.decode) im.decode().then(res, res); else res(); };
         if (im.complete && im.naturalWidth) return dec();
         im.addEventListener('load', dec, { once: true }); im.addEventListener('error', res, { once: true });
       });
@@ -564,11 +571,16 @@
     if (replay) replay.addEventListener('click', develop);
     canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); texReady = false; sheet.classList.remove('has-gl', 'is-looking'); sheet.classList.add('is-developed'); hero.classList.add('is-lit'); });
 
-    // Lichtleck: wächst, während der Hero aus dem Bild scrollt
-    window.addEventListener('scroll', function () {
-      var hgt = hero.offsetHeight || 1;
-      leakT = Math.pow(clamp(window.pageYOffset / (hgt * 0.85), 0, 1), 1.4);
-      kick();
+    // Lichtleck: wächst, während der Hero aus dem Bild scrollt (eigene Ebene, nur Transform/Opacity)
+    var leakEl = $('[data-sheet-leak]'), leakTick = false;
+    if (leakEl) window.addEventListener('scroll', function () {
+      if (leakTick) return; leakTick = true;
+      requestAnimationFrame(function () {
+        leakTick = false;
+        var k = Math.pow(clamp(window.pageYOffset / ((hero.offsetHeight || 1) * 0.85), 0, 1), 1.3);
+        leakEl.style.opacity = k.toFixed(3);
+        leakEl.style.transform = 'translateX(' + ((1 - k) * 38).toFixed(1) + '%)';
+      });
     }, { passive: true });
 
     // Fadenzähler: folgt der Maus mit Feder, nur bei feinem Zeiger
@@ -972,7 +984,6 @@
         var sw = stage.clientWidth || window.innerWidth;
         var canLeft = can.offsetLeft || sw * 0.8;
         startX = canLeft - 70;
-        film.style.clipPath = 'inset(-40px ' + Math.round(sw - canLeft - can.offsetWidth * 0.32) + 'px -40px 0)';
         var outroCenter = outro.offsetLeft + outro.offsetWidth / 2;
         endX = sw * 0.4 - outroCenter;
         section.style.setProperty('--story-h', Math.round((window.innerHeight) + (startX - endX) * 1.05) + 'px');
@@ -986,7 +997,7 @@
         scrollTrigger: {
           trigger: section, start: 'top top', end: 'bottom bottom', scrub: 1.1, invalidateOnRefresh: true,
           onUpdate: function (self) {
-            if (label) label.setAttribute('transform', 'translate(' + (-((self.progress * 1300) % 108)).toFixed(1) + ' 0)');
+            if (label) label.setAttribute('transform', 'translate(' + (((self.progress * 1300) % 96)).toFixed(1) + ' 0)');
             skewTo(clamp(self.getVelocity() / -420, -3.2, 3.2));
             clearTimeout(rest); rest = setTimeout(function () { skewTo(0); }, 140);
           }
@@ -1004,7 +1015,6 @@
         section.style.removeProperty('--story-h');
         root.classList.remove('story-h'); section.classList.remove('is-strecke');
         gsap.set(track, { clearProps: 'transform' });
-        film.style.clipPath = '';
         negs.forEach(function (n) { gsap.set(n, { clearProps: 'clipPath' }); });
       };
     });
@@ -1375,15 +1385,31 @@
      ------------------------------------------------------------------ */
   function initRegion() {
     var map = $('[data-map]'), elbe = $('[data-elbe]');
-    if (!map || !elbe || !MOTION || !hasGSAP) return;
+    if (!map || !elbe || !MOTION || !('IntersectionObserver' in window)) return;
     map.classList.add('is-scrub');
     var places = $$('.map-places g', map).map(function (g) { return { g: g, at: parseFloat(g.getAttribute('data-at')) || 0 }; });
-    var set = function (p) {
-      elbe.style.strokeDashoffset = (1 - p).toFixed(4);
-      places.forEach(function (o) { o.g.classList.toggle('is-on', p >= o.at); });
-    };
-    set(0);
-    ScrollTrigger.create({ trigger: map, start: 'top 85%', end: 'bottom 55%', scrub: 0.6, onUpdate: function (self) { set(self.progress); }, onRefresh: function (self) { set(self.progress); } });
+    // Fortschritt direkt aus der Lage im Viewport (unabhängig von Layout-Änderungen weiter oben)
+    var shown = 0, target = 0, raf = 0, vis = false, last = -1;
+    function measure() {
+      var r = map.getBoundingClientRect(), vh = window.innerHeight;
+      var start = vh * 0.85, end = vh * 0.55 - r.height;   // top 85 % … bottom 55 %
+      target = clamp((start - r.top) / (start - end), 0, 1);
+    }
+    function loop() {
+      raf = 0;
+      shown += (target - shown) * 0.16;
+      if (Math.abs(target - shown) < 0.001) shown = target;
+      if (Math.abs(shown - last) > 0.0005) {
+        last = shown;
+        elbe.style.strokeDashoffset = (1 - shown).toFixed(4);
+        places.forEach(function (o) { o.g.classList.toggle('is-on', shown >= o.at); });
+      }
+      if (vis && shown !== target) raf = requestAnimationFrame(loop);
+    }
+    function onScroll() { if (!vis) return; measure(); if (!raf) raf = requestAnimationFrame(loop); }
+    elbe.style.strokeDashoffset = '1';
+    new IntersectionObserver(function (en) { vis = en[0].isIntersecting; if (vis) onScroll(); }, { rootMargin: '10% 0px' }).observe(map);
+    window.addEventListener('scroll', onScroll, { passive: true });
   }
 
   /* Laufband „Außerdem“: Tempo und Richtung folgen dem Scrollen */
@@ -1537,25 +1563,13 @@
   /* ------------------------------------------------------------------
      Start in Etappen
      ------------------------------------------------------------------ */
-  /* Nachgezeichnete Abschnitte (content-visibility) ändern ihre Höhe: Trigger neu messen */
-  function initLazySections() {
-    if (!hasGSAP || !('ResizeObserver' in window)) return;
-    var t = 0, seen = new Map();
-    var ro = new ResizeObserver(function (en) {
-      var changed = false;
-      en.forEach(function (e) { var h = Math.round(e.contentRect.height); if (seen.get(e.target) !== h) { if (seen.has(e.target)) changed = true; seen.set(e.target, h); } });
-      if (changed) { clearTimeout(t); t = setTimeout(function () { ScrollTrigger.refresh(); }, 220); }
-    });
-    $$('.packages, .avail, .about, .voices, .region, .faq, .contact, .site-footer').forEach(function (s) { ro.observe(s); });
-  }
-
   function boot() {
     try { initScroll(); } catch (e) { /* weiter ohne Smooth Scroll */ }
     initMenu();
     initRoll();
     // Erst zeichnen lassen; Header und Hero bekommen eigene Tasks, danach der Rest in Häppchen
     var queue = [initHeader, function initHeroSafe() { try { initHero(); } catch (e) { if (window.console) console.error(e); } },
-      initStatement, initGallery, initStory, initConfigurator, initAvailability, initQuotes, initRegion, initMarquee, initForm, initCursor, initMagnet, initReveal, initLazySections, function () {
+      initStatement, initGallery, initStory, initConfigurator, initAvailability, initQuotes, initRegion, initMarquee, initForm, initCursor, initMagnet, initReveal, function () {
       window.__lichtwerkReady = true;
       if (hasGSAP) {
         ScrollTrigger.refresh();

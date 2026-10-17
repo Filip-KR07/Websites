@@ -25,15 +25,17 @@
       var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (off) d.classList.add('motion-off');
       if (reduce) d.classList.add('reduced');
-      if (!off && !reduce) d.classList.add('anim');
+      if (!off && !reduce) { d.classList.add('anim'); d.classList.add('chapters'); }
       // Sicherheitsnetz: Startet main.js nicht, bleibt alles sichtbar.
       setTimeout(function () { if (!window.__hartmannReady) { d.classList.remove('anim'); d.classList.remove('chapters'); } }, 3500);
     })();
   </script>
-  <script src="/arena/kanzlei-hartmann/assets/vendor/gsap.min.js" defer></script>
-  <script src="/arena/kanzlei-hartmann/assets/vendor/ScrollTrigger.min.js" defer></script>
-  <script src="/arena/kanzlei-hartmann/assets/vendor/lenis.min.js" defer></script>
-  <script src="/arena/kanzlei-hartmann/main.js" defer></script>
+  <script>
+    // Skripte der Reihe nach, aber jedes in einer eigenen Aufgabe (kein langer Start-Task)
+    ['assets/vendor/gsap.min.js', 'assets/vendor/ScrollTrigger.min.js', 'assets/vendor/lenis.min.js', 'main.js'].forEach(function (f) {
+      var s = document.createElement('script'); s.src = '/arena/kanzlei-hartmann/' + f; s.async = false; document.head.appendChild(s);
+    });
+  </script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -1158,7 +1160,7 @@
     </section>
   </main>
 
-  <footer class="ch site-foot" data-chapter="ink">
+  <footer class="ch site-foot" data-chapter="ink" data-head-num="" data-head-title="Kontakt · Druckvermerk">
     <div class="wrap">
       <p class="foot-plate" aria-hidden="true">Hartmann</p>
       <div class="foot-top">
