@@ -79,7 +79,7 @@
       bar.style.transform = `scaleX(${max > 0 ? Math.min(1, y / max) : 0})`;
     };
     addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
-    update();
+    requestAnimationFrame(() => setTimeout(update, 0));
 
     const close = (focusBtn) => {
       btn.setAttribute('aria-expanded', 'false');
@@ -171,9 +171,11 @@
       hero.addEventListener('pointermove', e => { if (lx !== null) pedal += Math.abs(e.clientX - lx) * HERO.pointerGain; lx = e.clientX; kick(); }, { passive: true });
       hero.addEventListener('pointerleave', () => { lx = null; });
     }
-    if ('ResizeObserver' in window) new ResizeObserver(() => resize()).observe(hero); else resize();
-    resize();
-    kick();
+    // Maße erst nach dem ersten Frame lesen – kein erzwungenes Layout beim Start
+    requestAnimationFrame(() => setTimeout(() => {
+      if ('ResizeObserver' in window) new ResizeObserver(() => resize()).observe(hero); else resize();
+      kick();
+    }, 0));
   }
 
   /* ================= Etappe 2: Lenis + GSAP ================= */
@@ -803,6 +805,11 @@
     if (queue.length) idle(run);
     else if (ST()) ScrollTrigger.refresh();
   };
-  idle(run);
+  // Bibliotheken erst nach dem ersten Frame nachladen (GSAP, ScrollTrigger, Lenis), dann die Warteschlange abarbeiten
+  const VENDOR = ['gsap.min.js', 'ScrollTrigger.min.js', 'lenis.min.js'].map(f => '/arena/radwerk-oldenburg/assets/vendor/' + f);
+  const load = src => new Promise(res => { const sc = document.createElement('script'); sc.src = src; sc.async = false; sc.onload = sc.onerror = res; document.head.append(sc); });
+  const startQueue = () => idle(run);
+  if (MOTION) requestAnimationFrame(() => setTimeout(() => { Promise.all(VENDOR.map(load)).then(startQueue); }, 0));
+  else startQueue();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (ST() && !queue.length) ScrollTrigger.refresh(); });
 })();
