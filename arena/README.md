@@ -9,36 +9,36 @@ Rechner-Werte geändert werden.
 
 | Modell | Ordner | Beispielbetrieb | Gruppe | Kurz |
 |---|---|---|---|---|
-| „Wurzel“ | [`galabau-gruenform/`](galabau-gruenform/) | Grünform Garten- & Landschaftsbau, Kassel | Handwerk & Bau | Natürlich und architektonisch, mit Gartenplaner und Jahreszeiten. |
-| „Glanz“ | [`reinigung-blitzblank/`](reinigung-blitzblank/) | Blitzblank Gebäudereinigung, Mannheim | Handwerk & Bau | Hell und frisch, mit Wisch-Effekt und Angebotsrechner. |
-| „Nähe“ | [`pflege-lebenswert/`](pflege-lebenswert/) | Lebenswert Ambulanter Pflegedienst, Erfurt | Gesundheit | Warm und barrierearm, mit Lesbarkeits-Leiste und Pflegegrad-Orientierung. |
-| „Fokus“ | [`optik-klarsicht/`](optik-klarsicht/) | Klarsicht Optik & Akustik, Bonn | Gesundheit | Minimal und präzise, mit Fokus-Effekt und Brillen-Anprobe. |
-| „Pfote“ | [`tierarzt-pfotenwerk/`](tierarzt-pfotenwerk/) | Tierarztpraxis Pfotenwerk, Bremen | Gesundheit | Freundlich und kompetent, mit Notfall-Wegweiser und Impfplaner. |
-| „Klarheit“ | [`zahnarzt-sommer/`](zahnarzt-sommer/) | Zahnarztpraxis Dr. Lea Sommer, München | Gesundheit | Hell und ruhig, mit Gebiss-Schema und Atemübung für Angstpatienten. |
-| „Messing“ | [`barbershop-kaiser/`](barbershop-kaiser/) | KAISER Barbershop, Köln | Beauty | Dunkel und messingfarben, mit Termin-Buchung und Bart-Konfigurator. |
-| „Seide“ | [`kosmetik-maison-belle/`](kosmetik-maison-belle/) | Maison Belle Kosmetik, Düsseldorf | Beauty | Luxuriös und seidig, mit Hauttyp-Quiz und Gutschein-Konfigurator. |
-| „Tinte“ | [`tattoo-schwarzstich/`](tattoo-schwarzstich/) | Schwarzstich Tattoo, Kiel | Beauty | Blackwork und Tinte, mit Körper-Silhouette und Artist-Portfolio. |
-| „Schmiede“ | [`fitness-forge/`](fitness-forge/) | FORGE Athletic Club, Berlin | Sport & Wohlbefinden | Schnell und laut, mit Kursplan, Mitgliedschafts-Konfigurator und Trainingsplan. |
-| „Atem“ | [`yoga-atemraum/`](yoga-atemraum/) | Atemraum Yoga, Münster | Sport & Wohlbefinden | Organisch und ruhig, mit Atemübung, Stundenplan und Stil-Quiz. |
-| „Ufer“ | [`hotel-seeblick/`](hotel-seeblick/) | Hotel Seeblick am Tegernsee, Gmund am Tegernsee | Gastronomie & Hotel | Alpin und luxuriös, mit Buchungs-Widget und Tag-Nacht-Hero. |
-| „Tavola“ | [`trattoria-nonna-rosa/`](trattoria-nonna-rosa/) | Trattoria Nonna Rosa, Stuttgart | Gastronomie & Hotel | Lebendig und handgemacht, mit Speisekarte, Reservierung und Wein-Pairing. |
-| „Adresse“ | [`immobilien-ostwald/`](immobilien-ostwald/) | Ostwald Immobilien, Frankfurt am Main | Beratung & Service | Gehoben und architektonisch, mit Bewertung und Finanzierungsrechner. |
-| „Paragraf“ | [`kanzlei-hartmann/`](kanzlei-hartmann/) | Hartmann Rechtsanwälte, Nürnberg | Beratung & Service | Seriös und editorial, mit Rechtsgebiete-Explorer und Erstberatung. |
-| „Bilanz“ | [`steuer-falk/`](steuer-falk/) | Falk & Partner Steuerberatung, Hannover | Beratung & Service | Klar wie ein Kontenblatt, mit Fristenkalender und Unterlagen-Checkliste. |
-| „Spur“ | [`fahrschule-gruene-welle/`](fahrschule-gruene-welle/) | Fahrschule Grüne Welle, Essen | Mobilität | Jung und verkehrsgrafisch, mit Theorie-Quiz und Kostenrechner. |
-| „Drehmoment“ | [`kfz-berger/`](kfz-berger/) | Kfz-Meisterwerkstatt Berger, Dortmund | Mobilität | Technisch und präzise, mit Service-Rechner und klickbarem Auto. |
-| „Blüte“ | [`florist-blattwerk/`](florist-blattwerk/) | Blattwerk Floristik, Heidelberg | Kreativ & Handel | Botanisch und editorial, mit Strauß-Konfigurator und Saisonkalender. |
-| „Silber“ | [`fotografie-lichtwerk/`](fotografie-lichtwerk/) | Lichtwerk Hochzeitsfotografie, Dresden | Kreativ & Handel | Filmisch und still, mit Galerie, Paket-Konfigurator und Verfügbarkeit. |
-| „Kruste“ | [`backstube-korn/`](backstube-korn/) | Backstube Korn, Regensburg | Gastronomie & Hotel | Warm und handwerklich, mit Ofenfrisch-Uhr und Torten-Konfigurator. |
-| „Achse“ | [`physio-bewegt/`](physio-bewegt/) | bewegt. Physiotherapie, Münster | Gesundheit | Klar und sportlich, mit Körperkarte und Übungs-Player. |
-| „Röstgrad“ | [`roesterei-bohnenwerk/`](roesterei-bohnenwerk/) | Bohnenwerk Kaffeerösterei, Dresden | Gastronomie & Hotel | Dunkel und sinnlich, mit Röstkurven, Geschmacksrad und Brew-Timer. |
-| „Terroir“ | [`weingut-steinlage/`](weingut-steinlage/) | Weingut Steinlage, Deidesheim | Gastronomie & Hotel | Ruhig und erdig, mit Lagen-Karte, Wein-Finder und Weinprobe-Buchung. |
-| „Takt“ | [`musikschule-klangraum/`](musikschule-klangraum/) | Klangraum Musikschule, Mainz | Kreativ & Handel | Verspielt und mutig, mit spielbarem Sequencer und Instrumenten-Finder. |
-| „Etappe“ | [`umzug-zugvogel/`](umzug-zugvogel/) | Zugvogel Umzüge, Hannover | Mobilität | Kräftig und logistisch, mit Volumen-Rechner und Umzugs-Checkliste. |
-| „Grundriss“ | [`architektur-raumlinie/`](architektur-raumlinie/) | Raumlinie Architekten, Stuttgart | Beratung & Service | Monochrom und präzise, mit Grundriss-Explorer und Leistungsphasen. |
-| „Drehung“ | [`tanzschule-taktvoll/`](tanzschule-taktvoll/) | Tanzschule Taktvoll, Augsburg | Sport & Wohlbefinden | Abendlich und elegant, mit Spotlight-Hero und Schritt-Lehrer. |
-| „Kette“ | [`radwerk-oldenburg/`](radwerk-oldenburg/) | Radwerk, Oldenburg | Mobilität | Urban und sportlich, mit Rahmengrößen- und Reichweiten-Rechner. |
-| „Stille“ | [`bestattung-weidner/`](bestattung-weidner/) | Bestattungen Weidner, Lübeck | Beratung & Service | Still und würdevoll, mit Trauerfall-Anleitung und Vorsorge-Planer. |
+| „Wurzel“ | [`galabau-gruenform/`](galabau-gruenform/) | Grünform Garten- & Landschaftsbau, Kassel | Handwerk & Bau | Schnitt und Draufsicht: Pflanzen wachsen generativ, Wurzeln treiben, Jahreszeiten färben die Seite um. |
+| „Glanz“ | [`reinigung-blitzblank/`](reinigung-blitzblank/) | Blitzblank Gebäudereinigung, Mannheim | Handwerk & Bau | Die Seite als Glasscheibe: beschlagen, freigewischt, abgezogen und quittiert. |
+| „Nähe“ | [`pflege-lebenswert/`](pflege-lebenswert/) | Lebenswert Ambulanter Pflegedienst, Erfurt | Gesundheit | Ein Tag, ein Licht: vom Morgengrauen über Erfurt bis zur Nachtbereitschaft – ruhig und sehr gut lesbar. |
+| „Fokus“ | [`optik-klarsicht/`](optik-klarsicht/) | Klarsicht Optik & Akustik, Bonn | Gesundheit | Eine Sehtafel, die man durch eine WebGL-Linse liest – alles kommt aus der Unschärfe. |
+| „Pfote“ | [`tierarzt-pfotenwerk/`](tierarzt-pfotenwerk/) | Tierarztpraxis Pfotenwerk, Bremen | Gesundheit | Das gezeichnete Wartezimmer: Tiere, die dem Cursor folgen, und ein live geschaltetes Türschild. |
+| „Klarheit“ | [`zahnarzt-sommer/`](zahnarzt-sommer/) | Zahnarztpraxis Dr. Lea Sommer, München | Gesundheit | Befund in Klarheit: Schweizer Raster wie ein Panorama-Röntgenbild, Zahnschema im Hero. |
+| „Messing“ | [`barbershop-kaiser/`](barbershop-kaiser/) | KAISER Barbershop, Köln | Beauty | Blattgold auf Schaufensterglas, freigeschnitten mit der Klinge – WebGL-Gold und Rasur-Ritual. |
+| „Seide“ | [`kosmetik-maison-belle/`](kosmetik-maison-belle/) | Maison Belle Kosmetik, Düsseldorf | Beauty | Eine WebGL-Seidenbahn fällt durch einen Tag im Studio, Bilder öffnen sich wie Tropfen. |
+| „Tinte“ | [`tattoo-schwarzstich/`](tattoo-schwarzstich/) | Schwarzstich Tattoo, Kiel | Beauty | Flash-Bogen auf Knochenpapier: Tinte breitet sich aus, die Nadel zeichnet Stich für Stich. |
+| „Schmiede“ | [`fitness-forge/`](fitness-forge/) | FORGE Athletic Club, Berlin | Sport & Wohlbefinden | Wildplakat und Eisen: verrutschter Druck, Gaffa-Tape und kinetische Typo, die auf Tempo reagiert. |
+| „Atem“ | [`yoga-atemraum/`](yoga-atemraum/) | Atemraum Yoga, Münster | Sport & Wohlbefinden | Der Atem als Bewegungsgesetz: Form und Schrift atmen im 4-7-8-Takt. |
+| „Ufer“ | [`hotel-seeblick/`](hotel-seeblick/) | Hotel Seeblick am Tegernsee, Gmund am Tegernsee | Gastronomie & Hotel | Ein altes Hotelplakat vom Tegernsee, das man betreten kann – Steindruck-Ebenen und Horizontlinie. |
+| „Tavola“ | [`trattoria-nonna-rosa/`](trattoria-nonna-rosa/) | Trattoria Nonna Rosa, Stuttgart | Gastronomie & Hotel | Der gedeckte Tisch von oben: Teig wird ausgerollt, Nonnas Album blättert, das Glas füllt sich. |
+| „Adresse“ | [`immobilien-ostwald/`](immobilien-ostwald/) | Ostwald Immobilien, Frankfurt am Main | Beratung & Service | Die Seite als Haus: Fassade als Bauzeichnung, neun Fenster sind neun Objekte. |
+| „Paragraf“ | [`kanzlei-hartmann/`](kanzlei-hartmann/) | Hartmann Rechtsanwälte, Nürnberg | Beratung & Service | Titelseite eines Gesetzblatts: das Paragrafenzeichen aus Kleingedrucktem, gelesen mit der Lupe. |
+| „Bilanz“ | [`steuer-falk/`](steuer-falk/) | Falk & Partner Steuerberatung, Hannover | Beratung & Service | Kontenbuch und Rechenstreifen: Lineatur zieht sich durch, Summen rollen wie ein Odometer. |
+| „Spur“ | [`fahrschule-gruene-welle/`](fahrschule-gruene-welle/) | Fahrschule Grüne Welle, Essen | Mobilität | Verkehrsübungsplatz von oben: Bodenmarkierung als Headline, Ampelphasen und Schilder. |
+| „Drehmoment“ | [`kfz-berger/`](kfz-berger/) | Kfz-Meisterwerkstatt Berger, Dortmund | Mobilität | Ein Zeichnungssatz aus der Werkstatt: Explosionszeichnung, Prüfstand und Oszilloskop. |
+| „Blüte“ | [`florist-blattwerk/`](florist-blattwerk/) | Blattwerk Floristik, Heidelberg | Kreativ & Handel | Herbarium: Jeder Abschnitt ist ein Herbarbogen mit Belegen, Etiketten und Klebestreifen. |
+| „Silber“ | [`fotografie-lichtwerk/`](fotografie-lichtwerk/) | Lichtwerk Hochzeitsfotografie, Dresden | Kreativ & Handel | Eine Sitzung in der Dunkelkammer: Negative entwickeln sich unter Rotlicht zu Positiven. |
+| „Kruste“ | [`backstube-korn/`](backstube-korn/) | Backstube Korn, Regensburg | Gastronomie & Hotel | Eine Nacht in der Backstube: Blick durch die Ofentür, der Teig geht auf, die Ofenuhr läuft. |
+| „Achse“ | [`physio-bewegt/`](physio-bewegt/) | bewegt. Physiotherapie, Münster | Gesundheit | Ein Motion-Capture-Protokoll: Die Linien-Figur bewegt sich durch die ganze Seite. |
+| „Röstgrad“ | [`roesterei-bohnenwerk/`](roesterei-bohnenwerk/) | Bohnenwerk Kaffeerösterei, Dresden | Gastronomie & Hotel | Das Röstprotokoll einer Charge: Live-Kurve im Logger, Bohnen rösten mit dem Scroll. |
+| „Terroir“ | [`weingut-steinlage/`](weingut-steinlage/) | Weingut Steinlage, Deidesheim | Gastronomie & Hotel | Ein Kartenblatt des Hangs auf Kalksteinpapier: Höhenlinien, Parzellen und Sonnenbahn. |
+| „Takt“ | [`musikschule-klangraum/`](musikschule-klangraum/) | Klangraum Musikschule, Mainz | Kreativ & Handel | Die Seite ist eine Partitur: Worte auf Notenlinien, spielbarer Sequencer im Hero. |
+| „Etappe“ | [`umzug-zugvogel/`](umzug-zugvogel/) | Zugvogel Umzüge, Hannover | Mobilität | Eine Umzugsfahrt: Der LKW fährt über einen isometrischen Stadtplan die Seite entlang. |
+| „Grundriss“ | [`architektur-raumlinie/`](architektur-raumlinie/) | Raumlinie Architekten, Stuttgart | Beratung & Service | Eine Planmappe mit Blattkopf: Linien zeichnen sich, die Axonometrie dreht sich. |
+| „Drehung“ | [`tanzschule-taktvoll/`](tanzschule-taktvoll/) | Tanzschule Taktvoll, Augsburg | Sport & Wohlbefinden | Ein Ballabend in Akten: Samtvorhang, Verfolgerspot und ein Schritt-Lehrer im Takt. |
+| „Kette“ | [`radwerk-oldenburg/`](radwerk-oldenburg/) | Radwerk, Oldenburg | Mobilität | Eine Ausfahrt aus der Werkstatt in die Stadt, gezeichnet wie ein Maßblatt. |
+| „Stille“ | [`bestattung-weidner/`](bestattung-weidner/) | Bestattungen Weidner, Lübeck | Beratung & Service | Trauerdruck auf Büttenpapier, ein einziges Licht geht mit – still und würdevoll. |
 
 ## Online ansehen (GitHub Pages)
 
@@ -86,3 +86,7 @@ Kartenstapel auf dem Handy, Press-/Hover-Feedback und einheitliche Easing-Tokens
 danach bei allen Demos 0 Befunde (1440/1920/1024/390/360 px, `?motion=off`, ohne JS).
 
 Die zehn Demos der zweiten Runde (Bäckerei bis Bestattungshaus) wurden von Anfang an nach diesen Regeln gebaut und mit denselben Prüfskripten abgenommen.
+
+## Neugestaltung „Handarbeit statt KI-Look“ (Oktober 2026)
+
+Alle 33 Demos und beide Übersichten wurden mit den Skills design-critique, emil-design-eng, animate und find-animation-opportunities komplett neu gestaltet: ein eigenes Konzept aus der Branche je Seite (z. B. Blattgold-Schaufenster, Zeitungs-Titelseite, Dunkelkammer, Röstprotokoll, Planmappe), ein Hero mit eigenem „Wow“-Moment, mindestens drei scroll-getriebene Set Pieces, Mikro-Interaktionen und handgemachte SVG-/WebGL-Details. Die Gestaltungsidee steht jeweils in der README der Demo.
