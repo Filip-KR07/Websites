@@ -108,15 +108,21 @@
       </a>
       <nav class="main-nav" aria-label="Hauptnavigation">
         <ul>
-          <li><a href="#objekte">Objekte</a></li>
-          <li><a href="#bewertung">Bewertung</a></li>
-          <li><a href="#verkauf">Verkaufen</a></li>
-          <li><a href="#finanzierung">Finanzierung</a></li>
-          <li><a href="#ueber-uns">Über uns</a></li>
-          <li><a href="#kontakt">Kontakt</a></li>
+          <li><a href="#objekte" data-roll>Objekte</a></li>
+          <li><a href="#bewertung" data-roll>Bewertung</a></li>
+          <li><a href="#verkauf" data-roll>Verkaufen</a></li>
+          <li><a href="#finanzierung" data-roll>Finanzierung</a></li>
+          <li><a href="#ueber-uns" data-roll>Über uns</a></li>
+          <li><a href="#kontakt" data-roll>Kontakt</a></li>
         </ul>
       </nav>
       <div class="header-actions">
+        <!-- Etagenanzeige: zeigt wie im Aufzug, in welchem „Geschoss“ (Kapitel) man gerade ist -->
+        <div class="lift" aria-hidden="true" data-lift>
+          <span class="lift-arrow" data-lift-arrow></span>
+          <span class="lift-floor"><span class="lift-roll" data-lift-floor>EG</span></span>
+          <span class="lift-name"><span class="lift-roll" data-lift-name>Straße</span></span>
+        </div>
         <a class="header-phone" href="tel:+49695559030"><svg class="i" aria-hidden="true"><use href="#i-phone"/></svg><span>069&nbsp;555&nbsp;90&nbsp;30</span></a>
         <a class="btn btn--small btn--night header-cta" href="#bewertung">Wert ermitteln</a>
         <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
@@ -150,88 +156,91 @@
 
   <main id="main">
 
-    <!-- ============================== HERO ============================== -->
-    <section class="hero" id="start" aria-labelledby="hero-title">
-      <div class="hero-grid-bg" aria-hidden="true"></div>
-      <div class="container hero-inner">
-        <div class="hero-top">
-          <p class="eyebrow hero-eyebrow" data-hero-fade><span class="rule" aria-hidden="true"></span><span>Immobilienmakler in Frankfurt am Main<span class="eb-since"><span class="eb-sep"> · </span>seit&nbsp;2009</span></span></p>
-          <p class="hero-coords" data-hero-fade aria-hidden="true">50°&nbsp;07′&nbsp;N · 8°&nbsp;40′&nbsp;O — Grüneburgweg&nbsp;12</p>
-        </div>
-        <h1 class="hero-title" id="hero-title">
-          <span class="line"><span class="line-inner">Realistisch bewertet.</span></span>
-          <span class="line line--2"><span class="line-inner"><em>Ruhig verkauft.</em></span></span>
-        </h1>
+    <!-- ============================== HERO: Fassadenansicht ============================== -->
+    <section class="hero" id="start" aria-labelledby="hero-title" data-floor="EG" data-floor-name="Straße">
+      <div class="container hero-grid">
+        <span class="guide" style="--y:13.158%" aria-hidden="true"></span>
+        <span class="guide" style="--y:33.684%" aria-hidden="true"></span>
+        <span class="guide" style="--y:55.263%" aria-hidden="true"></span>
+        <span class="guide" style="--y:78.421%" aria-hidden="true"></span>
 
-        <div class="hero-body">
-          <div class="hero-copy">
-            <p class="hero-lead" data-hero-fade>Ostwald Immobilien verkauft und vermietet Wohnungen und Häuser im Westend, Nordend, in Sachsenhausen und Bornheim – mit einer Preisspanne, die wir begründen<span class="lead-more">, Besichtigungen nur mit geprüften Interessenten und einem festen Ansprechpartner bis zur Schlüsselübergabe</span>.</p>
-            <div class="hero-ctas" data-hero-fade>
-              <a class="btn btn--night" href="#bewertung">Immobilie bewerten<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-              <a class="btn btn--line" href="#objekte"><span><span class="hide-sm">Aktuelle </span>Objekte</span></a>
-            </div>
-            <ul class="hero-trust" data-hero-fade>
-              <li class="trust-rating">
-                <span class="stars" aria-hidden="true"><svg class="i"><use href="#i-star"/></svg><svg class="i"><use href="#i-star"/></svg><svg class="i"><use href="#i-star"/></svg><svg class="i"><use href="#i-star"/></svg><svg class="i"><use href="#i-star"/></svg></span>
-                <span><strong>4,9</strong> aus 158&nbsp;Bewertungen</span>
-              </li>
-              <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>IHK-geprüft</li>
-              <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>8&nbsp;Köpfe, ein Ansprechpartner</li>
-            </ul>
-          </div>
+        <h1 class="hero-title" id="hero-title"><span class="hw"><span>Wir</span></span> <span class="hw"><span>kennen</span></span> <span class="hw"><span>die</span></span> <span class="hw"><span>Preise</span></span> <span class="hw"><span>hinter</span></span> <span class="hw"><span>diesen</span></span> <span class="hw"><span>Fenstern.</span></span></h1>
 
-          <div class="hero-visual">
-            <div class="hero-frame">
-              <figure class="hero-photo" data-hero-photo>
-                <img src="/arena/immobilien-ostwald/assets/img/altbau-960.webp" srcset="/arena/immobilien-ostwald/assets/img/altbau-480.webp 480w, /arena/immobilien-ostwald/assets/img/altbau-960.webp 960w" sizes="(min-width: 900px) 46vw, 92vw" width="960" height="641" alt="Altbau-Wohnzimmer mit Fischgrätparkett, blauem Sofa und hohen Sprossenfenstern" fetchpriority="high" decoding="async" data-parallax-img>
-              </figure>
-              <!-- Konstruktionslinien mit Überstand wie auf einer Bauzeichnung -->
-              <span class="cl cl--t" aria-hidden="true"></span>
-              <span class="cl cl--b" aria-hidden="true"></span>
-              <span class="cl cl--l" aria-hidden="true"></span>
-              <span class="cl cl--r" aria-hidden="true"></span>
-              <span class="dim dim--top" aria-hidden="true"><span class="dim-label">6,40&nbsp;m</span></span>
-              <span class="dim dim--side" aria-hidden="true"><span class="dim-label">4,20&nbsp;m</span></span>
-              <svg class="door door--r" viewBox="0 0 72 72" aria-hidden="true"><path d="M0 0v72M0 72A72 72 0 0 0 72 0"/></svg>
-              <svg class="door door--l" viewBox="0 0 56 56" aria-hidden="true"><path d="M56 0H0M56 0A56 56 0 0 1 0 56"/></svg>
-              <svg class="hero-north" viewBox="0 0 40 52" aria-hidden="true"><circle cx="20" cy="32" r="18"/><path d="M20 18l6 20-6-4-6 4z"/><text x="20" y="9">N</text></svg>
-              <a class="hero-card" href="#objekte" data-expose="OW-2611" data-hero-card>
-                <span class="hero-card-tag">Neu im Angebot · Westend-Süd</span>
-                <span class="hero-card-title">Altbau mit Fischgrätparkett nahe Palmengarten</span>
-                <span class="hero-card-meta"><span>4&nbsp;Zi.</span><span>128&nbsp;m²</span><strong>1.290.000&nbsp;€</strong></span>
-                <span class="hero-card-cta">Exposé ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span>
-              </a>
-            </div>
+        <div class="hero-lead">
+          <p class="hero-text">Ostwald Immobilien verkauft und vermietet Wohnungen und Häuser in Frankfurt am Main.<span class="lead-more"> Jede Preisspanne stützt sich auf Verkäufe, die wir selbst begleitet haben.</span></p>
+          <div class="hero-ctas">
+            <a class="btn btn--night" href="#bewertung" data-magnet>Immobilie bewerten<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+            <a class="btn btn--line" href="#objekte">Alle neun Objekte</a>
           </div>
         </div>
 
-        <dl class="kpis" data-kpis>
-          <div class="kpi"><dt><span data-count="340">340</span><span class="kpi-unit">+</span></dt><dd>vermittelte Immobilien seit 2009</dd></div>
-          <div class="kpi"><dt><span data-count="9">9</span><span class="kpi-unit">&nbsp;Wo.</span></dt><dd>im Schnitt bis zum Notartermin (2025)</dd></div>
-          <div class="kpi"><dt><span data-count="97">97</span><span class="kpi-unit">&nbsp;%</span></dt><dd>des Angebotspreises im Mittel erzielt</dd></div>
-          <div class="kpi"><dt><span data-count="12">12</span></dt><dd>Stadtteile, die wir aus eigenen Verkäufen kennen</dd></div>
-        </dl>
+        <!-- Schriftfeld wie auf einer Bauzeichnung: zeigt das Fenster unter dem Zeiger, dazu Prüfvermerk und Bewertung -->
+        <div class="hero-sheet">
+          <div class="sheet-main" data-legend>
+            <span class="sk" data-legend-k>1. OG · Achse B · OW-2611</span>
+            <span class="sv-t" data-legend-t>Altbau mit Fischgrätparkett nahe Palmengarten</span>
+            <span class="sv-m" data-legend-m>Westend-Süd · 4 Zi. · 128 m² · 1.290.000 €</span>
+          </div>
+          <div class="sheet-cells">
+            <span class="sc"><span class="sk">Büro</span><span class="sv">Grüneburgweg&nbsp;12</span></span>
+            <span class="sc"><span class="sk">Geprüft</span><span class="sv">IHK · seit 2009</span></span>
+            <span class="sc"><span class="sk">Bewertung</span><span class="sv"><span class="stars-mini" aria-hidden="true">★★★★★</span> 4,9 aus 158</span></span>
+          </div>
+          <svg class="stamp" viewBox="0 0 120 120" aria-hidden="true">
+            <defs><path id="stamp-ring" d="M60 60m-45 0a45 45 0 1 1 90 0a45 45 0 1 1 -90 0"/></defs>
+            <circle cx="60" cy="60" r="56"/><circle cx="60" cy="60" r="35"/>
+            <text class="stamp-ring"><textPath href="#stamp-ring">IMMOBILIENMAKLER · FRANKFURT AM MAIN · </textPath></text>
+            <text class="stamp-big" x="60" y="62">IHK</text>
+            <text class="stamp-small" x="60" y="76">geprüft</text>
+          </svg>
+        </div>
+
+        <div class="hero-facade">
+          <div class="facade" data-facade>
+      <a class="win" href="#objekte" data-expose="OW-2604" data-win="3. OG · Achse A · OW-2604" data-win-t="Dachgeschoss mit Blick über den Holzhausenpark" data-win-m="Nordend-West · 3 Zi. · 104 m² · 985.000 €" style="--l:16.406%;--t:16.053%;--w:15.000%;--h:14.737%;--o:1" aria-label="Exposé öffnen: Dachgeschoss mit Blick über den Holzhausenpark, Nordend-West · 3 Zi. · 104 m² · 985.000 €"><img src="/arena/immobilien-ostwald/assets/img/fenster-dach-wohnen.webp" width="420" height="560" alt="" decoding="async"><span class="win-blind" aria-hidden="true"></span></a>
+      <a class="win" href="#objekte" data-expose="OW-2579" data-win="3. OG · Achse B · OW-2579" data-win-t="Neubau mit Loggia im 7. Obergeschoss" data-win-m="Europaviertel · 3 Zi. · 92 m² · 1.890 € kalt" style="--l:42.500%;--t:16.053%;--w:15.000%;--h:14.737%;--o:5" aria-label="Exposé öffnen: Neubau mit Loggia im 7. Obergeschoss, Europaviertel · 3 Zi. · 92 m² · 1.890 € kalt"><img src="/arena/immobilien-ostwald/assets/img/fenster-neubau-schlafen.webp" width="420" height="560" alt="" decoding="async"><span class="win-blind" aria-hidden="true"></span></a>
+      <a class="win" href="#objekte" data-expose="OW-2598" data-win="3. OG · Achse C · OW-2598" data-win-t="Loft mit Backsteinwand im früheren Lagerhaus" data-win-m="Ostend · 2 Zi. · 86 m² · 2.150 € kalt" style="--l:68.594%;--t:16.053%;--w:15.000%;--h:14.737%;--o:4" aria-label="Exposé öffnen: Loft mit Backsteinwand im früheren Lagerhaus, Ostend · 2 Zi. · 86 m² · 2.150 € kalt"><img src="/arena/immobilien-ostwald/assets/img/fenster-loft.webp" width="420" height="560" alt="" decoding="async"><span class="win-blind" aria-hidden="true"></span></a>
+      <a class="win" href="#objekte" data-expose="OW-2566" data-win="2. OG · Achse A · OW-2566" data-win-t="Helle Zwei-Zimmer-Wohnung nahe Berger Straße" data-win-m="Bornheim · 2 Zi. · 64 m² · 1.290 € kalt" style="--l:16.406%;--t:36.842%;--w:15.000%;--h:16.316%;--o:6" aria-label="Exposé öffnen: Helle Zwei-Zimmer-Wohnung nahe Berger Straße, Bornheim · 2 Zi. · 64 m² · 1.290 € kalt"><img src="/arena/immobilien-ostwald/assets/img/fenster-hell.webp" width="420" height="560" alt="" decoding="async"><span class="win-blind" aria-hidden="true"></span></a>
+      <a class="win win--reserved" href="#objekte" data-expose="OW-2552" data-win="2. OG · Achse B · OW-2552" data-win-t="Vermietete Zwei-Zimmer-Wohnung für Kapitalanleger" data-win-m="Bockenheim · 2 Zi. · 58 m² · 420.000 € · reserviert" style="--l:42.500%;--t:36.842%;--w:15.000%;--h:16.316%;--o:8" aria-label="Exposé öffnen: Vermietete Zwei-Zimmer-Wohnung für Kapitalanleger, Bockenheim · 2 Zi. · 58 m² · 420.000 € · reserviert"><span class="win-curtain" aria-hidden="true"></span><span class="win-sign" aria-hidden="true">Reserviert</span><span class="win-blind" aria-hidden="true"></span></a>
+      <a class="win" href="#objekte" data-expose="OW-2545" data-win="2. OG · Achse C · OW-2545" data-win-t="Maisonette zwei Straßen von der Schweizer Straße" data-win-m="Sachsenhausen-Nord · 3 Zi. · 96 m² · 845.000 €" style="--l:68.594%;--t:36.842%;--w:15.000%;--h:16.316%;--o:2" aria-label="Exposé öffnen: Maisonette zwei Straßen von der Schweizer Straße, Sachsenhausen-Nord · 3 Zi. · 96 m² · 845.000 €"><img src="/arena/immobilien-ostwald/assets/img/fenster-altbau-essen.webp" width="420" height="560" alt="" decoding="async"><span class="win-blind" aria-hidden="true"></span></a>
+      <a class="win" href="#objekte" data-expose="OW-2587" data-win="1. OG · Achse A · OW-2587" data-win-t="Stadthaus mit Holzfassade und Garten" data-win-m="Dornbusch · 6 Zi. · 182 m² · 1.650.000 €" style="--l:16.406%;--t:59.474%;--w:15.000%;--h:17.368%;--o:3" aria-label="Exposé öffnen: Stadthaus mit Holzfassade und Garten, Dornbusch · 6 Zi. · 182 m² · 1.650.000 €"><img src="/arena/immobilien-ostwald/assets/img/fenster-haus-treppe.webp" width="420" height="560" alt="" decoding="async"><span class="win-blind" aria-hidden="true"></span></a>
+      <a class="win" href="#objekte" data-expose="OW-2611" data-win="1. OG · Achse B · OW-2611" data-win-t="Altbau mit Fischgrätparkett nahe Palmengarten" data-win-m="Westend-Süd · 4 Zi. · 128 m² · 1.290.000 €" style="--l:42.500%;--t:59.474%;--w:15.000%;--h:17.368%;--o:0" aria-label="Exposé öffnen: Altbau mit Fischgrätparkett nahe Palmengarten, Westend-Süd · 4 Zi. · 128 m² · 1.290.000 €"><img src="/arena/immobilien-ostwald/assets/img/fenster-altbau.webp" width="420" height="560" alt="" decoding="async"><span class="win-blind" aria-hidden="true"></span></a>
+      <a class="win" href="#objekte" data-expose="OW-2571" data-win="1. OG · Achse C · OW-2571" data-win-t="Villa am Lerchesberg mit Pool und Taunusblick" data-win-m="Sachsenhausen-Süd · 7 Zi. · 264 m² · 2.480.000 €" style="--l:68.594%;--t:59.474%;--w:15.000%;--h:17.368%;--o:7" aria-label="Exposé öffnen: Villa am Lerchesberg mit Pool und Taunusblick, Sachsenhausen-Süd · 7 Zi. · 264 m² · 2.480.000 €"><img src="/arena/immobilien-ostwald/assets/img/fenster-loft-holz.webp" width="420" height="560" alt="" decoding="async"><span class="win-blind" aria-hidden="true"></span></a>
+      <svg class="facade-lines" viewBox="0 0 640 760" aria-hidden="true" focusable="false">
+        <path class="fx fx-outline" style="--k:0" pathLength="1" d="M70 100V760M570 100V760 M60 86H580V100H60Z M64 92H576 M74 86L98 30H542L566 86 M102 25H538M102 25V30M538 25V30 M520 30V8H536V30M516 8H540"/>
+        <path class="fx fx-bands" style="--k:1" pathLength="1" d="M70 252H570M70 256H570 M70 416H570M70 420H570 M62 596H578V610H62Z M70 636H570 M70 748H292M348 748H570"/>
+        <path class="fx fx-dormers" style="--k:2" pathLength="1" d="M127 86V46H179V86 M121 47L153 35L185 47 M139 53H167V80H139Z M153 53V80M139 63H167 M294 86V46H346V86 M288 47L320 35L352 47 M306 53H334V80H306Z M320 53V80M306 63H334 M461 86V46H513V86 M455 47L487 35L519 47 M473 53H501V80H473Z M487 53V80M473 63H501"/>
+        <path class="fx fx-windows" style="--k:3" pathLength="1" d="M105 122H201V234H105Z M100 234V117H206V234 M97 234H209V240H97Z M105 156H201M153 156V234 M272 122H368V234H272Z M267 234V117H373V234 M264 234H376V240H264Z M272 156H368M320 156V234 M439 122H535V234H439Z M434 234V117H540V234 M431 234H543V240H431Z M439 156H535M487 156V234 M105 280H201V404H105Z M100 404V275H206V404 M97 404H209V410H97Z M105 317H201M153 317V404 M272 280H368V404H272Z M267 404V275H373V404 M264 404H376V410H264Z M272 317H368M320 317V404 M439 280H535V404H439Z M434 404V275H540V404 M431 404H543V410H431Z M439 317H535M487 317V404 M105 452H201V584H105Z M100 584V447H206V584 M97 584H209V590H97Z M105 492H201M153 492V584 M272 452H368V584H272Z M267 584V447H373V584 M264 584H376V590H264Z M272 492H368M320 492V584 M439 452H535V584H439Z M434 584V447H540V584 M431 584H543V590H431Z M439 492H535M487 492V584"/>
+        <path class="fx fx-deco" style="--k:4" pathLength="1" d="M100 113H206 M267 113H373 M434 113H540 M95 266H211V271H95Z M99 264H207 M262 266H378V271H262Z M266 264H374 M429 266H545V271H429Z M433 264H541 M93 444L153 426L213 444Z M93 444H213V447H93Z M103 590v6h8v-6M195 590v6h8v-6 M260 444L320 426L380 444Z M260 444H380V447H260Z M270 590v6h8v-6M362 590v6h8v-6 M427 444L487 426L547 444Z M427 444H547V447H427Z M437 590v6h8v-6M529 590v6h8v-6"/>
+        <path class="fx fx-rustica" style="--k:5" pathLength="1" d="M70 658H96M232 658H292M348 658H408M544 658H570 M70 680H96M232 680H292M348 680H408M544 680H570 M70 702H96M232 702H292M348 702H408M544 702H570 M70 724H96M232 724H292M348 724H408M544 724H570 M84 636V658 M262 636V658 M378 636V658 M556 636V658 M250 658V680 M390 658V680 M84 680V702 M262 680V702 M378 680V702 M556 680V702 M250 702V724 M390 702V724 M84 724V748 M262 724V748 M378 724V748 M556 724V748"/>
+        <path class="fx fx-ground" style="--k:6" pathLength="1" d="M96 652H232V738H96Z M102 658H226V732H102Z M164 658V732 M408 652H544V738H408Z M414 658H538V732H414Z M476 658V732 M292 652H348M292 652V760M348 652V760 M292 676H348 M320 676V760 M298 684H314V744H298Z M326 684H342V744H326Z M284 760V754H356V760 M356 668H382V686H356Z"/>
+        <path class="fx fx-sheets" style="--k:7" pathLength="1" d="M110 668H130V698H110Z M113 686h14M113 691h10 M113 671H127V681H113Z M136 668H156V698H136Z M139 686h14M139 691h10 M139 671H153V681H139Z M172 668H192V698H172Z M175 686h14M175 691h10 M175 671H189V681H175Z M198 668H218V698H198Z M201 686h14M201 691h10 M201 671H215V681H201Z M422 668H442V698H422Z M425 686h14M425 691h10 M425 671H439V681H425Z M448 668H468V698H448Z M451 686h14M451 691h10 M451 671H465V681H451Z M484 668H504V698H484Z M487 686h14M487 691h10 M487 671H501V681H487Z M510 668H530V698H510Z M513 686h14M513 691h10 M513 671H527V681H513Z"/>
+        <path class="fx fx-dims" style="--k:8" pathLength="1" d="M6 100H64 M44 91H56L50 100Z M576 100H612M598 106L610 94 M6 256H64 M44 247H56L50 256Z M576 256H612M598 262L610 250 M6 420H64 M44 411H56L50 420Z M576 420H612M598 426L610 414 M6 596H64 M44 587H56L50 596Z M576 596H612M598 602L610 590 M6 760H64 M44 751H56L50 760Z M576 760H612M598 766L610 754 M604 100V760 M153 19V24M153 27V30 M320 19V24M320 27V30 M487 19V24M487 27V30"/>
+        <g class="fx-text"><text class="fx-lv" x="6" y="87">+15,00</text><text class="fx-lvn" x="6" y="113">Traufe</text><text class="fx-lv" x="6" y="243">+11,70</text><text class="fx-lvn" x="6" y="269">3. OG</text><text class="fx-lv" x="6" y="407">+8,10</text><text class="fx-lvn" x="6" y="433">2. OG</text><text class="fx-lv" x="6" y="583">+4,20</text><text class="fx-lvn" x="6" y="609">1. OG</text><text class="fx-lv" x="6" y="752">±0,00</text><text class="fx-lvn" x="6" y="739">EG</text><text class="fx-dm" x="622" y="178" transform="rotate(-90 622 178)">3,30</text><text class="fx-dm" x="622" y="338" transform="rotate(-90 622 338)">3,60</text><text class="fx-dm" x="622" y="508" transform="rotate(-90 622 508)">3,90</text><text class="fx-dm" x="622" y="678" transform="rotate(-90 622 678)">4,20</text><circle class="fx-ax" cx="153" cy="10" r="8"/><text class="fx-axt" x="153" y="13.5">A</text><circle class="fx-ax" cx="320" cy="10" r="8"/><text class="fx-axt" x="320" y="13.5">B</text><circle class="fx-ax" cx="487" cy="10" r="8"/><text class="fx-axt" x="487" y="13.5">C</text><text class="fx-sign" x="320" y="628">OSTWALD · IMMOBILIEN</text><text class="fx-no" x="369" y="681">12</text></g>
+      </svg>
+          </div>
+          <p class="facade-hint" aria-hidden="true">Jedes Fenster ein aktuelles Objekt</p>
+        </div>
       </div>
+      <div class="hero-ground" aria-hidden="true"></div>
     </section>
 
-    <!-- ============================== LEISTUNGEN ============================== -->
-    <section class="section services" id="leistungen" aria-labelledby="services-title">
+    <!-- ============================== LEISTUNGEN: Hausverzeichnis ============================== -->
+    <section class="section services" id="leistungen" aria-labelledby="services-title" data-floor="2" data-floor-name="Leistungen">
       <div class="container">
-        <div class="section-head section-head--split">
-          <div>
-            <p class="eyebrow"><span class="rule" aria-hidden="true"></span>Leistungen</p>
-            <h2 class="h2" id="services-title" data-split>Was wir für Eigentümer und Suchende tun</h2>
-          </div>
-          <p class="section-intro" data-reveal>Wir arbeiten ausschließlich mit Wohnimmobilien in Frankfurt und dem Vordertaunus. Das hält die Wege kurz und die Vergleichswerte ehrlich: Fast jede Preisspanne, die wir nennen, stützt sich auf Verkäufe, die wir selbst begleitet haben.</p>
+        <div class="dir-head">
+          <h2 class="h2 dir-title" id="services-title" data-split>Fünf Anlässe, bei uns zu klingeln.</h2>
+          <p class="dir-intro">Wir arbeiten ausschließlich mit Wohnimmobilien in Frankfurt und dem Vordertaunus. Das hält die Wege kurz und die Vergleichswerte ehrlich: Fast jede Preisspanne, die wir nennen, stützt sich auf Verkäufe, die wir selbst begleitet haben.</p>
         </div>
 
-        <ol class="svc-list" data-svc-list data-stagger>
+        <ol class="svc-list" data-svc-list>
           <li class="svc" data-svc-img="haus">
             <a class="svc-link" href="#verkauf">
               <span class="svc-num">01</span>
               <span class="svc-title">Verkaufen</span>
-              <span class="svc-text">Preisfindung, Unterlagen, Exposé mit Grundriss, Besichtigungen nur mit Finanzierungsnachweis – und ein Ansprechpartner bis zur Schlüsselübergabe.</span>
+              <span class="svc-lead" aria-hidden="true"></span>
               <span class="svc-tags">Wohnung · Haus · Mehrfamilienhaus</span>
+              <span class="svc-text">Preisfindung, Unterlagen, Exposé mit Grundriss, Besichtigungen nur mit Finanzierungsnachweis und ein Ansprechpartner bis zur Schlüsselübergabe.</span>
               <svg class="i svc-arrow" aria-hidden="true"><use href="#i-arrow"/></svg>
             </a>
           </li>
@@ -239,8 +248,9 @@
             <a class="svc-link" href="#kontakt" data-anliegen="vermieten">
               <span class="svc-num">02</span>
               <span class="svc-title">Vermieten</span>
-              <span class="svc-text">Mieterauswahl mit Selbstauskunft und Bonitätsnachweis, Mietvertrag nach aktueller Vorlage, Übergabe mit Fotoprotokoll und Zählerständen.</span>
+              <span class="svc-lead" aria-hidden="true"></span>
               <span class="svc-tags">Wohnungen · möbliert auf Anfrage</span>
+              <span class="svc-text">Mieterauswahl mit Selbstauskunft und Bonitätsnachweis, Mietvertrag nach aktueller Vorlage, Übergabe mit Fotoprotokoll und Zählerständen.</span>
               <svg class="i svc-arrow" aria-hidden="true"><use href="#i-arrow"/></svg>
             </a>
           </li>
@@ -248,8 +258,9 @@
             <a class="svc-link" href="#bewertung">
               <span class="svc-num">03</span>
               <span class="svc-title">Bewerten</span>
-              <span class="svc-text">Kostenlose Markteinschätzung vor Ort mit schriftlicher Begründung. Für Erbe, Scheidung oder Finanzamt vermitteln wir ein Verkehrswertgutachten.</span>
+              <span class="svc-lead" aria-hidden="true"></span>
               <span class="svc-tags">Online-Orientierung · Termin vor Ort</span>
+              <span class="svc-text">Kostenlose Markteinschätzung vor Ort mit schriftlicher Begründung. Für Erbe, Scheidung oder Finanzamt vermitteln wir ein Verkehrswertgutachten.</span>
               <svg class="i svc-arrow" aria-hidden="true"><use href="#i-arrow"/></svg>
             </a>
           </li>
@@ -257,8 +268,9 @@
             <a class="svc-link" href="#objekte">
               <span class="svc-num">04</span>
               <span class="svc-title">Suchen &amp; Finden</span>
-              <span class="svc-text">Hinterlegen Sie einen Suchauftrag: Passende Objekte zeigen wir vorgemerkten Kundinnen und Kunden, bevor sie auf den Portalen erscheinen.</span>
+              <span class="svc-lead" aria-hidden="true"></span>
               <span class="svc-tags">Kauf · Miete · Kapitalanlage</span>
+              <span class="svc-text">Hinterlegen Sie einen Suchauftrag: Passende Objekte zeigen wir vorgemerkten Kundinnen und Kunden, bevor sie auf den Portalen erscheinen.</span>
               <svg class="i svc-arrow" aria-hidden="true"><use href="#i-arrow"/></svg>
             </a>
           </li>
@@ -266,8 +278,9 @@
             <a class="svc-link" href="#kontakt" data-anliegen="verkaufen">
               <span class="svc-num">05</span>
               <span class="svc-title">Besondere Situationen</span>
-              <span class="svc-text">Erbengemeinschaft, Trennung, Umzug ins betreute Wohnen, Verkauf mit Wohnrecht oder Nießbrauch: Wir nehmen uns Zeit und arbeiten mit Ihren Beratern zusammen.</span>
+              <span class="svc-lead" aria-hidden="true"></span>
               <span class="svc-tags">Diskret · auch ohne Inserat</span>
+              <span class="svc-text">Erbengemeinschaft, Trennung, Umzug ins betreute Wohnen, Verkauf mit Wohnrecht oder Nießbrauch: Wir nehmen uns Zeit und arbeiten mit Ihren Beratern zusammen.</span>
               <svg class="i svc-arrow" aria-hidden="true"><use href="#i-arrow"/></svg>
             </a>
           </li>
@@ -281,54 +294,72 @@
     </section>
 
     <!-- ============================== OBJEKTE ============================== -->
-    <section class="section objects" id="objekte" aria-labelledby="objects-title">
-      <div class="container">
-        <div class="section-head section-head--split">
-          <div>
-            <p class="eyebrow"><span class="rule" aria-hidden="true"></span>Aktuelle Objekte</p>
-            <h2 class="h2" id="objects-title" data-split>Neun Adressen, die gerade zu haben sind</h2>
+    <section class="objects" aria-labelledby="objects-title" data-floor="1" data-floor-name="Objekte">
+      <!-- Übergang: Das mittlere Fenster der Fassade öffnet sich beim Scrollen zum Raum -->
+      <div class="passage" data-passage>
+        <div class="passage-stage">
+          <div class="passage-room" data-passage-room>
+            <figure class="passage-photo" data-passage-photo>
+              <img src="/arena/immobilien-ostwald/assets/img/altbau-salon-960.webp" srcset="/arena/immobilien-ostwald/assets/img/altbau-salon-480.webp 480w, /arena/immobilien-ostwald/assets/img/altbau-salon-960.webp 960w" sizes="(min-width: 1024px) 50vw, 88vw" width="960" height="641" alt="Altbau-Wohnraum mit grauem Sofa, rundem Holztisch und hohem Fenster" loading="lazy" decoding="async">
+            </figure>
+            <div class="passage-copy">
+              <h2 class="passage-title" id="objects-title" data-passage-title><span class="pw"><span>Neun</span></span> <span class="pw"><span>Adressen,</span></span> <span class="pw"><span>die</span></span> <span class="pw"><span>gerade</span></span> <span class="pw"><span>zu</span></span> <span class="pw"><span>haben</span></span> <span class="pw"><span>sind.</span></span></h2>
+              <p class="passage-sub" data-passage-sub>Sechs zum Kauf, drei zur Miete. Weitere Wohnungen und Häuser zeigen wir zuerst vorgemerkten Suchkunden.</p>
+            </div>
           </div>
-          <p class="section-intro" data-reveal>Eine Auswahl unseres Angebots. Weitere Wohnungen und Häuser stellen wir zuerst vorgemerkten Suchkunden vor – fragen Sie gern nach, auch wenn hier nichts Passendes dabei ist.</p>
+          <div class="passage-frame" aria-hidden="true" data-passage-frame>
+            <span class="pf pf-t"></span><span class="pf pf-b"></span><span class="pf pf-l"></span><span class="pf pf-r"></span>
+            <span class="pf pf-x"></span><span class="pf pf-y"></span><span class="pf pf-sill"></span>
+          </div>
         </div>
+      </div>
 
-        <form class="filters" data-filters aria-label="Objekte filtern" onsubmit="return false">
-          <fieldset class="filter-group">
-            <legend class="filter-label">Angebot</legend>
-            <div class="segmented" data-mode-group>
-              <label><input type="radio" name="mode" value="kauf" checked><span>Kaufen</span></label>
-              <label><input type="radio" name="mode" value="miete"><span>Mieten</span></label>
-            </div>
-          </fieldset>
-          <fieldset class="filter-group">
-            <legend class="filter-label">Zimmer</legend>
-            <div class="chips chips--compact">
-              <label><input type="radio" name="rooms" value="0" checked><span>Alle</span></label>
-              <label><input type="radio" name="rooms" value="2"><span>ab&nbsp;2</span></label>
-              <label><input type="radio" name="rooms" value="3"><span>ab&nbsp;3</span></label>
-              <label><input type="radio" name="rooms" value="4"><span>ab&nbsp;4</span></label>
-            </div>
-          </fieldset>
-          <div class="filter-group filter-group--price">
-            <label class="filter-label" for="price-max">Preis bis <output class="filter-out" for="price-max" data-price-out>2.500.000&nbsp;€</output></label>
-            <input class="range" type="range" id="price-max" name="price" min="300000" max="2500000" step="25000" value="2500000" data-price-range>
+      <div class="objects-body" id="objekte">
+        <div class="container">
+          <div class="reg-head">
+            <p class="reg-title" aria-hidden="true">Objektverzeichnis</p>
+            <p class="reg-intro">Eine Auswahl unseres Angebots. Fragen Sie gern nach, auch wenn hier nichts Passendes dabei ist: Viele Objekte vermitteln wir, bevor sie inseriert werden.</p>
           </div>
-          <div class="filter-group filter-group--view">
-            <span class="filter-label" id="view-label">Ansicht</span>
-            <div class="view-tabs" role="tablist" aria-labelledby="view-label" data-view-tabs>
-              <button type="button" role="tab" id="tab-list" aria-controls="panel-list" aria-selected="true"><svg class="i" aria-hidden="true"><use href="#i-list"/></svg>Liste</button>
-              <button type="button" role="tab" id="tab-map" aria-controls="panel-map" aria-selected="false" tabindex="-1"><svg class="i" aria-hidden="true"><use href="#i-map"/></svg>Karte</button>
-            </div>
-          </div>
-        </form>
-        <p class="result-count" aria-live="polite" data-result-count>9 Objekte</p>
 
-        <div class="obj-panels">
-          <div class="obj-panel" id="panel-list" role="tabpanel" aria-labelledby="tab-list" data-panel-list>
-            <ul class="obj-grid" data-obj-grid data-stagger>
+          <form class="filters" data-filters aria-label="Objekte filtern" onsubmit="return false">
+            <fieldset class="filter-group">
+              <legend class="filter-label">Angebot</legend>
+              <div class="segmented" data-mode-group>
+                <label><input type="radio" name="mode" value="kauf" checked><span>Kaufen</span></label>
+                <label><input type="radio" name="mode" value="miete"><span>Mieten</span></label>
+              </div>
+            </fieldset>
+            <fieldset class="filter-group">
+              <legend class="filter-label">Zimmer</legend>
+              <div class="chips chips--compact">
+                <label><input type="radio" name="rooms" value="0" checked><span>Alle</span></label>
+                <label><input type="radio" name="rooms" value="2"><span>ab&nbsp;2</span></label>
+                <label><input type="radio" name="rooms" value="3"><span>ab&nbsp;3</span></label>
+                <label><input type="radio" name="rooms" value="4"><span>ab&nbsp;4</span></label>
+              </div>
+            </fieldset>
+            <div class="filter-group filter-group--price">
+              <label class="filter-label" for="price-max">Preis bis <output class="filter-out" for="price-max" data-price-out>2.500.000&nbsp;€</output></label>
+              <input class="range" type="range" id="price-max" name="price" min="300000" max="2500000" step="25000" value="2500000" data-price-range>
+            </div>
+            <div class="filter-group filter-group--view">
+              <span class="filter-label" id="view-label">Ansicht</span>
+              <div class="view-tabs" role="tablist" aria-labelledby="view-label" data-view-tabs>
+                <button type="button" role="tab" id="tab-list" aria-controls="panel-list" aria-selected="true"><svg class="i" aria-hidden="true"><use href="#i-list"/></svg>Liste</button>
+                <button type="button" role="tab" id="tab-map" aria-controls="panel-map" aria-selected="false" tabindex="-1"><svg class="i" aria-hidden="true"><use href="#i-map"/></svg>Karte</button>
+              </div>
+            </div>
+          </form>
+          <p class="result-count" aria-live="polite" data-result-count>9 Objekte</p>
+
+          <div class="obj-panels">
+            <div class="obj-panel" id="panel-list" role="tabpanel" aria-labelledby="tab-list" data-panel-list>
+              <div class="reg-layout">
+              <ul class="obj-grid" data-obj-grid>
               <li class="obj" data-id="OW-2611" data-mode="kauf" data-rooms="4" data-price="1290000">
                 <article class="obj-card">
                   <div class="obj-media">
-                    <img src="/arena/immobilien-ostwald/assets/img/altbau-960.webp" srcset="/arena/immobilien-ostwald/assets/img/altbau-480.webp 480w, /arena/immobilien-ostwald/assets/img/altbau-960.webp 960w" sizes="(min-width: 1200px) 400px, (min-width: 700px) 46vw, 92vw" width="960" height="641" alt="Altbau-Wohnzimmer mit Fischgrätparkett und blauem Sofa" loading="lazy" decoding="async">
+                    <img src="/arena/immobilien-ostwald/assets/img/altbau-960.webp" srcset="/arena/immobilien-ostwald/assets/img/altbau-480.webp 480w, /arena/immobilien-ostwald/assets/img/altbau-960.webp 960w" sizes="(min-width: 900px) 120px, 96px" width="960" height="641" alt="Altbau-Wohnzimmer mit Fischgrätparkett und blauem Sofa" loading="lazy" decoding="async">
                     <span class="obj-badge">Neu</span>
                   </div>
                   <div class="obj-body">
@@ -347,7 +378,7 @@
               <li class="obj" data-id="OW-2604" data-mode="kauf" data-rooms="3" data-price="985000">
                 <article class="obj-card">
                   <div class="obj-media">
-                    <img src="/arena/immobilien-ostwald/assets/img/dach-wohnen-960.webp" srcset="/arena/immobilien-ostwald/assets/img/dach-wohnen-480.webp 480w, /arena/immobilien-ostwald/assets/img/dach-wohnen-960.webp 960w" sizes="(min-width: 1200px) 400px, (min-width: 700px) 46vw, 92vw" width="960" height="640" alt="Heller Wohnraum mit weißer Ledercouch und Glastisch unter der Dachschräge" loading="lazy" decoding="async">
+                    <img src="/arena/immobilien-ostwald/assets/img/dach-wohnen-960.webp" srcset="/arena/immobilien-ostwald/assets/img/dach-wohnen-480.webp 480w, /arena/immobilien-ostwald/assets/img/dach-wohnen-960.webp 960w" sizes="(min-width: 900px) 120px, 96px" width="960" height="640" alt="Heller Wohnraum mit weißer Ledercouch und Glastisch unter der Dachschräge" loading="lazy" decoding="async">
                   </div>
                   <div class="obj-body">
                     <p class="obj-loc">Nordend-West · Dachgeschosswohnung</p>
@@ -365,7 +396,7 @@
               <li class="obj" data-id="OW-2587" data-mode="kauf" data-rooms="6" data-price="1650000">
                 <article class="obj-card">
                   <div class="obj-media">
-                    <img src="/arena/immobilien-ostwald/assets/img/haus-960.webp" srcset="/arena/immobilien-ostwald/assets/img/haus-480.webp 480w, /arena/immobilien-ostwald/assets/img/haus-960.webp 960w" sizes="(min-width: 1200px) 400px, (min-width: 700px) 46vw, 92vw" width="960" height="636" alt="Stadthaus mit Holzfassade und großen Fenstern hinter Birken in der Abendsonne" loading="lazy" decoding="async">
+                    <img src="/arena/immobilien-ostwald/assets/img/haus-960.webp" srcset="/arena/immobilien-ostwald/assets/img/haus-480.webp 480w, /arena/immobilien-ostwald/assets/img/haus-960.webp 960w" sizes="(min-width: 900px) 120px, 96px" width="960" height="636" alt="Stadthaus mit Holzfassade und großen Fenstern hinter Birken in der Abendsonne" loading="lazy" decoding="async">
                   </div>
                   <div class="obj-body">
                     <p class="obj-loc">Dornbusch · Einfamilienhaus</p>
@@ -383,7 +414,7 @@
               <li class="obj" data-id="OW-2571" data-mode="kauf" data-rooms="7" data-price="2480000">
                 <article class="obj-card">
                   <div class="obj-media">
-                    <img src="/arena/immobilien-ostwald/assets/img/villa-960.webp" srcset="/arena/immobilien-ostwald/assets/img/villa-480.webp 480w, /arena/immobilien-ostwald/assets/img/villa-960.webp 960w" sizes="(min-width: 1200px) 400px, (min-width: 700px) 46vw, 92vw" width="960" height="720" alt="Moderne Villa mit Holzdeck und rundem Pool vor weitem Hügelpanorama" loading="lazy" decoding="async">
+                    <img src="/arena/immobilien-ostwald/assets/img/villa-960.webp" srcset="/arena/immobilien-ostwald/assets/img/villa-480.webp 480w, /arena/immobilien-ostwald/assets/img/villa-960.webp 960w" sizes="(min-width: 900px) 120px, 96px" width="960" height="720" alt="Moderne Villa mit Holzdeck und rundem Pool vor weitem Hügelpanorama" loading="lazy" decoding="async">
                     <span class="obj-badge obj-badge--brass">Exklusiv</span>
                   </div>
                   <div class="obj-body">
@@ -402,7 +433,7 @@
               <li class="obj" data-id="OW-2545" data-mode="kauf" data-rooms="3" data-price="845000">
                 <article class="obj-card">
                   <div class="obj-media">
-                    <img src="/arena/immobilien-ostwald/assets/img/altbau-essen-960.webp" srcset="/arena/immobilien-ostwald/assets/img/altbau-essen-480.webp 480w, /arena/immobilien-ostwald/assets/img/altbau-essen-960.webp 960w" sizes="(min-width: 1200px) 400px, (min-width: 700px) 46vw, 92vw" width="960" height="620" alt="Essbereich mit rundem Marmortisch, weißen Stühlen und Blick in die Küche" loading="lazy" decoding="async">
+                    <img src="/arena/immobilien-ostwald/assets/img/altbau-essen-960.webp" srcset="/arena/immobilien-ostwald/assets/img/altbau-essen-480.webp 480w, /arena/immobilien-ostwald/assets/img/altbau-essen-960.webp 960w" sizes="(min-width: 900px) 120px, 96px" width="960" height="620" alt="Essbereich mit rundem Marmortisch, weißen Stühlen und Blick in die Küche" loading="lazy" decoding="async">
                   </div>
                   <div class="obj-body">
                     <p class="obj-loc">Sachsenhausen-Nord · Maisonette</p>
@@ -450,7 +481,7 @@
               <li class="obj" data-id="OW-2598" data-mode="miete" data-rooms="2" data-price="2150">
                 <article class="obj-card">
                   <div class="obj-media">
-                    <img src="/arena/immobilien-ostwald/assets/img/loft-960.webp" srcset="/arena/immobilien-ostwald/assets/img/loft-480.webp 480w, /arena/immobilien-ostwald/assets/img/loft-960.webp 960w" sizes="(min-width: 1200px) 400px, (min-width: 700px) 46vw, 92vw" width="960" height="640" alt="Loft mit Sichtmauerwerk, grauem Sofa und dunklem Dielenboden" loading="lazy" decoding="async">
+                    <img src="/arena/immobilien-ostwald/assets/img/loft-960.webp" srcset="/arena/immobilien-ostwald/assets/img/loft-480.webp 480w, /arena/immobilien-ostwald/assets/img/loft-960.webp 960w" sizes="(min-width: 900px) 120px, 96px" width="960" height="640" alt="Loft mit Sichtmauerwerk, grauem Sofa und dunklem Dielenboden" loading="lazy" decoding="async">
                   </div>
                   <div class="obj-body">
                     <p class="obj-loc">Ostend · Loft</p>
@@ -468,7 +499,7 @@
               <li class="obj" data-id="OW-2579" data-mode="miete" data-rooms="3" data-price="1890">
                 <article class="obj-card">
                   <div class="obj-media">
-                    <img src="/arena/immobilien-ostwald/assets/img/neubau-960.webp" srcset="/arena/immobilien-ostwald/assets/img/neubau-480.webp 480w, /arena/immobilien-ostwald/assets/img/neubau-960.webp 960w" sizes="(min-width: 1200px) 400px, (min-width: 700px) 46vw, 92vw" width="960" height="640" alt="Neubaufassade mit Holzbalkonen und Gegenlicht" loading="lazy" decoding="async">
+                    <img src="/arena/immobilien-ostwald/assets/img/neubau-960.webp" srcset="/arena/immobilien-ostwald/assets/img/neubau-480.webp 480w, /arena/immobilien-ostwald/assets/img/neubau-960.webp 960w" sizes="(min-width: 900px) 120px, 96px" width="960" height="640" alt="Neubaufassade mit Holzbalkonen und Gegenlicht" loading="lazy" decoding="async">
                     <span class="obj-badge">Neu</span>
                   </div>
                   <div class="obj-body">
@@ -487,7 +518,7 @@
               <li class="obj" data-id="OW-2566" data-mode="miete" data-rooms="2" data-price="1290">
                 <article class="obj-card">
                   <div class="obj-media">
-                    <img src="/arena/immobilien-ostwald/assets/img/hell-960.webp" srcset="/arena/immobilien-ostwald/assets/img/hell-480.webp 480w, /arena/immobilien-ostwald/assets/img/hell-960.webp 960w" sizes="(min-width: 1200px) 400px, (min-width: 700px) 46vw, 92vw" width="960" height="640" alt="Heller Raum mit weißem Sofa und Grünpflanze vor weißer Wand" loading="lazy" decoding="async">
+                    <img src="/arena/immobilien-ostwald/assets/img/hell-960.webp" srcset="/arena/immobilien-ostwald/assets/img/hell-480.webp 480w, /arena/immobilien-ostwald/assets/img/hell-960.webp 960w" sizes="(min-width: 900px) 120px, 96px" width="960" height="640" alt="Heller Raum mit weißem Sofa und Grünpflanze vor weißer Wand" loading="lazy" decoding="async">
                   </div>
                   <div class="obj-body">
                     <p class="obj-loc">Bornheim · Etagenwohnung</p>
@@ -502,7 +533,15 @@
                   </div>
                 </article>
               </li>
-            </ul>
+              </ul>
+              <aside class="reg-window" aria-hidden="true" data-reg-window>
+                <div class="rw-frame">
+                  <img src="/arena/immobilien-ostwald/assets/img/altbau-960.webp" srcset="/arena/immobilien-ostwald/assets/img/altbau-480.webp 480w, /arena/immobilien-ostwald/assets/img/altbau-960.webp 960w" sizes="(min-width: 1440px) 420px, 30vw" width="960" height="641" alt="" loading="lazy" decoding="async" data-rw-img>
+                  <span class="rw-bar rw-bar--x"></span><span class="rw-bar rw-bar--y"></span>
+                </div>
+                <p class="rw-cap"><span class="rw-id" data-rw-id>OW-2611</span><span class="rw-t" data-rw-t>Altbau mit Fischgrätparkett nahe Palmengarten</span></p>
+              </aside>
+              </div>
             <div class="obj-empty" data-obj-empty hidden>
               <p class="obj-empty-title">Für diese Auswahl haben wir gerade kein Objekt online.</p>
               <p>Viele Angebote stellen wir vorgemerkten Suchkunden vor, bevor sie inseriert werden. Hinterlegen Sie Ihren Suchauftrag – oder lockern Sie die Filter.</p>
@@ -589,28 +628,38 @@
             </div>
           </div>
         </div>
+        </div>
       </div>
     </section>
 
     <!-- ============================== BEWERTUNG ============================== -->
-    <section class="section valuation theme-night" id="bewertung" aria-labelledby="val-title">
+    <section class="section valuation theme-night" id="bewertung" aria-labelledby="val-title" data-floor="3" data-floor-name="Bewertung">
       <div class="container val-layout">
         <div class="val-intro">
-          <p class="eyebrow"><span class="rule" aria-hidden="true"></span>Immobilienbewertung</p>
           <h2 class="h2" id="val-title" data-split>Was ist Ihre Immobilie heute wert?</h2>
-          <p class="val-lead" data-reveal>Vier kurze Schritte, danach sehen Sie eine grobe Preisspanne für Ihre Wohnung oder Ihr Haus. Sie ersetzt keinen Termin vor Ort – aber sie zeigt, in welchem Rahmen sich ein Gespräch lohnt.</p>
-          <ol class="val-method" data-reveal>
+          <p class="val-lead">Vier kurze Schritte, danach sehen Sie eine grobe Preisspanne für Ihre Wohnung oder Ihr Haus. Sie ersetzt keinen Termin vor Ort. Aber sie zeigt, in welchem Rahmen sich ein Gespräch lohnt.</p>
+          <ol class="val-method">
             <li><span>01</span>Richtwert je Quadratmeter für den Stadtteil</li>
             <li><span>02</span>Zu- und Abschläge für Objektart, Größe und Baujahr</li>
             <li><span>03</span>Zustand und Ausstattung</li>
             <li><span>04</span>Spanne von ±&nbsp;7&nbsp;% statt einer Scheingenauigkeit</li>
           </ol>
-          <figure class="val-figure" data-reveal>
-            <img src="/arena/immobilien-ostwald/assets/img/glass-960.webp" srcset="/arena/immobilien-ostwald/assets/img/glass-480.webp 480w, /arena/immobilien-ostwald/assets/img/glass-960.webp 960w" sizes="(min-width: 900px) 34vw, 92vw" width="960" height="721" alt="Gläserne Hochhausfassade von unten gesehen" loading="lazy" decoding="async" data-parallax-img>
-          </figure>
+          <p class="margin-note"><span class="mn-fig">97&nbsp;%</span> des Angebotspreises erzielten unsere Verkäufe 2025 im Mittel. Ein Wunschpreis, der nach drei Monaten fällt, kostet mehr als eine ehrliche Spanne am ersten Tag.</p>
         </div>
 
         <div class="val-card" data-val>
+          <!-- Messinstrument: Zeiger auf einer Messlatte, Zählwerk mit dem laufenden Richtwert -->
+          <div class="gauge" aria-hidden="true" data-gauge>
+            <div class="gauge-read">
+              <span class="gauge-k" data-gauge-label>Frankfurt gesamt · Richtwert</span>
+              <span class="gauge-v"><span class="odo" data-gauge-odo>7.000</span><span class="gauge-u">€/m²</span></span>
+            </div>
+            <div class="gauge-scale" data-gauge-scale>
+              <div class="gauge-staff" data-gauge-staff></div>
+              <div class="gauge-needle-track" data-gauge-needle><span class="gauge-needle"></span></div>
+            </div>
+            <div class="gauge-legend"><span>3.000</span><span>6.000</span><span>9.000</span><span>12.000</span></div>
+          </div>
           <form class="val-form" data-val-form novalidate action="#bewertung">
             <div class="val-progress" aria-hidden="true">
               <span class="val-progress-bar" data-val-bar></span>
@@ -764,7 +813,7 @@
           <div class="val-result" data-val-result hidden tabindex="-1" aria-labelledby="val-result-title">
             <p class="val-step-no">Ihre unverbindliche Orientierung</p>
             <h3 class="val-result-title" id="val-result-title">Geschätzte Preisspanne</h3>
-            <p class="val-range" aria-live="polite"><span data-val-low>–</span><span class="val-range-sep">bis</span><span data-val-high>–</span></p>
+            <p class="val-range" aria-live="polite"><span class="visually-hidden"><span data-val-low>–</span> bis <span data-val-high>–</span></span><span class="odo odo--lg" aria-hidden="true" data-odo-low>0</span><span class="val-range-sep" aria-hidden="true">bis</span><span class="odo odo--lg" aria-hidden="true" data-odo-high>0</span></p>
             <p class="val-sqm" data-val-sqm></p>
             <div class="val-scale" aria-hidden="true">
               <div class="val-scale-track"><span class="val-scale-band" data-val-band></span></div>
@@ -783,12 +832,12 @@
     </section>
 
     <!-- ============================== VERKAUFSPROZESS ============================== -->
-    <section class="section process" id="verkauf" aria-labelledby="process-title" data-process>
+    <section class="section process" id="verkauf" aria-labelledby="process-title" data-process data-floor="4" data-floor-name="Verkauf">
       <div class="process-pin" data-process-pin>
         <div class="container process-layout">
           <div class="process-head">
-            <p class="eyebrow"><span class="rule" aria-hidden="true"></span>Verkaufsprozess</p>
-            <h2 class="h2" id="process-title">Vom ersten Gespräch bis zum Schlüssel – in sechs Schritten.</h2>
+            <h2 class="h2" id="process-title">Vom ersten Gespräch bis zur Schlüsselübergabe in sechs Schritten.</h2>
+            <p class="margin-note"><span class="mn-fig">9&nbsp;Wochen</span> vergingen 2025 im Schnitt bis zum Notartermin.</p>
           </div>
 
           <ol class="process-steps" data-process-steps>
@@ -927,14 +976,11 @@
     </section>
 
     <!-- ============================== FINANZIERUNG ============================== -->
-    <section class="section finance" id="finanzierung" aria-labelledby="fin-title">
+    <section class="section finance" id="finanzierung" aria-labelledby="fin-title" data-floor="5" data-floor-name="Finanzierung">
       <div class="container">
-        <div class="section-head section-head--split">
-          <div>
-            <p class="eyebrow"><span class="rule" aria-hidden="true"></span>Finanzierungsrechner <span class="tag">Beispielrechnung</span></p>
-            <h2 class="h2" id="fin-title" data-split>Was kostet die Wohnung im Monat?</h2>
-          </div>
-          <p class="section-intro" data-reveal>Verschieben Sie Kaufpreis, Eigenkapital, Zins und Tilgung – Rate und Restschuld rechnen sofort mit. Eine Orientierung für das erste Gespräch mit Ihrer Bank, keine Finanzierungsberatung.</p>
+        <div class="fin-head">
+          <h2 class="h2" id="fin-title" data-split>Was kostet die Wohnung im Monat?</h2>
+          <p class="fin-intro"><span class="tag">Beispielrechnung</span> Verschieben Sie Kaufpreis, Eigenkapital, Zins und Tilgung: Rate und Restschuld rechnen sofort mit. Eine Orientierung für das erste Gespräch mit Ihrer Bank, keine Finanzierungsberatung.</p>
         </div>
 
         <div class="fin-layout" data-fin>
@@ -978,7 +1024,7 @@
           <div class="fin-output">
             <div class="fin-rate" aria-live="polite" aria-atomic="true">
               <p class="fin-rate-label">Monatliche Rate <span class="tag tag--soft">Beispiel</span></p>
-              <p class="fin-rate-value"><span data-fin-rate>2.972</span>&nbsp;€</p>
+              <p class="fin-rate-value"><span class="visually-hidden"><span data-fin-rate>2.972</span>&nbsp;€</span><span class="odo odo--xl" aria-hidden="true" data-odo-rate>2.972</span><span class="fin-rate-cur" aria-hidden="true">€</span></p>
               <p class="fin-rate-sub" data-fin-sub>bei einem Darlehen von 636.775&nbsp;€</p>
             </div>
             <dl class="fin-facts">
@@ -1015,91 +1061,88 @@
     </section>
 
     <!-- ============================== ÜBER UNS ============================== -->
-    <section class="section about" id="ueber-uns" aria-labelledby="about-title">
-      <div class="container">
-        <div class="about-head">
-          <p class="eyebrow"><span class="rule" aria-hidden="true"></span>Über uns</p>
-          <h2 class="h2 about-statement" id="about-title" data-split>Wir nennen den Preis, den der Markt zahlt – <em>nicht den, den Sie hören möchten.</em></h2>
-        </div>
-        <div class="about-layout">
-          <div class="about-copy">
-            <div class="about-text" data-reveal>
-              <p>Dr. Clara Ostwald hat nach ihrer Promotion in Stadtökonomie zehn Jahre lang Wohnungsmärkte analysiert, bevor sie 2009 ihr eigenes Maklerbüro am Grüneburgweg gegründet hat. Die Haltung von damals gilt bis heute: Ein Auftrag wird nicht mit einem Wunschpreis gewonnen, der nach drei Monaten wieder gesenkt werden muss.</p>
-              <p>Heute arbeiten wir zu acht – mit klar verteilten Stadtteilen, eigener Exposé-Fotografie und einem Backoffice, das Grundbuchamt und Hausverwaltungen kennt. Jede Kundin und jeder Kunde hat genau einen Ansprechpartner, der vom ersten Termin bis zur Übergabe dabeibleibt.</p>
-            </div>
-            <ul class="principles" data-reveal>
-              <li><span class="pr-no">I</span><div><strong>Ehrliche Spannen</strong><p>Jede Preisempfehlung schriftlich begründet, mit Vergleichsobjekten.</p></div></li>
-              <li><span class="pr-no">II</span><div><strong>Geprüfte Interessenten</strong><p>Besichtigungen nur mit Finanzierungsnachweis oder Selbstauskunft.</p></div></li>
-              <li><span class="pr-no">III</span><div><strong>Ein Ansprechpartner</strong><p>Keine Übergabe an wechselnde Kolleginnen, keine Warteschleife.</p></div></li>
-            </ul>
+    <section class="about" id="ueber-uns" aria-labelledby="about-title" data-floor="6" data-floor-name="Über uns">
+      <!-- Haltungssatz: baut sich Wort für Wort beim Scrollen auf, danach schiebt sich das Klingelschild darüber -->
+      <div class="statement" data-statement>
+        <div class="statement-stick">
+          <div class="container">
+            <h2 class="statement-text" id="about-title" data-statement-text>Wir nennen den Preis, den der Markt zahlt. Nicht den, den Sie hören möchten.</h2>
+            <p class="statement-sign"><span class="sig-line" aria-hidden="true"></span>Dr. Clara Ostwald, Geschäftsführerin</p>
           </div>
-          <figure class="about-figure" data-reveal-img>
-            <div class="about-frame">
-              <img src="/arena/immobilien-ostwald/assets/img/skyline-960.webp" srcset="/arena/immobilien-ostwald/assets/img/skyline-480.webp 480w, /arena/immobilien-ostwald/assets/img/skyline-960.webp 960w" sizes="(min-width: 900px) 40vw, 92vw" width="960" height="640" alt="Hochhäuser im Nebel, von unten fotografiert – in Nachtblau und Sandstein eingefärbt" loading="lazy" decoding="async" data-parallax-img>
+        </div>
+      </div>
+
+      <div class="about-body">
+        <div class="container about-layout">
+          <div class="about-copy">
+            <div class="about-text">
+              <p class="has-initial">Dr. Clara Ostwald hat nach ihrer Promotion in Stadtökonomie zehn Jahre lang Wohnungsmärkte analysiert, bevor sie 2009 ihr eigenes Maklerbüro am Grüneburgweg gegründet hat. Die Haltung von damals gilt bis heute: Ein Auftrag wird nicht mit einem Wunschpreis gewonnen, der nach drei Monaten wieder gesenkt werden muss.</p>
+              <p>Heute arbeiten wir zu acht, mit klar verteilten Stadtteilen, eigener Exposé-Fotografie und einem Backoffice, das Grundbuchamt und Hausverwaltungen kennt. Jede Kundin und jeder Kunde hat genau einen Ansprechpartner, der vom ersten Termin bis zur Übergabe dabeibleibt.</p>
             </div>
-            <figcaption>Frankfurt von unten gesehen – unser Blick auf den Markt: Daten zuerst, dann das Gespräch.</figcaption>
+            <p class="margin-note"><span class="mn-fig">340</span> Wohnungen und Häuser haben wir seit 2009 vermittelt. Jede davon ist heute ein Vergleichswert in unserer Kartei.</p>
+            <ol class="principles">
+              <li><span class="pr-no" aria-hidden="true">I</span><div><strong>Ehrliche Spannen</strong><p>Jede Preisempfehlung schriftlich begründet, mit Vergleichsobjekten.</p></div></li>
+              <li><span class="pr-no" aria-hidden="true">II</span><div><strong>Geprüfte Interessenten</strong><p>Besichtigungen nur mit Finanzierungsnachweis oder Selbstauskunft.</p></div></li>
+              <li><span class="pr-no" aria-hidden="true">III</span><div><strong>Ein Ansprechpartner</strong><p>Keine Übergabe an wechselnde Kolleginnen, keine Warteschleife.</p></div></li>
+            </ol>
+          </div>
+          <figure class="about-figure">
+            <div class="about-frame" data-blind>
+              <img src="/arena/immobilien-ostwald/assets/img/skyline-960.webp" srcset="/arena/immobilien-ostwald/assets/img/skyline-480.webp 480w, /arena/immobilien-ostwald/assets/img/skyline-960.webp 960w" sizes="(min-width: 1024px) 34vw, 88vw" width="960" height="640" alt="Hochhäuser im Nebel, von unten fotografiert – in Nachtblau und Sandstein eingefärbt" loading="lazy" decoding="async" data-parallax-img>
+            </div>
+            <figcaption>Frankfurt von unten gesehen. Unser Blick auf den Markt: Daten zuerst, dann das Gespräch.</figcaption>
           </figure>
         </div>
+      </div>
 
-        <div class="team-head">
-          <h3 class="h3">Das Team</h3>
-          <p>Acht Köpfe, klar verteilte Stadtteile – und zwei Auszubildende, die das Handwerk von Grund auf lernen.</p>
+      <!-- Team als Klingeltableau am Hauseingang -->
+      <div class="bells theme-night">
+        <div class="container bells-layout">
+          <div class="bells-head">
+            <h3 class="h3 bells-title">Wer Ihnen bei uns die Tür aufmacht.</h3>
+            <p>Acht Köpfe mit klar verteilten Stadtteilen, darunter zwei Auszubildende, die das Handwerk von Grund auf lernen.</p>
+          </div>
+          <div class="bell-panel">
+            <span class="screw screw--tl" aria-hidden="true"></span><span class="screw screw--tr" aria-hidden="true"></span><span class="screw screw--bl" aria-hidden="true"></span><span class="screw screw--br" aria-hidden="true"></span>
+            <ul class="bell-list" data-team>
+              <li class="bell"><span class="bell-btn" aria-hidden="true"><span>CO</span></span><span class="bell-plate"><span class="member-name">Dr. Clara Ostwald</span><span class="member-role">Geschäftsführerin · Westend &amp; Lerchesberg</span></span></li>
+              <li class="bell"><span class="bell-btn" aria-hidden="true"><span>JA</span></span><span class="bell-plate"><span class="member-name">Jonas Albrecht</span><span class="member-role">Verkauf · Nordend, Bornheim, Ostend</span></span></li>
+              <li class="bell"><span class="bell-btn" aria-hidden="true"><span>MÇ</span></span><span class="bell-plate"><span class="member-name">Mira Çelik</span><span class="member-role">Vermietung &amp; Mieterauswahl</span></span></li>
+              <li class="bell"><span class="bell-btn" aria-hidden="true"><span>HB</span></span><span class="bell-plate"><span class="member-name">Henrik Baum</span><span class="member-role">Wertermittlung · Sachsenhausen</span></span></li>
+              <li class="bell"><span class="bell-btn" aria-hidden="true"><span>LV</span></span><span class="bell-plate"><span class="member-name">Lea Vogt</span><span class="member-role">Exposé, Fotografie &amp; Grundrisse</span></span></li>
+              <li class="bell"><span class="bell-btn" aria-hidden="true"><span>PS</span></span><span class="bell-plate"><span class="member-name">Paul Sander</span><span class="member-role">Backoffice · Notar &amp; Grundbuch</span></span></li>
+              <li class="bell bell--job">
+                <a class="job-card" href="mailto:karriere@ostwald-immobilien.de?subject=Bewerbung%20Immobilienberater%20Sachsenhausen">
+                  <span class="bell-btn bell-btn--free" aria-hidden="true"><span>+</span></span>
+                  <span class="bell-plate">
+                    <span class="job-k">Schild noch frei · Karriere</span>
+                    <span class="job-t">Immobilien&shy;berater (m/w/d) für Sachsen&shy;hausen</span>
+                    <span class="job-m">Vollzeit · ab sofort · mit Bestandskunden</span>
+                  </span>
+                  <span class="job-cta">Bewerben<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+                </a>
+              </li>
+            </ul>
+            <span class="intercom" aria-hidden="true"></span>
+          </div>
         </div>
-        <ul class="team-grid" data-team data-stagger>
-          <li class="member">
-            <div class="mono" aria-hidden="true"><span>CO</span></div>
-            <p class="member-name">Dr. Clara Ostwald</p>
-            <p class="member-role">Geschäftsführerin · Westend &amp; Lerchesberg</p>
-          </li>
-          <li class="member">
-            <div class="mono" aria-hidden="true"><span>JA</span></div>
-            <p class="member-name">Jonas Albrecht</p>
-            <p class="member-role">Verkauf · Nordend, Bornheim, Ostend</p>
-          </li>
-          <li class="member">
-            <div class="mono" aria-hidden="true"><span>MÇ</span></div>
-            <p class="member-name">Mira Çelik</p>
-            <p class="member-role">Vermietung &amp; Mieterauswahl</p>
-          </li>
-          <li class="member">
-            <div class="mono" aria-hidden="true"><span>HB</span></div>
-            <p class="member-name">Henrik Baum</p>
-            <p class="member-role">Wertermittlung · Sachsenhausen</p>
-          </li>
-          <li class="member">
-            <div class="mono" aria-hidden="true"><span>LV</span></div>
-            <p class="member-name">Lea Vogt</p>
-            <p class="member-role">Exposé, Fotografie &amp; Grundrisse</p>
-          </li>
-          <li class="member">
-            <div class="mono" aria-hidden="true"><span>PS</span></div>
-            <p class="member-name">Paul Sander</p>
-            <p class="member-role">Backoffice · Notar &amp; Grundbuch</p>
-          </li>
-          <li class="member member--job">
-            <a class="job-card" href="mailto:karriere@ostwald-immobilien.de?subject=Bewerbung%20Immobilienberater%20Sachsenhausen">
-              <span class="job-k">Karriere</span>
-              <span class="job-t">Immobilien&shy;berater (m/w/d) für Sachsen&shy;hausen</span>
-              <span class="job-m">Vollzeit · ab sofort · mit Bestandskunden</span>
-              <span class="job-cta">Bewerben<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span>
-            </a>
-          </li>
-        </ul>
       </div>
     </section>
 
     <!-- ============================== STIMMEN ============================== -->
-    <section class="section voices theme-night" id="stimmen" aria-labelledby="voices-title">
+    <section class="section voices theme-night" id="stimmen" aria-labelledby="voices-title" data-floor="7" data-floor-name="Stimmen">
       <div class="container voices-layout">
         <div class="voices-head">
-          <p class="eyebrow"><span class="rule" aria-hidden="true"></span>Kundenstimmen</p>
           <h2 class="h2" id="voices-title" data-split>Was Verkäufer und Vermieter sagen</h2>
-          <div class="rating-block" data-reveal>
-            <p class="rating-num">4,9</p>
-            <div>
-              <span class="stars" aria-hidden="true"><svg class="i"><use href="#i-star"/></svg><svg class="i"><use href="#i-star"/></svg><svg class="i"><use href="#i-star"/></svg><svg class="i"><use href="#i-star"/></svg><svg class="i"><use href="#i-star"/></svg></span>
-              <p>aus 158 Bewertungen<br><span class="muted">Beispielwerte, fiktiv</span></p>
-            </div>
+          <div class="rating-block">
+            <svg class="seal" viewBox="0 0 160 160" aria-hidden="true" data-seal>
+              <defs><path id="seal-ring" d="M80 80m-62 0a62 62 0 1 1 124 0a62 62 0 1 1 -124 0"/></defs>
+              <circle cx="80" cy="80" r="76"/><circle cx="80" cy="80" r="48"/>
+              <text class="seal-ring"><textPath href="#seal-ring">158 BEWERTUNGEN · BEISPIELWERTE · FIKTIV · 158 BEWERTUNGEN · </textPath></text>
+              <text class="seal-num" x="80" y="88">4,9</text>
+              <text class="seal-sub" x="80" y="104">von 5</text>
+            </svg>
+            <p><strong>4,9 von 5</strong> aus 158 Bewertungen<br><span class="muted">Beispielwerte, fiktiv</span></p>
           </div>
           <div class="voices-nav">
             <button type="button" class="round-btn" data-voices-prev aria-label="Vorherige Stimme"><svg class="i" aria-hidden="true"><use href="#i-arrow-l"/></svg></button>
@@ -1108,22 +1151,27 @@
         </div>
         <div class="voices-track" data-voices-track tabindex="0" aria-label="Kundenstimmen, horizontal scrollbar">
           <figure class="voice">
-            <blockquote><p>„Frau Ostwald hat uns einen Preis genannt, der niedriger war als bei zwei anderen Maklern. Genau den haben wir am Ende bekommen – nach sieben Wochen statt der befürchteten Monate.“</p></blockquote>
+            <span class="voice-no" aria-hidden="true">01 / 05</span>
+            <blockquote><p>„Frau Ostwald hat uns einen Preis genannt, der niedriger war als bei zwei anderen Maklern. Genau den haben wir am Ende bekommen, nach sieben Wochen statt der befürchteten Monate.“</p></blockquote>
             <figcaption><span class="voice-mono" aria-hidden="true">FR</span><span><strong>Familie R.</strong>Verkauf Reihenhaus · Dornbusch</span></figcaption>
           </figure>
           <figure class="voice">
-            <blockquote><p>„Drei Besichtigungen, alle mit Finanzierungs&shy;bestätigung. Keine Besichtigungs&shy;touristen am Samstagmorgen – das war uns viel wert.“</p></blockquote>
+            <span class="voice-no" aria-hidden="true">02 / 05</span>
+            <blockquote><p>„Drei Besichtigungen, alle mit Finanzierungs&shy;bestätigung. Keine Besichtigungs&shy;touristen am Samstagmorgen. Das war uns viel wert.“</p></blockquote>
             <figcaption><span class="voice-mono" aria-hidden="true">TK</span><span><strong>Thomas K.</strong>Verkauf 3-Zimmer-Altbau · Nordend</span></figcaption>
           </figure>
           <figure class="voice">
+            <span class="voice-no" aria-hidden="true">03 / 05</span>
             <blockquote><p>„Als Erbengemeinschaft aus drei Städten waren wir uns selten einig. Herr Albrecht hat jeden Schritt so dokumentiert, dass am Ende alle unterschrieben haben.“</p></blockquote>
             <figcaption><span class="voice-mono" aria-hidden="true">SM</span><span><strong>Sabine M.</strong>Verkauf Mehrfamilienhaus · Bornheim</span></figcaption>
           </figure>
           <figure class="voice">
+            <span class="voice-no" aria-hidden="true">04 / 05</span>
             <blockquote><p>„Die Wohnung war in elf Tagen vermietet, mit sauberer Selbstauskunft und einem Übergabeprotokoll samt Fotos. So entspannt war ein Mieterwechsel noch nie.“</p></blockquote>
             <figcaption><span class="voice-mono" aria-hidden="true">JW</span><span><strong>Dr. Jan W.</strong>Vermietung · Westend</span></figcaption>
           </figure>
           <figure class="voice">
+            <span class="voice-no" aria-hidden="true">05 / 05</span>
             <blockquote><p>„Wir haben über die Website gesucht und das Haus über den Suchauftrag gefunden, bevor es überhaupt online war.“</p></blockquote>
             <figcaption><span class="voice-mono" aria-hidden="true">AL</span><span><strong>Anna &amp; Lukas B.</strong>Kauf Einfamilienhaus · Ginnheim</span></figcaption>
           </figure>
@@ -1132,18 +1180,21 @@
     </section>
 
     <!-- ============================== STANDORT ============================== -->
-    <section class="section location" id="standort" aria-labelledby="loc-title">
+    <section class="section location" id="standort" aria-labelledby="loc-title" data-floor="8" data-floor-name="Standort">
+      <div class="street-band" aria-hidden="true" data-marquee>
+        <div class="street-track" data-marquee-track><div class="street-set"><span class="street-sign">Westend</span><span class="street-sign">Nordend</span><span class="street-sign">Sachsenhausen</span><span class="street-sign">Bornheim</span><span class="street-sign">Bockenheim</span><span class="street-sign">Ostend</span><span class="street-sign">Dornbusch</span><span class="street-sign">Ginnheim</span><span class="street-sign">Europaviertel</span><span class="street-sign">Riedberg</span><span class="street-sign">Bad Homburg</span><span class="street-sign">Oberursel</span><span class="street-sign">Kronberg</span><span class="street-sign">Bad Vilbel</span></div></div>
+      </div>
       <div class="container loc-layout">
         <div class="loc-copy">
-          <p class="eyebrow"><span class="rule" aria-hidden="true"></span>Standort &amp; Einzugsgebiet</p>
-          <h2 class="h2" id="loc-title" data-split>Grüneburgweg 12 – zwischen Palmengarten und Holzhausenpark</h2>
-          <p class="section-intro" data-reveal>Unser Büro liegt im Westend-Nord, drei Gehminuten von der U-Bahn-Station Grüneburgweg (U1, U2, U3, U8). Besichtigungen und Bewertungstermine finden bei Ihnen statt – in ganz Frankfurt und im Vordertaunus.</p>
-          <dl class="loc-facts" data-reveal>
+          <h2 class="h2" id="loc-title" data-split>Grüneburgweg 12, zwischen Palmengarten und Holzhausenpark</h2>
+          <p class="section-intro">Unser Büro liegt im Westend-Nord, drei Gehminuten von der U-Bahn-Station Grüneburgweg (U1, U2, U3, U8). Besichtigungen und Bewertungstermine finden bei Ihnen statt, in ganz Frankfurt und im Vordertaunus.</p>
+          <p class="margin-note"><span class="mn-fig">12</span> Stadtteile kennen wir aus eigenen Verkäufen, nicht aus dem Portal.</p>
+          <dl class="loc-facts">
             <div><dt>Adresse</dt><dd>Ostwald Immobilien GmbH<br>Grüneburgweg 12<br>60322 Frankfurt am Main</dd></div>
             <div><dt>Öffnungszeiten</dt><dd>Mo–Fr 9–18&nbsp;Uhr<br>Sa Termine nach Vereinbarung</dd></div>
             <div><dt>Anfahrt</dt><dd>U-Bahn Grüneburgweg<br>Parken: Anwohnerzone, Parkhaus Holzhausenstraße</dd></div>
           </dl>
-          <div class="area-block" data-reveal>
+          <div class="area-block">
             <p class="area-label">Einzugsgebiet</p>
             <ul class="area-chips">
               <li class="is-core">Westend</li><li class="is-core">Nordend</li><li class="is-core">Sachsenhausen</li><li class="is-core">Bornheim</li><li>Bockenheim</li><li>Ostend</li><li>Dornbusch</li><li>Ginnheim</li><li>Europaviertel</li><li>Riedberg</li><li>Bad Homburg</li><li>Oberursel</li><li>Kronberg</li><li>Bad Vilbel</li>
@@ -1151,7 +1202,7 @@
             <p class="area-note"><span class="dot" aria-hidden="true"></span>Schwerpunkt mit eigenem Ansprechpartner</p>
           </div>
         </div>
-        <figure class="loc-map" data-reveal-img>
+        <figure class="loc-map">
           <svg class="site-plan" viewBox="0 0 640 560" role="img" aria-labelledby="site-plan-title site-plan-desc">
             <title id="site-plan-title">Lageplan des Büros</title>
             <desc id="site-plan-desc">Schematischer Lageplan: Das Büro am Grüneburgweg liegt zwischen Palmengarten im Westen und Holzhausenpark im Nordosten, nahe der U-Bahn-Station Grüneburgweg an der Eschersheimer Landstraße.</desc>
@@ -1210,14 +1261,13 @@
     </section>
 
     <!-- ============================== FAQ ============================== -->
-    <section class="section faq" id="faq" aria-labelledby="faq-title">
+    <section class="section faq" id="faq" aria-labelledby="faq-title" data-floor="9" data-floor-name="Fragen">
       <div class="container faq-layout">
         <div class="faq-head">
-          <p class="eyebrow"><span class="rule" aria-hidden="true"></span>Häufige Fragen</p>
           <h2 class="h2" id="faq-title" data-split>Was Eigentümer uns vor dem ersten Termin fragen</h2>
-          <p class="faq-note" data-reveal>Allgemeine Informationen, keine Rechts- oder Steuerberatung. Im Einzelfall stimmen wir uns mit Ihrer Steuerberatung oder dem Notariat ab.</p>
+          <p class="faq-note">Allgemeine Informationen, keine Rechts- oder Steuerberatung. Im Einzelfall stimmen wir uns mit Ihrer Steuerberatung oder dem Notariat ab.</p>
         </div>
-        <div class="faq-list" data-faq data-stagger>
+        <div class="faq-list" data-faq>
           <details class="qa">
             <summary><span class="qa-q">Was kostet mich der Verkauf mit Ostwald Immobilien?</span><span class="qa-icon" aria-hidden="true"></span></summary>
             <div class="qa-a"><p>Beim Verkauf von Wohnungen und Einfamilienhäusern an Privatpersonen wird die Provision in der Regel zwischen Verkäufer und Käufer geteilt. In Hessen sind je 3,57&nbsp;% des Kaufpreises inklusive Mehrwertsteuer üblich. Die Erstbewertung vor Ort ist für Sie kostenlos und unverbindlich.</p></div>
@@ -1251,13 +1301,20 @@
     </section>
 
     <!-- ============================== KONTAKT ============================== -->
-    <section class="section contact theme-night" id="kontakt" aria-labelledby="contact-title">
+    <section class="section contact theme-night" id="kontakt" aria-labelledby="contact-title" data-floor="DG" data-floor-name="Kontakt">
       <div class="container contact-layout">
         <div class="contact-copy">
-          <p class="eyebrow"><span class="rule" aria-hidden="true"></span>Kontakt</p>
+          <svg class="house-no" viewBox="0 0 220 150" aria-hidden="true">
+            <rect class="hn-plate" x="4" y="4" width="212" height="142" rx="14"/>
+            <rect class="hn-rim" x="14" y="14" width="192" height="122" rx="8"/>
+            <text class="hn-street" x="110" y="42">Grüneburgweg</text>
+            <path class="hn-rule" d="M44 54H176"/>
+            <text class="hn-num" x="110" y="122">12</text>
+            <circle class="hn-screw" cx="24" cy="75" r="3"/><circle class="hn-screw" cx="196" cy="75" r="3"/>
+          </svg>
           <h2 class="h2" id="contact-title" data-split>Sprechen wir über Ihre Adresse.</h2>
-          <p class="section-intro" data-reveal>Schreiben Sie uns, worum es geht – wir melden uns innerhalb eines Werktags. Lieber direkt? Rufen Sie an, Dr. Clara Ostwald oder ihr Team nehmen selbst ab.</p>
-          <ul class="contact-lines" data-reveal>
+          <p class="section-intro">Schreiben Sie uns, worum es geht. Wir melden uns innerhalb eines Werktags. Lieber direkt? Rufen Sie an, Dr. Clara Ostwald oder ihr Team nehmen selbst ab.</p>
+          <ul class="contact-lines">
             <li><svg class="i" aria-hidden="true"><use href="#i-phone"/></svg><a href="tel:+49695559030">069&nbsp;555&nbsp;90&nbsp;30</a></li>
             <li><svg class="i" aria-hidden="true"><use href="#i-mail"/></svg><a href="mailto:kontakt@ostwald-immobilien.de">kontakt@ostwald-immobilien.de</a></li>
             <li><svg class="i" aria-hidden="true"><use href="#i-pin"/></svg><span>Grüneburgweg 12, 60322 Frankfurt am Main</span></li>
@@ -1334,13 +1391,12 @@
     </section>
   </main>
 
-  <!-- ============================== FOOTER ============================== -->
   <footer class="site-footer theme-night">
     <div class="container">
+      <p class="footer-word" aria-hidden="true"><span>O</span><span>s</span><span>t</span><span>w</span><span>a</span><span>l</span><span>d</span></p>
       <div class="footer-grid">
         <div class="footer-brand">
-          <p class="footer-word">Ostwald</p>
-          <p class="footer-claim">Immobilienmakler in Frankfurt am Main · IHK-geprüft · seit 2009</p>
+          <p class="footer-claim">Ostwald Immobilien · Immobilienmakler in Frankfurt am Main · IHK-geprüft · seit 2009</p>
         </div>
         <div>
           <p class="footer-k">Büro</p>
