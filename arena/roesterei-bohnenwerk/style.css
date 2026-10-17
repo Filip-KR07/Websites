@@ -41,10 +41,10 @@
   --line-ink-strong: rgba(27, 20, 17, 0.42);
   --roast-gradient: linear-gradient(90deg, #9DB59A 0%, #C9B36A 22%, #B9773F 42%, #8E5228 60%, #5E331A 78%, #2E1A10 100%);
 
-  /* Material: Jute-Faser (hell/dunkel) und Stempelfarbe mit Fehlstellen – statische SVG-Kacheln */
-  --jute: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='a' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.016 .85' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .91 0 0 0 0 .84 0 0 0 0 .74 0 0 0 1.3 -.62'/%3E%3C/filter%3E%3Cfilter id='b' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85 .016' numOctaves='2' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .91 0 0 0 0 .84 0 0 0 0 .74 0 0 0 1.3 -.62'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23a)' opacity='.55'/%3E%3Crect width='220' height='220' filter='url(%23b)' opacity='.45'/%3E%3C/svg%3E");
-  --jute-ink: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='a' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.016 .85' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .1 0 0 0 0 .07 0 0 0 0 .05 0 0 0 1.3 -.6'/%3E%3C/filter%3E%3Cfilter id='b' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85 .016' numOctaves='2' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .1 0 0 0 0 .07 0 0 0 0 .05 0 0 0 1.3 -.6'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23a)' opacity='.5'/%3E%3Crect width='220' height='220' filter='url(%23b)' opacity='.4'/%3E%3C/svg%3E");
-  --ink-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.5' numOctaves='3' seed='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -7 4.75'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Material: Jute-Faser (hell/dunkel) und Stempelfarbe mit Fehlstellen – nahtlose Kacheln (aus SVG-Rauschen vorberechnet) */
+  --jute: url("assets/tex/jute.webp");
+  --jute-ink: url("assets/tex/jute-ink.webp");
+  --ink-mask: url("assets/tex/ink-mask.webp");
 
   /* Schrift */
   --f-display: "Bricolage", "Arial Narrow", system-ui, sans-serif;
@@ -226,6 +226,7 @@ html.js .logger__live { clip-path: inset(0 100% 0 0); }
 .mark { position: absolute; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; background: var(--espresso); border: 2px solid var(--crema); }
 .mark i { position: absolute; left: 16px; top: -7px; font-style: normal; white-space: nowrap; font-family: var(--f-mono); font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--crema); }
 .mark--end i { left: auto; right: 16px; top: 10px; }
+.mark--tp i { left: -8px; top: 16px; }
 .mark--fc { border-color: var(--kupfer-hell); }
 .mark--fc i { left: auto; right: 14px; top: -30px; padding: 3px 7px; border: 1.5px solid var(--kupfer-hell); color: var(--kupfer-hell); rotate: -4deg; font-weight: 500; }
 @keyframes crackStamp { 0% { transform: scale(1.5); opacity: 0; } 60% { opacity: 1; } 100% { transform: none; opacity: 1; } }
@@ -291,7 +292,7 @@ html.js.motion-off .seal--hero { animation: none; }
   .gauge { position: absolute; right: calc(var(--gutter) + min(27vw, 38svh) + 2.4vw); top: calc(var(--header-h) + 11svh); width: min(15vw, 230px); }
   .hero__side { position: absolute; right: var(--gutter); bottom: 6.5%; width: min(34vw, 500px); }
 }
-@media (min-width: 900px) and (max-width: 1180px) { .gauge__hint { display: none; } }
+@media (min-width: 900px) and (max-width: 1180px) { .gauge__hint { display: none; } .hero__side { width: 47vw; bottom: 5%; } .hero__lead { font-size: 0.95rem; margin-bottom: 14px; } .hero__cta .btn { min-height: 46px; } }
 @media (max-width: 899px) {
   .hero__stage { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); grid-template-areas: "batch batch" "title title" "gauge drum" "logger logger" "side side"; column-gap: 14px; align-items: center; padding-bottom: 36px; }
   .hero__batch { grid-area: batch; }
@@ -301,7 +302,8 @@ html.js.motion-off .seal--hero { animation: none; }
   .gauge { grid-area: gauge; z-index: 2; }
   .gauge__name { font-size: clamp(1.7rem, 8.4vw, 2.6rem); }
   .gauge__hint { display: none; }
-  .logger { grid-area: logger; height: clamp(190px, 30svh, 300px); margin: -44px calc(-1 * var(--gutter)) 30px; z-index: 1; }
+  .logger { grid-area: logger; height: clamp(190px, 30svh, 300px); margin: 14px calc(-1 * var(--gutter)) 30px; z-index: 1; }
+  .logger__bands .band i { top: auto; bottom: 6px; }
   .logger__y li { padding-left: 6px; }
   .logger__x li:last-child { padding-right: 6px; }
   .mark i { font-size: 0.56rem; }
@@ -327,7 +329,7 @@ html.js.anim .stampband__track, html.reduced .stampband__track, html.motion-off 
 /* Reveal-Choreografie: Stempeldruck für Überschriften, Tintenwalze für Flächen, sonst kurzes Setzen */
 [data-reveal], [data-reveal-group] > * { transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out); }
 [data-reveal="stamp"] { transform-origin: 12% 70%; transition: opacity var(--t-stamp) var(--ease-out), transform var(--t-stamp) var(--ease-out); }
-[data-reveal="ink"] { transition: clip-path 1.1s var(--ease-in-out); }
+[data-reveal="ink"] { transition: clip-path 0.75s var(--ease-in-out); }
 html.js:not(.motion-off) [data-reveal]:not(.is-in) { opacity: 0; transform: translateY(16px); }
 html.js:not(.motion-off) [data-reveal="stamp"]:not(.is-in) { opacity: 0; transform: scale(1.07) rotate(-1.2deg); }
 html.js:not(.motion-off) [data-reveal="ink"]:not(.is-in) { opacity: 1; transform: none; clip-path: inset(0 100% 0 0); }
@@ -552,7 +554,7 @@ html.reduced .match, html.motion-off .match { animation: none; }
 .journey__track { display: flex; gap: clamp(20px, 3vw, 56px); padding-inline: max(var(--gutter), (100vw - var(--maxw)) / 2); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
 .journey__track::-webkit-scrollbar { display: none; }
 .station { position: relative; flex: 0 0 clamp(280px, 32vw, 460px); scroll-snap-align: start; scroll-margin-inline: var(--gutter); padding-top: clamp(40px, 5vw, 72px); }
-.station__big { position: absolute; right: -0.04em; top: 0; z-index: 0; font-size: clamp(6rem, 12vw, 13rem); font-weight: 800; line-height: 0.8; font-variation-settings: "wdth" 75; color: transparent; -webkit-text-stroke: 1.5px rgba(233, 215, 191, 0.24); pointer-events: none; will-change: transform; }
+.station__big { position: absolute; right: -0.04em; top: 0; z-index: 2; font-size: clamp(6rem, 12vw, 13rem); font-weight: 800; line-height: 0.8; font-variation-settings: "wdth" 75; color: transparent; -webkit-text-stroke: 1.5px rgba(244, 234, 219, 0.5); pointer-events: none; will-change: transform; }
 .station figure { position: relative; z-index: 1; margin: 0 0 20px; aspect-ratio: 4 / 3; }
 .station__no { position: relative; z-index: 1; color: var(--kupfer-hell); margin-bottom: 10px; font-family: var(--f-mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .station h3 { position: relative; z-index: 1; margin-bottom: 10px; font-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.95rem); letter-spacing: -0.03em; font-variation-settings: "wdth" 84; }
@@ -923,5 +925,8 @@ html.motion-off *, html.motion-off *::before, html.motion-off *::after { transit
 @media (max-width: 899px) { .legal-page { padding-bottom: 0; } .legal-page .site-header .btn { display: inline-flex; } }
 
 /* Rendering weit unterhalb des ersten Bildschirms aufschieben (kürzere Start-Tasks) */
-.aromen, .abo, .brew, .cafe, .team, .voices, .place, .faq, .contact, .site-footer { content-visibility: auto; contain-intrinsic-size: auto 900px; }
+.sortiment, .aromen, .abo, .brew, .cafe, .team, .voices, .place, .faq, .contact, .site-footer { content-visibility: auto; contain-intrinsic-size: auto 900px; }
 main [id], section[id] { scroll-margin-top: calc(var(--header-h) + 8px); }
+/* Stempelkorn wächst mit der Schriftgröße */
+.xl.ink { -webkit-mask-size: 420px 420px; mask-size: 420px 420px; }
+.footer__word.ink { -webkit-mask-size: 900px 900px; mask-size: 900px 900px; }

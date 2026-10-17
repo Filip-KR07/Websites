@@ -259,19 +259,23 @@
       draw();
     }
     function start() { if (animate && !raf && visible && !document.hidden && S) { last = 0; raf = requestAnimationFrame(frame); } }
-    if (!layout()) return { set: function () {}, crack: function () {} };
-    // Bett einmal kurz „setzen“ lassen, dann zeichnen
-    for (var w = 0; w < 6; w++) physics();
-    draw();
-    canvas.closest('.drum').classList.add('is-live');
-    new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) start(); }).observe(canvas);
-    document.addEventListener('visibilitychange', start);
-    var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { var w0 = S; if (layout() && w0) { for (var k = 0; k < 6; k++) physics(); draw(); } }, 160); });
-    start();
+    // Eigene Aufgabe nach dem ersten Bild: Text und Kurve stehen sofort, die Trommel füllt sich danach
+    var ready = false;
+    function init() {
+      if (!layout()) return;
+      for (var w = 0; w < 6; w++) physics(); // Bett einmal kurz „setzen“ lassen
+      draw(); ready = true;
+      canvas.closest('.drum').classList.add('is-live');
+      new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) start(); }).observe(canvas);
+      document.addEventListener('visibilitychange', start);
+      var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (layout()) { for (var k = 0; k < 6; k++) physics(); draw(); } }, 160); });
+      start();
+    }
+    requestAnimationFrame(function () { setTimeout(init, 0); });
     return {
-      set: function (rr) { roastR = rr; if (!animate) draw(); },
+      set: function (rr) { roastR = rr; if (!animate && ready) draw(); },
       crack: function (strength) {
-        if (!animate) return;
+        if (!animate || !ready) return;
         for (var i = 0; i < beans.length; i++) { var b = beans[i]; b.py = b.y + (1.5 + Math.random() * 4.5) * strength; b.px = b.x + (Math.random() - 0.5) * 3 * strength; }
       }
     };
@@ -374,19 +378,29 @@
   later(function () {
     var items = $$('[data-reveal], [data-reveal-group]');
     if (motionOff || !('IntersectionObserver' in window)) { items.forEach(function (el) { el.classList.add('is-in'); }); window.__bwReady = true; return; }
+    // Flächen mit Tintenwalze (clip-path) haben vor dem Auftritt keine sichtbare Fläche –
+    // deshalb beobachten wir für sie das Elternelement.
+    var watch = new Map();
     var io = new IntersectionObserver(function (es) {
       es.forEach(function (e) {
         if (!e.isIntersecting) return;
-        var el = e.target; io.unobserve(el);
-        if (el.hasAttribute('data-reveal-group')) {
-          var kids = Array.prototype.slice.call(el.children);
-          kids.forEach(function (k, i) { k.style.transitionDelay = (i * 60) + 'ms'; });
-          setTimeout(function () { kids.forEach(function (k) { k.style.transitionDelay = ''; }); }, 1400);
-        }
-        el.classList.add('is-in');
+        io.unobserve(e.target);
+        (watch.get(e.target) || []).forEach(function (el, n) {
+          if (el.hasAttribute('data-reveal-group')) {
+            var kids = Array.prototype.slice.call(el.children);
+            kids.forEach(function (k, i) { k.style.transitionDelay = (i * 60) + 'ms'; });
+            setTimeout(function () { kids.forEach(function (k) { k.style.transitionDelay = ''; }); }, 1400);
+          }
+          if (n) { el.style.transitionDelay = (n * 90) + 'ms'; setTimeout(function () { el.style.transitionDelay = ''; }, 1500); }
+          el.classList.add('is-in');
+        });
       });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
-    items.forEach(function (el) { io.observe(el); });
+    items.forEach(function (el) {
+      var t = el.getAttribute('data-reveal') === 'ink' ? el.parentElement : el;
+      if (!watch.has(t)) { watch.set(t, []); io.observe(t); }
+      watch.get(t).push(el);
+    });
     window.__bwReady = true;
   });
 

@@ -19,3 +19,5 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 | `ufer` | 960x540 | Nature Water | https://stocksnap.io/photo/nature-water-ZT58WP62VT |
 | `urne` | 960x1440 | Candle Table | https://stocksnap.io/photo/candle-table-OEYUISMDPN |
 | `wald` | 960x640 | Way Path | https://stocksnap.io/photo/way-path-WJWJ8F7AYV |
+
+Bildbehandlung: Alle Fotos wurden für einen einheitlichen Serienlook mit ImageMagick entsättigt (ca. 50 %), leicht warm getönt und in den Tiefen angehoben.
