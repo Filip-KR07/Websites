@@ -11,11 +11,12 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="de_DE">
 <meta property="og:site_name" content="Tierarztpraxis Pfotenwerk">
-<meta property="og:title" content="Tierarztpraxis Pfotenwerk – Ruhige Hände für alle mit Pfoten">
+<meta property="og:title" content="Tierarztpraxis Pfotenwerk – Erst schnuppern, dann Stethoskop">
 <meta property="og:description" content="Tierarztpraxis für Hunde, Katzen und Kleintiere in Bremen-Schwachhausen. Mit Notfall-Wegweiser, Impfplaner und Online-Anmeldung.">
 <link rel="icon" href="/arena/tierarzt-pfotenwerk/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="/arena/tierarzt-pfotenwerk/assets/fonts/young-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/arena/tierarzt-pfotenwerk/assets/fonts/lexend-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/arena/tierarzt-pfotenwerk/assets/fonts/kalam-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/arena/tierarzt-pfotenwerk/style.css">
 <script>(function(d){d.classList.add('js');if(/[?&]motion=off\b/.test(location.search))d.classList.add('motion-off');setTimeout(function(){if(!window.__pfoteReady)d.classList.add('reveal-all')},3500)})(document.documentElement)</script>
 <script type="application/ld+json">
@@ -138,6 +139,7 @@
   <symbol id="i-tram" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="5" width="12" height="13" rx="3"/><path d="M6 12h12M9 18l-2 3M15 18l2 3M9 2.5h6M12 2.5V5"/></g></symbol>
   <symbol id="i-car" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v-4l2-5h12l2 5v4z"/><path d="M4 12h16M6 16v2.5M18 16v2.5"/></g></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></g></symbol>
+  <symbol id="i-tape" viewBox="0 0 80 24"><path fill="currentColor" d="M3 3.5 77 1l-1.5 4 2 4-1.5 4 2 4-1.5 4.5L3 23l1.5-4.2L2 15l1.8-4L2 7z"/></symbol>
 </svg>
 
 <header class="hdr" data-hdr>
@@ -148,11 +150,11 @@
     </a>
     <nav class="nav" aria-label="Hauptnavigation">
       <ul>
-        <li><a href="#leistungen">Leistungen</a></li>
-        <li><a href="#notfall">Notfall</a></li>
-        <li><a href="#impfplaner">Impfplaner</a></li>
-        <li><a href="#praxis">Team</a></li>
-        <li><a href="#standort">Anfahrt</a></li>
+        <li><a href="#leistungen"><span class="roll"><span class="roll__in" data-text="Leistungen">Leistungen</span></span></a></li>
+        <li><a href="#notfall"><span class="roll"><span class="roll__in" data-text="Notfall">Notfall</span></span></a></li>
+        <li><a href="#impfplaner"><span class="roll"><span class="roll__in" data-text="Impfplaner">Impfplaner</span></span></a></li>
+        <li><a href="#praxis"><span class="roll"><span class="roll__in" data-text="Team">Team</span></span></a></li>
+        <li><a href="#standort"><span class="roll"><span class="roll__in" data-text="Anfahrt">Anfahrt</span></span></a></li>
       </ul>
     </nav>
     <div class="hdr__actions">
@@ -162,7 +164,6 @@
       <button class="burger" type="button" aria-label="Menü öffnen" aria-haspopup="dialog" aria-controls="menu" data-menu-open><svg aria-hidden="true"><use href="#i-menu"/></svg></button>
     </div>
   </div>
-  <div class="hdr__trail" aria-hidden="true" data-trail-h></div>
 </header>
 
 <dialog class="menu" id="menu" aria-label="Menü" data-menu>
@@ -188,77 +189,170 @@
   </div>
 </dialog>
 
-<div class="rail" aria-hidden="true" data-trail-v></div>
-
 <main id="main">
-
-<!-- ============ HERO ============ -->
-<section class="hero" id="start" aria-labelledby="hero-title">
-  <canvas class="hero__walk" aria-hidden="true" data-walk></canvas>
-  <div class="hero__in wrap">
-    <div class="hero__copy">
-      <p class="eyebrow" data-hero-in><span class="eyebrow__paw" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span><span>Tierarztpraxis in <span class="nobr">Bremen-Schwachhausen</span></span></p>
-      <h1 class="hero__title" id="hero-title">
-        <span class="ln"><span class="ln__in">Ruhige Hände</span></span>
-        <span class="ln"><span class="ln__in">für alle mit</span></span>
-        <span class="ln"><span class="ln__in"><span class="hl">Pfoten.<svg class="hl__line" viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true"><path d="M4 16c40-9 92-12 146-9 52 3 98 6 146-2" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg></span></span></span>
-      </h1>
-      <p class="hero__lead" data-hero-in>Hunde, Katzen und Kleintiere – untersucht von drei Tierärztinnen, die erklären, was sie tun, und vorher sagen, was es kostet. Mit eigenem Wartezimmer für Katzen und Akut-Terminen, die wir jeden Tag freihalten.</p>
-      <div class="hero__ctas" data-hero-in>
-        <a class="btn btn--primary btn--lg" href="#anmeldung">Termin anfragen<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-        <a class="btn btn--alarm btn--lg" href="tel:+494215557659"><span class="beacon" aria-hidden="true"></span>Notfall: 0421&nbsp;555&nbsp;76&nbsp;59</a>
+<!-- ============ HERO: Das Wartezimmer ============ -->
+<section class="hero" id="start" aria-labelledby="hero-title" data-hero>
+  <div class="hero__top wrap">
+    <h1 class="hero__title" id="hero-title">
+      <span class="ln"><span class="ln__in">Erst schnuppern,</span></span>
+      <span class="ln ln--2"><span class="ln__in">dann Stethoskop<span class="sr-only">.</span><svg class="hero__dot" viewBox="0 0 18 19" aria-hidden="true"><use href="#paw"/></svg></span></span>
+    </h1>
+    <div class="hero__side">
+      <p class="hero__lead"><strong>Tierarztpraxis Pfotenwerk, Bremen-Schwachhausen.</strong> Drei Tierärztinnen für Hunde, Katzen und Kleintiere, die erklären, was sie tun, und vorher sagen, was es kostet. Zwei getrennte Wartezimmer, Akut-Termine an jedem Praxistag.</p>
+      <div class="hero__ctas">
+        <a class="btn btn--primary btn--lg" href="#anmeldung" data-magnet><span class="roll"><span class="roll__in" data-text="Termin anfragen">Termin anfragen</span></span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="hotline" href="tel:+494215557659"><span class="hotline__k"><span class="beacon" aria-hidden="true"></span>Notfall, rund um die Uhr</span><span class="hotline__v">0421&nbsp;555&nbsp;76&nbsp;59</span></a>
       </div>
-      <ul class="hero__trust" data-hero-in>
-        <li><span class="trust__big">4,8</span><span class="trust__stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span><span class="trust__txt">aus 337&nbsp;Bewertungen</span></li>
-        <li><span class="trust__big">2011</span><span class="trust__txt">in Schwachhausen gegründet</span></li>
-        <li><span class="trust__big">3&nbsp;+&nbsp;6</span><span class="trust__txt">Tierärztinnen und TFA</span></li>
-      </ul>
-    </div>
-
-    <div class="hero__art" data-hero-art>
-      <div class="hero__sun" data-depth="26" aria-hidden="true"></div>
-      <div class="hero__blob" data-depth="12" aria-hidden="true"></div>
-      <figure class="hero__arch" data-depth="6">
-        <img src="/arena/tierarzt-pfotenwerk/assets/img/hero-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/hero-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/hero-960.webp 960w" sizes="(min-width: 1200px) 460px, (min-width: 900px) 38vw, 90vw" width="960" height="640" alt="Golden Retriever schaut mit offenem Maul freundlich in die Kamera" fetchpriority="high" decoding="async">
-      </figure>
-      <div class="hero-status" data-depth="18" data-hero-pop>
-        <svg class="hero-status__cat" viewBox="0 0 120 120" aria-hidden="true">
-          <g class="cat-tail"><path d="M80 108c16 3 26-6 22-19-3-8 0-14 7-16" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></g>
-          <path d="M38 112c-3-16 0-34 10-45 6-6 18-6 24 0 11 11 15 29 12 45z" fill="currentColor"/>
-          <path d="M44 34l-2-20 16 12zM62 26l16-12-2 20z" fill="currentColor"/>
-          <path d="M46 30l-1-10 8 7zM67 27l8-7-1 10z" fill="#FF9D6E"/>
-          <circle cx="60" cy="44" r="18" fill="currentColor"/>
-          <g class="cat-eyes"><ellipse cx="53" cy="43" rx="3.2" ry="3.6" fill="#FFC845"/><ellipse cx="67" cy="43" rx="3.2" ry="3.6" fill="#FFC845"/><ellipse cx="53" cy="43.4" rx="1.1" ry="2.6" fill="#142026"/><ellipse cx="67" cy="43.4" rx="1.1" ry="2.6" fill="#142026"/></g>
-          <path d="M57.5 50h5l-2.5 3z" fill="#FF9D6E"/>
-        </svg>
-        <p class="hero-status__k">Live-Status</p>
-        <p class="hero-status__v" data-status data-state="unknown"><span class="status-dot" aria-hidden="true"></span><span data-status-long>Mo–Fr 8–12 &amp; 15–19&nbsp;Uhr, Sa 9–12&nbsp;Uhr</span></p>
-        <div class="daybar" aria-hidden="true" data-daybar>
-          <div class="daybar__track"></div>
-          <span class="daybar__now" data-daybar-now></span>
-          <div class="daybar__scale"><span>6</span><span>9</span><span>12</span><span>15</span><span>18</span><span>21</span></div>
-        </div>
-      </div>
-      <p class="hero-chip hero-chip--cat" data-depth="30" data-hero-pop><svg aria-hidden="true"><use href="#sil-cat"/></svg>Katzen warten separat</p>
-      <p class="hero-chip hero-chip--rabbit" data-depth="22" data-hero-pop><svg aria-hidden="true"><use href="#sil-rabbit"/></svg>Kleintier-Sprechstunde Do</p>
     </div>
   </div>
-  <a class="hero__scroll" href="#leistungen" aria-label="Weiter zu den Leistungen"><span aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg><svg viewBox="0 0 18 19"><use href="#paw"/></svg><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span></a>
+
+  <div class="scene" data-scene>
+    <div class="room room--dog" aria-hidden="true"></div>
+    <div class="room room--cat" aria-hidden="true"></div>
+    <p class="room__sign room__sign--dog"><svg aria-hidden="true"><use href="#i-arrow"/></svg>Hunde</p>
+    <p class="room__sign room__sign--cat">Katzen &amp; Kleintiere<svg aria-hidden="true"><use href="#i-arrow"/></svg></p>
+
+    <figure class="cert">
+      <p class="cert__big">4,8</p>
+      <p class="cert__stars" aria-label="4,8 von 5 Sternen"><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg></p>
+      <figcaption class="cert__txt">aus 337&nbsp;Bewertungen</figcaption>
+    </figure>
+    <p class="plaque"><span>Seit 2011</span> in Schwachhausen · 3&nbsp;Tierärztinnen, 6&nbsp;TFA</p>
+
+    <svg class="clock" viewBox="-50 -50 100 100" aria-hidden="true" data-clock>
+      <circle r="47" class="clock__rim"/>
+      <circle r="41" class="clock__face"/>
+      <g class="clock__ticks"><path d="M0-37v6M0 31v6M-37 0h6M31 0h6"/><path d="M18.5-32l-1.5 2.6M32-18.5l-2.6 1.5M32 18.5l-2.6-1.5M18.5 32l-1.5-2.6M-18.5 32l1.5-2.6M-32 18.5l2.6-1.5M-32-18.5l2.6 1.5M-18.5-32l1.5 2.6" class="clock__minor"/></g>
+      <g class="clock__paw"><use href="#paw" x="-6" y="11" width="12" height="13"/></g>
+      <path class="clock__h" data-clock-h d="M0 5V-20"/>
+      <path class="clock__m" data-clock-m d="M0 6V-31"/>
+      <g class="clock__s" data-clock-s><path d="M0 9V-34"/><circle r="3"/></g>
+    </svg>
+
+    <div class="door" aria-hidden="true">
+      <div class="door__leaf">
+        <span class="door__win"></span>
+        <span class="door__plate">Behandlung&nbsp;1</span>
+        <span class="door__knob"></span>
+      </div>
+    </div>
+    <div class="doorsign" data-doorsign>
+      <span class="doorsign__nail" aria-hidden="true"></span>
+      <div class="doorsign__card" data-status data-state="unknown">
+        <p class="doorsign__word" data-status-word>Sprechzeiten</p>
+        <p class="doorsign__txt"><span class="status-dot" aria-hidden="true"></span><span data-status-long>Mo–Fr 8–12 &amp; 15–19&nbsp;Uhr, Sa 9–12&nbsp;Uhr</span></p>
+      </div>
+    </div>
+
+    <!-- Hund: Ronja -->
+    <svg class="critter critter--dog" viewBox="0 0 320 360" aria-hidden="true" data-critter="dog">
+      <ellipse cx="164" cy="346" rx="124" ry="11" fill="#142026" opacity=".12"/>
+      <g class="dog__tail"><path d="M226 300c34 4 62-16 64-52 1-18-6-30-14-36" fill="none" stroke="#DE9531" stroke-width="24" stroke-linecap="round"/></g>
+      <ellipse cx="206" cy="296" rx="60" ry="50" fill="#DE9531"/>
+      <path d="M104 334c-8-70 10-132 58-142 46 8 66 72 56 142z" fill="#F2B04A"/>
+      <path d="M138 196c12 14 34 14 46 0 12 38 8 92-23 106-31-14-35-68-23-106z" fill="#FFF1D6"/>
+      <ellipse cx="226" cy="324" rx="30" ry="14" fill="#DE9531"/>
+      <rect x="124" y="250" width="30" height="88" rx="15" fill="#F2B04A"/>
+      <rect x="170" y="250" width="30" height="88" rx="15" fill="#F2B04A"/>
+      <ellipse cx="139" cy="336" rx="23" ry="11" fill="#FFF1D6"/>
+      <ellipse cx="185" cy="336" rx="23" ry="11" fill="#FFF1D6"/>
+      <path d="M132 334v6M140 333v7M178 334v6M186 333v7" stroke="#E2C9A2" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M114 182q48 26 96 0l3 15q-51 30-102 0z" fill="#136F6F"/>
+      <g class="dog__tag"><circle cx="162" cy="214" r="12" fill="#FFC845"/><circle cx="162" cy="214" r="12" fill="none" stroke="#E0A92C" stroke-width="2"/><path d="M162 209.5l1.6 3.2 3.4.4-2.5 2.3.7 3.4-3.2-1.7-3.2 1.7.7-3.4-2.5-2.3 3.4-.4z" fill="#E0A92C"/></g>
+      <g class="dog__head" data-head>
+        <g class="dog__ear dog__ear--l"><path d="M104 74c-30 6-46 54-34 98 6 22 30 24 38 4 8-22 12-62 8-86-2-12-6-16-12-16z" fill="#B8692A"/></g>
+        <g class="dog__ear dog__ear--r"><path d="M218 74c30 6 46 54 34 98-6 22-30 24-38 4-8-22-12-62-8-86 2-12 6-16 12-16z" fill="#B8692A"/></g>
+        <path d="M161 52c40 0 68 26 68 66 0 40-28 64-68 64s-68-24-68-64c0-40 28-66 68-66z" fill="#F2B04A"/>
+        <path d="M153 60q8-5 16 0l6 58q-14 8-28 0z" fill="#FFF1D6" opacity=".85"/>
+        <ellipse cx="161" cy="150" rx="42" ry="30" fill="#FFF1D6"/>
+        <ellipse cx="124" cy="140" rx="10" ry="7" fill="#FF9D6E" opacity=".45"/>
+        <ellipse cx="198" cy="140" rx="10" ry="7" fill="#FF9D6E" opacity=".45"/>
+        <g class="dog__brow"><ellipse cx="132" cy="92" rx="9" ry="4.5" fill="#DE9531" transform="rotate(-12 132 92)"/><ellipse cx="190" cy="92" rx="9" ry="4.5" fill="#DE9531" transform="rotate(12 190 92)"/></g>
+        <g class="eye" data-eye="5.5 4.5"><circle cx="134" cy="112" r="13" fill="#fff"/><g class="pupil"><circle cx="134" cy="112" r="7.6" fill="#142026"/><circle cx="131.4" cy="109.2" r="2.4" fill="#fff"/></g><rect class="lid" x="120" y="98" width="28" height="28" rx="14" fill="#F2B04A"/></g>
+        <g class="eye" data-eye="5.5 4.5"><circle cx="188" cy="112" r="13" fill="#fff"/><g class="pupil"><circle cx="188" cy="112" r="7.6" fill="#142026"/><circle cx="185.4" cy="109.2" r="2.4" fill="#fff"/></g><rect class="lid" x="174" y="98" width="28" height="28" rx="14" fill="#F2B04A"/></g>
+        <g class="dog__tongue"><path d="M152 166q9 30 18 0z" fill="#FF8F7A"/><path d="M161 168v12" stroke="#E86E5A" stroke-width="2" stroke-linecap="round"/></g>
+        <path d="M146 136q15-9 30 0-1 14-15 18-14-4-15-18z" fill="#142026"/>
+        <ellipse cx="155" cy="138" rx="4.5" ry="2.2" fill="#fff" opacity=".45"/>
+        <path d="M161 154v9m-15 1q8 7 15-1 7 8 15 1" fill="none" stroke="#142026" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    </svg>
+
+    <!-- Transportbox mit Kater Mo obendrauf, drinnen schaut Kaninchen Kurt -->
+    <svg class="critter critter--cat" viewBox="0 0 260 336" aria-hidden="true" data-critter="cat">
+      <ellipse cx="131" cy="324" rx="122" ry="9" fill="#142026" opacity=".12"/>
+      <g class="box">
+        <rect x="18" y="140" width="226" height="178" rx="24" fill="#136F6F"/>
+        <rect x="18" y="140" width="226" height="34" rx="16" fill="#1B8585"/>
+        <path d="M36 300h190" stroke="#0E5858" stroke-width="6" stroke-linecap="round"/>
+        <rect x="58" y="188" width="146" height="108" rx="16" fill="#0A3132"/>
+        <g class="kurt" data-kurt>
+          <g class="eye eye--kurt" data-eye="5 3"><circle cx="110" cy="246" r="7.5" fill="#FFE7A8" opacity=".9"/><g class="pupil"><circle cx="110" cy="246" r="3.6" fill="#0A3132"/></g><rect class="lid" x="101" y="237" width="18" height="18" rx="9" fill="#0A3132"/></g>
+          <g class="eye eye--kurt" data-eye="5 3"><circle cx="144" cy="246" r="7.5" fill="#FFE7A8" opacity=".9"/><g class="pupil"><circle cx="144" cy="246" r="3.6" fill="#0A3132"/></g><rect class="lid" x="135" y="237" width="18" height="18" rx="9" fill="#0A3132"/></g>
+        </g>
+        <path d="M80 188v108M102 188v108M124 188v108M146 188v108M168 188v108M190 188v108" stroke="#CFE4E6" stroke-width="4" opacity=".55"/>
+        <rect x="58" y="188" width="146" height="108" rx="16" fill="none" stroke="#E8F1F2" stroke-width="7"/>
+        <rect x="208" y="230" width="14" height="28" rx="7" fill="#FFC845"/>
+        <path d="M36 156h18M208 156h18" stroke="#0E5858" stroke-width="5" stroke-linecap="round"/>
+      </g>
+      <g class="cat" transform="translate(4 0)">
+        <g class="cat__tail"><path d="M196 124c24 2 32 26 26 58-3 16 4 26 14 30" fill="none" stroke="#142026" stroke-width="13" stroke-linecap="round"/></g>
+        <path d="M38 142c-4-40 26-66 84-66 56 0 86 24 86 66z" fill="#142026"/>
+        <path d="M150 92c22 4 40 20 44 44" fill="none" stroke="#2A3A42" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+        <ellipse cx="62" cy="141" rx="15" ry="7" fill="#FFF1D6"/>
+        <ellipse cx="96" cy="142" rx="15" ry="7" fill="#FFF1D6"/>
+        <g class="cat__head" data-head>
+          <g class="cat__ear cat__ear--l"><path d="M42 66l2-44 34 26z" fill="#142026"/><path d="M48 58l2-24 18 15z" fill="#FF9D6E"/></g>
+          <g class="cat__ear cat__ear--r"><path d="M98 48l26-28 6 44z" fill="#142026"/><path d="M106 48l16-17 3 26z" fill="#FF9D6E"/></g>
+          <ellipse cx="80" cy="84" rx="44" ry="39" fill="#142026"/>
+          <path d="M66 108q14 10 28 0q-2 12-14 14-12-2-14-14z" fill="#FFF1D6"/>
+          <g class="eye eye--cat" data-eye="4 3"><ellipse cx="64" cy="82" rx="10" ry="10.5" fill="#FFC845"/><g class="pupil"><ellipse cx="64" cy="82" rx="3.2" ry="8" fill="#142026"/><circle cx="62" cy="78" r="1.8" fill="#fff"/></g><rect class="lid" x="53" y="71" width="22" height="22" rx="11" fill="#142026"/></g>
+          <g class="eye eye--cat" data-eye="4 3"><ellipse cx="96" cy="82" rx="10" ry="10.5" fill="#FFC845"/><g class="pupil"><ellipse cx="96" cy="82" rx="3.2" ry="8" fill="#142026"/><circle cx="94" cy="78" r="1.8" fill="#fff"/></g><rect class="lid" x="85" y="71" width="22" height="22" rx="11" fill="#142026"/></g>
+          <path d="M76 98h8l-4 5z" fill="#FF9D6E"/>
+          <path d="M80 103v4m-6 1q3 3 6-1 3 4 6 1" fill="none" stroke="#FFF1D6" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M46 98l-20-3M46 104l-20 4M114 98l20-3M114 104l20 4" stroke="#FFF1D6" stroke-width="1.4" stroke-linecap="round" opacity=".55"/>
+        </g>
+      </g>
+    </svg>
+
+    <!-- Kaninchen: Tilda -->
+    <svg class="critter critter--rabbit" viewBox="0 0 170 210" aria-hidden="true" data-critter="rabbit">
+      <ellipse cx="90" cy="203" rx="62" ry="6" fill="#142026" opacity=".12"/>
+      <g class="rab__ear rab__ear--l"><ellipse cx="62" cy="46" rx="14" ry="40" transform="rotate(-12 62 46)" fill="#FF9D6E"/><ellipse cx="62" cy="50" rx="6" ry="28" transform="rotate(-12 62 50)" fill="#FFD3BD"/></g>
+      <g class="rab__ear rab__ear--r"><ellipse cx="104" cy="44" rx="14" ry="40" transform="rotate(14 104 44)" fill="#FF9D6E"/><ellipse cx="104" cy="48" rx="6" ry="28" transform="rotate(14 104 48)" fill="#FFD3BD"/></g>
+      <circle cx="140" cy="172" r="14" fill="#FFF8EE"/>
+      <ellipse cx="96" cy="160" rx="54" ry="44" fill="#FF9D6E"/>
+      <path d="M60 140c-8 20-6 46 10 60h40c-10-20-12-44-4-62z" fill="#FFF8EE"/>
+      <g class="rab__head" data-head>
+        <ellipse cx="84" cy="104" rx="38" ry="35" fill="#FF9D6E"/>
+        <path d="M78 72q6-4 12 0l10 34q-16 26-34 2z" fill="#FFF8EE"/>
+        <ellipse cx="84" cy="118" rx="22" ry="16" fill="#FFF8EE"/>
+        <g class="eye eye--rab" data-eye="2.6 2.2"><circle cx="66" cy="98" r="7" fill="#142026"/><g class="pupil"><circle cx="64" cy="95.6" r="2.2" fill="#fff"/></g><rect class="lid" x="58" y="90" width="16" height="16" rx="8" fill="#FF9D6E"/></g>
+        <g class="eye eye--rab" data-eye="2.6 2.2"><circle cx="102" cy="98" r="7" fill="#142026"/><g class="pupil"><circle cx="100" cy="95.6" r="2.2" fill="#fff"/></g><rect class="lid" x="94" y="90" width="16" height="16" rx="8" fill="#FF9D6E"/></g>
+        <g class="rab__nose"><path d="M79 111h10l-5 6z" fill="#E8735A"/></g>
+        <path d="M84 117v4m-5 1q2.5 3 5-1 2.5 4 5 1" fill="none" stroke="#C9604A" stroke-width="1.6" stroke-linecap="round"/>
+        <ellipse cx="62" cy="114" rx="7" ry="5" fill="#FF8F7A" opacity=".5"/>
+        <ellipse cx="106" cy="114" rx="7" ry="5" fill="#FF8F7A" opacity=".5"/>
+      </g>
+      <ellipse cx="74" cy="200" rx="13" ry="7" fill="#FFF8EE"/>
+      <ellipse cx="100" cy="200" rx="13" ry="7" fill="#FFF8EE"/>
+    </svg>
+
+    <p class="scene__note" aria-hidden="true"><svg viewBox="0 0 60 40"><path d="M4 6c18 2 34 10 44 26m0 0-1-11m1 11-10-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Ronja, Mo, Tilda &amp; Kurt – die Haustiere unseres Teams</p>
+    <span class="scene__floor" aria-hidden="true"></span>
+  </div>
 </section>
 
-<!-- ============ LEISTUNGEN ============ -->
+<!-- ============ LEISTUNGEN: Karteikasten ============ -->
 <section class="services" id="leistungen" aria-labelledby="svc-title">
-  <div class="wrap">
-    <header class="sec-head sec-head--split" data-reveal>
-      <p class="eyebrow"><span class="eyebrow__paw" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>Leistungen</p>
-      <h2 class="h2" id="svc-title">Von der ersten Impfung bis zum Senioren-Check.</h2>
+  <div class="wrap services__in">
+    <header class="services__head">
+      <h2 class="h2 h2--xl" id="svc-title" data-split>Von der ersten Impfung bis zum Senioren-Check.</h2>
       <p class="sec-lead">Sechs Bereiche, ein Team, eine Akte. Was wir nicht selbst anbieten – etwa MRT oder Bandscheiben-OPs –, überweisen wir an Bremer Kliniken und begleiten die Nachsorge wieder bei uns.</p>
+      <p class="hand services__hand" aria-hidden="true">Jede Karte ein Fach. Und auf jeder sitzt jemand, der gern mitredet.</p>
     </header>
-
-    <ul class="svc-grid">
-      <li class="svc" data-reveal data-wiggle style="--spot: var(--sun)">
+    <ul class="svc-grid" data-rail-reveal>
+      <li class="svc" data-wiggle style="--spot: var(--sun); --rot: -1.2deg"><span class="svc__tab" aria-hidden="true">01</span>
         <div class="svc__art" aria-hidden="true">
-          <span class="svc__spot"></span>
           <svg class="sil" viewBox="0 0 120 120">
             <g class="sil__body">
               <path class="sil__tail" d="M88 104c12-1 19-10 17-24" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
@@ -285,9 +379,8 @@
         <a class="svc__link" href="#anmeldung" data-prefill="vorsorge">Check-up anfragen<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </li>
 
-      <li class="svc" data-reveal data-wiggle style="--spot: var(--apricot)">
+      <li class="svc" data-wiggle style="--spot: var(--apricot); --rot: 0.8deg"><span class="svc__tab" aria-hidden="true">02</span>
         <div class="svc__art" aria-hidden="true">
-          <span class="svc__spot"></span>
           <svg class="sil" viewBox="0 0 120 120">
             <g class="sil__body">
               <path class="sil__tail" d="M80 108c16 3 26-6 22-19-3-8 0-14 7-16" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
@@ -312,9 +405,8 @@
         <a class="svc__link" href="#anmeldung" data-prefill="zahn">Zahnkontrolle anfragen<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </li>
 
-      <li class="svc" data-reveal data-wiggle style="--spot: var(--sky-2)">
+      <li class="svc" data-wiggle style="--spot: var(--sky-2); --rot: 0.6deg"><span class="svc__tab" aria-hidden="true">03</span>
         <div class="svc__art" aria-hidden="true">
-          <span class="svc__spot"></span>
           <svg class="sil" viewBox="0 0 120 120">
             <g class="sil__body">
               <path class="sil__tail" d="M100 102c10 4 9 10-5 10H58" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
@@ -336,9 +428,8 @@
         <a class="svc__link" href="#anmeldung" data-prefill="krank">Untersuchung anfragen<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </li>
 
-      <li class="svc" data-reveal data-wiggle style="--spot: var(--sun)">
+      <li class="svc" data-wiggle style="--spot: var(--sun); --rot: -0.9deg"><span class="svc__tab" aria-hidden="true">04</span>
         <div class="svc__art" aria-hidden="true">
-          <span class="svc__spot"></span>
           <svg class="sil" viewBox="0 0 120 120">
             <g class="sil__body">
               <path class="sil__tail" d="M98 62c9-5 13-14 10-24" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
@@ -366,9 +457,8 @@
         <a class="svc__link" href="#anmeldung" data-prefill="krank">Termin anfragen<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </li>
 
-      <li class="svc" data-reveal data-wiggle style="--spot: var(--apricot)">
+      <li class="svc" data-wiggle style="--spot: var(--apricot); --rot: -0.5deg"><span class="svc__tab" aria-hidden="true">05</span>
         <div class="svc__art" aria-hidden="true">
-          <span class="svc__spot"></span>
           <svg class="sil" viewBox="0 0 120 120">
             <g class="sil__body">
               <path class="sil__tail" d="M102 104c10-1 15 3 14 8" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
@@ -393,9 +483,8 @@
         <a class="svc__link" href="#anmeldung" data-prefill="kastration">Beratung anfragen<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </li>
 
-      <li class="svc" data-reveal data-wiggle style="--spot: var(--sky-2)">
+      <li class="svc" data-wiggle style="--spot: var(--sky-2); --rot: 1deg"><span class="svc__tab" aria-hidden="true">06</span>
         <div class="svc__art" aria-hidden="true">
-          <span class="svc__spot"></span>
           <svg class="sil" viewBox="0 0 120 120">
             <g class="sil__body">
               <ellipse cx="68" cy="90" rx="31" ry="22" fill="currentColor"/>
@@ -428,19 +517,19 @@
   </div>
 </section>
 
-<!-- ============ NOTFALL-WEGWEISER ============ -->
-<section class="er" id="notfall" aria-labelledby="er-title">
-  <div class="wrap">
+<!-- ============ NOTFALL-WEGWEISER: Ampel-Entscheidungsbaum ============ -->
+<section class="er" id="notfall" aria-labelledby="er-title" data-er>
+  <div class="er__bg" aria-hidden="true" data-er-bg></div>
+  <div class="wrap er__in">
     <div class="er__head">
-      <header class="sec-head sec-head--dark" data-reveal>
-        <p class="eyebrow"><span class="eyebrow__paw" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>Notfall-Wegweiser</p>
-        <h2 class="h2" id="er-title">Wie dringend ist es?</h2>
+      <h2 class="er__title" id="er-title" data-split>Wie dringend ist&nbsp;es?</h2>
+      <div class="er__intro">
         <p class="sec-lead">Tierart wählen, Anzeichen antippen – der Wegweiser ordnet ein, ob Sie sofort anrufen, heute kommen oder in Ruhe einen Termin vereinbaren sollten. Er ist eine Orientierung, keine Diagnose. Wenn Sie unsicher sind: Rufen Sie an. Lieber einmal zu oft.</p>
-      </header>
-      <a class="er__hotline" href="tel:+494215557659" data-reveal>
-        <span class="er__hotline-k">Notfall-Hotline, rund um die Uhr</span>
-        <span class="er__hotline-v">0421&nbsp;555&nbsp;76&nbsp;59</span>
-      </a>
+        <a class="er__hotline" href="tel:+494215557659" data-magnet>
+          <span class="er__hotline-k">Notfall-Hotline, rund um die Uhr</span>
+          <span class="er__hotline-v">0421&nbsp;555&nbsp;76&nbsp;59</span>
+        </a>
+      </div>
     </div>
 
     <div class="er__tool">
@@ -497,6 +586,19 @@
       </form>
 
       <div class="er__result" data-level="0" data-triage-result id="er-result" tabindex="-1">
+        <div class="tree" aria-hidden="true">
+          <p class="tree__root"><svg class="tree__sil" data-tree-sil><use href="#sil-dog"/></svg><span><span data-tree-sp>Hund</span> · <span data-tree-n>0 Anzeichen</span></span></p>
+          <svg class="tree__svg" viewBox="0 0 300 100" preserveAspectRatio="none">
+            <path class="tree__bg" d="M150 0V40"/>
+            <path class="tree__bg" d="M150 40C150 66 50 58 50 100"/>
+            <path class="tree__bg" d="M150 40V100"/>
+            <path class="tree__bg" d="M150 40C150 66 250 58 250 100"/>
+            <path class="tree__fg tree__trunk" pathLength="1" d="M150 0V40"/>
+            <path class="tree__fg" data-br="3" pathLength="1" d="M150 40C150 66 50 58 50 100"/>
+            <path class="tree__fg" data-br="2" pathLength="1" d="M150 40V100"/>
+            <path class="tree__fg" data-br="1" pathLength="1" d="M150 40C150 66 250 58 250 100"/>
+          </svg>
+        </div>
         <ol class="ampel" aria-label="Stufen der Einschätzung">
           <li data-l="3"><span class="ampel__light" aria-hidden="true"></span><span class="ampel__txt">Sofort anrufen</span></li>
           <li data-l="2"><span class="ampel__light" aria-hidden="true"></span><span class="ampel__txt">Heute Termin</span></li>
@@ -525,14 +627,13 @@
   </div>
 </section>
 
-<!-- ============ ERSTER BESUCH (Pfotenspur) ============ -->
-<section class="visit" id="besuch" aria-labelledby="visit-title">
+<!-- ============ ERSTER BESUCH: Pfotenspur (sticky) ============ -->
+<section class="visit" id="besuch" aria-labelledby="visit-title" data-visit>
   <div class="visit__pin" data-visit-pin>
     <div class="wrap">
-      <header class="sec-head visit__head" data-reveal>
-        <p class="eyebrow"><span class="eyebrow__paw" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>Ihr erster Besuch</p>
-        <h2 class="h2" id="visit-title">Vier Schritte. Eine Spur.</h2>
-        <p class="sec-lead">So läuft der erste Termin bei uns – folgen Sie einfach den Pfoten.</p>
+      <header class="visit__head">
+        <h2 class="h2" id="visit-title" data-split>Der erste Besuch, Pfote für Pfote.</h2>
+        <p class="sec-lead">So läuft der erste Termin bei uns. Scrollen Sie einfach der Spur nach.</p>
       </header>
       <div class="visit__stage" data-visit-stage>
         <svg class="visit__svg" aria-hidden="true" data-visit-svg>
@@ -578,17 +679,17 @@
   </div>
 </section>
 
-<!-- ============ IMPFPLANER ============ -->
+<!-- ============ IMPFPLANER: Impfpass mit wachsendem Zeitstrahl ============ -->
 <section class="vacc" id="impfplaner" aria-labelledby="vacc-title">
   <div class="wrap">
-    <header class="sec-head sec-head--split" data-reveal>
-      <p class="eyebrow"><span class="eyebrow__paw" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>Impfplaner für Welpen &amp; Kitten</p>
-      <h2 class="h2" id="vacc-title">Wann ist welche Impfung dran?</h2>
+    <header class="vacc__head">
+      <h2 class="h2 h2--xl" id="vacc-title" data-split>Wann ist welche Impfung dran?</h2>
       <p class="sec-lead">Geburtsdatum eingeben – der Planer zeigt die übliche Grundimmunisierung mit Datum. Welche Impfungen Ihr Tier wirklich braucht, besprechen wir beim ersten Termin.</p>
     </header>
-
-    <div class="vacc__grid">
-      <form class="vacc__form" data-vacc>
+    <div class="vacc__grid pass">
+      <div class="pass__page pass__page--l">
+        <p class="pass__title" aria-hidden="true"><span>Impfpass</span><span class="hand">für Welpen &amp; Kitten</span></p>
+        <form class="vacc__form" data-vacc>
         <fieldset class="seg">
           <legend class="sr-only">Tier auswählen</legend>
           <label class="seg__opt"><input type="radio" name="vacc-art" value="welpe" checked><span><svg aria-hidden="true"><use href="#sil-dog"/></svg>Welpe</span></label>
@@ -608,13 +709,14 @@
           <span class="check__box" aria-hidden="true"><svg><use href="#i-check"/></svg></span>
           <span class="check__txt" data-vacc-opt-label>Hundeschule, Pension oder Hundewiese geplant</span>
         </label>
-        <figure class="vacc__photo" aria-hidden="true">
-          <img class="is-on" data-vacc-img="welpe" src="/arena/tierarzt-pfotenwerk/assets/img/welpe-sitzt-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/welpe-sitzt-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/welpe-sitzt-960.webp 960w" sizes="(min-width: 900px) 360px, 90vw" width="960" height="624" loading="lazy" decoding="async" alt="">
-          <img data-vacc-img="kitten" src="/arena/tierarzt-pfotenwerk/assets/img/kitten-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/kitten-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/kitten-960.webp 960w" sizes="(min-width: 900px) 360px, 90vw" width="960" height="640" loading="lazy" decoding="async" alt="">
+        <figure class="vacc__photo" aria-hidden="true"><span class="vacc__photo-k">Passbild</span>
+          <img class="is-on" data-vacc-img="welpe" src="/arena/tierarzt-pfotenwerk/assets/img/welpe-sitzt-duo-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/welpe-sitzt-duo-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/welpe-sitzt-duo-960.webp 960w" sizes="(min-width: 1100px) 200px, 40vw" width="960" height="624" loading="lazy" decoding="async" alt="">
+          <img data-vacc-img="kitten" src="/arena/tierarzt-pfotenwerk/assets/img/kitten-duo-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/kitten-duo-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/kitten-duo-960.webp 960w" sizes="(min-width: 1100px) 200px, 40vw" width="960" height="640" loading="lazy" decoding="async" alt="">
         </figure>
       </form>
-
-      <div class="vacc__out">
+      </div>
+      <div class="pass__page pass__page--r">
+        <div class="vacc__out">
         <div class="vacc__summary">
           <p class="vacc__age" data-vacc-age>Grundimmunisierung im Überblick</p>
           <p class="vacc__next" aria-live="polite" data-vacc-next>Geben Sie ein Geburtsdatum ein, dann rechnen wir die Termine aus.</p>
@@ -634,79 +736,73 @@
         </div>
         <p class="note">Allgemeine Orientierung, angelehnt an die Empfehlungen der Ständigen Impfkommission Veterinärmedizin (StIKo Vet). Gestrichelte Impfungen sind optional und hängen von Haltung und Alltag ab. Die Termine sind Richtwerte – den individuellen Impfplan legen wir gemeinsam fest.</p>
       </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ============ PRAXIS & TEAM ============ -->
+<!-- ============ PRAXIS & TEAM: Polaroid-Wand ============ -->
 <section class="team" id="praxis" aria-labelledby="team-title">
   <div class="wrap">
-    <div class="team__intro">
-      <figure class="team__photo" data-reveal>
-        <img src="/arena/tierarzt-pfotenwerk/assets/img/arm-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/arm-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/arm-960.webp 960w" sizes="(min-width: 900px) 46vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Kleiner Chihuahua liegt entspannt im Arm eines Menschen im weißen Hemd">
-        <figcaption>„Erst ankommen lassen, dann untersuchen.“ <span>– unsere Grundregel</span></figcaption>
+    <header class="team__head">
+      <h2 class="h2 h2--xl" id="team-title" data-split>Eine Praxis, in der auch Katzen entspannt bleiben.</h2>
+      <p class="sec-lead">Seit 2011 behandeln wir in Schwachhausen Hunde, Katzen und Kleintiere. Leckerlis gibt es vor, während und nach der Behandlung – Medical Training statt Festhalten, wo immer es geht.</p>
+    </header>
+    <div class="board" data-board>
+      <figure class="team__photo pol" data-pol style="--r: -1.6deg">
+        <svg class="tape" aria-hidden="true"><use href="#i-tape"/></svg>
+        <img src="/arena/tierarzt-pfotenwerk/assets/img/arm-duo-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/arm-duo-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/arm-duo-960.webp 960w" sizes="(min-width: 1100px) 520px, 88vw" width="960" height="640" loading="lazy" decoding="async" alt="Kleiner Chihuahua liegt entspannt im Arm eines Menschen im weißen Hemd">
+        <figcaption class="hand">„Erst ankommen lassen, dann untersuchen.“ <span>– unsere Grundregel</span></figcaption>
       </figure>
-      <div class="team__copy">
-        <header class="sec-head" data-reveal>
-          <p class="eyebrow"><span class="eyebrow__paw" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>Praxis &amp; Team</p>
-          <h2 class="h2" id="team-title">Eine Praxis, in der auch Katzen entspannt bleiben.</h2>
-          <p class="sec-lead">Seit 2011 behandeln wir in Schwachhausen Hunde, Katzen und Kleintiere. Leckerlis gibt es vor, während und nach der Behandlung – Medical Training statt Festhalten, wo immer es geht.</p>
-        </header>
-        <dl class="facts" data-reveal>
+      <dl class="facts" data-pol style="--r: 2.2deg">
           <div><dt>Gegründet</dt><dd><span data-count="2011" data-count-from="1990">2011</span></dd></div>
           <div><dt>Tierärztinnen</dt><dd><span data-count="3">3</span></dd></div>
           <div><dt>Tiermed. Fachangestellte</dt><dd><span data-count="6">6</span></dd></div>
           <div><dt>Wartezimmer</dt><dd><span data-count="2">2</span></dd></div>
         </dl>
-      </div>
-    </div>
-
-    <ul class="vets">
-      <li class="vet" data-reveal style="--mono: var(--sun)">
+      <ul class="vets">
+      <li class="vet" data-pol style="--mono: var(--sun); --r: -2.4deg"><span class="pin" aria-hidden="true"></span>
         <div class="vet__mono" aria-hidden="true"><span>JP</span><svg class="vet__pet"><use href="#sil-dog"/></svg></div>
         <h3 class="vet__name">Dr. med. vet. Jana Petersen</h3>
         <p class="vet__role">Praxisinhaberin · Innere Medizin &amp; Ultraschall</p>
         <p class="vet__text">Hat in Hannover studiert und zehn Jahre in einer Kleintierklinik gearbeitet, bevor sie Pfotenwerk gegründet hat. Erklärt Ultraschallbilder so, dass man sie danach selbst lesen kann.</p>
-        <p class="vet__pet-line">Zu Hause: Labrador-Hündin Ronja, 9</p>
+        <p class="vet__pet-line hand">Zu Hause: Labrador-Hündin Ronja, 9</p>
       </li>
-      <li class="vet" data-reveal style="--mono: var(--apricot)">
+      <li class="vet" data-pol style="--mono: var(--apricot); --r: 1.6deg"><span class="pin" aria-hidden="true"></span>
         <div class="vet__mono" aria-hidden="true"><span>AD</span><svg class="vet__pet"><use href="#sil-cat"/></svg></div>
         <h3 class="vet__name">Dr. med. vet. Aylin Demir</h3>
         <p class="vet__role">Tierärztin · Zahnheilkunde &amp; Chirurgie</p>
         <p class="vet__text">Operiert ruhig und dokumentiert jeden Zahn mit Foto. Ihre Katzen-Sprechstunde am Dienstagnachmittag ist meist zuerst ausgebucht.</p>
-        <p class="vet__pet-line">Zu Hause: Kater Mo, 6, und viele Kratzbäume</p>
+        <p class="vet__pet-line hand">Zu Hause: Kater Mo, 6, und viele Kratzbäume</p>
       </li>
-      <li class="vet" data-reveal style="--mono: var(--sky-2)">
+      <li class="vet" data-pol style="--mono: var(--sky-2); --r: -1deg"><span class="pin" aria-hidden="true"></span>
         <div class="vet__mono" aria-hidden="true"><span>LB</span><svg class="vet__pet"><use href="#sil-rabbit"/></svg></div>
         <h3 class="vet__name">Lena Brandt</h3>
         <p class="vet__role">Tierärztin · Kleintiere &amp; Verhaltensmedizin</p>
         <p class="vet__text">Kennt sich mit Kaninchenzähnen ebenso aus wie mit Hunden, die vor der Waage streiken. Leitet die Kleintier-Sprechstunde am Donnerstag.</p>
-        <p class="vet__pet-line">Zu Hause: Kaninchen Tilda &amp; Kurt</p>
+        <p class="vet__pet-line hand">Zu Hause: Kaninchen Tilda &amp; Kurt</p>
       </li>
     </ul>
-
-    <div class="tfa" data-reveal>
+      <div class="tfa">
       <p class="tfa__t">Das TFA-Team <span>– sechs Tiermedizinische Fachangestellte am Empfang, im Labor und im OP</span></p>
       <ul class="tfa__list">
-        <li><span class="tfa__mono" style="--mono: var(--sun)" aria-hidden="true">SK</span><span class="tfa__name">Sabine</span><span class="tfa__role">Praxismanagement</span></li>
-        <li><span class="tfa__mono" style="--mono: var(--apricot)" aria-hidden="true">MY</span><span class="tfa__name">Mehmet</span><span class="tfa__role">OP-Assistenz</span></li>
-        <li><span class="tfa__mono" style="--mono: var(--sky-2)" aria-hidden="true">JR</span><span class="tfa__name">Jule</span><span class="tfa__role">Labor</span></li>
-        <li><span class="tfa__mono" style="--mono: var(--sun)" aria-hidden="true">KW</span><span class="tfa__name">Kira</span><span class="tfa__role">Empfang</span></li>
-        <li><span class="tfa__mono" style="--mono: var(--apricot)" aria-hidden="true">TH</span><span class="tfa__name">Tom</span><span class="tfa__role">Röntgen &amp; Narkose</span></li>
-        <li><span class="tfa__mono" style="--mono: var(--sky-2)" aria-hidden="true">NL</span><span class="tfa__name">Nele</span><span class="tfa__role">Auszubildende</span></li>
+        <li data-pol style="--r: -3deg"><span class="tfa__mono" style="--mono: var(--sun)" aria-hidden="true">SK</span><span class="tfa__name">Sabine</span><span class="tfa__role">Praxismanagement</span></li>
+        <li data-pol style="--r: 2deg"><span class="tfa__mono" style="--mono: var(--apricot)" aria-hidden="true">MY</span><span class="tfa__name">Mehmet</span><span class="tfa__role">OP-Assistenz</span></li>
+        <li data-pol style="--r: -1.5deg"><span class="tfa__mono" style="--mono: var(--sky-2)" aria-hidden="true">JR</span><span class="tfa__name">Jule</span><span class="tfa__role">Labor</span></li>
+        <li data-pol style="--r: 2.6deg"><span class="tfa__mono" style="--mono: var(--sun)" aria-hidden="true">KW</span><span class="tfa__name">Kira</span><span class="tfa__role">Empfang</span></li>
+        <li data-pol style="--r: -2deg"><span class="tfa__mono" style="--mono: var(--apricot)" aria-hidden="true">TH</span><span class="tfa__name">Tom</span><span class="tfa__role">Röntgen &amp; Narkose</span></li>
+        <li data-pol style="--r: 1.2deg"><span class="tfa__mono" style="--mono: var(--sky-2)" aria-hidden="true">NL</span><span class="tfa__name">Nele</span><span class="tfa__role">Auszubildende</span></li>
       </ul>
+    </div>
     </div>
   </div>
 </section>
 
-<!-- ============ PATIENTENGESCHICHTEN ============ -->
-<section class="stories" id="stimmen" aria-labelledby="stories-title">
+<!-- ============ GESCHICHTEN: Postkarten-Strecke (sticky) ============ -->
+<section class="stories" id="stimmen" aria-labelledby="stories-title" data-stories>
   <div class="stories__pin" data-stories-pin>
     <div class="wrap stories__head">
-      <header class="sec-head" data-reveal>
-        <p class="eyebrow"><span class="eyebrow__paw" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>Patientengeschichten</p>
-        <h2 class="h2" id="stories-title">Was Herrchen und Frauchen erzählen.</h2>
-      </header>
+      <h2 class="h2" id="stories-title" data-split>Was Herrchen und Frauchen erzählen.</h2>
       <div class="stories__nav">
         <button class="round-btn" type="button" aria-label="Vorherige Geschichte" data-stories-prev><svg aria-hidden="true" style="transform: scaleX(-1)"><use href="#i-arrow"/></svg></button>
         <button class="round-btn" type="button" aria-label="Nächste Geschichte" data-stories-next><svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
@@ -715,6 +811,7 @@
     <div class="stories__viewport" data-stories-viewport tabindex="0" role="region" aria-label="Patientengeschichten, seitlich scrollbar">
       <ul class="stories__track" data-stories-track>
         <li class="story story--score">
+          <svg class="seal" viewBox="0 0 200 200" aria-hidden="true"><defs><path id="seal-ring" d="M100 100m-78 0a78 78 0 1 1 156 0a78 78 0 1 1-156 0"/></defs><text><textPath href="#seal-ring">Pfotenwerk · Bewertungen · Schwachhausen · seit 2011 · </textPath></text></svg>
           <p class="score__big">4,8</p>
           <p class="score__stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></p>
           <p class="score__sub">aus 337 Bewertungen</p>
@@ -727,47 +824,47 @@
           </ul>
           <p class="score__note">Fiktive Beispielwerte</p>
         </li>
-        <li class="story">
-          <figure class="story__img"><img src="/arena/tierarzt-pfotenwerk/assets/img/welpe-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/welpe-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/welpe-960.webp 960w" sizes="(min-width: 900px) 380px, 80vw" width="960" height="643" loading="lazy" decoding="async" alt="Schokobrauner Labrador-Welpe schaut von unten in die Kamera"></figure>
+        <li class="story"><span class="story__stamp" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>
+          <figure class="story__img"><img src="/arena/tierarzt-pfotenwerk/assets/img/welpe-duo-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/welpe-duo-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/welpe-duo-960.webp 960w" sizes="(min-width: 900px) 380px, 80vw" width="960" height="643" loading="lazy" decoding="async" alt="Schokobrauner Labrador-Welpe schaut von unten in die Kamera"></figure>
           <p class="story__tag"><span>Lotte, 10 Wochen</span><span>Erste Impfung</span></p>
           <blockquote class="story__q"><p>„Lotte hat sich vor lauter Leberwurst gar nicht für die Spritze interessiert. Den Impfplan haben wir ausgedruckt an den Kühlschrank gehängt.“</p></blockquote>
-          <p class="story__who">Familie Hinrichs · Horn-Lehe</p>
+          <p class="story__who hand">Familie Hinrichs · Horn-Lehe</p>
         </li>
-        <li class="story">
-          <figure class="story__img"><img src="/arena/tierarzt-pfotenwerk/assets/img/siam-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/siam-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/siam-960.webp 960w" sizes="(min-width: 900px) 380px, 80vw" width="960" height="640" loading="lazy" decoding="async" alt="Siam-Kätzchen mit blauen Augen liegt auf einer Decke"></figure>
+        <li class="story"><span class="story__stamp" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>
+          <figure class="story__img"><img src="/arena/tierarzt-pfotenwerk/assets/img/siam-duo-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/siam-duo-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/siam-duo-960.webp 960w" sizes="(min-width: 900px) 380px, 80vw" width="960" height="640" loading="lazy" decoding="async" alt="Siam-Kätzchen mit blauen Augen liegt auf einer Decke"></figure>
           <p class="story__tag"><span>Mia, 3 Jahre</span><span>Blasenentzündung</span></p>
           <blockquote class="story__q"><p>„Samstagmorgen, Mia ging alle zehn Minuten aufs Klo. Wir durften sofort kommen und hatten nach einer Stunde Befund und Medikament.“</p></blockquote>
-          <p class="story__who">Merle S. · Findorff</p>
+          <p class="story__who hand">Merle S. · Findorff</p>
         </li>
-        <li class="story">
-          <figure class="story__img"><img src="/arena/tierarzt-pfotenwerk/assets/img/gaehnen-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/gaehnen-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/gaehnen-960.webp 960w" sizes="(min-width: 900px) 380px, 80vw" width="960" height="640" loading="lazy" decoding="async" alt="Golden Retriever gähnt mit weit geöffnetem Maul vor hellem Hintergrund"></figure>
+        <li class="story"><span class="story__stamp" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>
+          <figure class="story__img"><img src="/arena/tierarzt-pfotenwerk/assets/img/gaehnen-duo-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/gaehnen-duo-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/gaehnen-duo-960.webp 960w" sizes="(min-width: 900px) 380px, 80vw" width="960" height="640" loading="lazy" decoding="async" alt="Golden Retriever gähnt mit weit geöffnetem Maul vor hellem Hintergrund"></figure>
           <p class="story__tag"><span>Sunny, 7 Jahre</span><span>Zahnsanierung</span></p>
           <blockquote class="story__q"><p>„Vorher ein Kostenvoranschlag, danach Fotos von jedem Zahn und am Abend ein Anruf. Genau so wünscht man sich das.“</p></blockquote>
-          <p class="story__who">Thomas R. · Schwachhausen</p>
+          <p class="story__who hand">Thomas R. · Schwachhausen</p>
         </li>
-        <li class="story">
-          <figure class="story__img"><img src="/arena/tierarzt-pfotenwerk/assets/img/terrier-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/terrier-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/terrier-960.webp 960w" sizes="(min-width: 900px) 380px, 80vw" width="960" height="640" loading="lazy" decoding="async" alt="Jack-Russell-Welpe sitzt auf einem Holzboden und schaut nach oben"></figure>
+        <li class="story"><span class="story__stamp" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>
+          <figure class="story__img"><img src="/arena/tierarzt-pfotenwerk/assets/img/terrier-duo-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/terrier-duo-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/terrier-duo-960.webp 960w" sizes="(min-width: 900px) 380px, 80vw" width="960" height="640" loading="lazy" decoding="async" alt="Jack-Russell-Welpe sitzt auf einem Holzboden und schaut nach oben"></figure>
           <p class="story__tag"><span>Pepe, 2 Jahre</span><span>Schnitt in der Pfote</span></p>
           <blockquote class="story__q"><p>„Glasscherbe im Bürgerpark. Anruf bei der Hotline, zwanzig Minuten später war die Wunde gesäubert und verbunden.“</p></blockquote>
-          <p class="story__who">Jonas K. · Östliche Vorstadt</p>
+          <p class="story__who hand">Jonas K. · Östliche Vorstadt</p>
         </li>
-        <li class="story">
-          <figure class="story__img"><img src="/arena/tierarzt-pfotenwerk/assets/img/bully-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/bully-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/bully-960.webp 960w" sizes="(min-width: 900px) 380px, 80vw" width="960" height="640" loading="lazy" decoding="async" alt="Schwarz-weißer Französische-Bulldogge-Welpe mit großen Ohren"></figure>
+        <li class="story"><span class="story__stamp" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>
+          <figure class="story__img"><img src="/arena/tierarzt-pfotenwerk/assets/img/bully-duo-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/bully-duo-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/bully-duo-960.webp 960w" sizes="(min-width: 900px) 380px, 80vw" width="960" height="640" loading="lazy" decoding="async" alt="Schwarz-weißer Französische-Bulldogge-Welpe mit großen Ohren"></figure>
           <p class="story__tag"><span>Bruno, 5 Monate</span><span>Angst vorm Tisch</span></p>
           <blockquote class="story__q"><p>„Nach der ersten Impfung wollte Bruno nicht mehr auf den Tisch. Jetzt kommen wir zwischendurch nur zum Wiegen und Leckerli-Abholen vorbei.“</p></blockquote>
-          <p class="story__who">Sarah &amp; Ben M. · Vahr</p>
+          <p class="story__who hand">Sarah &amp; Ben M. · Vahr</p>
         </li>
-        <li class="story">
-          <figure class="story__img"><img src="/arena/tierarzt-pfotenwerk/assets/img/katze-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/katze-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/katze-960.webp 960w" sizes="(min-width: 900px) 380px, 80vw" width="960" height="540" loading="lazy" decoding="async" alt="Grau getigerte Katze im Profil vor hellem Hintergrund"></figure>
+        <li class="story"><span class="story__stamp" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>
+          <figure class="story__img"><img src="/arena/tierarzt-pfotenwerk/assets/img/katze-duo-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/katze-duo-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/katze-duo-960.webp 960w" sizes="(min-width: 900px) 380px, 80vw" width="960" height="540" loading="lazy" decoding="async" alt="Grau getigerte Katze im Profil vor hellem Hintergrund"></figure>
           <p class="story__tag"><span>Oskar, 14 Jahre</span><span>Senioren-Check</span></p>
           <blockquote class="story__q"><p>„Die Schilddrüse war’s. Seit der Einstellung frisst Oskar wieder normal und schläft nachts durch – und wir auch.“</p></blockquote>
-          <p class="story__who">Ingrid P. · Oberneuland</p>
+          <p class="story__who hand">Ingrid P. · Oberneuland</p>
         </li>
-        <li class="story">
-          <figure class="story__img"><img src="/arena/tierarzt-pfotenwerk/assets/img/familie-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/familie-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/familie-960.webp 960w" sizes="(min-width: 900px) 380px, 80vw" width="960" height="640" loading="lazy" decoding="async" alt="Frau mit Brille hält einen kleinen Shih Tzu im Strickpullover an sich gedrückt"></figure>
+        <li class="story"><span class="story__stamp" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>
+          <figure class="story__img"><img src="/arena/tierarzt-pfotenwerk/assets/img/familie-duo-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/familie-duo-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/familie-duo-960.webp 960w" sizes="(min-width: 900px) 380px, 80vw" width="960" height="640" loading="lazy" decoding="async" alt="Frau mit Brille hält einen kleinen Shih Tzu im Strickpullover an sich gedrückt"></figure>
           <p class="story__tag"><span>Kiki, 1 Jahr</span><span>Neu in Bremen</span></p>
           <blockquote class="story__q"><p>„Nach dem Umzug haben wir Kiki online angemeldet. Beim ersten Termin war die Akte schon da – samt Impfungen aus der alten Praxis.“</p></blockquote>
-          <p class="story__who">Hanna &amp; Jonte · Mitte</p>
+          <p class="story__who hand">Hanna &amp; Jonte · Mitte</p>
         </li>
       </ul>
     </div>
@@ -777,12 +874,11 @@
 <!-- ============ NEUPATIENTEN ============ -->
 <section class="signup" id="anmeldung" aria-labelledby="signup-title">
   <div class="wrap">
-    <header class="sec-head sec-head--split signup__head" data-reveal>
-      <p class="eyebrow"><span class="eyebrow__paw" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>Neupatienten-Anmeldung</p>
-      <h2 class="h2" id="signup-title">Neu bei uns? Legen Sie die Patientenkarte gleich selbst an.</h2>
+    <header class="signup__head">
+      <h2 class="h2 h2--xl" id="signup-title" data-split>Neu bei uns? Legen Sie die Patientenkarte gleich selbst an.</h2>
       <p class="sec-lead">Tierprofil ausfüllen, Terminwunsch dazu – wir rufen innerhalb eines Praxistags zurück und bestätigen den Termin. Für Notfälle bitte immer anrufen.</p>
+      <p class="hand signup__hand" aria-hidden="true">Die Karte füllt sich, während Sie tippen<svg viewBox="0 0 60 40"><path d="M56 4C40 6 20 14 10 32m0 0 1-11m-1 11 10-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></p>
     </header>
-
     <div class="signup__grid">
       <aside class="pcard-wrap" aria-label="Live-Vorschau der Patientenkarte">
         <div class="pcard" data-pcard data-art="hund">
@@ -954,11 +1050,9 @@
 <!-- ============ STANDORT ============ -->
 <section class="place" id="standort" aria-labelledby="place-title">
   <div class="wrap">
-    <header class="sec-head" data-reveal>
-      <p class="eyebrow"><span class="eyebrow__paw" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>Anfahrt &amp; Sprechzeiten</p>
-      <h2 class="h2" id="place-title">Mitten in Schwachhausen, fünf Minuten vom Bürgerpark.</h2>
+    <header class="place__head">
+      <h2 class="h2 h2--xl" id="place-title" data-split>Mitten in Schwachhausen, fünf Minuten vom Bürgerpark.</h2>
     </header>
-
     <div class="place__grid">
       <figure class="map" data-reveal>
         <svg class="map__svg" viewBox="0 0 480 400" role="img" aria-labelledby="map-t map-d" data-map>
@@ -1065,11 +1159,11 @@
 <!-- ============ FAQ ============ -->
 <section class="faq" id="faq" aria-labelledby="faq-title">
   <div class="wrap faq__grid">
-    <header class="sec-head" data-reveal>
-      <p class="eyebrow"><span class="eyebrow__paw" aria-hidden="true"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span>Häufige Fragen</p>
-      <h2 class="h2" id="faq-title">Kurz gefragt, ehrlich beantwortet.</h2>
-      <figure class="faq__img">
-        <img src="/arena/tierarzt-pfotenwerk/assets/img/pfoten-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/pfoten-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/pfoten-960.webp 960w" sizes="(min-width: 900px) 32vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Nahaufnahme von zwei weißen Katzenpfoten auf einem Holzboden">
+    <header class="faq__head">
+      <h2 class="h2" id="faq-title" data-split>Kurz gefragt, ehrlich beantwortet.</h2>
+      <figure class="faq__img pol" style="--r: 2deg">
+        <svg class="tape" aria-hidden="true"><use href="#i-tape"/></svg>
+        <img src="/arena/tierarzt-pfotenwerk/assets/img/pfoten-duo-960.webp" srcset="/arena/tierarzt-pfotenwerk/assets/img/pfoten-duo-480.webp 480w, /arena/tierarzt-pfotenwerk/assets/img/pfoten-duo-960.webp 960w" sizes="(min-width: 900px) 32vw, 92vw" width="960" height="640" loading="lazy" decoding="async" alt="Nahaufnahme von zwei weißen Katzenpfoten auf einem Holzboden">
       </figure>
     </header>
     <div class="faq__list">
@@ -1101,14 +1195,17 @@
   </div>
 </section>
 
+<div class="trail" aria-hidden="true" data-trail></div>
 </main>
 
 <footer class="ftr">
+  <svg class="ftr__cat" viewBox="0 0 260 150" aria-hidden="true"><g class="cat__tail"><path d="M196 124c24 2 32 26 26 58-3 16 4 26 14 30" fill="none" stroke="#0E5858" stroke-width="13" stroke-linecap="round"/></g><path d="M38 142c-4-40 26-66 84-66 56 0 86 24 86 66z" fill="#0E5858"/><g><path d="M42 66l2-44 34 26z" fill="#0E5858"/><path d="M98 48l26-28 6 44z" fill="#0E5858"/><ellipse cx="80" cy="84" rx="44" ry="39" fill="#0E5858"/><path d="M56 84q8 6 16 0M88 84q8 6 16 0" fill="none" stroke="#FFC845" stroke-width="3" stroke-linecap="round"/><path d="M76 98h8l-4 5z" fill="#FF9D6E"/></g><text x="150" y="40" class="ftr__zzz">z z</text></svg>
   <div class="wrap">
     <div class="ftr__top">
       <div class="ftr__brand">
         <span class="logo logo--light" aria-hidden="true"><span class="logo__mark"><svg viewBox="0 0 18 19"><use href="#paw"/></svg></span><span class="logo__txt"><span class="logo__name">Pfotenwerk</span><span class="logo__sub">Tierarztpraxis · Bremen</span></span></span>
         <p class="ftr__claim">Ruhige Hände für alle mit Pfoten – seit 2011 in Schwachhausen.</p>
+        <p class="ftr__hand hand">Mo schläft schon. Die Notfall-Hotline nicht.</p>
       </div>
       <div class="ftr__col">
         <p class="ftr__h">Praxis</p>

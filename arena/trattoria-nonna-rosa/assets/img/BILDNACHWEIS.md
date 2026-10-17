@@ -16,7 +16,6 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 | `pastateig` | 960x640 | Pasta Flour | https://stocksnap.io/photo/pasta-flour-I4MIIMHZ5M |
 | `rotwein` | 960x1188 | Pasta Food | https://stocksnap.io/photo/pasta-food-MBQ873BZD1 |
 | `spaghetti` | 960x639 | Food Pasta | https://stocksnap.io/photo/food-pasta-K5SKTOQN0U |
-| `sugo` | 960x640 | Vegan Pasta | https://stocksnap.io/photo/vegan-pasta-KRX6BEOKGM |
 | `tagliolini` | 960x640 | Pasta Spaghetti | https://stocksnap.io/photo/pasta-spaghetti-E3E8D93F56 |
 | `tavolata` | 960x1428 | Pasta Food | https://stocksnap.io/photo/pasta-food-AT8N993IPO |
 | `terrasse` | 960x638 | Restaurant Pizza | https://stocksnap.io/photo/restaurant-pizza-9D0F9026F8 |
@@ -26,8 +25,8 @@ Jede Datei liegt in zwei Breiten vor: `name-960.webp` und `name-480.webp` (für 
 
 | Datei | Größe | Quelle (siehe oben) | Bearbeitung |
 |---|---|---|---|
-| `bogen` | 520x640 / 300 | `pastateig` | Hochformat-Ausschnitt für den Bogenrahmen im Hero |
-| `teller` | 570x570 / 285 | `pappardelle` | quadratischer Ausschnitt, rund maskiert |
+| `plate-a` | 508x508 / 254 | `tavolata` | Teller freigestellt (runde Alpha-Maske, WebP mit Transparenz) für den Tisch im Hero |
+| `plate-p` | 746x700 / 373 | `pappardelle` | Teller freigestellt und gespiegelt, am Tischrand angeschnitten |
 | `pol-terrasse` | 600x600 / 300 | `terrasse` | quadratisch, Sepia, verblasst (Polaroid 1987) |
 | `pol-forno` | 600x600 / 300 | `forno` | quadratisch, warm verblasst (Polaroid 1996) |
 | `pol-pastateig` | 600x600 / 300 | `pastateig` | quadratisch, leicht warm (Polaroid 2009) |

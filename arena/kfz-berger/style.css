@@ -953,7 +953,8 @@ html.motion-off .scan-log li::after, html:not(.js) .scan-log li::after { content
 .co-head h3 { font: 600 13px/1.25 var(--f-display); letter-spacing: .1em; text-transform: uppercase; }
 .co-id { font: 500 12px/1 var(--f-display); color: var(--ink-2); letter-spacing: .08em; white-space: nowrap; }
 .co-lab { display: block; font: 500 10.5px/1 var(--f-display); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 6px; }
-.co-veh { margin: 14px 0 6px; font: 600 15px/1.3 var(--f-display); letter-spacing: .02em; }
+.co-veh { position: relative; margin: 14px 0 6px; padding-right: 120px; font: 600 15px/1.3 var(--f-display); letter-spacing: .02em; }
+.co-veh [data-co-veh] { display: block; }
 .co-lines { display: grid; min-height: 40px; }
 .co-lines li { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px dotted rgba(22, 24, 27, .35); font-size: 15px; }
 .co-lines li span:last-child { font: 500 14.5px/1.4 var(--f-display); white-space: nowrap; }
@@ -981,7 +982,7 @@ html.motion-ok .co-lines li.new { animation: printLine 420ms steps(6, end); }
 .co-sheet.is-empty [data-co-take] { opacity: .45; }
 /* Stempel */
 .co-stamp {
-  position: absolute; right: 0; top: -4px; z-index: 1;
+  position: absolute; right: 2px; top: 2px; z-index: 1;
   display: grid; justify-items: center; padding: 8px 12px 7px; border: 2.5px solid var(--blue-ink); border-radius: 4px;
   font: 700 17px/1 var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--blue-ink);
   transform: rotate(-11deg); opacity: .82; mix-blend-mode: multiply; pointer-events: none;
@@ -1163,6 +1164,7 @@ html.js.motion-ok .map[data-reveal="map"].in .m-road, html.js.motion-ok .map[dat
 html.js.motion-ok .map[data-reveal="map"].in .m-ubahn { stroke-dasharray: 2 6; stroke-dashoffset: 0; transition: none; }
 html.js.motion-ok .map[data-reveal="map"] .m-ring { transform-box: fill-box; transform-origin: center; transform: scale(.7); opacity: 0; transition: transform 1200ms var(--ease-heavy) 500ms, opacity 600ms ease 500ms; }
 html.js.motion-ok .map[data-reveal="map"].in .m-ring { transform: none; opacity: 1; }
+.car .hits > * { fill: transparent; pointer-events: all; cursor: pointer; }
 
 /* ==========================================================================
    Anfahrt
@@ -1321,15 +1323,16 @@ html.motion-ok .done:not([hidden]) { animation: panelIn 420ms var(--ease-out); }
    ========================================================================== */
 html.js.motion-ok [data-reveal] { opacity: 0; transform: translateY(18px); }
 html.js.motion-ok [data-reveal].in { opacity: 1; transform: none; transition: opacity 500ms var(--ease-out), transform var(--dur-mount) var(--ease-heavy); transition-delay: calc(var(--i, 0) * var(--stagger)); }
-html.js.motion-ok [data-reveal="mask"] { opacity: 1; transform: none; clip-path: inset(0 0 100% 0); }
-html.js.motion-ok [data-reveal="mask"].in { clip-path: inset(0 0 0 0); transition: clip-path 1100ms var(--ease-in-out); }
+html.js.motion-ok [data-reveal="mask"] { opacity: 1; transform: none; }
+html.js.motion-ok [data-reveal="mask"] > img { clip-path: inset(0 0 100% 0); }
+html.js.motion-ok [data-reveal="mask"].in > img { clip-path: inset(0 0 0 0); transition: clip-path 1100ms var(--ease-in-out); }
 html.js.motion-ok [data-reveal="map"] { opacity: 1; transform: none; }
 html.js.motion-ok .receipt[data-reveal] { transform: translateY(26px) rotate(calc(var(--r, 0deg) * -2)); }
 html.js.motion-ok .receipt[data-reveal].in { transform: rotate(var(--r, 0deg)); }
 /* geteilte Titel: Wörter steigen aus ihrer Maske */
 html.js.motion-ok [data-split].is-split .w > span { transform: translateY(102%); }
 html.js.motion-ok [data-split].is-split.in .w > span { transform: none; transition: transform var(--dur-mount) var(--ease-heavy); transition-delay: calc(var(--wi, 0) * 45ms); }
-html.reveal-all [data-reveal], html.reveal-all [data-split] .w > span { opacity: 1 !important; transform: none !important; clip-path: none !important; }
+html.reveal-all [data-reveal], html.reveal-all [data-reveal] > img, html.reveal-all [data-split] .w > span { opacity: 1 !important; transform: none !important; clip-path: none !important; }
 /* Reveals dürfen Druckzustände nicht überschreiben */
 html.js.motion-ok .btn[data-reveal].in:active { transform: scale(0.97); }
 
@@ -1340,6 +1343,18 @@ html.js.motion-ok .btn[data-reveal].in:active { transform: scale(0.97); }
 .cad-cursor::before { left: -22px; top: 0; width: 44px; height: 1px; }
 .cad-cursor::after { left: 0; top: -22px; width: 1px; height: 44px; }
 .cad-cursor span { position: absolute; left: 12px; top: 10px; white-space: nowrap; font: 500 10.5px/1 var(--f-display); letter-spacing: .08em; color: var(--blue-hi); background: rgba(15, 17, 19, .9); padding: 3px 5px; }
+
+/* Unterseiten: Kennzeile über dem Titel (nur dort) */
+.legal .eyebrow { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 18px; font: 500 12.5px/1.2 var(--f-display); letter-spacing: .16em; text-transform: uppercase; color: var(--steel-2); }
+.legal .eb-num { display: inline-grid; place-items: center; min-width: 30px; height: 22px; border: 1px solid currentColor; color: var(--blue-hi); }
+html:not(.js) .hdr { background: #111316; }
+/* Kein Dauer-Pulsieren: Status und Hotspots stehen ruhig, der Scan-Balken übernimmt die Aufmerksamkeit */
+html.motion-ok [data-state] .dot::after, html.motion-ok .hot::after, html.motion-ok .m-pulse { animation: none; opacity: 0; }
+/* Leistung: Kapitel nach dem Ablauf werden erst gelayoutet, wenn sie in die Nähe kommen (keine Scroll-Trigger dahinter) */
+#status, #leistungen, #fahrzeug, #rechner, #hu, #werkstatt, #stimmen, #anfahrt, #karriere, #faq, #termin, .ftr { content-visibility: auto; contain-intrinsic-size: auto 1100px; }
+#status { contain-intrinsic-size: auto 760px; }
+#karriere { contain-intrinsic-size: auto 640px; }
+.ftr { contain-intrinsic-size: auto 520px; }
 
 /* ==========================================================================
    Footer, Demo-Pille, Aktionsleiste

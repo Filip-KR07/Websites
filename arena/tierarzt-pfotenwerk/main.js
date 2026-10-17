@@ -345,6 +345,8 @@
         var s = qs('[data-status-short]', n), l = qs('[data-status-long]', n);
         if (s) s.textContent = st.short;
         if (l) l.textContent = st.long;
+        var w = qs('[data-status-word]', n);
+        if (w) w.textContent = st.state === 'soon' ? (st.open ? STATUS_WORD['soon-open'] : STATUS_WORD['soon-closed']) : (STATUS_WORD[st.state] || 'Sprechzeiten');
       });
       rows.forEach(function (r) { r.classList.toggle('is-today', +r.getAttribute('data-day') === now.day); });
       if (track && lastDay !== now.day) {
@@ -372,41 +374,402 @@
   }
 
   /* ------------------------------------------------------------------
-     Pfotenspur als Scroll-Fortschritt (Desktop: rechte Leiste, Handy: Header)
+     Gemeinsame Pendel-Physik (Türschild, Polaroids): gedämpfte Feder,
+     eine rAF-Schleife, die nur läuft, solange etwas schwingt.
      ------------------------------------------------------------------ */
-  function initTrails() {
-    var rail = qs('[data-trail-v]');
-    var hbar = qs('[data-trail-h]');
-    var railPaws = [], hPaws = [];
-    if (rail) for (var i = 0; i < 20; i++) { var p = pawSVG('tpaw'); rail.appendChild(p); railPaws.push(p); }
-    if (hbar) for (var j = 0; j < 18; j++) { var q = pawSVG('tpaw'); hbar.appendChild(q); hPaws.push(q); }
-    var darkZones = qsa('.er, .stories, .ftr');
-    var lastA = -1, lastB = -1, lastDark = null;
-    var tick = false;
-    function paint(list, n, last) {
-      if (n === last) return n;
-      list.forEach(function (p, k) {
-        p.classList.toggle('on', k < n);
-        p.classList.toggle('head', k === n - 1 && n < list.length);
+  var swings = [], swRaf = 0, swLast = 0;
+  function makeSwing(node, o) {
+    var s = { el: node, a: 0, v: 0, k: o.k || 40, c: o.c || 3, max: o.max || 10, live: false };
+    swings.push(s);
+    return s;
+  }
+  function swFrame(t) {
+    swRaf = 0;
+    var dt = swLast ? Math.min(0.034, (t - swLast) / 1000) : 0.016;
+    swLast = t;
+    var active = false;
+    for (var i = 0; i < swings.length; i++) {
+      var s = swings[i];
+      if (!s.live) continue;
+      s.v += (-s.k * s.a - s.c * s.v) * dt;
+      s.a = clamp(s.a + s.v * dt, -s.max, s.max);
+      if (Math.abs(s.a) < 0.03 && Math.abs(s.v) < 0.08) { s.a = 0; s.v = 0; s.live = false; s.el.style.transform = ''; continue; }
+      s.el.style.transform = 'rotate(' + s.a.toFixed(2) + 'deg)';
+      active = true;
+    }
+    if (active) swRaf = requestAnimationFrame(swFrame); else swLast = 0;
+  }
+  function swingKick(s, dv) {
+    if (!s || reduced()) return;
+    s.v = clamp(s.v + dv, -90, 90);
+    s.live = true;
+    if (!swRaf) { swLast = 0; swRaf = requestAnimationFrame(swFrame); }
+  }
+
+  /* ------------------------------------------------------------------
+     Hero „Wartezimmer“: Augen folgen dem Zeiger (Handy: dem Finger bzw. dem
+     Scroll), Tiere reagieren auf Berührung, Uhr und Türschild sind live.
+     ------------------------------------------------------------------ */
+  var STATUS_WORD = { open: 'Geöffnet', soon: 'Gleich', 'soon-open': 'Schließt bald', 'soon-closed': 'Öffnet bald', 'break': 'Mittagspause', closed: 'Geschlossen' };
+  function initHero() {
+    var hero = qs('[data-hero]'), scene = hero && qs('[data-scene]', hero);
+    if (!hero || !scene) return;
+    var heroVis = true, raf = 0;
+    var eyes = qsa('.critter .eye', scene).map(function (e) {
+      var m = (e.getAttribute('data-eye') || '4 3').split(' ').map(parseFloat);
+      return { el: e, p: qs('.pupil', e), mx: m[0], my: m[1], x: 0, y: 0, tx: 0, ty: 0, cx: 0, cy: 0 };
+    });
+    var heads = qsa('.critter [data-head]', scene).map(function (h) { return { el: h, r: 0, tr: 0, cx: 0, cy: 0 }; });
+    var measured = false;
+    function measure() {
+      var sx = window.scrollX, sy = window.scrollY;
+      eyes.forEach(function (E) { var r = E.el.getBoundingClientRect(); E.cx = r.left + r.width / 2 + sx; E.cy = r.top + r.height / 2 + sy; });
+      heads.forEach(function (H) { var r = H.el.getBoundingClientRect(); H.cx = r.left + r.width / 2 + sx; H.cy = r.top + r.height / 2 + sy; });
+      measured = true;
+    }
+    function frame() {
+      raf = 0;
+      var moving = false;
+      eyes.forEach(function (E) {
+        E.x += (E.tx - E.x) * 0.2; E.y += (E.ty - E.y) * 0.2;
+        if (Math.abs(E.tx - E.x) > 0.03 || Math.abs(E.ty - E.y) > 0.03) moving = true;
+        E.p.style.transform = 'translate(' + E.x.toFixed(2) + 'px,' + E.y.toFixed(2) + 'px)';
       });
-      return n;
+      heads.forEach(function (H) {
+        H.r += (H.tr - H.r) * 0.1;
+        if (Math.abs(H.tr - H.r) > 0.03) moving = true;
+        H.el.style.transform = 'rotate(' + H.r.toFixed(2) + 'deg)';
+      });
+      if (moving && heroVis) raf = requestAnimationFrame(frame);
+    }
+    function wake() { if (!raf && heroVis && !reduced()) raf = requestAnimationFrame(frame); }
+    function aim(px, py) {
+      if (!measured) measure();
+      eyes.forEach(function (E) {
+        var dx = px - E.cx, dy = py - E.cy, d = Math.hypot(dx, dy) || 1, f = Math.min(1, d / 240);
+        E.tx = dx / d * f * E.mx; E.ty = dy / d * f * E.my;
+      });
+      heads.forEach(function (H) { H.tr = clamp((px - H.cx) / 650, -1, 1) * 6 + clamp((py - H.cy) / 900, -1, 1) * 2; });
+      wake();
+    }
+    visibilityGate(hero, function (v) { heroVis = v; hero.classList.toggle('is-off', !v); });
+    window.addEventListener('resize', debounce(measure, 200));
+    setTimeout(measure, 1300); /* nach dem Intro (Tiere stehen dann fest) */
+
+    /* Uhr: Berliner Zeit, Sekundenzeiger nur im sichtbaren Hero */
+    var hH = qs('[data-clock-h]', scene), hM = qs('[data-clock-m]', scene), hS = qs('[data-clock-s]', scene);
+    var turns = 0, lastSec = -1;
+    function clock() {
+      if (!hH || !hM) return;
+      var now = nowBerlin(), s = new Date().getSeconds();
+      hH.style.transform = 'rotate(' + ((now.min / 60) % 12 * 30).toFixed(1) + 'deg)';
+      hM.style.transform = 'rotate(' + ((now.min % 60) * 6 + s * 0.1).toFixed(1) + 'deg)';
+      if (hS) {
+        if (s < lastSec) turns++;
+        lastSec = s;
+        hS.style.transform = 'rotate(' + (turns * 360 + s * 6) + 'deg)';
+      }
+    }
+    clock();
+    setInterval(function () { if (heroVis && !document.hidden) clock(); }, reduced() ? 30000 : 1000);
+
+    /* Türschild: Live-Status, schwingt beim Laden, bei Berührung und wenn sich der Status ändert */
+    var sign = qs('[data-doorsign]', scene), lastState = null;
+    var ss = sign ? makeSwing(sign, { k: 30, c: 1.9, max: 16 }) : null;
+    if (ss) {
+      setTimeout(function () { swingKick(ss, 62); }, 700);
+      sign.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') swingKick(ss, clamp((e.movementX || 5) * 5, -55, 55)); });
+      sign.addEventListener('pointerdown', function () { swingKick(ss, 50); });
+    }
+    statusListeners.push(function (st) {
+      if (lastState && st.state !== lastState) swingKick(ss, 60);
+      lastState = st.state;
+    });
+
+    /* Tiere anstupsen */
+    qsa('[data-critter]', scene).forEach(function (c) {
+      var t = 0;
+      var poke = function () {
+        if (reduced()) return;
+        c.classList.remove('is-poked');
+        void c.getBoundingClientRect();
+        c.classList.add('is-poked');
+        clearTimeout(t);
+        t = setTimeout(function () { c.classList.remove('is-poked'); }, 1300);
+      };
+      c.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') poke(); });
+      c.addEventListener('pointerdown', poke);
+    });
+
+    if (reduced()) return;
+    var lastMove = 0;
+    var onPtr = function (e) { if (!heroVis) return; lastMove = performance.now(); aim(e.pageX, e.pageY); };
+    window.addEventListener('pointermove', onPtr, { passive: true });
+    window.addEventListener('pointerdown', onPtr, { passive: true });
+    /* Touch: die Tiere schauen dem Scroll hinterher */
+    window.addEventListener('scroll', function () {
+      if (!heroVis || finePointer.matches || performance.now() - lastMove < 1500) return;
+      var r = scene.getBoundingClientRect();
+      aim(window.scrollX + r.left + r.width * 0.5, window.scrollY + r.bottom + window.scrollY * 1.5);
+    }, { passive: true });
+    /* Ohne Zeiger: ab und zu umsehen */
+    setInterval(function () {
+      if (!heroVis || document.hidden || performance.now() - lastMove < 4000) return;
+      var r = scene.getBoundingClientRect();
+      aim(window.scrollX + r.left + Math.random() * r.width, window.scrollY + r.top - 160 + Math.random() * (r.height + 260));
+    }, 2600);
+  }
+
+  /* ------------------------------------------------------------------
+     Pfotenspur über die ganze Seite: eine Spur vom Wartezimmer bis zum
+     Footer, die dem Scroll folgt (Kopf bei ~72 % der Fensterhöhe).
+     ------------------------------------------------------------------ */
+  function initTrail() {
+    var box = qs('[data-trail]'), main = qs('#main'), hero = qs('[data-hero]');
+    if (!box || !main) return;
+    var NS = 'http://www.w3.org/2000/svg', BAND = 1400;
+    var paws = [], ys = [], shown = -1, heads = [], tick = false, mainTop = 0;
+    function build() {
+      var W = main.clientWidth, Hm = main.scrollHeight;
+      var y0 = hero ? hero.offsetTop + hero.offsetHeight + 24 : 40, y1 = Hm - 50;
+      if (!W || y1 - y0 < 300) return;
+      var narrow = W < 640;
+      var edge = narrow ? 10 : clamp((W - 1320) / 2 * 0.5 + 22, 24, 120);
+      var A = (W - 2 * edge) / 2, mid = W / 2, period = narrow ? 1600 : 2400;
+      var dark = qsa('.er, .team').map(function (s) { return [s.offsetTop, s.offsetTop + s.offsetHeight]; });
+      var X = function (y) { return mid + A * clamp(Math.sin((y - y0) / period * Math.PI * 2 - Math.PI / 2) * 1.9, -1, 1); };
+      var bands = {}, step = narrow ? 30 : 36, acc = 0, side = 1, px = X(y0), py = y0;
+      ys = [];
+      for (var y = y0 + 2; y <= y1; y += 2) {
+        var x = X(y);
+        acc += Math.hypot(x - px, y - py);
+        if (acc >= step) {
+          acc = 0;
+          var ang = Math.atan2(y - py, x - px);
+          side = -side;
+          var ox = x + Math.cos(ang + Math.PI / 2) * 6 * side, oy = y + Math.sin(ang + Math.PI / 2) * 6 * side;
+          var dk = dark.some(function (r) { return oy > r[0] && oy < r[1]; });
+          var bi = Math.floor(oy / BAND);
+          (bands[bi] = bands[bi] || []).push('<use href="#paw" x="-6" y="-6.5" width="12" height="13" data-k="' + ys.length + '" transform="translate(' + ox.toFixed(1) + ' ' + (oy - bi * BAND).toFixed(1) + ') rotate(' + (ang * 180 / Math.PI + 90).toFixed(1) + ')"' + (dk ? ' class="d"' : '') + '/>');
+          ys.push(oy);
+        }
+        px = x; py = y;
+      }
+      /* In Bändern zu je 1400 px: Klassenwechsel invalidieren nur ein kleines SVG */
+      box.textContent = '';
+      paws = new Array(ys.length);
+      Object.keys(bands).forEach(function (bi) {
+        var s = document.createElementNS(NS, 'svg');
+        s.setAttribute('viewBox', '0 0 ' + W + ' ' + BAND);
+        s.setAttribute('width', W); s.setAttribute('height', BAND);
+        s.style.top = (bi * BAND) + 'px';
+        s.innerHTML = bands[bi].join('');
+        box.appendChild(s);
+        Array.prototype.forEach.call(s.children, function (u) { paws[+u.getAttribute('data-k')] = u; });
+      });
+      shown = -1; heads = [];
+      mainTop = main.getBoundingClientRect().top + window.scrollY;
+      if (reduced()) { paws.forEach(function (p) { p.classList.add('on'); }); return; }
+      update();
     }
     function update() {
       tick = false;
-      var max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      var prog = clamp(window.scrollY / max, 0, 1);
-      if (railPaws.length && mqDesk.matches) {
-        lastA = paint(railPaws, Math.round(prog * railPaws.length), lastA);
-        var mid = window.innerHeight / 2, dark = false;
-        darkZones.forEach(function (z) { var r = z.getBoundingClientRect(); if (r.top < mid && r.bottom > mid) dark = true; });
-        if (dark !== lastDark) { rail.classList.toggle('is-dark', dark); lastDark = dark; }
-      }
-      if (hPaws.length && !mqDesk.matches) lastB = paint(hPaws, Math.round(prog * hPaws.length), lastB);
+      if (!paws.length || reduced()) return;
+      var head = window.scrollY + window.innerHeight * 0.72 - mainTop;
+      var lo = 0, hi = ys.length;
+      while (lo < hi) { var m = (lo + hi) >> 1; if (ys[m] <= head) lo = m + 1; else hi = m; }
+      var n = lo, i;
+      if (n === shown) return;
+      if (shown < 0) { for (i = 0; i < n; i++) paws[i].classList.add('on'); }
+      else if (n > shown) { for (i = shown; i < n; i++) paws[i].classList.add('on'); }
+      else { for (i = n; i < shown; i++) paws[i].classList.remove('on'); }
+      heads.forEach(function (p) { p.classList.remove('h'); });
+      heads = paws.slice(Math.max(0, n - 2), n);
+      heads.forEach(function (p) { p.classList.add('h'); });
+      shown = n;
     }
     var req = function () { if (!tick) { tick = true; requestAnimationFrame(update); } };
     window.addEventListener('scroll', req, { passive: true });
-    window.addEventListener('resize', function () { lastA = lastB = -1; req(); });
-    update();
+    var lastH = 0, lastW = 0;
+    var rebuild = debounce(function () {
+      var h = main.scrollHeight, w = main.clientWidth;
+      if (Math.abs(h - lastH) < 2 && Math.abs(w - lastW) < 2) return;
+      lastH = h; lastW = w;
+      build();
+    }, 350);
+    if ('ResizeObserver' in window) new ResizeObserver(rebuild).observe(main);
+    else window.addEventListener('resize', rebuild);
+    rebuild();
+  }
+
+  /* ------------------------------------------------------------------
+     Überschriften setzen sich Wort für Wort (nur mit Bewegung)
+     ------------------------------------------------------------------ */
+  function initSplit() {
+    if (reduced()) return;
+    var items = qsa('[data-split]');
+    items.forEach(function (h) {
+      var i = 0;
+      (function walk(node) {
+        Array.prototype.slice.call(node.childNodes).forEach(function (n) {
+          if (n.nodeType === 3) {
+            if (!n.nodeValue.trim()) return;
+            var frag = document.createDocumentFragment();
+            n.nodeValue.split(/( +)/).forEach(function (p) {
+              if (!p) return;
+              if (/^ +$/.test(p)) { frag.appendChild(document.createTextNode(p)); return; }
+              var w = el('span', 'w'), wi = el('span', 'w__in', p);
+              wi.style.setProperty('--i', i++);
+              w.appendChild(wi);
+              frag.appendChild(w);
+            });
+            node.replaceChild(frag, n);
+          } else if (n.nodeType === 1) walk(n);
+        });
+      })(h);
+      h.classList.add('is-split');
+    });
+    if (!('IntersectionObserver' in window)) { items.forEach(function (h) { h.classList.add('is-in'); }); return; }
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { io.unobserve(e.target); e.target.classList.add('is-in'); } });
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
+    items.forEach(function (h) { io.observe(h); });
+  }
+
+  /* Magnetische Knöpfe (nur feiner Zeiger) – über „translate“, damit :active-scale wirkt */
+  function initMagnet() {
+    if (reduced() || !finePointer.matches) return;
+    qsa('[data-magnet]').forEach(function (b) {
+      var x = 0, y = 0, tx = 0, ty = 0, raf = 0;
+      var loop = function () {
+        raf = 0;
+        x += (tx - x) * 0.18; y += (ty - y) * 0.18;
+        b.style.translate = x.toFixed(2) + 'px ' + y.toFixed(2) + 'px';
+        if (Math.abs(tx - x) > 0.05 || Math.abs(ty - y) > 0.05) raf = requestAnimationFrame(loop);
+      };
+      b.addEventListener('pointermove', function (e) {
+        var r = b.getBoundingClientRect();
+        tx = (e.clientX - r.left - r.width / 2) * 0.2; ty = (e.clientY - r.top - r.height / 2) * 0.3;
+        if (!raf) raf = requestAnimationFrame(loop);
+      });
+      b.addEventListener('pointerleave', function () { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(loop); });
+    });
+  }
+
+  /* Karteikarten: legen sich nacheinander ab (Handy: ganze Schiene gemeinsam) */
+  function initRailReveal() {
+    if (reduced() || !('IntersectionObserver' in window)) return;
+    qsa('[data-rail-reveal]').forEach(function (grid) {
+      var cards = Array.prototype.slice.call(grid.children);
+      var rail = window.matchMedia('(max-width: 639px)').matches;
+      cards.forEach(function (c) { c.classList.add('rv'); });
+      var show = function (c, i) {
+        c.style.setProperty('--i', i);
+        c.classList.add('rv-in');
+        setTimeout(function () { c.classList.remove('rv', 'rv-in'); c.style.removeProperty('--i'); }, 1300 + i * 70);
+      };
+      if (rail) { onceInView(grid, function () { cards.forEach(show); }, { threshold: 0.15 }); return; }
+      var io = new IntersectionObserver(function (es) {
+        var k = 0;
+        es.forEach(function (e) { if (e.isIntersecting) { io.unobserve(e.target); show(e.target, k++); } });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+      cards.forEach(function (c) { io.observe(c); });
+    });
+  }
+
+  /* Notfall-Kapitel: Nacht-Hintergrund öffnet sich mit dem Scroll; Baum an echte Breite anpassen */
+  function initErFx() {
+    var sec = qs('[data-er]'), bg = qs('[data-er-bg]');
+    if (sec && bg && hasGSAP && !reduced()) {
+      gsap.fromTo(bg, { clipPath: 'inset(6% 4% 0% 4% round 64px)' }, {
+        clipPath: 'inset(0% 0% 0% 0% round 0px)', ease: 'none',
+        scrollTrigger: { trigger: sec, start: 'top bottom', end: 'top 20%', scrub: 0.4 }
+      });
+    }
+    var res = qs('[data-triage-result]'), tree = qs('.tree__svg');
+    if (!res || !tree || !('ResizeObserver' in window)) return;
+    var lamps = qsa('.ampel__light', res);
+    var bgp = qsa('.tree__bg', tree), fgp = qsa('.tree__fg', tree);
+    new ResizeObserver(debounce(function () {
+      var tr = tree.getBoundingClientRect();
+      if (!tr.width || lamps.length < 3) return;
+      var w = tr.width, h = tr.height, mid = w / 2, j = h * 0.36;
+      tree.setAttribute('viewBox', '0 0 ' + w.toFixed(1) + ' ' + h.toFixed(1));
+      var trunk = 'M' + mid.toFixed(1) + ' 0V' + j.toFixed(1);
+      bgp[0].setAttribute('d', trunk); fgp[0].setAttribute('d', trunk);
+      lamps.forEach(function (l, i) {
+        var r = l.getBoundingClientRect();
+        var x = (r.left + r.width / 2 - tr.left).toFixed(1);
+        var d = 'M' + mid.toFixed(1) + ' ' + j.toFixed(1) + 'C' + mid.toFixed(1) + ' ' + (j + (h - j) * 0.7).toFixed(1) + ' ' + x + ' ' + (j + (h - j) * 0.35).toFixed(1) + ' ' + x + ' ' + (h + 14).toFixed(1);
+        bgp[i + 1].setAttribute('d', d); fgp[i + 1].setAttribute('d', d);
+      });
+    }, 60)).observe(res);
+  }
+
+  /* Impfpass: der Zeitstrahl wächst mit dem Scroll, Stationen werden „abgestempelt“ */
+  var vaccGrowSync = function () {};
+  function initVaccGrow() {
+    var tl = qs('[data-vacc-timeline]');
+    if (!tl) return;
+    var vine = el('span', 'vacc__vine');
+    vine.setAttribute('aria-hidden', 'true');
+    tl.insertBefore(vine, tl.firstChild);
+    if (reduced() || !hasGSAP) return;
+    var p = 0, fr = [], horizontal = true;
+    tl.classList.add('is-growing');
+    var apply = function () {
+      vine.style.transform = horizontal ? 'scaleX(' + p.toFixed(4) + ')' : 'scaleY(' + p.toFixed(4) + ')';
+      qsa('.vacc-item', tl).forEach(function (it, i) { it.classList.toggle('is-reached', fr[i] != null && p >= fr[i] - 0.03); });
+      tl.classList.toggle('is-grown', p > 0.97);
+    };
+    vaccGrowSync = function () {
+      horizontal = tl.clientWidth > 640;
+      var tr = tl.getBoundingClientRect();
+      fr = qsa('.vacc-item__dot', tl).map(function (d) {
+        var r = d.getBoundingClientRect();
+        return horizontal ? (r.left + r.width / 2 - tr.left) / tr.width : (r.top + r.height / 2 - tr.top) / tr.height;
+      });
+      apply();
+    };
+    ScrollTrigger.create({
+      trigger: tl, start: 'top 82%', end: 'bottom 50%', scrub: 0.5,
+      onUpdate: function (self) { p = self.progress; apply(); },
+      onRefresh: function (self) { p = self.progress; vaccGrowSync(); }
+    });
+    vaccGrowSync();
+  }
+
+  /* Team-Wand: Polaroids hängen an Nadeln und schwingen (Hover, Tippen, Scroll-Tempo) */
+  function initBoard() {
+    var board = qs('[data-board]');
+    if (!board || reduced()) return;
+    var items = qsa('[data-pol]', board).map(function (n, i) {
+      var s = makeSwing(n, { k: 46, c: 3.2, max: 9 });
+      s.dir = i % 2 ? 1 : -1; s.vis = false; n.__sw = s;
+      return s;
+    });
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) { es.forEach(function (e) { e.target.__sw.vis = e.isIntersecting; }); }, { rootMargin: '60px 0px' });
+      items.forEach(function (s) { io.observe(s.el); });
+    }
+    onceInView(board, function () {
+      items.forEach(function (s, i) { setTimeout(function () { swingKick(s, s.dir * (30 + (i % 3) * 10)); }, i * 70); });
+    }, { threshold: 0.1 });
+    items.forEach(function (s) {
+      s.el.addEventListener('pointermove', function (e) {
+        if (e.pointerType !== 'mouse') return;
+        var mx = e.movementX || 0;
+        if (Math.abs(mx) > 1) swingKick(s, clamp(mx * 1.4, -30, 30));
+      });
+      s.el.addEventListener('pointerdown', function () { swingKick(s, s.dir * 40); });
+    });
+    var lastY = window.scrollY;
+    window.addEventListener('scroll', function () {
+      var y = window.scrollY, dy = y - lastY;
+      lastY = y;
+      if (Math.abs(dy) < 3) return;
+      items.forEach(function (s) { if (s.vis) swingKick(s, clamp(dy * 0.3, -12, 12) * s.dir); });
+    }, { passive: true });
   }
 
   /* ------------------------------------------------------------------
@@ -435,160 +798,6 @@
       });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
     items.forEach(function (n) { io.observe(n); });
-  }
-
-  /* ------------------------------------------------------------------
-     Hero: Intro, Parallaxe, Pfoten-Spaziergang (Canvas)
-     ------------------------------------------------------------------ */
-  function initHeroIntro() {
-    var hero = qs('.hero');
-    if (!hero) return;
-    var parallaxOn = function () {
-      if (reduced() || !hasGSAP || !finePointer.matches) return;
-      var art = qs('[data-hero-art]', hero);
-      var layers = qsa('[data-depth]', hero).map(function (n) {
-        var d = parseFloat(n.getAttribute('data-depth')) || 0;
-        return { d: d, x: gsap.quickTo(n, 'x', { duration: 1.1, ease: 'power3.out' }), y: gsap.quickTo(n, 'y', { duration: 1.1, ease: 'power3.out' }) };
-      });
-      hero.addEventListener('pointermove', function (e) {
-        var r = (art || hero).getBoundingClientRect();
-        var nx = clamp((e.clientX - (r.left + r.width / 2)) / (r.width / 2 + 200), -1, 1);
-        var ny = clamp((e.clientY - (r.top + r.height / 2)) / (r.height / 2 + 200), -1, 1);
-        layers.forEach(function (L) { L.x(nx * L.d * 0.7); L.y(ny * L.d * 0.55); });
-      });
-      hero.addEventListener('pointerleave', function () { layers.forEach(function (L) { L.x(0); L.y(0); }); });
-    };
-    if (reduced() || doc.classList.contains('reveal-all')) { return; }
-    if (!hasGSAP) {
-      /* Ohne GSAP: Ausgangszustände einfach aufheben */
-      doc.classList.add('reveal-all');
-      qsa('.hero .ln__in, .hero__arch, .hero__sun, .hero__blob, .hl__line path').forEach(function (n) {
-        n.style.transform = 'none'; n.style.clipPath = 'none'; n.style.opacity = '1'; n.style.strokeDashoffset = '0';
-      });
-      return;
-    }
-    var tl = gsap.timeline({ defaults: { ease: 'expo.out' }, delay: 0.1, onComplete: parallaxOn });
-    tl.fromTo('.hero__arch', { clipPath: 'inset(100% 0% 0% 0% round 999px 999px 40px 40px)' }, { clipPath: 'inset(0% 0% 0% 0% round 999px 999px 40px 40px)', duration: 1.3, ease: 'expo.inOut',
-        /* danach Clip lösen: sonst schneidet er den Schatten und die Ecken des Bogens ab */
-        onComplete: function () { var a = qs('.hero__arch'); if (a) a.style.clipPath = 'none'; } }, 0)
-      .fromTo('.hero__arch img', { scale: 1.18 }, { scale: 1, duration: 1.6, ease: 'expo.out' }, 0.25)
-      .fromTo('.hero__sun', { opacity: 0, scale: 0.82 }, { opacity: 1, scale: 1, duration: 1.2 }, 0.35)
-      .fromTo('.hero__blob', { opacity: 0, scale: 0.82, rotation: -12 }, { opacity: 1, scale: 1, rotation: 0, duration: 1.3 }, 0.45)
-      .fromTo('.hero .ln__in', { y: 0, yPercent: 105 }, { y: 0, yPercent: 0, duration: 1.1, stagger: 0.09 }, 0.15)
-      .fromTo('.hl__line path', { strokeDashoffset: 320 }, { strokeDashoffset: 0, duration: 0.9, ease: 'power2.inOut' }, 0.85)
-      .fromTo('.hero [data-hero-in]', { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.9, stagger: 0.07 }, 0.45)
-      .fromTo('.hero [data-hero-pop]', { opacity: 0, y: 22, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.8, stagger: 0.08, ease: 'back.out(1.5)' }, 0.95);
-
-    /* Leichtes Scroll-Parallax der Bildkomposition */
-    gsap.to('[data-hero-art]', { yPercent: -7, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
-  }
-
-  /* Pfotenpfad im Hero-Hintergrund: Hund und Katze laufen quer durchs Bild */
-  function initWalk() {
-    var cv = qs('[data-walk]');
-    if (!cv || !cv.getContext) return;
-    var ctx = cv.getContext('2d');
-    if (!ctx || typeof Path2D === 'undefined') return;
-    var hero = cv.parentElement;
-    var PAD = new Path2D('M0-.8c2.7 0 4.4 2.1 5.8 4.2 1.3 2 .7 4-1.6 4-1.6 0-2.6-.9-4.2-.9s-2.6.9-4.2.9c-2.3 0-2.9-2-1.6-4C-4.4 1.3-2.7-.8 0-.8z');
-    var TOES = [[-6.3, -2.6, 1.85, 2.45, -24], [-2.3, -6.2, 2, 2.7, -8], [2.3, -6.2, 2, 2.7, 8], [6.3, -2.6, 1.85, 2.45, 24]];
-    var COLOR = '19, 111, 111';
-    var W = 0, H = 0, steps = [], walkers = [], running = false, raf = 0, last = 0;
-    var LIFE = 6200, FADE_IN = 180;
-    var seed = 7;
-    var rnd = function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
-
-    function drawPaw(x, y, rot, s, a) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(rot);
-      ctx.scale(s, s);
-      ctx.fillStyle = 'rgba(' + COLOR + ',' + a.toFixed(3) + ')';
-      ctx.fill(PAD);
-      for (var i = 0; i < 4; i++) {
-        var t = TOES[i];
-        ctx.beginPath();
-        ctx.ellipse(t[0], t[1], t[2], t[3], t[4] * Math.PI / 180, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
-    }
-    function newWalker(kind, t) {
-      var ltr = rnd() < 0.62;
-      var dog = kind === 'dog';
-      return {
-        kind: kind, ltr: ltr,
-        x: ltr ? -40 : W + 40,
-        y: H * (dog ? 0.55 + rnd() * 0.32 : 0.12 + rnd() * 0.3),
-        phase: rnd() * 20, side: 1, next: t + (dog ? 0 : 1600),
-        stride: dog ? 44 : 30, size: dog ? 1.35 : 0.95, every: dog ? 330 : 240, spread: dog ? 11 : 6
-      };
-    }
-    function advance(w, t) {
-      w.phase += 0.28;
-      var base = w.ltr ? 0 : Math.PI;
-      var dir = base + Math.sin(w.phase * 0.7) * 0.32 + Math.sin(w.phase * 0.21 + 1.3) * 0.28;
-      /* sanft in der Bildhöhe halten */
-      if (w.y < H * 0.08) dir += w.ltr ? 0.35 : -0.35;
-      if (w.y > H * 0.92) dir -= w.ltr ? 0.35 : -0.35;
-      w.x += Math.cos(dir) * w.stride;
-      w.y += Math.sin(dir) * w.stride;
-      w.side = -w.side;
-      var nx = Math.cos(dir + Math.PI / 2), ny = Math.sin(dir + Math.PI / 2);
-      steps.push({ x: w.x + nx * w.spread * w.side, y: w.y + ny * w.spread * w.side, r: dir + Math.PI / 2, s: w.size, t0: t });
-      w.next = t + w.every;
-    }
-    function out(w) { return w.x < -80 || w.x > W + 80; }
-    function frame(t) {
-      raf = 0;
-      if (!running) return;
-      raf = requestAnimationFrame(frame);
-      if (t - last < 30) return; /* ~30 fps genügen */
-      last = t;
-      walkers.forEach(function (w, i) {
-        if (t >= w.next) {
-          if (out(w) && w.done !== true) { w.done = true; w.next = t + 1400 + rnd() * 1800; return; }
-          if (w.done) { walkers[i] = newWalker(w.kind, t); return; }
-          advance(w, t);
-        }
-      });
-      steps = steps.filter(function (s) { return t - s.t0 < LIFE; });
-      ctx.clearRect(0, 0, W, H);
-      steps.forEach(function (s) {
-        var age = t - s.t0;
-        var a = age < FADE_IN ? age / FADE_IN : 1 - Math.pow((age - FADE_IN) / (LIFE - FADE_IN), 1.6);
-        drawPaw(s.x, s.y, s.r, s.s, 0.15 * clamp(a, 0, 1));
-      });
-    }
-    function drawStatic() {
-      ctx.clearRect(0, 0, W, H);
-      seed = 11;
-      var w = newWalker('dog', 0);
-      w.ltr = true; w.x = -20; w.y = H * 0.78;
-      var list = [];
-      for (var i = 0; i < 80 && w.x < W + 40; i++) { advance(w, 0); }
-      list = steps; steps = [];
-      list.forEach(function (s, i) { drawPaw(s.x, s.y, s.r, s.s, 0.06 + 0.06 * (i / list.length)); });
-    }
-    function resize() {
-      var dpr = dprMax();
-      W = hero.clientWidth; H = hero.clientHeight;
-      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      if (reduced()) drawStatic();
-    }
-    resize();
-    if ('ResizeObserver' in window) new ResizeObserver(debounce(resize, 120)).observe(hero);
-    else window.addEventListener('resize', debounce(resize, 120));
-    if (reduced()) return;
-    var t0 = performance.now();
-    walkers = [newWalker('dog', t0), newWalker('cat', t0)];
-    /* Start mit einer kurzen, schon vorhandenen Spur, damit der Hintergrund nicht leer beginnt */
-    for (var k = 0; k < 9; k++) advance(walkers[0], t0 - (9 - k) * walkers[0].every);
-    visibilityGate(hero, function (vis) {
-      running = vis;
-      if (vis && !raf) raf = requestAnimationFrame(frame);
-    });
   }
 
   /* ------------------------------------------------------------------
@@ -626,6 +835,7 @@
     };
     var peek = qs('[data-er-peek]', form), peekText = qs('[data-er-peek-text]', form);
     var lights = qsa('.ampel li', result);
+    var treeSp = qs('[data-tree-sp]', result), treeN = qs('[data-tree-n]', result), treeUse = qs('[data-tree-sil] use', result);
     var defaults = { kicker: o.kicker.textContent, verdict: o.verdict.textContent, text: o.text.textContent };
     var lastLevel = 0, lastKey = '';
 
@@ -681,6 +891,9 @@
       lastKey = key;
 
       result.setAttribute('data-level', String(level));
+      if (treeSp) treeSp.textContent = { hund: 'Hund', katze: 'Katze', klein: 'Kleintier' }[sp] || 'Tier';
+      if (treeN) treeN.textContent = picked.length === 1 ? '1 Anzeichen' : picked.length + ' Anzeichen';
+      if (treeUse) treeUse.setAttribute('href', sp === 'katze' ? '#sil-cat' : (sp === 'klein' ? '#sil-rabbit' : '#sil-dog'));
       lights.forEach(function (li) { li.classList.toggle('is-on', +li.getAttribute('data-l') === level); });
       var tx = textFor(level, sp);
       o.kicker.textContent = level ? tx.kicker : defaults.kicker;
@@ -761,7 +974,7 @@
   }
 
   /* ------------------------------------------------------------------
-     Erster Besuch: Pfotenspur, die dem Scroll folgt
+     Erster Besuch: Pfotenspur, die dem Scroll folgt (Desktop: sticky Bühne)
      ------------------------------------------------------------------ */
   function initVisit() {
     var sec = qs('#besuch');
@@ -870,21 +1083,36 @@
       var pinEl = qs('[data-visit-pin]', sec);
       var mm = gsap.matchMedia();
       mm.add('(min-width: 900px) and (min-height: 680px)', function () {
-        var fits = pinEl.offsetHeight + hdrH() + 24 <= window.innerHeight;
-        if (!fits) {
-          ScrollTrigger.create({ trigger: stage, start: 'top 78%', end: 'bottom 55%', onUpdate: function (self) { setProgress(self.progress); } });
-          return;
+        var pinTop = hdrH();
+        /* Sticky statt GSAP-Pin: Abschnitt = Bühne + Scrollstrecke, die Bühne klebt mittig */
+        var setup = function () {
+          sec.classList.add('is-sticky');
+          var ph = pinEl.offsetHeight, room = window.innerHeight - hdrH();
+          if (ph > room - 8) { sec.classList.remove('is-sticky'); return false; }
+          pinTop = Math.round(hdrH() + (room - ph) / 2);
+          sec.style.setProperty('--pin-top', pinTop + 'px');
+          sec.style.setProperty('--visit-h', Math.round(ph + window.innerHeight * 1.05) + 'px');
+          return true;
+        };
+        var fits = setup();
+        if (fits) {
+          ScrollTrigger.create({
+            trigger: sec,
+            start: function () { return 'top ' + pinTop + 'px'; },
+            end: function () { return 'bottom ' + (pinTop + pinEl.offsetHeight) + 'px'; },
+            invalidateOnRefresh: true,
+            onUpdate: function (self) { setProgress(self.progress); },
+            onRefresh: function (self) { setProgress(self.progress); }
+          });
+        } else {
+          ScrollTrigger.create({ trigger: stage, start: 'top 78%', end: 'bottom 55%', onUpdate: function (self) { setProgress(self.progress); }, onRefresh: function (self) { setProgress(self.progress); } });
         }
-        ScrollTrigger.create({
-          trigger: pinEl,
-          pin: true,
-          start: function () { return 'top ' + Math.round(hdrH() + Math.max(12, (window.innerHeight - hdrH() - pinEl.offsetHeight) / 2)) + 'px'; },
-          end: function () { return '+=' + Math.round(window.innerHeight * 1.05); },
-          invalidateOnRefresh: true,
-          anticipatePin: 1,
-          onUpdate: function (self) { setProgress(self.progress); },
-          onRefresh: function (self) { setProgress(self.progress); }
-        });
+        var onRI = function () { if (fits) setup(); };
+        ScrollTrigger.addEventListener('refreshInit', onRI);
+        return function () {
+          ScrollTrigger.removeEventListener('refreshInit', onRI);
+          sec.classList.remove('is-sticky'); sec.style.removeProperty('--visit-h'); sec.style.removeProperty('--pin-top');
+        };
       });
       mm.add('(max-width: 899px), (max-height: 679px)', function () {
         ScrollTrigger.create({ trigger: stage, start: 'top 78%', end: 'bottom 60%', onUpdate: function (self) { setProgress(self.progress); }, onRefresh: function (self) { setProgress(self.progress); } });
@@ -1063,7 +1291,7 @@
       }
       if (icsBtn) icsBtn.hidden = !(birth && res.items.some(function (it) { return it.date >= t; }));
       vaccState = { species: sp, name: name, birth: birth };
-      requestAnimationFrame(function () { place(res, birth); });
+      requestAnimationFrame(function () { place(res, birth); vaccGrowSync(); });
     }
     function ics() {
       if (!lastRes || !lastBirth) return;
@@ -1135,7 +1363,7 @@
   }
 
   /* ------------------------------------------------------------------
-     Patientengeschichten: horizontale Strecke (Desktop gepinnt, sonst Wischen)
+     Patientengeschichten: horizontale Strecke (Desktop sticky, sonst Wischen)
      ------------------------------------------------------------------ */
   function initStories() {
     var sec = qs('#stimmen');
@@ -1167,23 +1395,41 @@
     upd();
 
     if (!hasGSAP || reduced() || !pin) return;
+    var seal = qs('.seal', track);
+    if (seal) gsap.to(seal, { rotation: 220, ease: 'none', scrollTrigger: { trigger: sec, start: 'top bottom', end: 'bottom top', scrub: true } });
     var mm = gsap.matchMedia();
     mm.add('(min-width: 900px) and (min-height: 700px)', function () {
-      sec.classList.add('is-pinned');
-      /* nur pinnen, wenn die kompakte Strecke vollständig unter den Header passt – sonst bleibt das Wisch-Band */
-      if (pin.offsetHeight > window.innerHeight - hdrH() + 4) { sec.classList.remove('is-pinned'); return; }
-      vp.scrollLeft = 0;
-      var dist = function () { return Math.max(0, track.scrollWidth - vp.clientWidth); };
-      var startFn = function () {
-        var h = pin.offsetHeight, room = window.innerHeight - hdrH();
-        return h <= room ? 'top ' + Math.round(hdrH() + (room - h) / 2) + 'px' : 'bottom bottom';
+      var pinTop = hdrH(), dist = 0;
+      /* Sticky-Strecke: Abschnittshöhe = Bühne + horizontale Strecke, nur die Spur bewegt sich */
+      var setup = function () {
+        sec.classList.add('is-sticky');
+        gsap.set(track, { x: 0 });
+        var ph = pin.offsetHeight, room = window.innerHeight - hdrH();
+        if (ph > room + 4) { sec.classList.remove('is-sticky'); return false; }
+        pinTop = Math.round(hdrH() + (room - ph) / 2);
+        dist = Math.max(0, track.scrollWidth - vp.clientWidth);
+        sec.style.setProperty('--st-top', pinTop + 'px');
+        sec.style.setProperty('--st-h', Math.round(ph + dist * 0.9 + window.innerHeight * 0.12) + 'px');
+        return true;
       };
+      if (!setup()) return;
+      vp.scrollLeft = 0;
       gsap.to(track, {
-        x: function () { return -dist(); },
+        x: function () { return -dist; },
         ease: 'none',
-        scrollTrigger: { trigger: pin, pin: true, start: startFn, end: function () { return '+=' + Math.round(dist() * 0.9); }, scrub: 0.6, invalidateOnRefresh: true, anticipatePin: 1 }
+        scrollTrigger: {
+          trigger: sec,
+          start: function () { return 'top ' + pinTop + 'px'; },
+          end: function () { return 'bottom ' + (pinTop + pin.offsetHeight) + 'px'; },
+          scrub: 0.6, invalidateOnRefresh: true
+        }
       });
-      return function () { sec.classList.remove('is-pinned'); gsap.set(track, { clearProps: 'transform' }); upd(); };
+      ScrollTrigger.addEventListener('refreshInit', setup);
+      return function () {
+        ScrollTrigger.removeEventListener('refreshInit', setup);
+        sec.classList.remove('is-sticky'); sec.style.removeProperty('--st-h'); sec.style.removeProperty('--st-top');
+        gsap.set(track, { clearProps: 'transform' }); upd();
+      };
     });
   }
 
@@ -1499,15 +1745,17 @@
      in eigenen Tasks – so blockiert kein einzelner langer Task den Hauptthread.
      Reihenfolge bleibt die der Seite (wichtig für ScrollTrigger-Pins). */
   var BOOT = [
-    [['scroll', initScroll], ['header', initHeader], ['menu', initMenu], ['status', initStatus],
-     ['reveal', initReveal], ['hero', initHeroIntro]],
-    [['trails', initTrails], ['walk', initWalk]],
-    [['wiggle', initWiggle], ['triage', initTriage]],
+    [['scroll', initScroll], ['header', initHeader], ['menu', initMenu], ['status', initStatus], ['hero', initHero]],
+    [['reveal', initReveal], ['split', initSplit], ['magnet', initMagnet], ['railReveal', initRailReveal]],
+    [['wiggle', initWiggle], ['triage', initTriage], ['erfx', initErFx]],
     [['visit', initVisit]],
-    [['vacc', initVacc], ['counts', initCounts]],
+    [['vacc', initVacc], ['vaccGrow', initVaccGrow], ['counts', initCounts]],
+    [['board', initBoard]],
     [['stories', initStories]],
-    [['signup', initSignup], ['minicard', initMiniCard], ['map', initMap], ['faq', initFaq]]
+    [['signup', initSignup], ['minicard', initMiniCard], ['map', initMap], ['faq', initFaq]],
+    [['trail', initTrail]]
   ];
+
   var refresh = hasGSAP ? debounce(function () { ScrollTrigger.refresh(); }, 120) : function () {};
   function bootDone() {
     if (!hasGSAP) return;

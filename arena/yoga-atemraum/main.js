@@ -37,8 +37,8 @@
   };
   var BREATH_SCALE = { min: 0.6, max: 1 }; // Größe des Atemkreises
 
-  // Hero: Atemzyklus der Formen (Sekunden ein / aus).
-  var HERO_BREATH = { inhale: 4, exhale: 6 };
+  // Hero: Atemzyklus 4-7-8 (Sekunden ein / halten / aus) – muss zu @keyframes breathe-w passen (19 s).
+  var HERO_BREATH = { inhale: 4, hold: 7, exhale: 8 };
 
   // Karte: Ausschnitt auf schmalen Bildschirmen (x y Breite Höhe im SVG-Koordinatensystem)
   var MAP_MOBILE_VIEWBOX = '222 0 576 560';
@@ -169,6 +169,7 @@
   function initHeader() {
     var header = $('[data-header]');
     var bar = $('[data-progress]');
+    var sunDot = $('[data-sun-dot]');
     if (!header) return;
     var lastY = window.pageYOffset, ticking = false;
     function update() {
@@ -181,7 +182,9 @@
       if (y > 220 && y > lastY + 4 && !menuOpen && !focusInside) header.classList.add('is-hidden');
       else if (y < lastY - 4 || y <= 220) header.classList.remove('is-hidden');
       lastY = y;
-      if (bar) bar.style.transform = 'scaleX(' + (max > 0 ? clamp(y / max, 0, 1) : 0).toFixed(4) + ')';
+      var pr = max > 0 ? clamp(y / max, 0, 1) : 0;
+      if (bar) bar.style.transform = 'scaleX(' + pr.toFixed(4) + ')';
+      if (sunDot) sunDot.style.transform = 'translateX(' + (pr * (header.clientWidth - 8)).toFixed(1) + 'px)';
     }
     function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -291,175 +294,111 @@
     };
   }
 
+  // 4-7-8: b = Füllung der Lunge (0 … 1). Dieselben Anteile wie @keyframes breathe-w.
   function heroBreath(time) {
-    var cyc = HERO_BREATH.inhale + HERO_BREATH.exhale;
-    var t = ((time % cyc) + cyc) % cyc;
-    if (t < HERO_BREATH.inhale) return { b: easeInOutSine(t / HERO_BREATH.inhale), inhale: true };
-    return { b: 1 - easeInOutSine((t - HERO_BREATH.inhale) / HERO_BREATH.exhale), inhale: false };
+    var c = HERO_BREATH.inhale + HERO_BREATH.hold + HERO_BREATH.exhale;
+    var t = ((time % c) + c) % c;
+    if (t < HERO_BREATH.inhale) return { b: easeInOutSine(t / HERO_BREATH.inhale), inhale: true, phase: 0 };
+    t -= HERO_BREATH.inhale;
+    if (t < HERO_BREATH.hold) return { b: 1 - 0.05 * easeInOutSine(t / HERO_BREATH.hold), inhale: true, phase: 1 };
+    t -= HERO_BREATH.hold;
+    return { b: 0.95 * (1 - easeInOutSine(t / HERO_BREATH.exhale)), inhale: false, phase: 2 };
   }
 
   function initHero() {
     var canvas = $('[data-hero-canvas]');
     var hero = $('.hero');
-    var photo = $('[data-hero-photo]');
-    if (!canvas || !canvas.getContext || !hero || !photo) return;
+    var stage = $('.hero-stage');
+    if (!canvas || !canvas.getContext || !hero || !stage) return;
     var ctx = canvas.getContext('2d');
     if (!ctx) return;
-    var domImg = photo.querySelector('img');
-    // Eigenes Bildobjekt ohne srcset: naturalWidth/-Height entsprechen dann den
-    // echten Pixeln (bei srcset liefert der Browser dichtekorrigierte Werte).
-    var img = null;
-    var chipWord = $('[data-breath-word]');
-    var chipDot = $('.bc-dot');
+    var clockEl = $('.ht-1');
     var noise = makeNoise(11);
-    var W = 0, H = 0, dpr = 1, R = { x: 0, y: 0, w: 1, h: 1 };
-    var time = 8.2, last = 0, raf = 0, visible = true, calm = 0;
-    var mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+    var W = 0, H = 0, dpr = 1, R0 = 100;
+    var raf = 0, visible = true, calm = 0, last = 0, fallbackT0 = performance.now();
+    var mouse = { x: 0, y: 0, tx: 0, ty: 0, in: 0, tin: 0 };
     var still = reduced();
-    var lastWord = '';
-    var narrow = false;
-    // Die Formen bewegen sich langsam: 30 Bilder/s reichen und halbieren die Last.
-    var FRAME_MS = 1000 / 30;
+    var anim = null;
+    var FRAME_MS = 1000 / 30; // langsame Formen: 30 Bilder/s genügen
+    var C = { sage: '#A9B8A2', sageHi: '#C9D3C1', sageLo: '#8EA187', clay: '#B9826A', forest: '#26332B', line: 'rgba(38, 51, 43,' };
 
-    var C = { sage: '#A9B8A2', clay: '#B9826A', forest: '#26332B', sand2: '#E4DACA', sage3: '#DCE3D5' };
+    // Dieselbe Uhr wie die atmende Headline (CSS-Animation auf .ht-1)
+    function clock(now) {
+      if (!anim && clockEl && clockEl.getAnimations) {
+        var list = clockEl.getAnimations();
+        for (var i = 0; i < list.length; i++) if (list[i].animationName === 'breathe-w') anim = list[i];
+      }
+      if (anim && anim.currentTime != null) return Number(anim.currentTime) / 1000;
+      return (now - fallbackT0) / 1000;
+    }
 
     function measure() {
-      var hr = hero.getBoundingClientRect();
-      var pr = photo.getBoundingClientRect();
-      narrow = hr.width < 900;
-      // Schmal: Die Leinwand reicht nur bis knapp unter das Foto statt über den
-      // ganzen (hohen) Hero – deutlich weniger Pixel pro Bild.
-      if (narrow) canvas.style.height = Math.round(Math.min(hr.height, pr.bottom - hr.top + 210)) + 'px';
-      else canvas.style.height = '';
-      var cr = canvas.getBoundingClientRect();
-      W = cr.width; H = cr.height;
+      var r = canvas.getBoundingClientRect();
+      W = r.width; H = r.height;
       dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.max(1, Math.round(W * dpr));
       canvas.height = Math.max(1, Math.round(H * dpr));
-      R = { x: pr.left - cr.left, y: pr.top - cr.top, w: pr.width, h: pr.height };
-      cachePhoto();
+      R0 = (W / 1.28) / 2 * 0.74; // Grundradius relativ zur Bühne (Orbit liegt bei 0,907)
     }
 
-    function blob(cx, cy, rx, ry, seed, amp, t, n) {
-      var pts = [], i;
+    var PTS = new Float32Array(2 * 128);
+    function shape(cx, cy, r, seed, amp, t, n, bulge, ang) {
+      var i;
       for (i = 0; i < n; i++) {
         var a = (i / n) * Math.PI * 2, c = Math.cos(a), s = Math.sin(a);
-        var nv = noise(c * 0.85 + seed, s * 0.85 + seed * 1.37, t);
-        var r = 1 + amp * nv;
-        pts.push(cx + c * rx * r, cy + s * ry * r);
+        var nv = noise(c * 0.9 + seed, s * 0.9 + seed * 1.37, t);
+        var k = 1 + amp * nv;
+        if (bulge) { var dd = Math.cos(a - ang); if (dd > 0) k += bulge * dd * dd * dd; }
+        PTS[i * 2] = cx + c * r * k; PTS[i * 2 + 1] = cy + s * r * k;
       }
       ctx.beginPath();
-      var lx = pts[(n - 1) * 2], ly = pts[(n - 1) * 2 + 1];
-      ctx.moveTo((lx + pts[0]) / 2, (ly + pts[1]) / 2);
+      var lx = PTS[(n - 1) * 2], ly = PTS[(n - 1) * 2 + 1];
+      ctx.moveTo((lx + PTS[0]) / 2, (ly + PTS[1]) / 2);
       for (i = 0; i < n; i++) {
-        var x1 = pts[i * 2], y1 = pts[i * 2 + 1];
-        var j = ((i + 1) % n) * 2;
-        ctx.quadraticCurveTo(x1, y1, (x1 + pts[j]) / 2, (y1 + pts[j + 1]) / 2);
+        var x1 = PTS[i * 2], y1 = PTS[i * 2 + 1], j = ((i + 1) % n) * 2;
+        ctx.quadraticCurveTo(x1, y1, (x1 + PTS[j]) / 2, (y1 + PTS[j + 1]) / 2);
       }
       ctx.closePath();
     }
 
-    // Das Foto wird einmal pro Größe in Gerätepixeln vorskaliert; pro Bild
-    // wird es dann nur noch 1:1 kopiert (Skalieren + Glätten war der teuerste Teil).
-    var photoCache = null;
-    function cachePhoto() {
-      photoCache = null;
-      if (!img || !img.naturalWidth || still) return;
-      var ex = R.w * 0.05, ey = R.h * 0.05;
-      var dw = R.w + ex * 2, dh = R.h + ey * 2;
-      var c = document.createElement('canvas');
-      c.width = Math.max(1, Math.round(dw * dpr));
-      c.height = Math.max(1, Math.round(dh * dpr));
-      var cx2 = c.getContext('2d');
-      if (!cx2) return;
-      var iw = img.naturalWidth, ih = img.naturalHeight;
-      var s = Math.max(c.width / iw, c.height / ih);
-      var sw = c.width / s, sh = c.height / s;
-      cx2.imageSmoothingQuality = 'high';
-      cx2.drawImage(img, (iw - sw) * 0.5, (ih - sh) * 0.3, sw, sh, 0, 0, c.width, c.height);
-      photoCache = c;
-    }
-    function drawPhoto(dx, dy) {
-      if (!photoCache) return;
-      // auf das Gerätepixel-Raster runden → reines Kopieren ohne Neuabtastung
-      ctx.drawImage(photoCache, Math.round(dx * dpr) / dpr, Math.round(dy * dpr) / dpr, photoCache.width / dpr, photoCache.height / dpr);
-    }
-
-    function draw() {
-      var t = time * 0.075;
-      var amp = 1 - 0.7 * calm;
+    function draw(time) {
       var br = heroBreath(time);
-      var b = br.b * (1 - 0.35 * calm);
+      var amp = 1 - 0.75 * calm;
+      var b = br.b;
+      var t = time * 0.07;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
+      var cx = W / 2 + mouse.x * R0 * 0.05, cy = H / 2 + mouse.y * R0 * 0.05;
+      var r = R0 * (0.82 + 0.18 * b * (1 - 0.4 * calm));
+      var ang = Math.atan2(mouse.y, mouse.x), bulge = 0.09 * mouse.in * amp;
 
-      var cx = R.x + R.w / 2, cy = R.y + R.h / 2, rw = R.w / 2, rh = R.h / 2;
-      var mx = mouse.x, my = mouse.y;
-
-      // 1 · großer, sehr heller Grund-Blob hinter dem Text (nur breit; schmal
-      //     übernimmt ein ruhiges CSS-Gegenstück, .hero::before)
-      if (!narrow) {
-        ctx.fillStyle = C.sand2;
-        ctx.globalAlpha = 0.75;
-        blob(W * 0.16 + mx * 8, H * 0.86 + my * 6, W * 0.3, H * 0.34, 4.2, 0.22 * amp, t * 0.8, 64);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-      }
-
-      // 2 · Salbei-Blob hinter dem Foto + Höhenlinien
-      var sx = cx + rw * 0.2 + mx * 18, sy = cy + rh * 0.04 + my * 14;
-      var srx = rw * 1.34 * (1 + 0.025 * b), sry = rh * 1.04 * (1 + 0.025 * b);
-      ctx.fillStyle = C.sage;
-      blob(sx, sy, srx, sry, 1.3, 0.13 * amp, t, 84);
-      ctx.fill();
+      // Höhenlinien: folgen dem Atem verzögert – wie Wellen auf dem Wasser
       ctx.lineWidth = 1;
-      for (var k = 1; k <= 4; k++) {
-        ctx.strokeStyle = 'rgba(38, 51, 43,' + (0.16 - k * 0.026).toFixed(3) + ')';
-        var sc = 1 + k * 0.085 + 0.012 * b * k;
-        blob(sx, sy, srx * sc, sry * sc, 1.3, (0.13 + k * 0.02) * amp, t - k * 0.09, 96);
+      for (var k = 4; k >= 1; k--) {
+        var lag = heroBreath(time - k * 0.42).b;
+        var rk = R0 * (0.82 + 0.18 * lag) * (1 + k * 0.075);
+        ctx.strokeStyle = C.line + (0.2 - k * 0.035).toFixed(3) + ')';
+        shape(cx, cy, rk, 1.3 + k * 0.4, (0.07 + k * 0.012) * amp, t - k * 0.06, 96, bulge * 0.6, ang);
         ctx.stroke();
       }
-
-      // 3 · Lehm-Blob unten links
-      ctx.fillStyle = C.clay;
-      ctx.globalAlpha = 0.94;
-      blob(cx - rw * (narrow ? 0.92 : 1.02) + mx * 28, cy + rh * 0.66 + my * 22, rw * 0.44 * (1 + 0.04 * b), rw * 0.4 * (1 + 0.04 * b), 7.7, 0.2 * amp, t * 1.15, 60);
+      // Die Form selbst
+      var g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.42, r * 0.1, cx, cy, r * 1.1);
+      g.addColorStop(0, C.sageHi); g.addColorStop(0.55, C.sage); g.addColorStop(1, C.sageLo);
+      ctx.fillStyle = g;
+      shape(cx, cy, r, 1.3, 0.075 * amp, t, 120, bulge, ang);
       ctx.fill();
-      ctx.globalAlpha = 1;
-
-      // 4 · kleiner Waldgrün-Blob unten rechts
-      ctx.fillStyle = C.forest;
-      blob(cx + rw * (narrow ? 0.86 : 0.98) + mx * 40, cy + rh * 0.74 + my * 30, rw * 0.15 * (1 + 0.06 * b), rw * 0.15 * (1 + 0.06 * b), 3.1, 0.22 * amp, t * 1.3, 40);
-      ctx.fill();
-
-      // 5 · Foto in atmender Maske
-      var pb = 1 + 0.018 * b;
-      blob(cx + mx * 6, cy + my * 5, rw * 0.98 * pb, rh * 0.98 * pb, 9.4, 0.055 * amp, t * 0.9, 96);
-      if (still) {
-        // Reduzierte Bewegung: Das echte <img> bleibt sichtbar (CSS-Blobmaske),
-        // die Leinwand zeichnet nur die ruhigen Formen drumherum.
-      } else if (photoCache) {
-        ctx.save();
-        ctx.clip();
-        drawPhoto(R.x - R.w * 0.05 + mx * 4, R.y - R.h * 0.05 + my * 3);
-        ctx.restore();
-      } else {
-        ctx.fillStyle = C.sand2;
-        ctx.fill();
-      }
-
-      // 6 · feine Bleistiftlinie, leicht versetzt
-      ctx.strokeStyle = 'rgba(38, 51, 43, .28)';
-      ctx.lineWidth = 1;
-      blob(cx + mx * 3 + rw * 0.03, cy + my * 2 - rh * 0.02, rw * 1.02 * pb, rh * 1.01 * pb, 2.6, 0.07 * amp, t * 0.9 + 0.4, 96);
+      // Bleistiftkontur, minimal versetzt
+      ctx.strokeStyle = C.line + '.32)';
+      shape(cx + r * 0.015, cy - r * 0.01, r * 1.006, 2.6, 0.08 * amp, t + 0.3, 110, bulge, ang);
       ctx.stroke();
-
-      // Atem-Chip synchron halten
-      if (chipWord) {
-        var w = br.inhale ? 'ein' : 'aus';
-        if (w !== lastWord) { chipWord.textContent = w; lastWord = w; }
-      }
-      if (chipDot) chipDot.style.transform = 'scale(' + (0.55 + 0.45 * br.b).toFixed(3) + ')';
+      // Lehm-Kiesel wandert langsam um die Form, Waldgrün-Punkt gegenüber
+      var pa = time * 0.035 + 2.2;
+      ctx.fillStyle = C.clay;
+      shape(cx + Math.cos(pa) * r * 1.02, cy + Math.sin(pa) * r * 1.02, R0 * (0.13 + 0.015 * b), 7.7, 0.18 * amp, t * 1.3, 48, 0, 0);
+      ctx.fill();
+      ctx.fillStyle = C.forest;
+      shape(cx + Math.cos(pa + 2.6) * r * 0.96, cy + Math.sin(pa + 2.6) * r * 0.96, R0 * 0.045, 3.1, 0.2 * amp, t * 1.5, 32, 0, 0);
+      ctx.fill();
     }
 
     function frame(now) {
@@ -468,68 +407,148 @@
       if (last && now - last < FRAME_MS - 2) { raf = requestAnimationFrame(frame); return; }
       var dt = last ? Math.min(0.1, (now - last) / 1000) : 1 / 30;
       last = now;
-      var k60 = dt * 60; // Glättung unabhängig von der Bildrate
-      var target = clamp(window.pageYOffset / (hero.offsetHeight * 0.85), 0, 1);
-      calm += (target - calm) * (1 - Math.pow(1 - 0.035, k60));
-      // Die Formen werden beim Scrollen langsamer, der Atem bleibt.
-      time += dt * (1 - 0.8 * calm);
-      var km = 1 - Math.pow(1 - 0.045, k60);
+      var k60 = dt * 60;
+      var target = clamp(window.pageYOffset / (hero.offsetHeight * 0.8), 0, 1);
+      calm += (target - calm) * (1 - Math.pow(1 - 0.04, k60));
+      var km = 1 - Math.pow(1 - 0.06, k60); // Feder-ähnliches Nachziehen
       mouse.x += (mouse.tx - mouse.x) * km;
       mouse.y += (mouse.ty - mouse.y) * km;
-      draw();
+      mouse.in += (mouse.tin - mouse.in) * km;
+      draw(clock(now));
       raf = requestAnimationFrame(frame);
     }
-    var running = false; // Bewegung erst nach dem Laden – der erste Bildschirm hat Vorrang
+    var running = false;
     function start() { if (!raf && !still && running) raf = requestAnimationFrame(frame); }
 
-    function markReady() { d.classList.add(still ? 'has-canvas-still' : 'has-canvas'); }
-
-    function loadCanvasImage() {
-      if (!domImg) return;
-      var src = domImg.currentSrc || domImg.src;
-      var im = new Image();
-      im.decoding = 'async';
-      im.onload = function () { img = im; measure(); draw(); markReady(); };
-      im.src = src;
-    }
-
     measure();
-    draw();
-    if (domImg && domImg.complete && domImg.naturalWidth) loadCanvasImage();
-    else if (domImg) domImg.addEventListener('load', loadCanvasImage, { once: true });
+    draw(still ? 1.6 : clock(performance.now()));
+    d.classList.add(still ? 'has-canvas-still' : 'has-canvas');
 
-    if ('ResizeObserver' in window) {
-      new ResizeObserver(function () { measure(); draw(); }).observe(hero);
-    } else {
-      window.addEventListener('resize', function () { measure(); draw(); });
-    }
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { measure(); draw(); });
-
-    if (still) {
-      // Reduzierte Bewegung: ein ruhiges Standbild, Chip ausblenden.
-      var chip = $('[data-breath-chip]');
-      if (chip) chip.hidden = true;
-      markReady();
-      return;
-    }
+    var redraw = function () { measure(); draw(still ? 1.6 : clock(performance.now())); };
+    if ('ResizeObserver' in window) new ResizeObserver(redraw).observe(stage);
+    else window.addEventListener('resize', redraw);
+    if (still) return;
 
     if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function (en) {
-        visible = en[0].isIntersecting;
-        if (visible) start();
-      }).observe(hero);
+      new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (visible) start(); }).observe(hero);
     }
     document.addEventListener('visibilitychange', function () { if (!document.hidden) start(); });
     if (finePointer) {
       hero.addEventListener('pointermove', function (e) {
-        mouse.tx = (e.clientX / window.innerWidth - 0.5) * 2;
-        mouse.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+        var r = stage.getBoundingClientRect();
+        var dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2), dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        mouse.tx = clamp(dx, -1.4, 1.4); mouse.ty = clamp(dy, -1.4, 1.4);
+        mouse.tin = clamp(1.6 - dist, 0, 1); // je näher am Rand, desto stärker wölbt sich die Form
       });
-      hero.addEventListener('pointerleave', function () { mouse.tx = 0; mouse.ty = 0; });
+      hero.addEventListener('pointerleave', function () { mouse.tx = 0; mouse.ty = 0; mouse.tin = 0; });
     }
-    var go = function () { setTimeout(function () { running = true; start(); }, 300); };
+    var go = function () { setTimeout(function () { running = true; start(); }, 250); };
     if (document.readyState === 'complete') go();
     else window.addEventListener('load', go, { once: true });
+  }
+
+  /* ------------------------------------------------------------------------
+     Himmel: Die Seite wandert von Morgen zu Abend. Jede Sektion trägt ihre
+     Tageszeit (data-sky); gemischt wird erst im letzten Drittel einer Sektion.
+     ------------------------------------------------------------------------ */
+  function initSky() {
+    var layer = $('[data-sky-layer]');
+    var secs = $$('[data-sky]');
+    var header = $('[data-header]');
+    if (!layer || !secs.length) return;
+    var stops = [], ticking = false, lastC = '';
+    var hex = function (h) { return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; };
+    var cols = secs.map(function (s) { return hex(s.getAttribute('data-sky')); });
+    function measure() {
+      var y0 = window.pageYOffset;
+      stops = secs.map(function (s, i) { return { y: s.getBoundingClientRect().top + y0, h: s.offsetHeight, c: cols[i] }; });
+      update();
+    }
+    function update() {
+      ticking = false;
+      var y = window.pageYOffset + window.innerHeight * 0.55;
+      var i = 0;
+      while (i < stops.length - 1 && stops[i + 1].y <= y) i++;
+      var a = stops[i], b = stops[i + 1] || a;
+      var f = a.h ? clamp((y - a.y) / a.h, 0, 1) : 0;
+      f = easeInOutSine(clamp((f - 0.62) / 0.38, 0, 1));
+      var c = [0, 1, 2].map(function (k) { return Math.round(lerp(a.c[k], b.c[k], f)); });
+      var key = c.join(',');
+      if (key === lastC) return;
+      lastC = key;
+      layer.style.backgroundColor = 'rgb(' + key + ')';
+      if (header) header.style.setProperty('--hb', key);
+    }
+    window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    window.addEventListener('resize', measure);
+    window.addEventListener('load', measure);
+    if (hasGSAP) window.ScrollTrigger.addEventListener('refresh', measure);
+    measure();
+    d.classList.add('has-sky');
+  }
+
+  /* Überschriften: Wörter steigen aus einer Maske auf */
+  function initSplit() {
+    if (motionOff || reduced() || !('IntersectionObserver' in window)) return;
+    var hs = $$('[data-split]');
+    hs.forEach(function (h) {
+      var words = h.textContent.trim().split(/ +/);
+      h.textContent = '';
+      words.forEach(function (w, i) {
+        var o = document.createElement('span'), inner = document.createElement('span');
+        o.className = 'sw-w';
+        inner.textContent = w;
+        inner.style.setProperty('--wi', i);
+        o.appendChild(inner);
+        h.appendChild(o);
+        if (i < words.length - 1) h.appendChild(document.createTextNode(' '));
+      });
+      h.classList.add('split-ready');
+    });
+    var io = new IntersectionObserver(function (en) {
+      en.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } });
+    }, { rootMargin: '0px 0px -8% 0px' });
+    hs.forEach(function (h) { io.observe(h); });
+  }
+
+  /* Kärtchen auf der Matte: dreht sich einmal um – und wieder zurück */
+  function initConsent() {
+    var c = $('[data-flip]');
+    if (!c) return;
+    if (finePointer) c.parentNode.addEventListener('pointerenter', function () { c.classList.toggle('is-flipped'); });
+    if (motionOff || !('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function (en) {
+      if (!en[0].isIntersecting) return;
+      io.disconnect();
+      setTimeout(function () { c.classList.add('is-flipped'); }, 900);
+      setTimeout(function () { c.classList.remove('is-flipped'); }, 3600);
+    }, { threshold: 0.7 });
+    io.observe(c);
+  }
+
+  /* Magnetische Knöpfe (nur feiner Zeiger) – über die translate-Eigenschaft,
+     damit :active { transform: scale(.97) } unberührt bleibt */
+  function initMagnetic() {
+    if (!finePointer || reduced()) return;
+    $$('[data-magnetic]').forEach(function (el) {
+      el.addEventListener('pointermove', function (e) {
+        var r = el.getBoundingClientRect();
+        var x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+        el.style.translate = (x * 12).toFixed(1) + 'px ' + (y * 10).toFixed(1) + 'px';
+      });
+      el.addEventListener('pointerleave', function () { el.style.translate = ''; });
+    });
+  }
+
+  /* Stil-Wellen auf dem Handy: zeichnen sich, sobald sie sichtbar werden */
+  function initWaves() {
+    var panels = $$('.style-panel');
+    if (motionOff || !('IntersectionObserver' in window)) { panels.forEach(function (p) { p.classList.add('is-drawn'); }); return; }
+    var io = new IntersectionObserver(function (en) {
+      en.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('is-drawn'); io.unobserve(e.target); } });
+    }, { threshold: 0.25 });
+    panels.forEach(function (p) { io.observe(p); });
   }
 
   /* ------------------------------------------------------------------------
@@ -627,13 +646,36 @@
         focusPanels(0);
         panels.forEach(function (p) {
           var im = p.querySelector('img');
-          if (!im) return;
-          gsap.fromTo(im, { xPercent: 7, scale: 1.16 }, {
-            xPercent: -7, scale: 1.16, ease: 'none',
-            scrollTrigger: { trigger: p, containerAnimation: tween, start: 'left right', end: 'right left', scrub: true }
-          });
+          if (im) {
+            gsap.fromTo(im, { xPercent: 6, scale: 1.14 }, {
+              xPercent: -6, scale: 1.14, ease: 'none',
+              scrollTrigger: { trigger: p, containerAnimation: tween, start: 'left right', end: 'right left', scrub: true }
+            });
+          }
+          // Die Atemlinie zeichnet sich mit der Strecke – jede mit ihrem Tempo
+          var wave = p.querySelector('[data-wave]');
+          if (wave) {
+            gsap.fromTo(wave, { strokeDashoffset: 1 }, {
+              strokeDashoffset: 0, ease: 'none',
+              scrollTrigger: { trigger: p, containerAnimation: tween, start: 'left 92%', end: 'right 70%', scrub: true }
+            });
+          }
         });
       }
+      // Atemübung: Die Nacht wächst als Kreis auf, dann erscheint die Übung
+      var bSec = $('.breathe'), bloom = $('[data-bloom]'), bContent = $('[data-breathe-content]');
+      var setBloom = null;
+      if (bSec && bloom && bContent) {
+        d.classList.add('is-bloom');
+        setBloom = function () { var r = bSec.getBoundingClientRect(); bSec.style.setProperty('--bloom-d', Math.ceil(Math.sqrt(r.width * r.width + r.height * r.height)) + 8 + 'px'); };
+        setBloom();
+        ST.addEventListener('refreshInit', setBloom);
+        gsap.fromTo(bloom, { scale: 0.07 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: bSec, start: 'top 92%', end: 'top 8%', scrub: 0.7 } });
+        gsap.fromTo(bContent, { opacity: 0, y: 36 }, { opacity: 1, y: 0, ease: 'none', scrollTrigger: { trigger: bSec, start: 'top 45%', end: 'top 12%', scrub: 0.7 } });
+      }
+      // Morgenbild in der Haltung: leichte Gegenbewegung
+      var ep = $('.ethos-photo img');
+      if (ep) gsap.fromTo(ep, { yPercent: 6 }, { yPercent: -6, ease: 'none', scrollTrigger: { trigger: '.ethos', start: 'top bottom', end: 'bottom top', scrub: true } });
       // Studio-Parallaxe
       $$('[data-parallax]').forEach(function (el) {
         var v = parseFloat(el.getAttribute('data-parallax')) || 0;
@@ -647,8 +689,15 @@
         if (setDist) ST.removeEventListener('refreshInit', setDist);
         if (section) section.style.removeProperty('--hs-dist');
         $$('.style-panel').forEach(function (p) { p.style.opacity = ''; });
+        d.classList.remove('is-bloom');
+        if (setBloom) ST.removeEventListener('refreshInit', setBloom);
+        if (bContent) { bContent.style.opacity = ''; bContent.style.transform = ''; }
       };
     });
+
+    // Siegel dreht sich mit dem Scrollen, nicht von allein
+    var seal = $('[data-seal-rot]');
+    if (seal) gsap.fromTo(seal, { rotation: -40, svgOrigin: '110 110' }, { rotation: 160, svgOrigin: '110 110', ease: 'none', scrollTrigger: { trigger: '.voices', start: 'top bottom', end: 'bottom top', scrub: 0.8 } });
 
     // Pfad „Erste Stunde“
     var path = $('[data-first-path]');
@@ -693,6 +742,190 @@
   function slotById(id) { for (var i = 0; i < SLOTS.length; i++) if (SLOTS[i].id === id) return SLOTS[i]; return null; }
   function spotsText(n) { return n === 0 ? 'Warteliste' : (n === 1 ? '1 Platz frei' : n + ' Plätze frei'); }
   function todayIndex() { return (new Date().getDay() + 6) % 7; }
+
+  /* ------------------------------------------------------------------------
+     Tageslauf: Zeitachse 7–21 Uhr mit gestauchter Mittagsruhe (13–17 Uhr),
+     darüber die Sonnenbahn. Die Sonne folgt Zeiger, Fokus und Uhrzeit.
+     ------------------------------------------------------------------------ */
+  var TL = { start: 7 * 60, noonFrom: 13 * 60, noonTo: 17 * 60, end: 21 * 60, gap: 26 };
+  function tlUnits(m) {
+    m = clamp(m, TL.start, TL.end);
+    if (m <= TL.noonFrom) return m - TL.start;
+    if (m <= TL.noonTo) return (TL.noonFrom - TL.start) + (m - TL.noonFrom) * TL.gap / (TL.noonTo - TL.noonFrom);
+    return (TL.noonFrom - TL.start) + TL.gap + (m - TL.noonTo);
+  }
+  var TL_TOTAL = tlUnits(TL.end);
+  function tlX(m) { return tlUnits(m) / TL_TOTAL; }
+  function tlMin(f) {
+    var u = clamp(f, 0, 1) * TL_TOTAL, a = TL.noonFrom - TL.start;
+    if (u <= a) return TL.start + u;
+    if (u <= a + TL.gap) return TL.noonFrom + (u - a) * (TL.noonTo - TL.noonFrom) / TL.gap;
+    return TL.noonTo + (u - a - TL.gap);
+  }
+  function toMin(s) { var p = s.split(':'); return +p[0] * 60 + +p[1]; }
+  function hhmm(m) { m = Math.round(m / 5) * 5; var h = Math.floor(m / 60), mm = m % 60; return h + ':' + (mm < 10 ? '0' : '') + mm; }
+  var daylight = { refresh: function () {}, day: function () {} };
+  var scheduleCtx = null;
+
+  function initDaylight(week, days) {
+    var box = $('[data-daylight]');
+    if (!box) return;
+    var svg = $('[data-dl-svg]', box), arc = $('[data-dl-arc]', box), lit = $('[data-dl-lit]', box);
+    var sun = $('[data-dl-sun]', box), lab = $('[data-dl-time]', box), axis = $('[data-dl-axis]', box);
+    var mqTL = window.matchMedia('(min-width: 1180px)');
+    var NS = 'http://www.w3.org/2000/svg';
+    var dotsG = document.createElementNS(NS, 'g');
+    svg.appendChild(dotsG);
+    var legend = document.createElement('span');
+    legend.className = 'dl-legend';
+    legend.textContent = 'Obere Spur: Raum Weite · untere Spur: Raum Stille';
+    box.appendChild(legend);
+    var hours = document.createElement('div');
+    hours.className = 'week-hours';
+    hours.setAttribute('aria-hidden', 'true');
+    week.appendChild(hours);
+    week.classList.add('is-timeline');
+    // Stunden als Position im Stundenplan
+    SLOTS.forEach(function (s) {
+      var a = tlX(toMin(s.start)), b = tlX(toMin(s.end));
+      s.el.style.setProperty('--x', a.toFixed(4));
+      s.el.style.setProperty('--w', (b - a).toFixed(4));
+    });
+
+    var W = 0, H = 0, x0 = 0, x1 = 1, shownDay = todayIndex();
+    var cur = -1, target = 0, raf = 0, label = '', labW = 60;
+    var now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
+    var still = reduced();
+    function pt(f) { return [x0 + (x1 - x0) * f, H - 24 - (H - 60) * Math.sin(Math.PI * clamp(f, 0, 1))]; }
+    function restF() { return (nowMin >= TL.start && nowMin <= TL.end) ? tlX(nowMin) : 0; }
+    function restLabel() { return (nowMin >= TL.start && nowMin <= TL.end) ? 'jetzt ' + hhmm(nowMin) : 'erste Stunde 7:00'; }
+
+    function build() {
+      W = box.clientWidth; H = box.clientHeight;
+      if (!W || !H) return;
+      var tl = mqTL.matches;
+      var lw = tl ? (parseFloat(getComputedStyle(box.closest('.schedule')).getPropertyValue('--tl-label')) || 132) : 0;
+      x0 = lw + (tl ? 0 : 14); x1 = W - (tl ? 0 : 14);
+      legend.hidden = !tl;
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var dd = '';
+      for (var i = 0; i <= 80; i++) { var p = pt(i / 80); dd += (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }
+      arc.setAttribute('d', dd); lit.setAttribute('d', dd); lit.setAttribute('pathLength', '1'); lit.style.strokeDasharray = '1';
+      axis.textContent = '';
+      (W < 700 ? [7, 10, 13, 19, 21] : [7, 9, 11, 13, 17, 19, 21]).forEach(function (h) {
+        var sp = document.createElement('span');
+        sp.textContent = h + ':00';
+        sp.style.left = (x0 + (x1 - x0) * tlX(h * 60)).toFixed(1) + 'px';
+        axis.appendChild(sp);
+      });
+      var g = document.createElement('span');
+      g.className = 'dl-gap'; g.textContent = 'Mittagsruhe';
+      g.style.left = (x0 + (x1 - x0) * tlX(15 * 60)).toFixed(1) + 'px';
+      g.style.bottom = '18px';
+      axis.appendChild(g);
+      // Stundenlinien im Plan
+      hours.textContent = '';
+      if (tl) {
+        for (var h = 8; h <= 20; h++) {
+          if (h > 13 && h < 17) continue;
+          var ln = document.createElement('i');
+          ln.style.left = (tlX(h * 60) * 100).toFixed(3) + '%';
+          hours.appendChild(ln);
+        }
+        var gap = document.createElement('i');
+        gap.className = 'wh-gap';
+        gap.style.left = (tlX(TL.noonFrom) * 100).toFixed(3) + '%';
+        gap.style.width = ((tlX(TL.noonTo) - tlX(TL.noonFrom)) * 100).toFixed(3) + '%';
+        hours.appendChild(gap);
+        var today = days[todayIndex()];
+        if (today && nowMin > TL.start && nowMin < TL.end) {
+          var nl = document.createElement('i');
+          nl.className = 'wh-now';
+          nl.style.left = (tlX(nowMin) * 100).toFixed(3) + '%';
+          nl.style.setProperty('--now-top', today.offsetTop + 'px');
+          nl.style.setProperty('--now-h', today.offsetHeight + 'px');
+          hours.appendChild(nl);
+        }
+      }
+      dots();
+      cur = -1; place(target);
+    }
+    function dots() {
+      while (dotsG.firstChild) dotsG.removeChild(dotsG.firstChild);
+      if (mqTL.matches) return;
+      SLOTS.forEach(function (s) {
+        if (s.day !== shownDay || s.el.hidden) return;
+        var p = pt(tlX(toMin(s.start)));
+        var c = document.createElementNS(NS, 'circle');
+        c.setAttribute('cx', p[0].toFixed(1)); c.setAttribute('cy', p[1].toFixed(1)); c.setAttribute('r', '4.5');
+        c.setAttribute('class', 'dl-dot' + (s.spots <= 2 ? ' is-low' : ''));
+        dotsG.appendChild(c);
+      });
+    }
+    function place(f) {
+      cur = f;
+      var p = pt(f);
+      sun.style.transform = 'translate(' + p[0].toFixed(1) + 'px,' + p[1].toFixed(1) + 'px)';
+      // Beschriftung bleibt im Kasten, auch wenn die Sonne am Rand steht
+      var half = labW / 2, lx = clamp(p[0], half + 2, W - half - 2);
+      lab.style.transform = 'translate(' + lx.toFixed(1) + 'px,' + p[1].toFixed(1) + 'px) translate(-50%, -40px)';
+      lit.style.strokeDashoffset = (1 - f).toFixed(4);
+    }
+    function tick() {
+      raf = 0;
+      var nx = cur < 0 ? target : cur + (target - cur) * 0.14;
+      if (Math.abs(target - nx) < 0.0008) nx = target;
+      place(nx);
+      if (nx !== target) raf = requestAnimationFrame(tick);
+    }
+    function aim(f, text) {
+      target = clamp(f, 0, 1);
+      if (text !== label) { label = text; lab.textContent = text; labW = lab.offsetWidth; }
+      if (still) { place(target); return; }
+      if (!raf) raf = requestAnimationFrame(tick);
+    }
+    function rest() { aim(restF(), restLabel()); }
+
+    daylight.refresh = function () { dots(); };
+    daylight.day = function (i) {
+      shownDay = i;
+      dots();
+      if (mqTL.matches) return;
+      if (i === todayIndex()) { rest(); return; }
+      var first = SLOTS.filter(function (s) { return s.day === i && !s.el.hidden; }).sort(function (a, b) { return toMin(a.start) - toMin(b.start); })[0];
+      if (first) aim(tlX(toMin(first.start)), DAYS_SHORT[i] + ' ' + hhmm(toMin(first.start)));
+    };
+
+    // Zeiger über dem Plan → Sonne folgt; Fokus/Hover auf einer Stunde → Sonne springt hin
+    week.addEventListener('pointermove', function (e) {
+      if (!mqTL.matches || e.pointerType !== 'mouse') return;
+      var col = week.querySelector('.slots');
+      if (!col) return;
+      var r = col.getBoundingClientRect();
+      var f = (e.clientX - r.left) / r.width;
+      if (f < 0 || f > 1) return;
+      var btn = e.target.closest && e.target.closest('.slot-btn');
+      if (btn) return;
+      aim(f, hhmm(tlMin(f)));
+    });
+    week.addEventListener('pointerleave', rest);
+    var mark = function (btn) {
+      $$('.slot-btn.is-sun', week).forEach(function (b) { b.classList.remove('is-sun'); });
+      if (!btn) return;
+      btn.classList.add('is-sun');
+      var s = slotById(btn.parentNode.getAttribute('data-id'));
+      if (s) aim(tlX(toMin(s.start)), DAYS_SHORT[s.day] + ' ' + s.start);
+    };
+    week.addEventListener('pointerover', function (e) { var b = e.target.closest && e.target.closest('.slot-btn'); if (b && mqTL.matches) mark(b); });
+    week.addEventListener('focusin', function (e) { var b = e.target.closest && e.target.closest('.slot-btn'); if (b) mark(b); });
+    week.addEventListener('focusout', function () { mark(null); });
+
+    if ('ResizeObserver' in window) new ResizeObserver(function () { build(); }).observe(box);
+    else window.addEventListener('resize', build);
+    mqTL.addEventListener('change', build);
+    rest();
+    build();
+  }
 
   function initSchedule() {
     readSlots();
@@ -770,6 +1003,7 @@
         ? (total === 1 ? '1 Stunde passt' : total + ' Stunden passen') + (total ? '' : ' – versuchen Sie einen anderen Filter')
         : total + ' Stunden in dieser Woche';
       if (resetBtn) resetBtn.hidden = !filtered;
+      daylight.refresh();
     };
 
     setStyleFilter = function (style) {
@@ -796,6 +1030,7 @@
         if (on && focus) t.focus();
       });
       days.forEach(function (day, k) { day.classList.toggle('is-shown', k === i); });
+      daylight.day(i);
     }
     function setTabbed(on) {
       tabbed = on;
@@ -835,6 +1070,7 @@
 
     applyFilters(false);
     initDialog();
+    scheduleCtx = { week: week, days: days };
 
     week.addEventListener('click', function (e) {
       var btn = e.target.closest('.slot-btn');
@@ -1530,12 +1766,14 @@
     safe(initAnchors, 'anchors');
     safe(initHeader, 'header');
     safe(initMenu, 'menu');
+    safe(initSky, 'sky');
     safe(initReveal, 'reveal');
     safe(initSchedule, 'schedule'); // füllt auch die Karte „Nächste Stunde“ im Hero
-    safe(initHero, 'hero');
+    // Die Form im Hero erst nach dem ersten Bild: Text und CSS-Form stehen schon, die Leinwand misst dann ohne erzwungenes Layout im Parse-Task.
+    requestAnimationFrame(function () { setTimeout(function () { safe(initHero, 'hero'); }, 0); });
     // Danach in eigenen kleinen Tasks (statt eines langen Blocks), damit der
     // erste Bildschirm nicht wartet. Reihenfolge bleibt erhalten, Choreo zuletzt.
-    var later = [[initEthos, 'ethos'], [initQuiz, 'quiz'], [initBreathe, 'breathe'], [initPricing, 'pricing'], [initForm, 'form'], [initMap, 'map'], [initTeam, 'team'], [initChoreo, 'choreo']];
+    var later = [[initSplit, 'split'], [initEthos, 'ethos'], [initConsent, 'consent'], [initWaves, 'waves'], [initMagnetic, 'magnetic'], [initQuiz, 'quiz'], [initBreathe, 'breathe'], [initPricing, 'pricing'], [initForm, 'form'], [initMap, 'map'], [initTeam, 'team'], [function () { if (scheduleCtx) initDaylight(scheduleCtx.week, scheduleCtx.days); }, 'daylight'], [initChoreo, 'choreo']];
     var step = function () {
       var t = later.shift();
       if (!t) return;

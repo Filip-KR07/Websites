@@ -113,7 +113,7 @@
     return (h ? h.getBoundingClientRect().height : 80) + 16;
   }
 
-  var state = { lenis: null, tick: null, mm: null, glow: null, hero: null };
+  var state = { lenis: null, tick: null, mm: null, hero: null };
 
   /* ------------------------------------------------------------------
      Scrollen zu Ankern (mit Lenis weich, sonst nativ)
@@ -198,7 +198,6 @@
         var on = doc.getAttribute('data-contrast') !== 'high';
         if (on) doc.setAttribute('data-contrast', 'high'); else doc.removeAttribute('data-contrast');
         prefs.contrast = on; savePrefs(prefs); syncA11yUi(); layoutChanged();
-        if (state.glow) state.glow.paint();
         announce(on ? 'Hoher Kontrast eingeschaltet' : 'Hoher Kontrast ausgeschaltet');
       });
     });
@@ -318,25 +317,33 @@
     requestAnimationFrame(step);
   }
   function initReveal() {
-    var els = qsa('[data-reveal]');
+    var els = qsa('[data-reveal], [data-write], .circ');
     var counters = qsa('[data-count]');
     if (!('IntersectionObserver' in window)) {
       els.forEach(function (e) { e.classList.add('is-in'); });
       return;
     }
+    // Überschriften sind beim Start per clip-path verdeckt – IntersectionObserver sähe sie nicht:
+    // stattdessen das Elternelement beobachten.
+    var watch = new Map();
+    els.forEach(function (e) {
+      var t = e.tagName === 'H2' && e.parentElement ? e.parentElement : e;
+      if (!watch.has(t)) watch.set(t, []);
+      watch.get(t).push(e);
+    });
     var io = new IntersectionObserver(function (entries) {
-      var batch = entries.filter(function (en) { return en.isIntersecting; }).map(function (en) { return en.target; });
+      var batch = [];
+      entries.forEach(function (en) { if (en.isIntersecting) { io.unobserve(en.target); batch = batch.concat(watch.get(en.target) || []); } });
       batch.sort(function (a, b) { return a.compareDocumentPosition(b) & 4 ? -1 : 1; });
       batch.forEach(function (el, i) {
-        io.unobserve(el);
         var d = Math.min(i, 6) * 70;
         el.style.setProperty('--d', d + 'ms');
         el.classList.add('is-in');
         // Nach dem Einblenden eigene Übergänge (Hover, Druck) wieder freigeben
-        setTimeout(function () { el.removeAttribute('data-reveal'); el.style.removeProperty('--d'); }, motionReduced() ? 0 : 1100 + d);
+        if (el.hasAttribute('data-reveal')) setTimeout(function () { el.removeAttribute('data-reveal'); el.style.removeProperty('--d'); }, motionReduced() ? 0 : 1200 + d);
       });
-    }, { rootMargin: '0px 0px -7% 0px', threshold: 0.06 });
-    els.forEach(function (e) { io.observe(e); });
+    }, { rootMargin: '0px 0px -7% 0px', threshold: 0 });
+    watch.forEach(function (v, t) { io.observe(t); });
 
     var cio = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) { if (en.isIntersecting) { cio.unobserve(en.target); countUp(en.target); } });
@@ -345,10 +352,9 @@
   }
 
   /* ------------------------------------------------------------------
-     Hero: Einstieg, Licht-Canvas, sanfte Maus-Parallaxe
+     Hero: Einstieg, Stadt-Silhouette mit Feder-Parallaxe, magnetische Taste
      ------------------------------------------------------------------ */
   function initHeroIntro() {
-    qsa('[data-hero]').forEach(function (el, i) { el.style.setProperty('--i', i); });
     var go = function () { requestAnimationFrame(function () { doc.classList.add('is-loaded'); }); };
     if (document.fonts && document.fonts.ready) {
       var done = false;
@@ -357,170 +363,150 @@
     } else go();
   }
 
-  function createGlow() {
-    var c = qs('[data-glow]');
-    if (!c || !c.getContext) return null;
-    var ctx = c.getContext('2d');
-    // Die Lichtflecken sind sehr weich und bewegen sich langsam: kleine Leinwand (wird per CSS
-    // gestreckt) und ~15 Bilder/s reichen optisch völlig – spart auf Handys den Großteil der
-    // Hauptthread-Zeit. Die Schleife startet erst nach dem Hero-Einstieg (armed).
-    var SCALE = 0.32, FRAME_MS = 66;
-    // clock: eigene Zeitachse ab dem Standbild (9000), damit der Start nahtlos anschließt
-    var w = 0, h = 0, raf = 0, running = false, visible = true, armed = false, last = 0, prev = 0, clock = 9000;
-    var BLOBS = [
-      { x: .82, y: .3, r: .5, c: '232,106,80', a: .17, sx: .00011, sy: .00008, ph: 0 },
-      { x: .1, y: .86, r: .45, c: '157,181,160', a: .26, sx: .00009, sy: .00012, ph: 2 },
-      { x: .42, y: .05, r: .38, c: '246,212,190', a: .55, sx: .00007, sy: .0001, ph: 4 },
-      { x: .98, y: .95, r: .32, c: '30,58,95', a: .06, sx: .00012, sy: .00006, ph: 1 }
-    ];
-    function resize() {
-      var nw = Math.max(1, Math.round(c.clientWidth * SCALE));
-      var nh = Math.max(1, Math.round(c.clientHeight * SCALE));
-      if (nw === w && nh === h) return false;
-      w = nw; h = nh;
-      c.width = w; c.height = h;
-      return true;
+  // Ebenen der Silhouette folgen dem Zeiger mit Feder (nur feiner Zeiger, nur bei voller Bewegung).
+  function createSkyline() {
+    var hero = qs('.hero');
+    var layers = [
+      { el: qs('.sky__sun'), k: -12 },
+      { el: qs('.sky__town'), k: 9 },
+      { el: qs('.sky__routes'), k: 9 }
+    ].filter(function (l) { return l.el; });
+    if (!hero || !layers.length) return null;
+    var tx = 0, x = 0, v = 0, raf = 0, on = false;
+    function frame() {
+      // gedämpfte Feder: stiffness .06, damping .78
+      v = (v + (tx - x) * 0.06) * 0.78; x += v;
+      layers.forEach(function (l) { l.el.style.translate = (x * l.k).toFixed(2) + 'px 0'; });
+      if (Math.abs(tx - x) > .002 || Math.abs(v) > .002) raf = requestAnimationFrame(frame); else raf = 0;
     }
-    function draw(t) {
-      ctx.clearRect(0, 0, w, h);
-      if (doc.getAttribute('data-contrast') === 'high') return;
-      var m = Math.max(w, h);
-      for (var i = 0; i < BLOBS.length; i++) {
-        var b = BLOBS[i];
-        var x = (b.x + Math.sin(t * b.sx + b.ph) * .06) * w;
-        var y = (b.y + Math.cos(t * b.sy + b.ph) * .07) * h;
-        var r = b.r * m * (1 + Math.sin(t * .00005 + b.ph) * .05);
-        var g = ctx.createRadialGradient(x, y, 0, x, y, r);
-        g.addColorStop(0, 'rgba(' + b.c + ',' + b.a + ')');
-        g.addColorStop(1, 'rgba(' + b.c + ',0)');
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, w, h);
-      }
-    }
-    function loop(t) {
-      if (prev) clock += Math.min(t - prev, 100);
-      prev = t;
-      if (t - last >= FRAME_MS) { last = t; draw(clock); }
-      raf = requestAnimationFrame(loop);
-    }
-    function sync() {
-      var should = armed && running && visible && !document.hidden && motionFull();
-      if (should && !raf) raf = requestAnimationFrame(loop);
-      if (!should && raf) { cancelAnimationFrame(raf); raf = 0; prev = 0; }
-    }
-    resize(); draw(clock);
-    var rt = 0;
-    window.addEventListener('resize', function () {
-      clearTimeout(rt);
-      rt = setTimeout(function () { if (resize()) draw(clock); }, 150);
+    hero.addEventListener('pointermove', function (e) {
+      if (!on || e.pointerType !== 'mouse') return;
+      var r = hero.getBoundingClientRect();
+      tx = clamp((e.clientX - r.left) / r.width * 2 - 1, -1, 1);
+      if (!raf) raf = requestAnimationFrame(frame);
     });
-    document.addEventListener('visibilitychange', sync);
-    // erst nach dem Laden + Hero-Einstieg bewegen, damit der erste Bildschirm nicht konkurriert
-    var arm = function () { setTimeout(function () { armed = true; sync(); }, 1600); };
-    if (document.readyState === 'complete') arm(); else window.addEventListener('load', arm, { once: true });
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function (en) { visible = en[0].isIntersecting; sync(); }).observe(c);
-    }
+    hero.addEventListener('pointerleave', function () { tx = 0; if (on && !raf) raf = requestAnimationFrame(frame); });
     return {
-      start: function () { running = true; sync(); },
-      stop: function () { running = false; sync(); draw(clock); },
-      paint: function () { draw(clock); }
+      enable: function () { on = finePointer; },
+      disable: function () { on = false; tx = x = v = 0; if (raf) cancelAnimationFrame(raf); raf = 0; layers.forEach(function (l) { l.el.style.translate = ''; }); }
     };
   }
 
-  function createHeroParallax() {
-    var hero = qs('.hero');
-    var layers = [
-      { el: qs('.hero__disc'), k: -12 },
-      { el: qs('.hero__arch'), k: 7 },
-      { el: qs('.hero__orb'), k: 16 }
-    ].filter(function (l) { return l.el; });
-    if (!hero || !layers.length) return null;
-    var tx = 0, ty = 0, x = 0, y = 0, raf = 0, on = false;
-    function frame() {
-      x = lerp(x, tx, .08); y = lerp(y, ty, .08);
-      layers.forEach(function (l) { l.el.style.translate = (x * l.k).toFixed(2) + 'px ' + (y * l.k).toFixed(2) + 'px'; });
-      if (Math.abs(x - tx) > .001 || Math.abs(y - ty) > .001) raf = requestAnimationFrame(frame); else raf = 0;
-    }
-    function move(e) {
-      if (!on) return;
-      var r = hero.getBoundingClientRect();
-      tx = clamp((e.clientX - r.left) / r.width * 2 - 1, -1, 1);
-      ty = clamp((e.clientY - r.top) / r.height * 2 - 1, -1, 1);
-      if (!raf) raf = requestAnimationFrame(frame);
-    }
-    function leave() { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(frame); }
-    hero.addEventListener('pointermove', move);
-    hero.addEventListener('pointerleave', leave);
-    return {
-      enable: function () { on = finePointer; },
-      disable: function () { on = false; tx = ty = x = y = 0; if (raf) cancelAnimationFrame(raf); raf = 0; layers.forEach(function (l) { l.el.style.translate = ''; }); }
-    };
+  function initMagnets() {
+    if (!finePointer) return;
+    qsa('[data-magnet]').forEach(function (el) {
+      var tx = 0, ty = 0, x = 0, y = 0, raf = 0;
+      function frame() {
+        x = lerp(x, tx, .18); y = lerp(y, ty, .18);
+        el.style.translate = x.toFixed(2) + 'px ' + y.toFixed(2) + 'px';
+        if (Math.abs(x - tx) > .05 || Math.abs(y - ty) > .05) raf = requestAnimationFrame(frame); else raf = 0;
+      }
+      el.addEventListener('pointermove', function (e) {
+        if (!motionFull() || e.pointerType !== 'mouse') return;
+        var r = el.getBoundingClientRect();
+        tx = (e.clientX - r.left - r.width / 2) * .22; ty = (e.clientY - r.top - r.height / 2) * .3;
+        if (!raf) raf = requestAnimationFrame(frame);
+      });
+      el.addEventListener('pointerleave', function () { tx = ty = 0; if (!raf) raf = requestAnimationFrame(frame); });
+    });
   }
 
   /* ------------------------------------------------------------------
-     Bewegung: Lenis, ScrollTrigger (Tour quer, Parallaxe) – live umschaltbar
+     „Ein Tag mit uns“: Uhr, Sonnenbogen, Himmel (sticky + Scrub, kein Pin)
      ------------------------------------------------------------------ */
-  function setupTour() {
-    var tour = qs('[data-tour]');
-    var pin = qs('[data-tour-pin]');
-    var track = qs('[data-track]');
-    if (!tour || !pin || !track) return;
-    var stops = qsa('.stop', track);
-    var clock = qs('[data-clock]');
-    var fill = qs('[data-route-fill]');
-    var times = stops.map(function (s) {
-      var p = (s.getAttribute('data-time') || '0:0').split(':');
-      return (+p[0]) * 60 + (+p[1]);
-    });
-    var last = -1;
-    function render(p) {
-      if (fill) fill.style.transform = 'scaleX(' + p.toFixed(4) + ')';
-      var t = p * (stops.length - 1);
-      var i = Math.min(stops.length - 2, Math.floor(t));
-      var f = t - i;
-      var mins = Math.round(lerp(times[i], times[i + 1], f) / 5) * 5;
-      if (clock) clock.textContent = String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0');
-      var idx = Math.round(t);
-      if (idx !== last) {
-        last = idx;
-        stops.forEach(function (s, j) { s.classList.toggle('is-active', j === idx); s.classList.toggle('is-past', j < idx); });
+  var day = null;
+  function initDay() {
+    var sec = qs('[data-day]');
+    if (!sec) return;
+    var stops = qsa('.stop', sec);
+    var clock = qs('[data-clock]', sec);
+    var sun = qs('[data-sun]', sec);
+    var layers = qsa('.day__layer', sec);
+    var times = stops.map(function (s) { var p = (s.getAttribute('data-time') || '0:0').split(':'); return (+p[0]) * 60 + (+p[1]); });
+    var T0 = times[0], T1 = times[times.length - 1];
+    // Stützpunkte des Himmels (Minuten): Morgengrauen, Mittag, goldene Stunde, Dämmerung, Nacht
+    var KEYS = [6 * 60 + 30, 10 * 60 + 30, 15 * 60 + 30, 19 * 60, 21 * 60];
+    var lastIdx = -1, lastText = '';
+    function fmt(m) { m = Math.round(m / 5) * 5; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
+    function setTime(mins, sky) {
+      var txt = fmt(mins);
+      if (clock && txt !== lastText) { clock.textContent = txt; lastText = txt; }
+      var f = clamp((mins - T0) / (T1 - T0), 0, 1);
+      if (sun) {
+        var a = Math.PI * (1 - f);
+        sun.setAttribute('cx', (110 + Math.cos(a) * 100).toFixed(1));
+        sun.setAttribute('cy', (112 - Math.sin(a) * 100).toFixed(1));
+      }
+      sec.classList.toggle('is-dusk', mins >= 18 * 60 + 45);
+      sec.classList.toggle('is-night', mins >= 20 * 60 + 30);
+      if (sky && layers.length) {
+        for (var i = 0; i < layers.length; i++) {
+          var o;
+          if (i === 0) o = 1;
+          else o = clamp((mins - KEYS[i - 1]) / (KEYS[i] - KEYS[i - 1]), 0, 1);
+          layers[i].style.opacity = o.toFixed(3);
+        }
       }
     }
-    state.mm.add('(min-width: 900px) and (min-height: 640px)', function () {
-      tour.classList.add('is-h');
-      var dist = function () { return Math.max(0, track.scrollWidth - doc.clientWidth); };
-      gsap.to(track, {
-        x: function () { return -dist(); },
-        ease: 'none',
-        scrollTrigger: {
-          trigger: pin,
-          start: 'top top',
-          end: function () { return '+=' + Math.max(1, dist()); },
-          pin: true,
-          scrub: 0.6,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          onUpdate: function (self) { render(self.progress); }
-        }
-      });
-      render(0);
-      return function () {
-        tour.classList.remove('is-h');
-        last = -1;
-        stops.forEach(function (s) { s.classList.remove('is-active', 'is-past'); });
-        if (clock) clock.textContent = '06:30';
-      };
+    function setActive(idx) {
+      if (idx === lastIdx) return;
+      lastIdx = idx;
+      stops.forEach(function (s, j) { s.classList.toggle('is-active', j === idx); });
+    }
+    // Ohne Scrub (reduziert/aus): Uhr springt zum Halt, der gerade in der Mitte steht
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (en) {
+        if (day && day.scrub) return;
+        en.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          var i = stops.indexOf(e.target);
+          setActive(i); setTime(times[i], false);
+        });
+      }, { rootMargin: '-45% 0px -45% 0px' });
+      stops.forEach(function (s) { io.observe(s); });
+    }
+    day = {
+      scrub: false,
+      progress: function (p) {
+        // Fortschritt auf die Halte abbilden (gleichmäßig je Halt, Zeit dazwischen interpoliert)
+        var t = clamp(p, 0, 1) * (stops.length - 1);
+        var i = Math.min(stops.length - 2, Math.floor(t));
+        setTime(lerp(times[i], times[i + 1], t - i), true);
+        setActive(Math.round(t));
+      },
+      reset: function () { this.scrub = false; layers.forEach(function (l) { l.style.opacity = ''; }); lastIdx = -1; setTime(T0, false); }
+    };
+    setTime(T0, false);
+  }
+
+  /* ------------------------------------------------------------------
+     Satz baut sich Wort für Wort auf (nur volle Bewegung)
+     ------------------------------------------------------------------ */
+  function splitWords(p) {
+    if (p.__split) return p.__split;
+    var out = [];
+    Array.prototype.slice.call(p.childNodes).forEach(function (n) {
+      if (n.nodeType === 3) {
+        var frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach(function (part) {
+          if (!part) return;
+          if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
+          var s = document.createElement('span'); s.className = 'w'; s.textContent = part;
+          frag.appendChild(s); out.push(s);
+        });
+        p.replaceChild(frag, n);
+      } else if (n.nodeType === 1) { n.classList.add('w'); out.push(n); }
     });
+    p.__split = out;
+    return out;
   }
 
   function setupMotion() {
-    if (state.glow) { if (motionFull()) state.glow.start(); else state.glow.stop(); }
     if (state.hero) { if (motionFull()) state.hero.enable(); else state.hero.disable(); }
     if (!hasGSAP || !motionFull()) return;
     gsap.registerPlugin(ScrollTrigger);
     if (window.Lenis) {
-      state.lenis = new window.Lenis({ lerp: 0.11, smoothWheel: true, wheelMultiplier: 0.95 });
+      state.lenis = new window.Lenis({ lerp: 0.1, smoothWheel: true, wheelMultiplier: 0.9 });
       window.__lenis = state.lenis;
       state.lenis.on('scroll', ScrollTrigger.update);
       state.tick = function (t) { if (state.lenis) state.lenis.raf(t * 1000); };
@@ -528,15 +514,61 @@
       gsap.ticker.lagSmoothing(0);
     }
     state.mm = gsap.matchMedia();
-    setupTour();
     state.mm.add('(min-width: 0px)', function () {
-      var par = qs('[data-parallax]');
-      if (par) {
-        gsap.fromTo(par, { yPercent: -5 }, {
-          yPercent: 5, ease: 'none',
-          scrollTrigger: { trigger: '.about__arch', start: 'top bottom', end: 'bottom top', scrub: true }
+      // 1) Ein Tag mit uns: Himmel, Uhr und Sonne folgen dem Scroll
+      var sec = qs('[data-day]');
+      if (sec && day) {
+        day.scrub = true;
+        ScrollTrigger.create({
+          trigger: qs('.day__stops', sec), start: 'top 55%', end: 'bottom 55%',
+          onUpdate: function (self) { day.progress(self.progress); },
+          onRefresh: function (self) { day.progress(self.progress); }
         });
       }
+      // 2) Zahlen-Satz: Wörter werden hell, Kringel zeichnen sich
+      var facts = qs('[data-words]');
+      if (facts) {
+        var words = splitWords(facts);
+        gsap.fromTo(words, { opacity: .16 }, {
+          opacity: 1, ease: 'none', stagger: .08,
+          scrollTrigger: { trigger: facts, start: 'top 82%', end: 'bottom 52%', scrub: .4 }
+        });
+      }
+      // 3) Fenster öffnet sich
+      var win = qs('[data-window]');
+      if (win) {
+        var img = qs('img', win), frame = qs('.about__frame', win);
+        var tl = gsap.timeline({ scrollTrigger: { trigger: win, start: 'top 85%', end: 'center 55%', scrub: .5 } });
+        tl.fromTo(win, { clipPath: 'inset(7% 34% 7% 34%)' }, { clipPath: 'inset(0% 0% 0% 0%)', ease: 'none' }, 0)
+          .fromTo(img, { scale: 1.14 }, { scale: 1, ease: 'none' }, 0);
+        if (frame) tl.fromTo(frame, { opacity: .9 }, { opacity: 0, ease: 'none' }, .35);
+      }
+      // 4) Karte zeichnet sich von Hand
+      var map = qs('[data-map]');
+      if (map) {
+        var paths = qsa('.map__zone2, .map__city, .map__road, .map__river, .map__tourline, .map__arrow, .map__forest', map);
+        paths.forEach(function (p) { p.setAttribute('pathLength', '1'); p.style.strokeDasharray = '1'; p.style.strokeDashoffset = '1'; });
+        var hand = qsa('.map__hand, .map__hatch, .map__road-label, .map__river-label, .map__forest-label', map);
+        var mt = gsap.timeline({ scrollTrigger: { trigger: map, start: 'top 80%', end: 'center 50%', scrub: .6 } });
+        mt.to(qsa('.map__zone2, .map__city', map), { strokeDashoffset: 0, ease: 'none', duration: 1 }, 0)
+          .to(qsa('.map__road, .map__river, .map__forest', map), { strokeDashoffset: 0, ease: 'none', duration: 1, stagger: .1 }, .25)
+          .fromTo(hand, { opacity: 0 }, { opacity: 1, ease: 'none', duration: .4, stagger: .05 }, .6)
+          .to(qsa('.map__tourline', map), { strokeDashoffset: 0, ease: 'none', duration: .8, stagger: .15 }, .8)
+          .to(qsa('.map__arrow', map), { strokeDashoffset: 0, ease: 'none', duration: .4 }, 1.2);
+        return function () {
+          paths.forEach(function (p) { p.style.strokeDasharray = ''; p.style.strokeDashoffset = ''; });
+          hand.forEach(function (h) { h.style.opacity = ''; });
+        };
+      }
+    });
+    state.mm.add('(min-width: 0px)', function () {
+      return function () {
+        if (day) day.reset();
+        var facts = qs('[data-words]');
+        if (facts && facts.__split) facts.__split.forEach(function (w) { w.style.opacity = ''; });
+        var win = qs('[data-window]');
+        if (win) { win.style.clipPath = ''; var i = qs('img', win); if (i) i.style.transform = ''; var f = qs('.about__frame', win); if (f) f.style.opacity = ''; }
+      };
     });
     ScrollTrigger.refresh();
   }
@@ -550,7 +582,7 @@
       window.__lenis = undefined;
       gsap.ticker.lagSmoothing(500, 33);
     }
-    if (state.glow) state.glow.stop();
+    if (day) day.reset();
     if (state.hero) state.hero.disable();
     if (hasGSAP) ScrollTrigger.refresh();
   }
@@ -586,7 +618,7 @@
       if (!lr.width) return;
       if (instant) overlay.style.transition = 'none';
       overlay.style.clipPath = 'inset(' + (tr.top - lr.top).toFixed(1) + 'px ' + (lr.right - tr.right).toFixed(1) + 'px ' +
-        (lr.bottom - tr.bottom).toFixed(1) + 'px ' + (tr.left - lr.left).toFixed(1) + 'px round 1.4rem)';
+        (lr.bottom - tr.bottom).toFixed(1) + 'px ' + (tr.left - lr.left).toFixed(1) + 'px round .55rem .55rem 0 0)';
       if (instant) { overlay.getBoundingClientRect(); overlay.style.transition = ''; }
     }
     function select(i, focus, animate) {
@@ -661,6 +693,7 @@
     var hint = qs('[data-wiz-hint]', form);
     var live = qs('[data-wiz-live]');
     var areas = qsa('.pg__areas li');
+    var pgPath = qs('[data-pg-path]');
     var res = qs('[data-wiz-result]');
     var cur = 0;
     var lastResult = null;
@@ -675,6 +708,7 @@
       prev.disabled = cur === 0;
       nextLabel.textContent = cur === steps.length - 1 ? 'Auswerten' : 'Weiter';
       next.classList.toggle('is-ready', val(cur) !== null);
+      if (pgPath) { pgPath.style.setProperty('--pg', res.hidden ? (answered() / steps.length).toFixed(3) : '1'); pgPath.classList.toggle('is-done', !res.hidden); }
       areas.forEach(function (li, i) {
         li.classList.toggle('is-current', i === cur && res.hidden);
         li.classList.toggle('is-done', val(i) !== null && (i !== cur || !res.hidden));
@@ -1185,30 +1219,34 @@
      ------------------------------------------------------------------ */
   function init() {
     qsa('[data-year]').forEach(function (el) { el.textContent = String(new Date().getFullYear()); });
+    // Etappe 1: alles im ersten Bildschirm
     initA11y();
     initHeader();
     initMenu();
-    initTabs();
-    initWizard();
-    initArea();
-    initShifts();
-    initSalary();
-    initApply();
-    initContact();
     initOffice();
-    initReveal();
-    state.glow = createGlow();
-    state.hero = createHeroParallax();
+    state.hero = createSkyline();
     initHeroIntro();
-    setupMotion();
-    // Systemeinstellung „Bewegung reduzieren“ live übernehmen, solange keine eigene Wahl gespeichert ist
-    var onMq = function () {
-      if (prefs.motion === true || prefs.motion === false || motionOff()) return;
-      doc.classList.toggle('reduced', mqReduce.matches);
-      syncA11yUi(); teardownMotion(); setupMotion();
-    };
-    if (mqReduce.addEventListener) mqReduce.addEventListener('change', onMq);
-    window.addEventListener('load', function () { if (hasGSAP) ScrollTrigger.refresh(); });
+    initMagnets();
+    // Etappe 2: der Rest in kleinen Häppchen, danach einmal Scroll-Choreografie
+    var queue = [initReveal, initTabs, initWizard, initDay, initArea, initShifts, initSalary, initApply, initContact, setupMotion];
+    var idle = window.requestIdleCallback ? function (f) { requestIdleCallback(f, { timeout: 120 }); } : function (f) { setTimeout(f, 16); };
+    (function next() {
+      // je Häppchen genau eine Aufgabe – so bleibt jeder Task kurz
+      var f = queue.shift(), t0 = performance.now();
+      f();
+      (window.__initMs = window.__initMs || {})[f.name] = Math.round(performance.now() - t0);
+      if (queue.length) idle(next);
+      else {
+        var onMq = function () {
+          if (prefs.motion === true || prefs.motion === false || motionOff()) return;
+          doc.classList.toggle('reduced', mqReduce.matches);
+          syncA11yUi(); teardownMotion(); setupMotion();
+        };
+        if (mqReduce.addEventListener) mqReduce.addEventListener('change', onMq);
+        if (document.readyState === 'complete') { if (hasGSAP && motionFull()) ScrollTrigger.refresh(); }
+        else window.addEventListener('load', function () { if (hasGSAP && motionFull()) ScrollTrigger.refresh(); });
+      }
+    })();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

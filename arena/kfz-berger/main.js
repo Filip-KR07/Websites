@@ -3,8 +3,9 @@
    Alle Werte sind Beispielwerte eines fiktiven Betriebs. Zum Anpassen
    die Konstanten in diesem Block ändern.
    ========================================================================== */
-(() => {
+(async () => {
   'use strict';
+  const pause = () => new Promise(r => (window.requestIdleCallback ? requestIdleCallback(() => r(), { timeout: 150 }) : setTimeout(r, 16)));
 
   /* ---------- Betriebsdaten ---------- */
   const OPENING = {            // Wochentag (0 = So) -> [öffnet, schließt] in Stunden
@@ -109,13 +110,20 @@
     }
   }
   const hdrH = () => $('[data-hdr]').offsetHeight;
-  function scrollToEl(el, after) {
+  // Ziel nach dem Scrollen nachmessen: Kapitel mit content-visibility bekommen erst unterwegs ihre echte Höhe
+  function scrollToEl(el, after, tries = 0) {
     if (!el) return;
+    const fix = () => {
+      const off = el.getBoundingClientRect().top - hdrH() - 12;
+      if (Math.abs(off) > 6 && tries < 3) scrollToEl(el, after, tries + 1);
+      else if (after) after();
+    };
     if (lenis) {
-      lenis.scrollTo(el, { offset: -hdrH() - 12, duration: 1.2, onComplete: after });
+      lenis.scrollTo(el, { offset: -hdrH() - 12, duration: tries ? 0.5 : 1.2, onComplete: () => requestAnimationFrame(fix) });
     } else {
-      el.scrollIntoView({ behavior: motionOK ? 'smooth' : 'auto', block: 'start' });
-      if (after) setTimeout(after, motionOK ? 600 : 0);
+      const y = el.getBoundingClientRect().top + scrollY - hdrH() - 12;
+      window.scrollTo({ top: y, behavior: motionOK && !tries ? 'smooth' : 'auto' });
+      setTimeout(fix, motionOK && !tries ? 700 : 30);
     }
   }
   document.addEventListener('click', e => {
@@ -204,29 +212,35 @@
   });
   matchMedia('(min-width: 900px)').addEventListener('change', e => { if (e.matches) closeMenu(false); });
 
-  /* ---------- Titel in Wörter teilen (Masken-Reveal), nur mit Bewegung ---------- */
+  /* ---------- Titel in Wörter teilen (Masken-Reveal) – erst kurz bevor sie ins Bild kommen ---------- */
+  function splitWords(h) {
+    if (h.classList.contains('is-split')) return;
+    let wi = 0;
+    const walk = node => {
+      Array.from(node.childNodes).forEach(n => {
+        if (n.nodeType === 3) {
+          const parts = n.textContent.split(/( +)/);
+          const frag = document.createDocumentFragment();
+          parts.forEach(p => {
+            if (!p) return;
+            if (/^ +$/.test(p)) { frag.appendChild(document.createTextNode(' ')); return; }
+            const w = document.createElement('span'); w.className = 'w';
+            const i = document.createElement('span'); i.textContent = p; i.style.setProperty('--wi', wi++);
+            w.appendChild(i); frag.appendChild(w);
+          });
+          n.replaceWith(frag);
+        } else if (n.nodeType === 1 && n.tagName !== 'BR') walk(n);
+      });
+    };
+    walk(h);
+    h.classList.add('is-split');
+  }
   if (motionOK) {
-    $$('[data-split]').forEach(h => {
-      let wi = 0;
-      const walk = node => {
-        Array.from(node.childNodes).forEach(n => {
-          if (n.nodeType === 3) {
-            const parts = n.textContent.split(/( +)/);
-            const frag = document.createDocumentFragment();
-            parts.forEach(p => {
-              if (!p) return;
-              if (/^ +$/.test(p)) { frag.appendChild(document.createTextNode(' ')); return; }
-              const w = document.createElement('span'); w.className = 'w';
-              const i = document.createElement('span'); i.textContent = p; i.style.setProperty('--wi', wi++);
-              w.appendChild(i); frag.appendChild(w);
-            });
-            n.replaceWith(frag);
-          } else if (n.nodeType === 1 && n.tagName !== 'BR') walk(n);
-        });
-      };
-      walk(h);
-      h.classList.add('is-split');
-    });
+    const spIO = new IntersectionObserver(entries => entries.forEach(en => {
+      if (en.isIntersecting && en.boundingClientRect.top > innerHeight * 0.5) splitWords(en.target);
+      if (en.isIntersecting) spIO.unobserve(en.target);
+    }), { rootMargin: '0px 0px 60% 0px' });
+    $$('[data-split]').forEach(h => spIO.observe(h));
   }
 
   /* ---------- Reveals „Einrasten“ ---------- */
@@ -540,6 +554,8 @@
     }, { passive: true });
   }
 
+  await pause(); // ---- Start in Etappen: jeder Block in einem eigenen kurzen Task ----
+
   /* ======================================================================
      5) Live-Werkstattstatus (simuliert, deterministisch pro Tag)
      ====================================================================== */
@@ -660,6 +676,9 @@
   setInterval(() => { if (!document.hidden) renderStatus(); }, 20000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) renderStatus(); });
 
+
+  await pause(); // ---- Start in Etappen: jeder Block in einem eigenen kurzen Task ----
+
   /* ======================================================================
      Leistungen – schwebendes Vorschaubild (nur Maus)
      ====================================================================== */
@@ -692,6 +711,9 @@
     });
     list.addEventListener('pointerleave', () => { P.on = false; float.classList.remove('on'); });
   }
+
+
+  await pause(); // ---- Start in Etappen: jeder Block in einem eigenen kurzen Task ----
 
   /* ======================================================================
      3) Interaktive Seitenansicht
@@ -748,6 +770,9 @@
   requestAnimationFrame(placeSel); // Layout erst im nächsten Frame lesen – kein erzwungenes Layout während der Initialisierung
   addEventListener('resize', placeSel);
   if (document.fonts) document.fonts.ready.then(() => placeInd(tabs.find(t => t.getAttribute('aria-selected') === 'true')));
+
+
+  await pause(); // ---- Start in Etappen: jeder Block in einem eigenen kurzen Task ----
 
   /* ======================================================================
      2) Service-Rechner
@@ -893,6 +918,9 @@
     setTakeover('Aus dem Service-Rechner übernommen', txt, { cls: r.cls, services: r.sel, loan: r.tMax > SAME_DAY_MAX_HOURS });
   });
 
+
+  await pause(); // ---- Start in Etappen: jeder Block in einem eigenen kurzen Task ----
+
   /* ======================================================================
      4) HU-Erinnerung
      ====================================================================== */
@@ -1037,6 +1065,9 @@
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   });
 
+
+  await pause(); // ---- Start in Etappen: jeder Block in einem eigenen kurzen Task ----
+
   /* ======================================================================
      Set Piece: Diagnose-Scan über die Seitenansicht
      Beim ersten Erscheinen fährt ein Prüfbalken über das Auto und hakt die
@@ -1103,6 +1134,8 @@
     logItems.forEach(li => li.classList.add('done'));
   }
   onPartSelect = lockOn;
+
+  await pause(); // ---- Start in Etappen: jeder Block in einem eigenen kurzen Task ----
 
   /* ======================================================================
      Set Piece: Ablauf als Oszilloskop-Spur
@@ -1184,6 +1217,7 @@
     if (i === fpIdx) return;
     fpIdx = i;
     fpN.textContent = i + 1;
+    if (!motionOK) { if (gearOut) gearOut.textContent = i + 1; steps.forEach((st, k) => st.classList.toggle('on', k === i)); }
     fpBtns.forEach((b, k) => { if (k === i) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
   }
   function railSetup(on) {
@@ -1208,6 +1242,8 @@
   if (!wantsH()) railSetup(true);
   mqMobile.addEventListener('change', () => { if (!wantsH()) railSetup(true); });
   addEventListener('resize', () => { if (flow.classList.contains('is-rail')) { buildScope(); railUpdate(); } }, { passive: true });
+
+  await pause(); // ---- Start in Etappen: jeder Block in einem eigenen kurzen Task ----
 
   /* ======================================================================
      GSAP-Choreografie – erst nach dem Hero-Intro und in kleinen Häppchen
@@ -1254,6 +1290,11 @@
       return () => { tw.scrollTrigger && tw.scrollTrigger.kill(); tw.kill(); gsap.set(sheet, { clearProps: 'transform' }); };
     });
 
+    // Kapitel mit content-visibility bekommen ihre echte Höhe erst unterwegs → Trigger-Positionen nachziehen
+    let roT = 0, roOn = false;
+    const cvRO = new ResizeObserver(() => { if (!roOn) return; clearTimeout(roT); roT = setTimeout(() => ScrollTrigger.refresh(), 160); });
+    $$('#status, #leistungen, #fahrzeug, #rechner, #hu').forEach(s => cvRO.observe(s));
+    setTimeout(() => { roOn = true; }, 2500);
     const queue = [initFlow, initFeed];
     const idle = window.requestIdleCallback ? cb => requestIdleCallback(cb, { timeout: 900 }) : cb => setTimeout(cb, 120);
     const pump = () => {
@@ -1275,6 +1316,8 @@
     setTimeout(start, scrollY > 0 ? 0 : 700);
     if (document.fonts) document.fonts.ready.then(() => { if (started && !queue.length && document.readyState === 'complete') ScrollTrigger.refresh(); });
   }
+
+  await pause(); // ---- Start in Etappen: jeder Block in einem eigenen kurzen Task ----
 
   /* ======================================================================
      Terminanfrage – Validierung & Erfolgsansicht

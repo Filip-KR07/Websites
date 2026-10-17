@@ -16,6 +16,8 @@
   <meta property="og:description" content="Familien-Trattoria in Stuttgart-Mitte: täglich frische Pasta, Sugo mit Zeit und Weine von Familienweingütern. (Demo, fiktiver Betrieb)">
   <link rel="preload" href="/arena/trattoria-nonna-rosa/assets/fonts/playfair-display-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/arena/trattoria-nonna-rosa/assets/fonts/karla-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/arena/trattoria-nonna-rosa/assets/fonts/caveat-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/arena/trattoria-nonna-rosa/assets/fonts/playfair-display-latin-wght-italic.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/arena/trattoria-nonna-rosa/assets/img/plate-a-508.webp" as="image" type="image/webp" imagesrcset="/arena/trattoria-nonna-rosa/assets/img/plate-a-254.webp 254w, /arena/trattoria-nonna-rosa/assets/img/plate-a-508.webp 508w" imagesizes="(min-width: 900px) 30vw, 64vw" fetchpriority="high">
   <link rel="stylesheet" href="/arena/trattoria-nonna-rosa/style.css">
   <script>
@@ -25,13 +27,12 @@
       if (/[?&]motion=off\b/.test(q)) d.classList.add('motion-off');
       else if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('reduced');
       else d.classList.add('anim');
+      // Bibliotheken früh anfragen (nur mit JS) – ausgewertet werden sie später von main.js, Stück für Stück
+      ['gsap.min.js', 'ScrollTrigger.min.js', 'lenis.min.js'].forEach(function (f) { var l = document.createElement('link'); l.rel = 'preload'; l.as = 'script'; l.href = '/arena/trattoria-nonna-rosa/assets/vendor/' + f; document.head.appendChild(l); });
       // Sicherheitsnetz: Falls main.js nicht startet, alle Ausgangszustände aufheben.
       setTimeout(function () { if (!window.__rosaReady) d.classList.remove('js', 'anim'); }, 4000);
     })();
   </script>
-  <script src="/arena/trattoria-nonna-rosa/assets/vendor/gsap.min.js" defer></script>
-  <script src="/arena/trattoria-nonna-rosa/assets/vendor/ScrollTrigger.min.js" defer></script>
-  <script src="/arena/trattoria-nonna-rosa/assets/vendor/lenis.min.js" defer></script>
   <script src="/arena/trattoria-nonna-rosa/main.js" defer></script>
   <script type="application/ld+json">
   {
@@ -291,7 +292,7 @@
         <div class="card" data-depth="0.35">
           <span class="card-sh" aria-hidden="true"></span>
           <div class="card-paper">
-            <p class="card-head"><span>Trattoria</span><span class="status" data-status><span class="status-dot" aria-hidden="true"></span><span data-status-text>Di–Sa 12–14:30 &amp; 17:30–22:30&nbsp;Uhr · So 12–21&nbsp;Uhr</span></span></p>
+            <p class="card-head"><span>Trattoria</span><span class="status" data-status><span class="status-dot" aria-hidden="true"></span><span data-status-text>Di–So geöffnet · Mo Ruhetag</span></span></p>
             <h1 class="hero-title" id="hero-title">Pasta, die heute Morgen noch Mehl war.</h1>
             <p class="hand-note hand-note--h1" aria-hidden="true"><svg viewBox="0 0 60 40"><path d="M56 6C40 4 20 10 10 30M4 22l6 9 10-5"/></svg>Semola aus Apulien!</p>
             <p class="hero-lead">Marco Esposito rollt den Teig jeden Tag ab sieben Uhr von Hand aus – nach dem Rezeptheft seiner Großmutter Rosa. Mittags und abends landet er auf Ihrem Teller, mit einem Ragù, das seit gestern zieht.</p>
@@ -496,6 +497,8 @@
     <section class="section menu" id="karte" aria-labelledby="menu-title">
       <div class="wrap">
         <div class="menu-sheet" data-menu>
+          <svg class="stain stain--menu" viewBox="0 0 200 200" aria-hidden="true"><path d="M100 22c44 0 78 34 78 76 0 46-36 80-80 80-40 0-74-32-76-74"/><path d="M32 72c10-26 34-46 64-50"/><path d="M60 170c-8-4-14-9-19-15"/></svg>
+          <p class="menu-margin" aria-hidden="true">Rosas Tipp: Primo und Secondo teilen!</p>
           <header class="menu-head">
             <p class="menu-house" aria-hidden="true">Trattoria Nonna Rosa · Stuttgart</p>
             <h2 class="menu-title" id="menu-title" data-reveal>La Carta</h2>

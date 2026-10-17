@@ -90,7 +90,8 @@
   var mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   var reduced = function () { return motionOff || mqReduce.matches; };
   var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-  var hasGSAP = !!(window.gsap && window.ScrollTrigger);
+  var hasGSAP = false; // wird nach dem Nachladen der Bibliotheken gesetzt (main.js lädt sie selbst, in eigenen Tasks)
+  var VENDOR = ['/arena/trattoria-nonna-rosa/assets/vendor/gsap.min.js', '/arena/trattoria-nonna-rosa/assets/vendor/ScrollTrigger.min.js', '/arena/trattoria-nonna-rosa/assets/vendor/lenis.min.js'];
   var lenis = null;
 
   function safe(name, fn) {
@@ -352,14 +353,16 @@
       var sy = window.scrollY;
       items.forEach(function (it) { var r = it.el.getBoundingClientRect(); it.cx = r.left + r.width / 2; it.cy = r.top + sy + r.height / 2; });
     }
-    measure();
-    window.addEventListener('resize', measure);
+    // Positionen erst bei der ersten Mausbewegung messen – kein erzwungenes Layout beim Start
+    var measured = false;
+    window.addEventListener('resize', function () { measured = false; });
     var kick = function () { if (active && !raf) { last = 0; raf = requestAnimationFrame(frame); } };
     if (finePointer) {
       table.addEventListener('pointermove', function (e) {
         var r = table.getBoundingClientRect();
         px = clamp((e.clientX - r.left) / r.width * 2 - 1, -1, 1);
         py = clamp((e.clientY - r.top) / r.height * 2 - 1, -1, 1);
+        if (!measured) { measure(); measured = true; }
         mx = e.clientX; my = e.clientY + window.scrollY; hasPointer = true;
         kick();
       }, { passive: true });
@@ -423,6 +426,8 @@
      ------------------------------------------------------------------ */
   function initReveals() {
     var els = qsa('[data-reveal]');
+    // Überschriften: Tusche zieht von links – Clip auf einem inneren Span, damit der IntersectionObserver die Fläche sieht
+    if (doc.classList.contains('anim')) qsa('.h2[data-reveal]').forEach(function (h) { var sp = document.createElement('span'); sp.className = 'h2-in'; while (h.firstChild) sp.appendChild(h.firstChild); h.appendChild(sp); });
     if (!doc.classList.contains('anim') || !('IntersectionObserver' in window)) { els.forEach(function (el) { el.classList.add('is-in'); }); return; }
     var io = new IntersectionObserver(function (entries) {
       var batch = entries.filter(function (e) { return e.isIntersecting; }).sort(function (a, b) { return a.boundingClientRect.top - b.boundingClientRect.top || a.boundingClientRect.left - b.boundingClientRect.left; });
@@ -562,7 +567,7 @@
     var G = {};
     function geo() {
       var W = surf.offsetWidth, H = surf.offsetHeight, pw = pin.getBoundingClientRect().width || H * 1.06 * 96 / 520, ww = wheel.offsetWidth || W * 0.07;
-      G = { W: W, H: H, pw: pw, ww: ww, sl: W * 0.07, sr: W * 0.93, st: H * 0.12, sb: H * 0.88 };
+      G = { W: W, H: H, pw: pw, ww: ww, sl: sheet.offsetLeft, sr: sheet.offsetLeft + sheet.offsetWidth, st: sheet.offsetTop, sb: sheet.offsetTop + sheet.offsetHeight };
     }
     geo();
     var pinX = function (f) { return G.sl + (G.sr - G.sl) * f - G.pw / 2; };
@@ -643,6 +648,7 @@
         if (i >= FL) { leaf.style.zIndex = 1; return; }
         var local = clamp(f - i, 0, 1), e = easeInOut(local);
         leaf.style.transform = 'rotateY(' + (-180 * e).toFixed(2) + 'deg)';
+        leaf.style.setProperty('--shade', (Math.sin(Math.PI * e) * 0.9).toFixed(3));
         leaf.style.zIndex = local > 0 && local < 1 ? 60 : (local >= 1 ? 10 + i : 40 - i);
         polIn(i + 1, (local - 0.3) / 0.6);
       });
@@ -1265,13 +1271,30 @@
   /* ------------------------------------------------------------------
      16 · Start in Etappen
      ------------------------------------------------------------------ */
+  /** Bibliotheken nacheinander laden – jede wird in einem eigenen Task ausgewertet (keine langen Tasks beim Start) */
+  function loadVendors(done) {
+    var list = VENDOR.slice();
+    (function next() {
+      var src = list.shift();
+      if (!src) { hasGSAP = !!(window.gsap && window.ScrollTrigger); done(); return; }
+      var s = document.createElement('script');
+      s.src = src; s.async = false;
+      s.onload = s.onerror = function () { setTimeout(next, 0); };
+      document.head.appendChild(s);
+    })();
+  }
+
   function start() {
     window.__rosaReady = true;
     // Sofort: alles, was den ersten Bildschirm betrifft
-    safe('scroll', initScroll);
     safe('header', initHeader);
     safe('status', initStatus);
     safe('hero', initHero);
+    loadVendors(boot);
+  }
+
+  function boot() {
+    safe('scroll', initScroll);
     // Danach je Modul ein eigener Task, damit der Main-Thread zwischendurch frei wird
     var queue = [['reveals', initReveals], ['magnet', initMagnet], ['map', initMap], ['offer', initOffer], ['dough', initDough], ['board', initBoard], ['menu', initMenu], ['pairing', initPairing], ['album', initAlbum], ['reservation', initReservation]];
     var yieldTask = function (fn) {
