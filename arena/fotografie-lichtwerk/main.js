@@ -157,7 +157,10 @@
       focusEl.focus({ preventScroll: true });
     };
     if (lenis) {
-      lenis.scrollTo(target, { offset: -headerH() + 1, duration: 1.3, easing: easeIO, onComplete: done });
+      lenis.scrollTo(target, { offset: -headerH() + 1, duration: 1.3, easing: easeIO, onComplete: function () {
+        var off = target.getBoundingClientRect().top - headerH() + 1;
+        if (Math.abs(off) > 3) lenis.scrollTo(target, { offset: -headerH() + 1, duration: 0.45, easing: easeIO, onComplete: done }); else done();
+      } });
     } else {
       var y = target.getBoundingClientRect().top + window.pageYOffset - headerH() + 1;
       window.scrollTo({ top: y, behavior: MOTION ? 'smooth' : 'auto' });
@@ -1534,13 +1537,25 @@
   /* ------------------------------------------------------------------
      Start in Etappen
      ------------------------------------------------------------------ */
+  /* Nachgezeichnete Abschnitte (content-visibility) ändern ihre Höhe: Trigger neu messen */
+  function initLazySections() {
+    if (!hasGSAP || !('ResizeObserver' in window)) return;
+    var t = 0, seen = new Map();
+    var ro = new ResizeObserver(function (en) {
+      var changed = false;
+      en.forEach(function (e) { var h = Math.round(e.contentRect.height); if (seen.get(e.target) !== h) { if (seen.has(e.target)) changed = true; seen.set(e.target, h); } });
+      if (changed) { clearTimeout(t); t = setTimeout(function () { ScrollTrigger.refresh(); }, 220); }
+    });
+    $$('.packages, .avail, .about, .voices, .region, .faq, .contact, .site-footer').forEach(function (s) { ro.observe(s); });
+  }
+
   function boot() {
     try { initScroll(); } catch (e) { /* weiter ohne Smooth Scroll */ }
-    initHeader();
     initMenu();
     initRoll();
-    try { initHero(); } catch (e) { if (window.console) console.error(e); }
-    var queue = [initStatement, initGallery, initStory, initConfigurator, initAvailability, initQuotes, initRegion, initMarquee, initForm, initCursor, initMagnet, initReveal, function () {
+    // Erst zeichnen lassen; Header und Hero bekommen eigene Tasks, danach der Rest in Häppchen
+    var queue = [initHeader, function initHeroSafe() { try { initHero(); } catch (e) { if (window.console) console.error(e); } },
+      initStatement, initGallery, initStory, initConfigurator, initAvailability, initQuotes, initRegion, initMarquee, initForm, initCursor, initMagnet, initReveal, initLazySections, function () {
       window.__lichtwerkReady = true;
       if (hasGSAP) {
         ScrollTrigger.refresh();
@@ -1549,12 +1564,13 @@
       }
     }];
     var idle = window.requestIdleCallback ? function (f) { requestIdleCallback(f, { timeout: 120 }); } : function (f) { setTimeout(f, 16); };
-    (function next() {
+    var next = function () {
       var fn = queue.shift();
       if (!fn) return;
       try { fn(); } catch (e) { if (window.console) console.error(e); }
       if (queue.length) idle(next);
-    })();
+    };
+    requestAnimationFrame(function () { setTimeout(next, 0); });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();
