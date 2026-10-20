@@ -52,3 +52,4 @@ Dann http://127.0.0.1:8800/arena/fitness-forge/ öffnen. `?motion=off` schaltet 
 Statisch, ohne Build. GSAP 3 + ScrollTrigger und Lenis liegen unter `assets/vendor/`, Schriften (nur `latin`, SIL OFL) unter `assets/fonts/`. Keine externen Requests, keine Cookies; auch das Video kommt vom eigenen Server. Klebende Abschnitte mit CSS `position: sticky` (keine GSAP-Pins), Start in Etappen.
 
 Bildquellen: `assets/img/BILDNACHWEIS.md` (StockSnap, CC0). Video: `assets/video/VIDEONACHWEIS.md` (Coverr-Lizenz).
+
