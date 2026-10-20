@@ -12,4 +12,4 @@ Das Hero-Video ist ein Zusammenschnitt (ca. 20 s, Loop, ohne Ton, farblich bearb
 
 Lizenz: Coverr-Lizenz (https://coverr.co/license) – kostenlos für kommerzielle und nicht-kommerzielle Nutzung, keine Namensnennung nötig; nicht erlaubt ist u. a. die Nutzung für KI-Training. Coverr gibt Model Releases nicht heraus – für einen echten Kunden das Video durch eigene Aufnahmen aus dessen Studio ersetzen.
 
-Dateien: `hero-1280.webm` (VP9) und `hero-1280.mp4` (H.264) für Desktop, `hero-540x960.mp4` als Hochformat für Handys, dazu die Standbilder `hero-poster-*.webp`.
+Dateien: `hero-1280.webm` (VP9) und `hero-1280.mp4` (H.264) für Desktop, `hero-540x960.webm` (VP9, lokal aus der MP4-Fassung umgerechnet) und `hero-540x960.mp4` (H.264) als Hochformat für Handys, dazu die Standbilder `hero-poster-*.webp`.

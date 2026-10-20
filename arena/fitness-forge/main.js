@@ -1,8 +1,8 @@
 /* ==========================================================================
-   FORGE Athletic Club · Modell „Schmiede“ – Konzept „Wildplakat & Eisen“
+   FORGE Athletic Club · Modell „Schmiede“ – Konzept „Nachtschicht“
    Statisch, ohne Build. Optional: GSAP 3 + ScrollTrigger, Lenis.
-   Motion-Handschrift „schwer und mechanisch“: Federn mit leichtem
-   Nachfedern, harte Schnitte (steps), Klappen statt Überblendungen.
+   Bewegungs-Handschrift „ruhig und teuer“: lange, weiche Auslaufkurven,
+   Licht statt Effekt, gefederte Zeiger-Interaktionen.
    ========================================================================== */
 (function () {
   'use strict';
@@ -380,7 +380,7 @@
      DOM bleibt schlank – der Text steht zusätzlich als Klartext im DOM.
      ------------------------------------------------------------------ */
   var FLAP_CHARS = 'ABCDEFGHIJKLMNOPRSTUVWXYZ0123456789:-+';
-  var FLAP_FONT = '"Big Shoulders", "Arial Narrow", sans-serif', FLIP_MS = 76;
+  var FLAP_FONT = '"Sofia Sans Condensed", "Arial Narrow", sans-serif', FLIP_MS = 80;
   var flapSet = [], flapRaf = 0;
   function flapLoop(t) {
     flapRaf = 0;
@@ -407,7 +407,7 @@
     this.resize();
     if ('ResizeObserver' in window) new ResizeObserver(function () { self.resize(); }).observe(node);
     flapSet.push(this);
-    if (document.fonts && document.fonts.load) document.fonts.load('700 20px "Big Shoulders"').then(function () { self.dirty = true; flapKick(); }, function () {});
+    if (document.fonts && document.fonts.load) document.fonts.load('700 20px "Sofia Sans Condensed"').then(function () { self.dirty = true; flapKick(); }, function () {});
   }
   Flap.prototype.resize = function () {
     var W = this.node.clientWidth || 300, cw = (W - (this.n - 1) * this.gap) / this.n, H;
@@ -456,7 +456,7 @@
   };
   Flap.prototype.draw = function (t) {
     var x = this.ctx, H = this.H, cw = this.cw, mid = Math.round(H / 2), fs = Math.min(H * 0.74, cw * 1.5);
-    var ink = this.hot ? '#FF3B2F' : '#F2F2EE';
+    var ink = this.hot ? '#E4CB9C' : '#E9EAF0';
     x.clearRect(0, 0, this.W, H);
     x.font = '700 ' + fs.toFixed(1) + 'px ' + FLAP_FONT;
     x.textAlign = 'center'; x.textBaseline = 'middle';
@@ -464,14 +464,14 @@
       x.save();
       x.beginPath(); x.rect(cx, top ? 0 : mid, cw, top ? mid : H - mid); x.clip();
       if (sc !== 1) { x.translate(0, mid); x.scale(1, Math.max(0.001, sc)); x.translate(0, -mid); }
-      if (bg) { x.fillStyle = top ? '#232428' : '#1A1B1E'; x.fillRect(cx, top ? 0 : mid, cw, top ? mid : H - mid); }
+      if (bg) { x.fillStyle = top ? '#171A26' : '#12141D'; x.fillRect(cx, top ? 0 : mid, cw, top ? mid : H - mid); }
       if (ch !== ' ') { x.fillStyle = ink; x.fillText(ch, cx + cw / 2, mid + fs * 0.03); }
       x.restore();
     };
     for (var i = 0; i < this.n; i++) {
       var c = this.cells[i], cx = i * (cw + this.gap);
-      x.fillStyle = '#1F2023'; x.fillRect(cx, 0, cw, mid);
-      x.fillStyle = '#16171A'; x.fillRect(cx, mid, cw, H - mid);
+      x.fillStyle = this.hot ? '#1E1A14' : '#151824'; x.fillRect(cx, 0, cw, mid);
+      x.fillStyle = this.hot ? '#181510' : '#10121B'; x.fillRect(cx, mid, cw, H - mid);
       if (c.flipT >= 0) {
         var p = clamp((t - c.flipT) / FLIP_MS, 0, 1);
         glyph(c.ch, cx, true, 1, false);                       // neue Oberhälfte liegt dahinter
@@ -481,7 +481,7 @@
       } else if (c.ch !== ' ') {
         x.fillStyle = ink; x.fillText(c.ch, cx + cw / 2, mid + fs * 0.03);
       }
-      x.fillStyle = '#050505'; x.fillRect(cx, mid - 0.5, cw, 1);  // Falz
+      x.fillStyle = '#05060A'; x.fillRect(cx, mid - 0.5, cw, 1);  // Falz
     }
   };
 
@@ -648,7 +648,7 @@
       // sichtbare Kurse klappen herunter wie Tafelklappen (nur Transform, gestaffelt)
       if (!reduced() && shown.length && shown.length < 60) {
         shown.slice(0, 28).forEach(function (li, i) {
-          if (li.animate) li.animate([{ opacity: 0.2, transform: 'rotateX(-78deg)' }, { opacity: 1, transform: 'none' }], { duration: 300, delay: i * 16, easing: 'cubic-bezier(0.23, 1, 0.32, 1)', fill: 'backwards' });
+          if (li.animate) li.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 360, delay: i * 14, easing: 'cubic-bezier(0.23, 1, 0.32, 1)', fill: 'backwards' });
         });
       }
       if (board) board.update();
@@ -713,7 +713,7 @@
 
     // --- Live-Markierung
     var clockEl = qs('[data-plan-clock] span');
-    var heroFlapNode = qs('[data-live-flap]'), heroFlap = heroFlapNode ? new Flap(heroFlapNode, 22) : null, heroText = '', heroFirst = true;
+    var heroText = '';
     function live() {
       var n = berlinNow();
       if (clockEl) clockEl.textContent = 'Berlin · ' + TAGE_KURZ[n.planDay] + ' ' + hhmm(n.mins) + ' Uhr';
@@ -775,7 +775,6 @@
           }
           barEl.style.setProperty('--p', 0);
         }
-        if (heroFlap) { heroFlap.set(heroText, { delay: heroFirst ? 720 : 0, stagger: heroFirst ? 30 : 18 }); heroFirst = false; }
       }
       if (board) board.update();
     }
@@ -888,95 +887,11 @@
   };
 
   /* ------------------------------------------------------------------
-     Hantel: jede gewählte Option ist eine Scheibe auf der Stange.
-     Rein visuell (aria-hidden) – Preis und Positionen stehen im Bon.
-     Scheiben gleiten per Feder auf, die Stange federt beim Aufsetzen.
-     Werte: [Höhe, Dicke, Farbe, Aufdruck] in SVG-Einheiten (viewBox 760 × 250).
+     Mitgliedschafts-Konfigurator: Mitgliedskarte + Zählwerk + Aufstellung
      ------------------------------------------------------------------ */
-  var PLATE = {
-    z: { gym: [200, 30, 'iron', '49'], kurse: [200, 30, 'glut', '69'], all: [200, 34, 'ink', '89'] },
-    l: { m6: [120, 14, 'iron', '+7'], flex: [140, 18, 'iron', '+15'] },
-    pt: [176, 22, 'ink', 'PT'],
-    sauna: [112, 14, 'chalk', '+12'], drinks: [98, 12, 'chalk', '+9'], towel: [86, 10, 'chalk', '+6'],
-    offpeak: [150, 12, 'ghost', '−10'], rabatt: [168, 12, 'ghost', '−15%']
-  };
-  var RACK_IN = [226, 534], RACK_OUT = 262, RACK_Y = 125;
-  function Rack(root) {
-    this.g = qs('[data-rack-plates]', root); this.bar = qs('[data-rack-bar]', root);
-    this.g.textContent = '';
-    this.items = {}; this.n = 1; this.load = 1; this.y = 0; this.vy = 0; this.raf = 0; this.last = 0;
-    this.instant = reduced();
-    this.step = this.step.bind(this);
-  }
-  /* Scheibe in leichter Schrägsicht: Körper (Dicke) + Stirnseite als Ellipse
-     mit Nabe und gestauchtem Aufdruck – die Außenseite zeigt jeweils nach außen. */
-  Rack.prototype.make = function (spec) {
-    var NS = 'http://www.w3.org/2000/svg', self = this, it = { h: spec[0], t: spec[1], cls: spec[2], els: [], d: RACK_OUT, v: 0, td: 0, i: 0, out: false };
-    var mk = function (tag, attrs, parent) { var n = document.createElementNS(NS, tag); Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); }); parent.appendChild(n); return n; };
-    [-1, 1].forEach(function (side) {
-      var g = document.createElementNS(NS, 'g'), h = spec[0], t = spec[1], fx = side < 0 ? 0 : t, rx = Math.max(7, h * 0.12);
-      mk('rect', { 'class': 'plate plate--' + spec[2], x: 0, y: -h / 2, width: t, height: h, rx: 3 }, g);
-      mk('ellipse', { 'class': 'pf pf--' + spec[2], cx: fx, cy: 0, rx: rx, ry: h / 2 }, g);
-      mk('ellipse', { 'class': 'pf-ring', cx: fx, cy: 0, rx: rx * 0.72, ry: h / 2 * 0.8 }, g);
-      mk('ellipse', { 'class': 'pf-hub', cx: fx, cy: 0, rx: rx * 0.3, ry: h * 0.12 }, g);
-      if (spec[3]) {
-        var tx = mk('text', { 'class': 'plate-label' + (spec[2] === 'chalk' || spec[2] === 'ghost' ? ' plate-label--ink' : ''), 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': (h * 0.26).toFixed(1), transform: 'translate(' + fx + ' ' + (-h * 0.3).toFixed(1) + ') scale(0.28 1)' }, g);
-        tx.textContent = spec[3];
-      }
-      g.setAttribute('transform', 'translate(' + (side < 0 ? -80 : 840) + ' ' + RACK_Y + ')');
-      self.g.appendChild(g); it.els.push(g);
-    });
-    return it;
-  };
-  /* list: [[schlüssel, spec], …] von innen nach außen */
-  Rack.prototype.set = function (list) {
-    var self = this, keep = {}, off = 0;
-    list.forEach(function (row, i) {
-      var key = row[0], spec = row[1], it = self.items[key];
-      if (it && !it.out && (it.h !== spec[0] || it.t !== spec[1] || it.cls !== spec[2])) {
-        it.out = true; self.items[key + '~' + (++self.gone || (self.gone = 1))] = it; it = null;
-      }
-      if (!it || it.out) { it = self.make(spec); if (self.instant) it.d = off; self.items[key] = it; }
-      it.td = off; it.i = i; keep[key] = true;
-      off += spec[1] + 2;
-    });
-    Object.keys(this.items).forEach(function (k) { if (!keep[k]) self.items[k].out = true; });
-    // Zeichenreihenfolge = Stapelreihenfolge: äußere Scheiben verdecken die Stirnseite der inneren
-    list.forEach(function (row) { var it = self.items[row[0]]; it.els.forEach(function (g) { self.g.appendChild(g); }); });
-    this.n = list.length;
-    this.kick();
-  };
-  Rack.prototype.kick = function () { if (!this.raf) { this.last = 0; this.raf = requestAnimationFrame(this.step); } };
-  Rack.prototype.step = function (t) {
-    this.raf = 0;
-    var dt = this.last ? Math.min(0.033, (t - this.last) / 1000) : 0.016, self = this, busy = false;
-    this.last = t;
-    Object.keys(this.items).forEach(function (k) {
-      var it = self.items[k];
-      var target = it.out ? RACK_OUT + 20 : it.td + (1 - clamp(self.load * (self.n + 0.6) - it.i, 0, 1)) * (RACK_OUT - it.td);
-      var before = it.d - target;
-      if (self.instant) { it.d = target; it.v = 0; }
-      else {
-        // Feder (k 320, d 23): kurzer Anlauf, sattes Aufsetzen mit leichtem Nachfedern
-        it.v += (320 * (target - it.d) - 23 * it.v) * dt;
-        it.d += it.v * dt;
-        if (!it.out && before > 0 && it.d - target <= 0 && it.v < -70) self.vy += Math.min(80, -it.v * 0.16);
-      }
-      if (Math.abs(target - it.d) < 0.2 && Math.abs(it.v) < 0.6) { it.d = target; it.v = 0; } else busy = true;
-      if (it.out && it.d >= RACK_OUT + 10) { it.els.forEach(function (g) { g.parentNode.removeChild(g); }); delete self.items[k]; return; }
-      it.els[0].setAttribute('transform', 'translate(' + (RACK_IN[0] - it.d - it.t).toFixed(1) + ' ' + RACK_Y + ')');
-      it.els[1].setAttribute('transform', 'translate(' + (RACK_IN[1] + it.d).toFixed(1) + ' ' + RACK_Y + ')');
-    });
-    if (!this.instant) {
-      this.vy += (380 * (0 - this.y) - 15 * this.vy) * dt;
-      this.y += this.vy * dt;
-    }
-    if (Math.abs(this.y) > 0.05 || Math.abs(this.vy) > 0.5) busy = true; else { this.y = 0; this.vy = 0; }
-    this.bar.setAttribute('transform', 'translate(0 ' + this.y.toFixed(2) + ')');
-    if (busy && !document.hidden) this.raf = requestAnimationFrame(this.step);
-    else if (busy) { this.instant = true; this.raf = requestAnimationFrame(this.step); }
-    else this.instant = reduced();
-  };
+
+  /* Kurzlabels der Extras auf der Karte */
+  var KARTE_EXTRAS = { sauna: 'Sauna', drinks: 'Getränke', towel: 'Handtuch & Spind', offpeak: 'Off-Peak', rabatt: 'Ermäßigt' };
 
   var cfgSummary = '';
   function initCfg() {
@@ -985,48 +900,55 @@
     var odo = new Odo(qs('[data-odo]', form));
     var lines = qs('[data-cfg-lines]', form), nameEl = qs('[data-cfg-name]', form);
     var startEl = qs('[data-cfg-start]', form), yearEl = qs('[data-cfg-year]', form);
-    var liveEl = qs('[data-cfg-live]', form), mini = qs('[data-cfg-mini]', form), miniName = qs('[data-cfg-mini-name]', form);
-    var lastTotal = null;
-    var monthEl = qs('[data-cfg-month]', form), rackEl = qs('[data-rack]', form), rack = rackEl ? new Rack(rackEl) : null;
+    var liveEl = qs('[data-cfg-live]', form), mini = qs('[data-cfg-mini]', form), miniName = qs('[data-cfg-mini-name]', form), miniBox = qs('.cfg__mini', form);
+    var monthEl = qs('[data-cfg-month]', form);
+    var card = qs('[data-mcard]', form), cardIn = qs('[data-mcard-in]', form), sheen = qs('[data-mcard-sheen]', form);
+    var tierEl = qs('[data-mcard-tier]', form), termEl = qs('[data-mcard-term]', form), extrasEl = qs('[data-mcard-extras]', form);
     var pt = qs('#pt-range', form), ptOut = qs('[data-pt-out]', form);
     var saunaLbl = qs('[data-extra="sauna"]', form), saunaIn = qs('input[name="sauna"]', form), saunaNote = qs('[data-sauna-note]', form);
     var saunaNoteText = saunaNote.textContent, saunaPrice = qs('.tgl__price', saunaLbl), saunaPriceText = saunaPrice.textContent;
-    var saunaWas = false, prevKeys = {}, liveTimer = null, first = true;
+    var saunaWas = false, prevKeys = {}, liveTimer = null, first = true, lastTotal = null;
 
     function fillRange(r) { var p = (r.value - r.min) / (r.max - r.min) * 100; r.style.setProperty('--fill', p + '%'); }
+    function shine() {
+      if (reduced() || !sheen || !sheen.animate) return;
+      sheen.animate([{ opacity: 0, transform: 'translateX(-70%)' }, { opacity: 1, offset: 0.25 }, { opacity: 0, transform: 'translateX(70%)' }], { duration: 900, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+    }
 
     function calc() {
       var fd = new FormData(form);
-      var z = PREISE.zugang[fd.get('zugang') || 'kurse'], l = PREISE.laufzeit[fd.get('laufzeit') || 'm12'];
+      var zKey = fd.get('zugang') || 'kurse', lKey = fd.get('laufzeit') || 'm12';
+      var z = PREISE.zugang[zKey], l = PREISE.laufzeit[lKey];
       var allIn = !!z.saunaInklusive;
       // Sauna in All Access enthalten
       if (allIn && !saunaIn.disabled) { saunaWas = saunaIn.checked; saunaIn.checked = true; saunaIn.disabled = true; saunaLbl.classList.add('is-included'); saunaNote.textContent = 'Im Tarif All Access bereits enthalten'; saunaPrice.textContent = 'inklusive'; }
       else if (!allIn && saunaIn.disabled) { saunaIn.disabled = false; saunaIn.checked = saunaWas; saunaLbl.classList.remove('is-included'); saunaNote.textContent = saunaNoteText; saunaPrice.textContent = saunaPriceText; }
 
-      var rows = [];
+      var rows = [], chips = [];
       var base = z.preis + l.aufschlag;
       rows.push(['z', z.name, euro(z.preis)]);
-      rows.push(['l', 'Laufzeit ' + l.name, l.aufschlag ? '+' + euro(l.aufschlag) : '0 €']);
+      rows.push(['l', 'Laufzeit ' + l.name, l.aufschlag ? '+' + euro(l.aufschlag) : '0 €']);
       var total = base;
-      if (fd.get('rabatt')) { var r = Math.round(base * PREISE.rabatt * 100) / 100; total -= r; rows.push(['r', 'Ermäßigung ' + Math.round(PREISE.rabatt * 100) + ' %', '−' + euro(r)]); }
+      if (fd.get('rabatt')) { var r = Math.round(base * PREISE.rabatt * 100) / 100; total -= r; rows.push(['r', 'Ermäßigung ' + Math.round(PREISE.rabatt * 100) + ' %', '−' + euro(r)]); }
       ['sauna', 'drinks', 'towel', 'offpeak'].forEach(function (key) {
         var x = PREISE.extras[key];
-        if (key === 'sauna' && allIn) { rows.push(['sauna', x.name, 'inklusive']); return; }
-        if (fd.get(key)) { total += x.preis; rows.push([key, x.name, (x.preis < 0 ? '−' : '+') + euro(Math.abs(x.preis))]); }
+        if (key === 'sauna' && allIn) { rows.push(['sauna', x.name, 'inklusive']); chips.push(KARTE_EXTRAS.sauna); return; }
+        if (fd.get(key)) { total += x.preis; rows.push([key, x.name, (x.preis < 0 ? '−' : '+') + euro(Math.abs(x.preis))]); chips.push(KARTE_EXTRAS[key]); }
       });
+      if (fd.get('rabatt')) chips.push(KARTE_EXTRAS.rabatt);
       var n = +pt.value;
-      if (n) { total += n * PREISE.ptEinheit; rows.push(['pt', 'Personal Training ' + n + ' × ' + PREISE.ptEinheit + ' €', '+' + euro(n * PREISE.ptEinheit)]); }
+      if (n) { total += n * PREISE.ptEinheit; rows.push(['pt', 'Personal Training ' + n + ' × ' + PREISE.ptEinheit + ' €', '+' + euro(n * PREISE.ptEinheit)]); chips.push(n + ' × PT'); }
       total = Math.round(total * 100) / 100;
-      if (rack) {
-        var pl = [['z', PLATE.z[fd.get('zugang') || 'kurse']]];
-        for (var q = 1; q <= n; q++) pl.push(['pt' + q, PLATE.pt]);
-        if (PLATE.l[fd.get('laufzeit') || 'm12']) pl.push(['l', PLATE.l[fd.get('laufzeit')]]);
-        ['sauna', 'drinks', 'towel', 'offpeak'].forEach(function (key) { if (key === 'sauna' && allIn) return; if (fd.get(key)) pl.push([key, PLATE[key]]); });
-        if (fd.get('rabatt')) pl.push(['rabatt', PLATE.rabatt]);
-        rack.set(pl);
-      }
       var start = l.startpaket ? PREISE.startpaket : 0;
 
+      // Karte
+      if (card) {
+        card.setAttribute('data-tier', zKey);
+        tierEl.textContent = z.name;
+        termEl.textContent = l.name + (l.startpaket ? ' · Startpaket ' + euro(PREISE.startpaket) : '');
+        extrasEl.textContent = '';
+        chips.forEach(function (c) { extrasEl.appendChild(el('li', null, c)); });
+      }
       // Ausgabe
       ptOut.textContent = n === 1 ? '1 Einheit' : n + ' Einheiten';
       fillRange(pt);
@@ -1035,12 +957,12 @@
       if (mini) {
         mini.textContent = euro(total);
         if (miniName) miniName.textContent = z.name + ' · ' + l.name;
-        // Rückmeldung am angedockten Preis, wenn er sichtbar ist und sich ändert
-        if (lastTotal !== null && total !== lastTotal && !reduced() && mini.animate && mini.parentNode.classList.contains('is-on')) {
+        if (lastTotal !== null && total !== lastTotal && !reduced() && mini.animate && miniBox && miniBox.classList.contains('is-on')) {
           mini.animate([{ transform: 'scale(1.12)' }, { transform: 'none' }], { duration: 260, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
         }
-        lastTotal = total;
       }
+      if (!first && total !== lastTotal) shine();
+      lastTotal = total;
       startEl.textContent = start ? euro(start) : 'entfällt';
       if (monthEl) monthEl.textContent = euro(total);
       yearEl.textContent = euro(Math.round((total * 12 + start) * 100) / 100);
@@ -1054,15 +976,10 @@
       });
       prevKeys = keys;
       clearTimeout(liveTimer);
-      liveTimer = setTimeout(function () { liveEl.textContent = 'Monatspreis: ' + euro(total).replace(' €', ' Euro') + '.'; }, first ? 0 : 450);
+      liveTimer = setTimeout(function () { liveEl.textContent = 'Monatspreis: ' + euro(total).replace(/\s€/, ' Euro') + '.'; }, first ? 0 : 450);
       var extrasTxt = rows.filter(function (r) { return ['sauna', 'drinks', 'towel', 'offpeak', 'r', 'pt'].indexOf(r[0]) > -1; }).map(function (r) { return r[1]; });
       cfgSummary = 'Tarifwunsch: ' + z.name + ', ' + l.name + (extrasTxt.length ? ' – ' + extrasTxt.join(', ') : '') + '. Beispielpreis laut Rechner: ' + euro(total, true) + ' pro Monat.';
       first = false;
-    }
-    if (rack && hasGSAP && !reduced()) {
-      // Scheiben werden beim Hereinscrollen nacheinander aufgelegt
-      rack.load = 0;
-      ScrollTrigger.create({ trigger: rackEl, start: 'top 95%', end: 'top 40%', scrub: true, onUpdate: function (s) { rack.load = s.progress; rack.kick(); } });
     }
     form.addEventListener('input', calc);
     form.addEventListener('change', calc);
@@ -1071,15 +988,301 @@
       prefillForm({ nachricht: cfgSummary });
     });
 
-    // Mini-Preis (Handy): sichtbar, solange die Optionen, aber nicht der Bon im Bild sind
-    var miniBox = qs('.cfg__mini', form);
+    // Karte neigt sich zum Zeiger (gefedert, nur feiner Zeiger)
+    if (cardIn && finePointer.matches && !reduced()) {
+      var rx = 0, ry = 0, tx = 0, ty = 0, raf = 0;
+      var loop = function () {
+        rx = lerp(rx, tx, 0.12); ry = lerp(ry, ty, 0.12);
+        cardIn.style.transform = 'rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg)';
+        raf = (Math.abs(rx - tx) > 0.02 || Math.abs(ry - ty) > 0.02) ? requestAnimationFrame(loop) : 0;
+      };
+      card.addEventListener('pointermove', function (e) {
+        var r = card.getBoundingClientRect();
+        ty = ((e.clientX - r.left) / r.width - 0.5) * 10;
+        tx = -((e.clientY - r.top) / r.height - 0.5) * 8;
+        if (!raf) raf = requestAnimationFrame(loop);
+      });
+      card.addEventListener('pointerleave', function () { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(loop); });
+      card.setAttribute('aria-hidden', 'true');
+    }
+
+    // Mini-Preis (Handy): sichtbar, solange die Optionen, aber nicht Karte/Aufstellung im Bild sind
     if (miniBox && 'IntersectionObserver' in window) {
-      var ctrlIn = false, bonIn = false;
-      var upd = function () { miniBox.classList.toggle('is-on', ctrlIn && !bonIn); };
+      var ctrlIn = false, sideIn = false;
+      var upd = function () { miniBox.classList.toggle('is-on', ctrlIn && !sideIn); };
       new IntersectionObserver(function (e) { ctrlIn = e[0].isIntersecting; upd(); }, { rootMargin: '-30% 0px -30% 0px' }).observe(qs('.cfg__controls', form));
-      new IntersectionObserver(function (e) { bonIn = e[0].isIntersecting; upd(); }).observe(qs('.bon', form));
+      new IntersectionObserver(function (e) { sideIn = e[0].isIntersecting; upd(); }).observe(qs('.cfg__side', form));
     }
   }
+
+  /* ------------------------------------------------------------------
+     Hero-Video: Hochformat fürs Handy, Pause/Play (WCAG 2.2.2),
+     pausiert außerhalb des Bildschirms und in Hintergrund-Tabs.
+     Kein Autoplay bei reduzierter Bewegung, ?motion=off, Datensparmodus.
+     ------------------------------------------------------------------ */
+  var VIDEO = {
+    mobil: '(max-width: 700px)',
+    hochformat: '/arena/fitness-forge/assets/video/hero-540x960.mp4',
+    posterHoch: '/arena/fitness-forge/assets/video/hero-poster-540x960.webp',
+    posterQuer: '/arena/fitness-forge/assets/video/hero-poster-1280.webp'
+  };
+  function initVideo() {
+    var v = qs('[data-hero-video]'), btn = qs('[data-vbtn]'), hero = qs('.hero');
+    if (!v || !btn) return;
+    var info = window.__forgeVideo || {};
+    var userPaused = !!info.still, inView = true, mq = window.matchMedia(VIDEO.mobil);
+    // JS-Fallback für Browser ohne <source media>: richtige Fassung erzwingen
+    var sources = qsa('source', v).map(function (s) { return { media: s.getAttribute('media'), src: s.getAttribute('src'), type: s.getAttribute('type') }; });
+    var wantPortrait = function () { return mq.matches; };
+    function ensureSource() {
+      var cur = v.currentSrc || '', isP = cur.indexOf('540x960') > -1;
+      if (!cur || isP === wantPortrait()) return;
+      var pick = sources.filter(function (s) { return wantPortrait() ? !!s.media : !s.media; });
+      qsa('source', v).forEach(function (s) { s.remove(); });
+      pick.forEach(function (s) { var n = document.createElement('source'); n.src = s.src; if (s.type) n.type = s.type; v.appendChild(n); });
+      v.setAttribute('poster', wantPortrait() ? VIDEO.posterHoch : VIDEO.posterQuer);
+      v.load();
+      if (!userPaused && inView) tryPlay();
+    }
+    v.addEventListener('loadstart', ensureSource);
+    if (v.currentSrc) ensureSource();
+
+    function setUi() {
+      var paused = v.paused;
+      btn.classList.toggle('is-paused', paused);
+      btn.setAttribute('aria-label', paused ? 'Hintergrundvideo abspielen' : 'Hintergrundvideo pausieren');
+    }
+    function tryPlay() {
+      if (v.preload === 'none') v.preload = 'auto';
+      var p = v.play();
+      if (p && p.catch) p.catch(function () { setUi(); });
+    }
+    v.addEventListener('play', setUi);
+    v.addEventListener('pause', setUi);
+    v.addEventListener('timeupdate', function () {
+      if (v.duration) btn.style.setProperty('--vp', (v.currentTime / v.duration).toFixed(3));
+    });
+    btn.addEventListener('click', function () {
+      if (v.paused) { userPaused = false; tryPlay(); }
+      else { userPaused = true; v.pause(); }
+    });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (es) {
+        inView = es[0].isIntersecting;
+        if (!inView && !v.paused) v.pause();
+        else if (inView && !userPaused && v.paused && !document.hidden) tryPlay();
+      }, { threshold: 0.05 }).observe(hero);
+    }
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { if (!v.paused) v.pause(); }
+      else if (inView && !userPaused) tryPlay();
+    });
+    if (userPaused && !v.paused) v.pause();
+    setUi();
+    window.__forgeVideoApi = { video: v, button: btn };
+  }
+
+  /* ------------------------------------------------------------------
+     Hero: Lichtkegel folgt dem Zeiger (gefedert) und Scroll-Übergang
+     (Video skaliert leicht und dunkelt ab, Text weicht nach oben).
+     ------------------------------------------------------------------ */
+  function initHeroFx() {
+    var hero = qs('.hero'), glow = qs('[data-hero-glow]'), media = qs('[data-hero-media]'), dim = qs('[data-hero-dim]'), content = qs('[data-hero-content]');
+    if (!hero || reduced()) return;
+    if (glow && finePointer.matches) {
+      var x = window.innerWidth * 0.55, y = window.innerHeight * 0.38, tx = x, ty = y, raf = 0, visible = true;
+      var loop = function () {
+        x = lerp(x, tx, 0.07); y = lerp(y, ty, 0.07);
+        glow.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0)';
+        raf = (visible && (Math.abs(x - tx) > 0.4 || Math.abs(y - ty) > 0.4)) ? requestAnimationFrame(loop) : 0;
+      };
+      hero.addEventListener('pointermove', function (e) {
+        var r = hero.getBoundingClientRect();
+        tx = e.clientX - r.left; ty = e.clientY - r.top;
+        if (!raf) raf = requestAnimationFrame(loop);
+      }, { passive: true });
+      hero.addEventListener('pointerleave', function () { tx = window.innerWidth * 0.55; ty = window.innerHeight * 0.38; if (!raf) raf = requestAnimationFrame(loop); });
+      watchVisible(hero, function (v) { visible = v; });
+      glow.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)';
+      doc.classList.add('has-glow');
+    }
+    if (hasGSAP && media && dim && content) {
+      var tl = gsap.timeline({ scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.4 } });
+      tl.fromTo(media, { scale: 1, yPercent: 0 }, { scale: 1.12, yPercent: 8, ease: 'none' }, 0)
+        .fromTo(dim, { opacity: 0 }, { opacity: 0.78, ease: 'none' }, 0)
+        .fromTo(content, { yPercent: 0, opacity: 1 }, { yPercent: -14, opacity: 0, ease: 'none' }, 0);
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     Kennzahlen als Zählwerk: jede Ziffer rollt einzeln auf ihren Wert
+     ------------------------------------------------------------------ */
+  function initNums() {
+    qsa('[data-num]').forEach(function (n) {
+      var target = +n.getAttribute('data-num'), de = n.getAttribute('data-format') === 'de';
+      var txt = de ? target.toLocaleString('de-DE') : String(target);
+      if (reduced()) { n.textContent = txt; return; }
+      n.textContent = '';
+      n.setAttribute('aria-label', txt);
+      var cols = [], di = 0;
+      txt.split('').forEach(function (ch) {
+        if (!/\d/.test(ch)) { var sp = el('span', 'num__sep', ch); sp.setAttribute('aria-hidden', 'true'); n.appendChild(sp); return; }
+        var d = el('span', 'num__d'), s = el('span', 'num__s');
+        d.setAttribute('aria-hidden', 'true');
+        for (var i = 0; i < 10; i++) s.appendChild(el('span', null, String(i)));
+        s.style.setProperty('--i', di++);
+        d.appendChild(s); n.appendChild(d);
+        cols.push([s, +ch]);
+      });
+      n.setAttribute('role', 'img');
+      watchVisible(n, function (v) {
+        if (!v || n.__done) return;
+        n.__done = true;
+        requestAnimationFrame(function () { cols.forEach(function (c) { c[0].style.transform = 'translateY(' + (-c[1] * 10) + '%)'; }); });
+      }, '0px 0px -10% 0px');
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     Disziplinen: Das Bild der Disziplin, die gerade die Bildschirmmitte
+     kreuzt, blendet weich über (≥ 900 px, Bühne klebt per sticky).
+     ------------------------------------------------------------------ */
+  function initDisc() {
+    var items = qsa('.disc__item'), imgs = qsa('[data-disc-img]'), noEl = qs('[data-disc-no]');
+    if (!items.length || !imgs.length) return;
+    var cur = 0;
+    items[0].classList.add('is-active');
+    function show(i) {
+      if (i < 0 || i === cur) return;
+      imgs[cur].classList.remove('is-on');
+      imgs[i].classList.add('is-on');
+      cur = i;
+      items.forEach(function (it, k) { it.classList.toggle('is-active', k === i); });
+      if (noEl) {
+        noEl.textContent = pad2(i + 1);
+        if (!reduced() && noEl.animate) noEl.animate([{ opacity: 0, transform: 'translateY(30%)' }, { opacity: 1, transform: 'none' }], { duration: 500, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+      }
+    }
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) { if (e.isIntersecting) show(items.indexOf(e.target)); });
+      }, { rootMargin: '-47% 0px -47% 0px' });
+      items.forEach(function (it) { io.observe(it); });
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     Reveals: Überschriften steigen wortweise aus einer Maske, Texte und
+     Karten blenden gestaffelt auf, Bilder öffnen sich aus einem Rahmen.
+     ------------------------------------------------------------------ */
+  function splitWords(h) {
+    var i = 0;
+    var walk = function (node) {
+      Array.prototype.slice.call(node.childNodes).forEach(function (c) {
+        if (c.nodeType === 3) {
+          var parts = c.textContent.split(/([ \t\n\r]+)/), frag = document.createDocumentFragment();
+          parts.forEach(function (p) {
+            if (!p) return;
+            if (/^[ \t\n\r]+$/.test(p)) { frag.appendChild(document.createTextNode(p)); return; }
+            var w = el('span', 'w'), inner = el('span', null, p);
+            inner.style.setProperty('--i', i++);
+            w.appendChild(inner); frag.appendChild(w);
+          });
+          node.replaceChild(frag, c);
+        } else if (c.nodeType === 1 && !c.classList.contains('w')) walk(c);
+      });
+    };
+    walk(h);
+  }
+  function initReveal() {
+    if (!doc.classList.contains('mv') || !('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('is-in');
+        io.unobserve(e.target);
+      });
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0 });
+    qsa('[data-split]').forEach(function (h) { splitWords(h); io.observe(h); });
+    qsa('.kicker').forEach(function (k) { io.observe(k); });
+    // gestaffelte Gruppen: Kinder erhalten eine kleine Verzögerung
+    var groups = ['.shead .lead', '.fact', '.disc__item > :not(.disc__pic)', '.opt', '.quote', '.ways li', '.hours', '.contact__form', '.faq details', '.bon', '.planout', '.halle__lead', '.founder', '.watch', '.board', '.jobs'];
+    qsa(groups.join(',')).forEach(function (n) {
+      var sib = n.parentElement ? qsa(':scope > *', n.parentElement).indexOf(n) : 0;
+      n.classList.add('rv');
+      n.style.setProperty('--rd', Math.min(sib, 6) * 60 + 'ms');
+      io.observe(n);
+    });
+    qsa('.disc__pic, .anno__img, .halle__side, .laps__photo, .frame__img').forEach(function (n) { n.classList.add('rv-img'); io.observe(n); });
+    qsa('.anno, .map, .dist').forEach(function (n) { io.observe(n); });
+  }
+
+  /* Lichtpunkt auf Karten folgt dem Zeiger (nur feiner Zeiger) */
+  function initCardLight() {
+    if (!finePointer.matches || reduced()) return;
+    document.addEventListener('pointermove', function (e) {
+      var t = e.target.closest && e.target.closest('.opt__box, .coach__front');
+      if (!t) return;
+      var r = t.getBoundingClientRect();
+      t.style.setProperty('--gx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+      t.style.setProperty('--gy', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+    }, { passive: true });
+  }
+
+  /* ------------------------------------------------------------------
+     Ein Tag in der Halle: horizontale Strecke per Scrub (≥ 900 px)
+     ------------------------------------------------------------------ */
+  function initDayStrip() {
+    if (!hasGSAP || reduced()) return;
+    var box = qs('[data-day-strip]'), track = qs('[data-day-track]');
+    if (!box || !track) return;
+    var mm = gsap.matchMedia();
+    mm.add('(min-width: 900px)', function () {
+      doc.classList.add('has-strip');
+      var imgs = qsa('.frame__img img', track);
+      var tw = gsap.to(track, {
+        x: function () { return -Math.max(0, track.scrollWidth - window.innerWidth); }, ease: 'none',
+        scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: 0.7, invalidateOnRefresh: true }
+      });
+      // leichte Parallaxe im Bild: Fotos wandern langsamer als ihr Rahmen
+      var par = gsap.fromTo(imgs, { xPercent: -6, scale: 1.12 }, { xPercent: 6, scale: 1.12, ease: 'none', scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: 0.7 } });
+      return function () {
+        tw.kill(); par.kill();
+        doc.classList.remove('has-strip');
+        gsap.set(track, { clearProps: 'transform' });
+        gsap.set(imgs, { clearProps: 'transform' });
+      };
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     Probetraining: Laufzeit-Uhr läuft mit dem Scrollen, die Linie
+     zwischen den Schritten füllt sich in Gold.
+     ------------------------------------------------------------------ */
+  function initLaps() {
+    if (!hasGSAP || reduced()) return;
+    var list = qs('[data-laps]'), watch = qs('[data-watch]'), bar = qs('[data-watch-bar]');
+    if (!list || !watch) return;
+    var laps = qsa('.lap', list);
+    var marks = laps.map(function (l) { return toMin(qs('.lap__t', l).textContent); });
+    var TOTAL = 75; // Minuten
+    doc.classList.add('has-laps');
+    var last = -1;
+    function render(p) {
+      var m = Math.round(p * TOTAL * 60);
+      if (m !== last) { watch.textContent = pad2(Math.floor(m / 60)) + ':' + pad2(m % 60); last = m; }
+      bar.style.transform = 'scaleX(' + p.toFixed(4) + ')';
+      list.style.setProperty('--lp', p.toFixed(4));
+      laps.forEach(function (l, i) { l.classList.toggle('is-on', p * TOTAL >= marks[i] - 0.01); });
+    }
+    render(0);
+    ScrollTrigger.create({
+      trigger: list, start: 'top 70%', end: 'bottom 60%', scrub: true,
+      onUpdate: function (self) { render(self.progress); },
+      onLeave: function () { render(1); }
+    });
+  }
+
 
   /* ------------------------------------------------------------------
      Trainingsplan-Generator
@@ -1264,277 +1467,6 @@
   }
 
   /* ------------------------------------------------------------------
-     Zähler
-     ------------------------------------------------------------------ */
-
-  function initCounters() {
-    qsa('[data-count]').forEach(function (n) {
-      var target = +n.getAttribute('data-count'), de = n.getAttribute('data-format') === 'de';
-      var fmt = function (v) { return de ? Math.round(v).toLocaleString('de-DE') : String(Math.round(v)); };
-      if (reduced()) { n.textContent = fmt(target); return; }
-      n.textContent = fmt(0);
-      var started = false;
-      watchVisible(n, function (vis) {
-        if (!vis || started) return;
-        started = true;
-        var t0 = performance.now(), dur = 1400;
-        (function step(t) {
-          var p = clamp((t - t0) / dur, 0, 1), e = 1 - Math.pow(1 - p, 4);
-          n.textContent = fmt(target * e);
-          if (p < 1) requestAnimationFrame(step);
-        })(t0);
-      });
-    });
-  }
-
-  /* ------------------------------------------------------------------
-     Hero: Intro-Status und Partikel-/Streifen-Canvas
-     ------------------------------------------------------------------ */
-
-  function initHeroIntro() {
-    // Die Intro-Choreografie läuft rein in CSS (startet mit dem ersten Frame, unabhängig von main.js).
-    // Die Klassen bleiben als Status-Haken für Tests und eigene Erweiterungen.
-    doc.classList.add('hero-in');
-    setTimeout(function () { doc.classList.add('hero-done'); }, 1700);
-  }
-  function initHeroCanvas() {
-    var cv = qs('.hero__canvas'), hero = qs('.hero');
-    if (!cv || !cv.getContext) return;
-    var ctx = cv.getContext('2d');
-    var W = 0, H = 0, dpr = 1, streaks = [], dust = [], running = false, visible = true, raf = 0, last = 0;
-    var boost = 0, px = 0.5, py = 0.45, tpx = 0.5, tpy = 0.45;
-
-    function sprite(r, g, b) {
-      var c = document.createElement('canvas'); c.width = 256; c.height = 4;
-      var x = c.getContext('2d'), gr = x.createLinearGradient(0, 0, 256, 0);
-      gr.addColorStop(0, 'rgba(' + r + ',' + g + ',' + b + ',0)');
-      gr.addColorStop(0.75, 'rgba(' + r + ',' + g + ',' + b + ',.55)');
-      gr.addColorStop(1, 'rgba(' + r + ',' + g + ',' + b + ',1)');
-      x.fillStyle = gr; x.fillRect(0, 0, 256, 4);
-      return c;
-    }
-    var sChalk = sprite(242, 242, 238), sGlut = sprite(255, 59, 47);
-
-    function seed(s, initial) {
-      var depth = Math.random();
-      s.depth = depth;
-      // Spuren sammeln sich in drei „Bahnen“
-      var lane = [0.22, 0.52, 0.8][Math.floor(Math.random() * 3)];
-      s.y = clamp(lane + (Math.random() - 0.5) * 0.34, 0.02, 0.98);
-      s.v = 90 + Math.pow(depth, 2) * 1100;
-      s.len = 30 + s.v * 0.32;
-      s.th = 0.6 + depth * 2.2;
-      s.a = 0.05 + depth * 0.4;
-      s.red = Math.random() < 0.13;
-      s.x = initial ? Math.random() * (W + s.len) : -s.len - Math.random() * W * 0.5;
-    }
-    function resize() {
-      var r = hero.getBoundingClientRect();
-      dpr = dprMax(); W = Math.max(1, r.width); H = Math.max(1, r.height);
-      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      var n = Math.round(clamp(W / 18, 26, 90));
-      streaks = []; dust = [];
-      for (var i = 0; i < n; i++) { var s = {}; seed(s, true); streaks.push(s); }
-      var m = Math.round(clamp(W / 28, 18, 60));
-      for (var j = 0; j < m; j++) dust.push({ x: Math.random() * W, y: Math.random() * H, r: 0.5 + Math.random() * 1.4, vy: 6 + Math.random() * 18, vx: (Math.random() - 0.5) * 8, a: 0.1 + Math.random() * 0.35, ph: Math.random() * 6.28 });
-      if (!running) draw(0);
-    }
-    function draw(dt) {
-      ctx.clearRect(0, 0, W, H);
-      var target = clamp(Math.abs(scrollVel) / 900, 0, 5);
-      boost = lerp(boost, target, 0.06);
-      px = lerp(px, tpx, 0.05); py = lerp(py, tpy, 0.05);
-      var pyAbs = py * H;
-      // Streifen
-      for (var i = 0; i < streaks.length; i++) {
-        var s = streaks[i];
-        var near = Math.max(0, 1 - Math.abs(s.y * H - pyAbs) / (H * 0.12));
-        var sp = s.v * (1 + boost * (0.6 + s.depth)) * (1 + near * 0.8);
-        s.x += sp * dt;
-        var len = s.len * (1 + boost * 0.7 + near * 0.6);
-        if (s.x - len > W) { seed(s, false); continue; }
-        ctx.globalAlpha = clamp(s.a * (1 + near * 1.2), 0, s.red ? 0.85 : 0.6);
-        ctx.drawImage(s.red ? sGlut : sChalk, s.x - len, s.y * H - s.th / 2, len, s.th);
-      }
-      // Kreidestaub
-      ctx.fillStyle = '#F2F2EE';
-      for (var j = 0; j < dust.length; j++) {
-        var d = dust[j];
-        d.y -= d.vy * dt * (1 + boost * 0.4); d.x += d.vx * dt + (px - 0.5) * 6 * dt;
-        d.ph += dt * 1.5;
-        if (d.y < -4) { d.y = H + 4; d.x = Math.random() * W; }
-        if (d.x < -4) d.x = W + 4; else if (d.x > W + 4) d.x = -4;
-        ctx.globalAlpha = d.a * (0.6 + 0.4 * Math.sin(d.ph));
-        ctx.fillRect(d.x, d.y, d.r, d.r);
-      }
-      ctx.globalAlpha = 1;
-    }
-    function frame(t) {
-      raf = 0;
-      if (!running) return;
-      var dt = last ? Math.min(0.05, (t - last) / 1000) : 0.016;
-      last = t;
-      draw(dt);
-      raf = requestAnimationFrame(frame);
-    }
-    function start() { if (running || reduced()) return; running = true; last = 0; raf = requestAnimationFrame(frame); }
-    function stop() { running = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
-    function sync() { if (visible && !document.hidden) start(); else stop(); }
-
-    resize();
-    if (reduced()) {
-      // statisches Standbild
-      for (var k = 0; k < 3; k++) draw(0.02);
-    }
-    requestAnimationFrame(function () { cv.classList.add('is-on'); });
-    if ('ResizeObserver' in window) new ResizeObserver(function () { resize(); }).observe(hero);
-    else window.addEventListener('resize', resize);
-    watchVisible(hero, function (v) { visible = v; sync(); });
-    document.addEventListener('visibilitychange', sync);
-    if (finePointer.matches) {
-      hero.addEventListener('pointermove', function (e) {
-        var r = hero.getBoundingClientRect();
-        tpx = (e.clientX - r.left) / r.width; tpy = (e.clientY - r.top) / r.height;
-      });
-      hero.addEventListener('pointerleave', function () { tpx = 0.5; tpy = 0.45; });
-    }
-    sync();
-  }
-
-  /* ------------------------------------------------------------------
-     Hero: kinetische Typo. Zeilen gleiten scroll-gescrubbt gegeneinander;
-     die Scroll-Geschwindigkeit staucht und streckt jedes Wort über die
-     Variable-Font-Achsen (opsz 72 → 10 = breiter, wght 800 → 900) plus
-     scaleY/skewX, gefedert (k 170, d 15 → leichtes Nachfedern).
-     Zeiger/Finger auf einem Wort: das Wort „spannt an“.
-     Wörter sind links verankert → Breitenänderung verschiebt nichts (CLS 0).
-     ------------------------------------------------------------------ */
-  function initHeroKinetic() {
-    var hero = qs('.hero');
-    if (!hero) return;
-    var rows = qsa('.kin', hero), words = qsa('.kin__w', hero), slice = qs('.hero__slice', hero);
-    if (reduced()) return;
-    if (hasGSAP) {
-      var dirs = [-15, 17, -10];
-      rows.forEach(function (r, i) {
-        gsap.to(r, { xPercent: dirs[i], ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.5 } });
-      });
-      gsap.to('.hero__photo', { yPercent: -9, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.5 } });
-    }
-    var st = words.map(function () { return { x: 0, v: 0, f: 0, fv: 0, hov: 0, key: '' }; });
-    var vis = true, running = false, last = 0, sx = 0, sxKey = '';
-    function kick() { if (!running && vis && !document.hidden) { running = true; last = 0; requestAnimationFrame(loop); } }
-    words.forEach(function (w, i) {
-      w.addEventListener('pointerenter', function () { st[i].hov = 1; kick(); });
-      w.addEventListener('pointerleave', function () { st[i].hov = 0; kick(); });
-      w.addEventListener('pointerdown', function () { st[i].fv += 7; kick(); });
-    });
-    watchVisible(hero, function (v) { vis = v; kick(); });
-    window.addEventListener('scroll', kick, { passive: true });
-    document.addEventListener('visibilitychange', kick);
-    function loop(t) {
-      var dt = last ? Math.min(0.033, (t - last) / 1000) : 0.016;
-      last = t;
-      var target = clamp(Math.abs(scrollVel) / 2300, 0, 1), dir = scrollVel < 0 ? 1 : -1, calm = true;
-      for (var i = 0; i < words.length; i++) {
-        var s = st[i];
-        s.v += (170 * (target - s.x) - 15 * s.v) * dt; s.x += s.v * dt;
-        s.fv += (140 * (s.hov - s.f) - 12 * s.fv) * dt; s.f += s.fv * dt;
-        var e = clamp(s.x, -0.25, 1.25), k = clamp(Math.max(e, s.f), -0.3, 1.3);
-        var wght = Math.round(clamp(800 + (k > 0 ? 100 * k : 400 * k), 520, 900));
-        var opsz = Math.round(clamp(72 - 60 * k, 10, 72));
-        var sy = (1 - 0.14 * clamp(e, 0, 1.2)).toFixed(3), sk = (dir * 6 * clamp(e, 0, 1.2)).toFixed(2);
-        var key = wght + '|' + opsz + '|' + sy + '|' + sk;
-        if (key !== s.key) {
-          s.key = key;
-          words[i].style.fontVariationSettings = "'wght' " + wght + ", 'opsz' " + opsz;
-          words[i].style.transform = 'skewX(' + sk + 'deg) scaleY(' + sy + ')';
-          words[i].style.setProperty('--e', Math.max(0, e).toFixed(3));
-          words[i].style.setProperty('--dir', dir);
-        }
-        if (Math.abs(target - s.x) > 0.003 || Math.abs(s.v) > 0.003 || Math.abs(s.hov - s.f) > 0.003 || Math.abs(s.fv) > 0.003) calm = false;
-      }
-      // rote Platte verrutscht mit dem Tempo (Passerfehler)
-      if (slice) {
-        sx = lerp(sx, clamp(-scrollVel * 0.018, -46, 46), 0.18);
-        if (Math.abs(sx) < 0.05) sx = 0;
-        var sk2 = sx.toFixed(1);
-        if (sk2 !== sxKey) { sxKey = sk2; slice.style.transform = 'translate3d(' + (18 + sx).toFixed(1) + 'px,0,0)'; }
-        if (sx !== 0) calm = false;
-      }
-      if (calm && Math.abs(scrollVel) < 1) { running = false; return; }
-      if (!vis || document.hidden) { running = false; return; }
-      requestAnimationFrame(loop);
-    }
-  }
-
-  /* ------------------------------------------------------------------
-     Absperrband: Grundtempo, mit dem Scroll schneller; Richtung folgt
-     der Scrollrichtung, das Band neigt sich mit dem Tempo.
-     ------------------------------------------------------------------ */
-  function initTapes() {
-    var box = qs('.tapes'), tracks = qsa('[data-marquee]');
-    if (!box || !tracks.length || reduced()) return;
-    var vis = false, x = tracks.map(function () { return 0; }), w = tracks.map(function () { return 0; }), last = 0, sk = 0;
-    function measure() { tracks.forEach(function (tr, i) { w[i] = tr.scrollWidth / 2; }); }
-    measure();
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
-    window.addEventListener('resize', measure);
-    watchVisible(box, function (v) { vis = v; if (v) { last = 0; requestAnimationFrame(loop); } });
-    function loop(t) {
-      if (!vis || document.hidden) return;
-      var dt = last ? Math.min(0.05, (t - last) / 1000) : 0.016;
-      last = t;
-      var v = scrollVel;
-      sk = lerp(sk, clamp(-v / 260, -9, 9), 0.12);
-      tracks.forEach(function (tr, i) {
-        var dir = +tr.getAttribute('data-marquee');
-        var speed = (46 + Math.abs(v) * 0.42) * (v < -10 ? -1 : 1);
-        x[i] += dir * speed * dt;
-        if (w[i] > 0) { if (x[i] <= -w[i]) x[i] += w[i]; else if (x[i] > 0) x[i] -= w[i]; }
-        tr.style.transform = 'translate3d(' + x[i].toFixed(1) + 'px,0,0) skewX(' + (sk * dir).toFixed(2) + 'deg)';
-      });
-      requestAnimationFrame(loop);
-    }
-    document.addEventListener('visibilitychange', function () { if (!document.hidden && vis) { last = 0; requestAnimationFrame(loop); } });
-  }
-
-  /* ------------------------------------------------------------------
-     Disziplinen: das klebende Bild schneidet hart (4 Stufen) zum
-     Foto der Disziplin, die gerade die Bildschirmmitte kreuzt.
-     ------------------------------------------------------------------ */
-  function initDisc() {
-    var items = qsa('.disc__item'), imgs = qsa('[data-disc-img]'), frame = qs('[data-disc-frame]'), noEl = qs('[data-disc-no]'), cutBar = qs('.disc__cut');
-    if (!items.length || !imgs.length) return;
-    var cur = 0;
-    items[0].classList.add('is-active');
-    function show(i) {
-      if (i < 0 || i === cur) return;
-      var prev = imgs[cur], nx = imgs[i];
-      imgs.forEach(function (im) { im.classList.remove('is-prev'); });
-      prev.classList.remove('is-on'); prev.classList.add('is-prev');
-      nx.classList.add('is-on');
-      if (!reduced() && nx.animate && mqDesk.matches) {
-        nx.animate([{ clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)' }], { duration: 420, easing: 'steps(4, jump-end)' });
-        if (cutBar) cutBar.animate([{ opacity: 1, transform: 'translateY(0px)' }, { opacity: 1, transform: 'translateY(' + frame.offsetHeight + 'px)' }], { duration: 420, easing: 'steps(4, jump-end)' });
-      }
-      cur = i;
-      items.forEach(function (it, k) { it.classList.toggle('is-active', k === i); });
-      if (noEl) {
-        noEl.textContent = pad2(i + 1);
-        if (!reduced() && noEl.animate) noEl.animate([{ clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)' }], { duration: 300, easing: 'steps(3, jump-end)' });
-      }
-    }
-    if ('IntersectionObserver' in window) {
-      var io = new IntersectionObserver(function (es) {
-        es.forEach(function (e) { if (e.isIntersecting) show(items.indexOf(e.target)); });
-      }, { rootMargin: '-47% 0px -47% 0px' });
-      items.forEach(function (it) { io.observe(it); });
-    }
-  }
-
-  /* ------------------------------------------------------------------
      Coaches: klebende Strecke (≥ 900 px) mit Tiefe – Karten kommen
      aus der Tiefe nach vorn und weichen nach links wieder zurück.
      Sticky statt Pin (kein Layout-Sprung), Bewegung per Scrub.
@@ -1587,96 +1519,6 @@
   }
 
   /* ------------------------------------------------------------------
-     Rundenuhr: Siebensegment-Ziffern als SVG (Geistersegmente bleiben
-     schwach sichtbar wie bei einer echten Hallenuhr)
-     ------------------------------------------------------------------ */
-  var SEG = { 0: 'abcdef', 1: 'bc', 2: 'abdeg', 3: 'abcdg', 4: 'bcfg', 5: 'acdfg', 6: 'acdefg', 7: 'abc', 8: 'abcdefg', 9: 'abcdfg' };
-  var SEG_PTS = {
-    a: '12,2 50,2 43,10 19,10', b: '52,5 52,47 45,43 45,12', c: '52,53 52,95 45,88 45,57',
-    d: '19,90 43,90 50,98 12,98', e: '10,53 17,57 17,88 10,95', f: '10,5 17,12 17,43 10,47', g: '14,50 19,46 43,46 48,50 43,54 19,54'
-  };
-  function seg7(node, sample) {
-    var NS = 'http://www.w3.org/2000/svg', wrap = el('span', 'seg7'), digits = [];
-    node.textContent = '';
-    sample.split('').forEach(function (ch) {
-      var svg = document.createElementNS(NS, 'svg');
-      if (ch === ':') {
-        svg.setAttribute('viewBox', '0 0 16 100');
-        ['36', '64'].forEach(function (y) { var r = document.createElementNS(NS, 'rect'); r.setAttribute('class', 'colon'); r.setAttribute('x', 4); r.setAttribute('y', y - 4); r.setAttribute('width', 8); r.setAttribute('height', 8); svg.appendChild(r); });
-        wrap.appendChild(svg);
-        return;
-      }
-      svg.setAttribute('viewBox', '0 0 62 100');
-      var g = document.createElementNS(NS, 'g'), segs = {};
-      g.setAttribute('transform', 'skewX(-5) translate(5 0)');
-      'abcdefg'.split('').forEach(function (s) { var p = document.createElementNS(NS, 'polygon'); p.setAttribute('points', SEG_PTS[s]); p.setAttribute('class', 's'); g.appendChild(p); segs[s] = p; });
-      svg.appendChild(g); wrap.appendChild(svg);
-      digits.push({ segs: segs, v: null });
-    });
-    node.appendChild(wrap);
-    return function (str) {
-      var ds = str.replace(/:/g, '');
-      digits.forEach(function (d, i) {
-        var v = ds.charAt(i);
-        if (v === d.v) return;
-        d.v = v;
-        var on = SEG[v] || '';
-        Object.keys(d.segs).forEach(function (s) { d.segs[s].classList.toggle('on', on.indexOf(s) > -1); });
-      });
-    };
-  }
-
-  /* ------------------------------------------------------------------
-     Strichliste: 530 Bewertungen = 106 Fünfergruppen, leicht verwackelt
-     wie mit Kreide; wird beim Scrollen Strich für Strich „gezählt“.
-     ------------------------------------------------------------------ */
-  function initTally() {
-    var box = qs('[data-tally]');
-    if (!box) return;
-    var seed = 530, rnd = function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
-    var cols = 18, gw = 44, gh = 64, d = '';
-    for (var g = 0; g < 106; g++) {
-      var cx = (g % cols) * gw + 8, cy = Math.floor(g / cols) * gh + 8;
-      for (var s = 0; s < 4; s++) {
-        var x = cx + s * 7.5 + (rnd() - 0.5) * 1.8;
-        d += 'M' + x.toFixed(1) + ' ' + (cy + rnd() * 3).toFixed(1) + 'L' + (x + (rnd() - 0.5) * 2.6).toFixed(1) + ' ' + (cy + 40 + rnd() * 3).toFixed(1);
-      }
-      d += 'M' + (cx - 4).toFixed(1) + ' ' + (cy + 33 + rnd() * 4).toFixed(1) + 'L' + (cx + 28 + rnd() * 2).toFixed(1) + ' ' + (cy + 8 + rnd() * 4).toFixed(1);
-    }
-    var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'), p = document.createElementNS(NS, 'path');
-    svg.setAttribute('viewBox', '0 0 ' + (cols * gw) + ' ' + (6 * gh));
-    svg.setAttribute('preserveAspectRatio', 'xMaxYMid meet');
-    p.setAttribute('d', d); p.setAttribute('pathLength', '1');
-    svg.appendChild(p); box.appendChild(svg);
-    if (!hasGSAP || reduced()) return;
-    p.style.strokeDasharray = '1'; p.style.strokeDashoffset = '1';
-    ScrollTrigger.create({
-      trigger: qs('.score'), start: 'top 85%', end: 'bottom 45%', scrub: 0.4,
-      onUpdate: function (self) { p.style.strokeDashoffset = (1 - self.progress).toFixed(4); }
-    });
-  }
-
-  /* ------------------------------------------------------------------
-     Reveals: Überschriften setzen auf (Gewichtsachse spannt an),
-     Bilder schneiden hart in vier Stufen, Linien zeichnen sich.
-     ------------------------------------------------------------------ */
-  function initReveal() {
-    if (motionOff || !('IntersectionObserver' in window)) return;
-    qsa('.anno__img, .halle__side, .laps__photo, .disc__pic, .frame__img').forEach(function (n) { n.classList.add('rv-cut'); });
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        (e.target.__rv || []).forEach(function (n) { n.classList.add('is-in'); });
-        io.unobserve(e.target);
-      });
-    }, { rootMargin: '0px 0px -10% 0px', threshold: 0 });
-    function watch(n, target) { target = target || n; target.__rv = (target.__rv || []).concat(n); io.observe(target); }
-    // clip-path am Ziel kann die Schnittmenge auf 0 setzen → Elternelement beobachten
-    qsa('[data-slam]').forEach(function (h) { watch(h, h.parentElement); });
-    qsa('.rv-cut, .anno, .frame--pick, .map').forEach(function (n) { watch(n); });
-  }
-
-  /* ------------------------------------------------------------------
      Mikro-Interaktionen (nur feiner Zeiger, nicht bei reduzierter Bewegung)
      ------------------------------------------------------------------ */
   function initRoll() {
@@ -1708,111 +1550,6 @@
         if (!raf) raf = requestAnimationFrame(loop);
       });
       b.addEventListener('pointerleave', function () { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(loop); });
-    });
-  }
-  /* Kontext-Cursor: kleines Etikett folgt dem Zeiger (der Systemcursor bleibt) */
-  function initCursor() {
-    var cur = qs('.cursor'), tag = qs('[data-cursor-tag]');
-    if (!cur || !tag || !finePointer.matches || reduced()) return;
-    var LABELS = [['.coach', 'Umdrehen'], ['.kurs__btn', 'Kurs öffnen'], ['.kin__w', 'Anspannen'], ['.opt, .tgl, .seg label', 'Auflegen'], ['.frame', 'Zeitraffer'], ['.goal', 'Ziel wählen']];
-    var x = 0, y = 0, tx = 0, ty = 0, raf = 0, shown = '';
-    function loop() {
-      x = lerp(x, tx, 0.24); y = lerp(y, ty, 0.24);
-      cur.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0)';
-      raf = (Math.abs(x - tx) > 0.3 || Math.abs(y - ty) > 0.3) ? requestAnimationFrame(loop) : 0;
-    }
-    var seen = false, sRaf = 0;
-    function pick(t) {
-      var label = '';
-      if (t && t.closest && !t.closest('input, select, textarea, .form, dialog')) {
-        for (var i = 0; i < LABELS.length; i++) if (t.closest(LABELS[i][0])) { label = LABELS[i][1]; break; }
-      }
-      if (label && label !== tag.textContent) tag.textContent = label;
-      if (!!label !== !!shown) cur.classList.toggle('is-on', !!label);
-      shown = label;
-    }
-    document.addEventListener('pointermove', function (e) {
-      if (e.pointerType && e.pointerType !== 'mouse') return;
-      if (!shown) { x = e.clientX; y = e.clientY; }
-      tx = e.clientX; ty = e.clientY; seen = true;
-      pick(e.target);
-      if (!raf) raf = requestAnimationFrame(loop);
-    }, { passive: true });
-    /* Beim Scrollen wandert der Inhalt unter dem ruhenden Zeiger: Etikett neu bestimmen (max. einmal pro Frame) */
-    window.addEventListener('scroll', function () {
-      if (!seen || sRaf) return;
-      sRaf = requestAnimationFrame(function () { sRaf = 0; pick(document.elementFromPoint(tx, ty)); });
-    }, { passive: true });
-    document.addEventListener('pointerleave', function () { cur.classList.remove('is-on'); shown = ''; });
-  }
-  /* Abreiß-Streifen: kurzer Riss, dann scrollt der Anker-Handler */
-  function initTear() {
-    qsa('[data-tear]').forEach(function (a) {
-      a.addEventListener('click', function () {
-        if (reduced()) return;
-        a.classList.remove('is-torn'); void a.offsetWidth; a.classList.add('is-torn');
-        clearTimeout(a._t); a._t = setTimeout(function () { a.classList.remove('is-torn'); }, 950);
-      });
-    });
-  }
-
-  /* ------------------------------------------------------------------
-     Ein Tag in der Halle: Kontaktabzug als Zeitraffer-Strecke (≥ 900 px)
-     ------------------------------------------------------------------ */
-
-  function initDayStrip() {
-    if (!hasGSAP || reduced()) return;
-    var box = qs('[data-day-strip]'), track = qs('[data-day-track]');
-    if (!box || !track) return;
-    var mm = gsap.matchMedia();
-    mm.add('(min-width: 900px)', function () {
-      doc.classList.add('has-strip');
-      var tw = gsap.to(track, {
-        x: function () { return -Math.max(0, track.scrollWidth - window.innerWidth); }, ease: 'none',
-        scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: 0.7, invalidateOnRefresh: true }
-      });
-      var imgs = qsa('.frame__img', track);
-      var skew = gsap.quickTo(imgs, 'skewX', { duration: 0.6, ease: 'power3' });
-      var lastSk = 0;
-      var fn = function () {
-        var sk = Math.round(clamp(-scrollVel / 260, -6, 6) * 100) / 100;
-        if (sk !== lastSk) { skew(sk); lastSk = sk; }
-      };
-      gsap.ticker.add(fn);
-      return function () {
-        gsap.ticker.remove(fn);
-        tw.kill();
-        doc.classList.remove('has-strip');
-        gsap.set(track, { clearProps: 'transform' });
-        gsap.set(imgs, { clearProps: 'transform' });
-      };
-    });
-  }
-
-  /* ------------------------------------------------------------------
-     Probetraining: Rundenuhr läuft mit dem Scrollen
-     ------------------------------------------------------------------ */
-
-  function initLaps() {
-    if (!hasGSAP || reduced()) return;
-    var list = qs('[data-laps]'), watch = qs('[data-watch]'), bar = qs('[data-watch-bar]');
-    if (!list || !watch) return;
-    var laps = qsa('.lap', list);
-    var marks = laps.map(function (l) { return toMin(qs('.lap__t', l).textContent) * 60; });
-    var TOTAL = 75 * 60;
-    doc.classList.add('has-laps');
-    var show = seg7(watch, '00:00:00');
-    function render(p) {
-      var s = Math.round(p * TOTAL);
-      show(pad2(Math.floor(s / 3600)) + ':' + pad2(Math.floor(s / 60) % 60) + ':' + pad2(s % 60));
-      bar.style.transform = 'scaleX(' + p.toFixed(4) + ')';
-      laps.forEach(function (l, i) { l.classList.toggle('is-on', s >= marks[i]); });
-    }
-    render(0);
-    ScrollTrigger.create({
-      trigger: list, start: 'top 75%', end: 'bottom 55%', scrub: true,
-      onUpdate: function (self) { render(self.progress); },
-      onLeave: function () { render(1); }
     });
   }
 
@@ -1878,18 +1615,17 @@
     });
   }
 
+
   /* ------------------------------------------------------------------
-     Start in Etappen: sofort nur, was kein Layout liest (Menü, Status,
-     Intro-Status); alles andere nach dem ersten Frame in Häppchen von
-     ≤ 18 ms (Lenis, Header, Kursplan + Hero-Klapptafel zuerst), danach
-     einmal ScrollTrigger.refresh() in eigener Aufgabe.
+     Start in Etappen: sofort nur Video, Menü und Status; alles andere
+     nach dem ersten Frame in Häppchen von ≤ 18 ms, danach einmal
+     ScrollTrigger.refresh() in eigener Aufgabe.
      ------------------------------------------------------------------ */
-  var BOOT_NOW = [['menu', initMenu], ['status', initStatus], ['intro', initHeroIntro]];
+  var BOOT_NOW = [['video', initVideo], ['menu', initMenu], ['status', initStatus]];
   var BOOT_LATER = [
-    ['scroll', initScroll], ['header', initHeader], ['plan', initPlan], ['kinetic', initHeroKinetic], ['canvas', initHeroCanvas], ['tapes', initTapes], ['roll', initRoll], ['magnet', initMagnet],
-    ['cursor', initCursor], ['tear', initTear], ['disc', initDisc], ['cfg', initCfg], ['gen', initGen], ['coaches', initCoaches],
-    ['crew', initCrew], ['day', initDayStrip], ['laps', initLaps], ['tally', initTally], ['form', initForm],
-    ['counters', initCounters], ['reveal', initReveal]
+    ['scroll', initScroll], ['header', initHeader], ['herofx', initHeroFx], ['roll', initRoll], ['magnet', initMagnet], ['nums', initNums],
+    ['plan', initPlan], ['disc', initDisc], ['cfg', initCfg], ['gen', initGen], ['coaches', initCoaches], ['crew', initCrew],
+    ['day', initDayStrip], ['laps', initLaps], ['form', initForm], ['light', initCardLight], ['reveal', initReveal]
   ];
   var bootTimes = window.__forgeBoot = [];
   BOOT_NOW.forEach(function (b) { var tb = performance.now(); safe(b[0], b[1]); bootTimes.push(b[0] + ' ' + Math.round(performance.now() - tb)); });
@@ -1904,7 +1640,6 @@
       if (performance.now() - t0 > 18) break;
     }
     if (BOOT_LATER.length) { setTimeout(next, 0); return; }
-    // Refresh in einer eigenen Aufgabe (nicht im selben Task wie die letzten Initialisierungen)
     if (hasGSAP) setTimeout(function () { ScrollTrigger.refresh(); }, 0);
     if (hasGSAP && fontsPending && document.fonts.ready) document.fonts.ready.then(function () { setTimeout(function () { ScrollTrigger.refresh(); }, 0); });
     if (hasGSAP && document.readyState !== 'complete') window.addEventListener('load', function () { setTimeout(function () { ScrollTrigger.refresh(); }, 60); });

@@ -18,7 +18,7 @@ Rechner-Werte geändert werden.
 | „Messing“ | [`barbershop-kaiser/`](barbershop-kaiser/) | KAISER Barbershop, Köln | Beauty | Blattgold auf Schaufensterglas, freigeschnitten mit der Klinge – WebGL-Gold und Rasur-Ritual. |
 | „Seide“ | [`kosmetik-maison-belle/`](kosmetik-maison-belle/) | Maison Belle Kosmetik, Düsseldorf | Beauty | Eine WebGL-Seidenbahn fällt durch einen Tag im Studio, Bilder öffnen sich wie Tropfen. |
 | „Tinte“ | [`tattoo-schwarzstich/`](tattoo-schwarzstich/) | Schwarzstich Tattoo, Kiel | Beauty | Flash-Bogen auf Knochenpapier: Tinte breitet sich aus, die Nadel zeichnet Stich für Stich. |
-| „Schmiede“ | [`fitness-forge/`](fitness-forge/) | FORGE Athletic Club, Berlin | Sport & Wohlbefinden | Wildplakat und Eisen: verrutschter Druck, Gaffa-Tape und kinetische Typo, die auf Tempo reagiert. |
+| „Schmiede“ | [`fitness-forge/`](fitness-forge/) | FORGE Athletic Club, Berlin | Sport & Wohlbefinden | Premium bei Nacht: Video-Hero aus der Halle, Champagner-Gold und blaues Licht, Kursplan als Klapptafel. |
 | „Atem“ | [`yoga-atemraum/`](yoga-atemraum/) | Atemraum Yoga, Münster | Sport & Wohlbefinden | Der Atem als Bewegungsgesetz: Form und Schrift atmen im 4-7-8-Takt. |
 | „Ufer“ | [`hotel-seeblick/`](hotel-seeblick/) | Hotel Seeblick am Tegernsee, Gmund am Tegernsee | Gastronomie & Hotel | Ein altes Hotelplakat vom Tegernsee, das man betreten kann – Steindruck-Ebenen und Horizontlinie. |
 | „Tavola“ | [`trattoria-nonna-rosa/`](trattoria-nonna-rosa/) | Trattoria Nonna Rosa, Stuttgart | Gastronomie & Hotel | Der gedeckte Tisch von oben: Teig wird ausgerollt, Nonnas Album blättert, das Glas füllt sich. |
