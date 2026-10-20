@@ -10,6 +10,21 @@
   <link rel="icon" href="/arena/bestattung-weidner/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="/arena/bestattung-weidner/assets/fonts/newsreader-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/arena/bestattung-weidner/style.css">
+<style>
+  .ls-box{margin:1.2em 0 2em;max-width:62rem}
+  .ls-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .ls-table{width:100%;border-collapse:collapse;font-size:.92em;line-height:1.45;margin:.6em 0 1.1em}
+  .ls-table caption{text-align:left;font-weight:600;padding:0 0 .5em}
+  .ls-table th,.ls-table td{text-align:left;vertical-align:top;padding:.65em 1em .65em 0;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent)}
+  .ls-table thead th{font-weight:600;border-bottom-color:color-mix(in srgb,currentColor 40%,transparent)}
+  .ls-table code{font-size:.92em;word-break:break-all}
+  .ls-clear{font:inherit;font-size:.95em;min-height:44px;padding:.55em 1.1em;border:1px solid currentColor;border-radius:6px;background:transparent;color:inherit;cursor:pointer;transition:transform 140ms cubic-bezier(.23,1,.32,1),background-color 200ms cubic-bezier(.23,1,.32,1)}
+  .ls-clear:active{transform:scale(.97)}
+  .ls-clear:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+  @media (hover:hover) and (pointer:fine){.ls-clear:hover{background:color-mix(in srgb,currentColor 8%,transparent)}}
+  .ls-status{margin-top:.6em;min-height:1.4em}
+  @media (max-width:640px){.ls-table thead{display:none}.ls-table tr{display:block;padding:.6em 0;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent)}.ls-table th,.ls-table td{display:block;border:0;padding:.15em 0}.ls-table td::before{content:attr(data-label) ": ";font-weight:600}}
+</style>
 </head>
 <body class="legal-page">
   <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
@@ -35,14 +50,47 @@
     <h2>4. Kontaktformular</h2>
     <p>Wenn Sie uns über das Formular schreiben, verwenden wir Ihre Angaben (Name, Telefon oder E-Mail, Nachricht) nur zur Bearbeitung Ihrer Anfrage (Art. 6 Abs. 1 lit. b DSGVO). Die Daten werden gelöscht, wenn Ihre Anfrage erledigt ist und keine Aufbewahrungspflichten bestehen. In dieser Demo wird nichts gesendet.</p>
     <h2>5. Vorsorge-Planer und Checkliste</h2>
-    <p>Die Angaben im Vorsorge-Planer bleiben in Ihrem Browserfenster und werden weder gesendet noch gespeichert. Die abgehakten Punkte der Checkliste „Erste Schritte“ werden nur lokal in Ihrem Browser (localStorage) gemerkt, damit Sie später weitermachen können; Sie können sie jederzeit mit „Zurücksetzen“ löschen.</p>
-    <h2>6. Keine Cookies, kein Tracking</h2>
+    <p>Die Angaben im Vorsorge-Planer bleiben in Ihrem Browserfenster und werden weder gesendet noch gespeichert. Die abgehakten Punkte der Checkliste „Erste Schritte“ werden nur lokal in Ihrem Browser (localStorage) – Einzelheiten siehe <a href="#local-storage">Speicherung in Ihrem Browser</a> gemerkt, damit Sie später weitermachen können; Sie können sie jederzeit mit „Zurücksetzen“ löschen.</p>
+    <h2>6. Speicherung in Ihrem Browser (Local Storage)</h2>
+    <div class="ls-box" id="local-storage">
+    <p>Einige Funktionen dieser Website merken sich Ihre Eingaben im lokalen Speicher Ihres Browsers („Local Storage“), damit sie beim nächsten Besuch noch da sind. Das ist <strong>kein Cookie</strong>: Die Einträge bleiben auf Ihrem Gerät, werden nicht an unseren Server oder an Dritte übertragen, wir können sie nicht auslesen, und sie dienen weder der Analyse noch der Werbung. Gespeichert wird erst, wenn Sie die jeweilige Funktion benutzen.</p>
+    <p>Die Angaben im Vorsorge-Planer werden <strong>nicht</strong> gespeichert – sie verschwinden, sobald Sie die Seite schließen oder neu laden.</p>
+    <div class="ls-scroll">
+      <table class="ls-table">
+        <caption>Diese Einträge kann die Website in Ihrem Browser anlegen</caption>
+        <thead><tr><th scope="col">Eintrag</th><th scope="col">Zweck</th><th scope="col">Inhalt</th><th scope="col">Speicherdauer</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>weidner-schritte</code></th><td data-label="Zweck">Checkliste „Erste Schritte im Trauerfall“ – damit Sie später an derselben Stelle weitermachen können</td><td data-label="Inhalt">Welche Punkte Sie abgehakt haben (keine Namen, keine Kontaktdaten)</td><td data-label="Speicherdauer">Bis Sie den Eintrag löschen (kein automatisches Ablaufdatum)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Rechtsgrundlage:</strong> § 25 Abs. 2 Nr. 2 TDDDG – die Speicherung ist unbedingt erforderlich, damit wir die von Ihnen ausdrücklich genutzte Funktion bereitstellen können; eine Einwilligung ist dafür nicht nötig. Soweit dabei personenbezogene Daten entstehen, ist Art. 6 Abs. 1 lit. f DSGVO die Grundlage (unser berechtigtes Interesse an einer bequemen Bedienung ohne erneute Eingabe).</p>
+    <p><strong>Löschen:</strong> jederzeit über „Zurücksetzen“ in der Checkliste, über die Schaltfläche unten oder in den Einstellungen Ihres Browsers („Websitedaten löschen“). In einem privaten Fenster löscht der Browser die Einträge beim Schließen automatisch.</p>
+    <p class="ls-actions" hidden><button type="button" class="ls-clear" data-ls-clear>Gespeicherte Einträge dieser Website löschen</button></p>
+    <p class="ls-status" role="status" aria-live="polite" data-ls-status></p>
+    </div>
+    <script>
+    (function () {
+      var keys = ['weidner-schritte'], btn = document.querySelector('[data-ls-clear]'), out = document.querySelector('[data-ls-status]');
+      var store; try { store = window.localStorage; store.getItem('x'); } catch (e) { return; }
+      btn.parentNode.hidden = false;
+      var count = function () { return keys.filter(function (k) { return store.getItem(k) !== null; }).length; };
+      var n = count();
+      out.textContent = n ? 'Auf diesem Gerät sind derzeit ' + n + ' Eintrag' + (n === 1 ? '' : 'e') + ' gespeichert.' : 'Auf diesem Gerät sind derzeit keine Einträge gespeichert.';
+      btn.addEventListener('click', function () {
+        keys.forEach(function (k) { try { store.removeItem(k); } catch (e) {} });
+        out.textContent = 'Erledigt – alle Einträge dieser Website wurden aus Ihrem Browser gelöscht.';
+      });
+    })();
+    </script>
+
+    <h2>7. Keine Cookies, kein Tracking</h2>
     <p>Wir setzen keine Cookies, keine Analyse- oder Marketingdienste und keine eingebetteten Inhalte Dritter ein. Die Karte ist eine eigene Grafik.</p>
-    <h2>7. Schriften</h2>
+    <h2>8. Schriften</h2>
     <p>Die Schriften Newsreader und Public Sans sind auf unserem Server gespeichert. Beim Laden der Seite wird keine Verbindung zu Google oder anderen Anbietern aufgebaut.</p>
-    <h2>8. Ihre Rechte</h2>
+    <h2>9. Ihre Rechte</h2>
     <p>Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO). Eine Nachricht an uns genügt.</p>
-    <h2>9. Beschwerderecht</h2>
+    <h2>10. Beschwerderecht</h2>
     <p>Sie können sich bei einer Datenschutz-Aufsichtsbehörde beschweren, zum Beispiel beim Unabhängigen Landeszentrum für Datenschutz Schleswig-Holstein in Kiel.</p>
   </main>
   <footer class="site-footer">

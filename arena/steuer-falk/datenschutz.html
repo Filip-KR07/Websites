@@ -12,6 +12,21 @@
 <link rel="preload" href="/arena/steuer-falk/assets/fonts/ibm-plex-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/arena/steuer-falk/style.css">
 <script>document.documentElement.classList.add('js', 'motion-off');</script>
+<style>
+  .ls-box{margin:1.2em 0 2em;max-width:62rem}
+  .ls-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .ls-table{width:100%;border-collapse:collapse;font-size:.92em;line-height:1.45;margin:.6em 0 1.1em}
+  .ls-table caption{text-align:left;font-weight:600;padding:0 0 .5em}
+  .ls-table th,.ls-table td{text-align:left;vertical-align:top;padding:.65em 1em .65em 0;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent)}
+  .ls-table thead th{font-weight:600;border-bottom-color:color-mix(in srgb,currentColor 40%,transparent)}
+  .ls-table code{font-size:.92em;word-break:break-all}
+  .ls-clear{font:inherit;font-size:.95em;min-height:44px;padding:.55em 1.1em;border:1px solid currentColor;border-radius:6px;background:transparent;color:inherit;cursor:pointer;transition:transform 140ms cubic-bezier(.23,1,.32,1),background-color 200ms cubic-bezier(.23,1,.32,1)}
+  .ls-clear:active{transform:scale(.97)}
+  .ls-clear:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+  @media (hover:hover) and (pointer:fine){.ls-clear:hover{background:color-mix(in srgb,currentColor 8%,transparent)}}
+  .ls-status{margin-top:.6em;min-height:1.4em}
+  @media (max-width:640px){.ls-table thead{display:none}.ls-table tr{display:block;padding:.6em 0;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent)}.ls-table th,.ls-table td{display:block;border:0;padding:.15em 0}.ls-table td::before{content:attr(data-label) ": ";font-weight:600}}
+</style>
 </head>
 <body class="legal-page">
 <a class="skip" href="#main">Zum Inhalt springen</a>
@@ -57,8 +72,38 @@
         <p>Bitte senden Sie über das Formular keine Steuerunterlagen – dafür richten wir Ihnen einen verschlüsselten Upload ein.</p>
       </section>
       <section>
-        <h2>Checkliste im Browser</h2>
-        <p>Die Unterlagen-Checkliste speichert Ihre Haken ausschließlich im lokalen Speicher Ihres Browsers (localStorage). Diese Angaben werden nicht an uns übertragen. Sie können sie jederzeit über „Liste zurücksetzen“ oder die Browser-Einstellungen löschen.</p>
+        <h2>Speicherung in Ihrem Browser (Local Storage)</h2>
+    <div class="ls-box" id="local-storage">
+    <p>Einige Funktionen dieser Website merken sich Ihre Eingaben im lokalen Speicher Ihres Browsers („Local Storage“), damit sie beim nächsten Besuch noch da sind. Das ist <strong>kein Cookie</strong>: Die Einträge bleiben auf Ihrem Gerät, werden nicht an unseren Server oder an Dritte übertragen, wir können sie nicht auslesen, und sie dienen weder der Analyse noch der Werbung. Gespeichert wird erst, wenn Sie die jeweilige Funktion benutzen.</p>
+    <div class="ls-scroll">
+      <table class="ls-table">
+        <caption>Diese Einträge kann die Website in Ihrem Browser anlegen</caption>
+        <thead><tr><th scope="col">Eintrag</th><th scope="col">Zweck</th><th scope="col">Inhalt</th><th scope="col">Speicherdauer</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>falk-partner:checkliste:v1</code></th><td data-label="Zweck">Unterlagen-Checkliste, damit Ihre Haken beim nächsten Besuch noch da sind</td><td data-label="Inhalt">Gewählte Gruppe (z.&nbsp;B. privat, selbstständig) und welche Unterlagen Sie abgehakt haben – keine Beträge, keine Steuerdaten</td><td data-label="Speicherdauer">Bis Sie den Eintrag löschen (kein automatisches Ablaufdatum)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Rechtsgrundlage:</strong> § 25 Abs. 2 Nr. 2 TDDDG – die Speicherung ist unbedingt erforderlich, damit wir die von Ihnen ausdrücklich genutzte Funktion bereitstellen können; eine Einwilligung ist dafür nicht nötig. Soweit dabei personenbezogene Daten entstehen, ist Art. 6 Abs. 1 lit. f DSGVO die Grundlage (unser berechtigtes Interesse an einer bequemen Bedienung ohne erneute Eingabe).</p>
+    <p><strong>Löschen:</strong> jederzeit über „Liste zurücksetzen“ in der Checkliste, über die Schaltfläche unten oder in den Einstellungen Ihres Browsers („Websitedaten löschen“). In einem privaten Fenster löscht der Browser die Einträge beim Schließen automatisch.</p>
+    <p class="ls-actions" hidden><button type="button" class="ls-clear" data-ls-clear>Gespeicherte Einträge dieser Website löschen</button></p>
+    <p class="ls-status" role="status" aria-live="polite" data-ls-status></p>
+    </div>
+    <script>
+    (function () {
+      var keys = ['falk-partner:checkliste:v1'], btn = document.querySelector('[data-ls-clear]'), out = document.querySelector('[data-ls-status]');
+      var store; try { store = window.localStorage; store.getItem('x'); } catch (e) { return; }
+      btn.parentNode.hidden = false;
+      var count = function () { return keys.filter(function (k) { return store.getItem(k) !== null; }).length; };
+      var n = count();
+      out.textContent = n ? 'Auf diesem Gerät sind derzeit ' + n + ' Eintrag' + (n === 1 ? '' : 'e') + ' gespeichert.' : 'Auf diesem Gerät sind derzeit keine Einträge gespeichert.';
+      btn.addEventListener('click', function () {
+        keys.forEach(function (k) { try { store.removeItem(k); } catch (e) {} });
+        out.textContent = 'Erledigt – alle Einträge dieser Website wurden aus Ihrem Browser gelöscht.';
+      });
+    })();
+    </script>
+
       </section>
       <section>
         <h2>Cookies &amp; Tracking</h2>

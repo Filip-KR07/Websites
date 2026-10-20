@@ -19,6 +19,21 @@
       if (p.contrast === true) d.setAttribute('data-contrast', 'high');
     })();
   </script>
+<style>
+  .ls-box{margin:1.2em 0 2em;max-width:62rem}
+  .ls-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .ls-table{width:100%;border-collapse:collapse;font-size:.92em;line-height:1.45;margin:.6em 0 1.1em}
+  .ls-table caption{text-align:left;font-weight:600;padding:0 0 .5em}
+  .ls-table th,.ls-table td{text-align:left;vertical-align:top;padding:.65em 1em .65em 0;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent)}
+  .ls-table thead th{font-weight:600;border-bottom-color:color-mix(in srgb,currentColor 40%,transparent)}
+  .ls-table code{font-size:.92em;word-break:break-all}
+  .ls-clear{font:inherit;font-size:.95em;min-height:44px;padding:.55em 1.1em;border:1px solid currentColor;border-radius:6px;background:transparent;color:inherit;cursor:pointer;transition:transform 140ms cubic-bezier(.23,1,.32,1),background-color 200ms cubic-bezier(.23,1,.32,1)}
+  .ls-clear:active{transform:scale(.97)}
+  .ls-clear:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+  @media (hover:hover) and (pointer:fine){.ls-clear:hover{background:color-mix(in srgb,currentColor 8%,transparent)}}
+  .ls-status{margin-top:.6em;min-height:1.4em}
+  @media (max-width:640px){.ls-table thead{display:none}.ls-table tr{display:block;padding:.6em 0;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent)}.ls-table th,.ls-table td{display:block;border:0;padding:.15em 0}.ls-table td::before{content:attr(data-label) ": ";font-weight:600}}
+</style>
 </head>
 <body>
   <a class="skip" href="#main">Zum Inhalt springen</a>
@@ -54,13 +69,45 @@
       <p>Bewerbungsdaten verarbeiten wir zur Durchführung des Bewerbungsverfahrens (§ 26 BDSG, Art.&nbsp;88 DSGVO) und löschen sie spätestens sechs Monate nach Abschluss des Verfahrens, sofern Sie nicht einer längeren Speicherung zustimmen.</p>
       <p><strong>In dieser Demo</strong> werden Formulareingaben ausschließlich in Ihrem Browser angezeigt und nicht übertragen.</p>
 
-      <h2>5. Keine Cookies, kein Tracking</h2>
-      <p>Wir setzen keine Cookies und keine Analyse- oder Werbedienste ein. Ihre Ansichtseinstellungen (Schriftgröße, hoher Kontrast, Bewegung) speichern wir ausschließlich lokal in Ihrem Browser („Local Storage“), damit sie beim nächsten Besuch erhalten bleiben. Diese Daten verlassen Ihr Gerät nicht; Sie können sie jederzeit über die Browsereinstellungen löschen.</p>
+      <h2>5. Speicherung in Ihrem Browser (Local Storage)</h2>
+    <div class="ls-box" id="local-storage">
+    <p>Einige Funktionen dieser Website merken sich Ihre Eingaben im lokalen Speicher Ihres Browsers („Local Storage“), damit sie beim nächsten Besuch noch da sind. Das ist <strong>kein Cookie</strong>: Die Einträge bleiben auf Ihrem Gerät, werden nicht an unseren Server oder an Dritte übertragen, wir können sie nicht auslesen, und sie dienen weder der Analyse noch der Werbung. Gespeichert wird erst, wenn Sie die jeweilige Funktion benutzen.</p>
+    <div class="ls-scroll">
+      <table class="ls-table">
+        <caption>Diese Einträge kann die Website in Ihrem Browser anlegen</caption>
+        <thead><tr><th scope="col">Eintrag</th><th scope="col">Zweck</th><th scope="col">Inhalt</th><th scope="col">Speicherdauer</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>lebenswert-ansicht</code></th><td data-label="Zweck">Ihre Ansichtseinstellungen aus der Lesbarkeits-Leiste, damit Sie sie nicht bei jedem Besuch neu wählen müssen</td><td data-label="Inhalt">Schriftgröße, hoher Kontrast an/aus, Bewegung an/aus</td><td data-label="Speicherdauer">Bis Sie den Eintrag löschen (kein automatisches Ablaufdatum)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Rechtsgrundlage:</strong> § 25 Abs. 2 Nr. 2 TDDDG – die Speicherung ist unbedingt erforderlich, damit wir die von Ihnen ausdrücklich genutzte Funktion bereitstellen können; eine Einwilligung ist dafür nicht nötig. Soweit dabei personenbezogene Daten entstehen, ist Art. 6 Abs. 1 lit. f DSGVO die Grundlage (unser berechtigtes Interesse an einer bequemen Bedienung ohne erneute Eingabe).</p>
+    <p><strong>Löschen:</strong> jederzeit über die Lesbarkeits-Leiste (Standardwerte wählen), über die Schaltfläche unten oder in den Einstellungen Ihres Browsers („Websitedaten löschen“). In einem privaten Fenster löscht der Browser die Einträge beim Schließen automatisch.</p>
+    <p class="ls-actions" hidden><button type="button" class="ls-clear" data-ls-clear>Gespeicherte Einträge dieser Website löschen</button></p>
+    <p class="ls-status" role="status" aria-live="polite" data-ls-status></p>
+    </div>
+    <script>
+    (function () {
+      var keys = ['lebenswert-ansicht'], btn = document.querySelector('[data-ls-clear]'), out = document.querySelector('[data-ls-status]');
+      var store; try { store = window.localStorage; store.getItem('x'); } catch (e) { return; }
+      btn.parentNode.hidden = false;
+      var count = function () { return keys.filter(function (k) { return store.getItem(k) !== null; }).length; };
+      var n = count();
+      out.textContent = n ? 'Auf diesem Gerät sind derzeit ' + n + ' Eintrag' + (n === 1 ? '' : 'e') + ' gespeichert.' : 'Auf diesem Gerät sind derzeit keine Einträge gespeichert.';
+      btn.addEventListener('click', function () {
+        keys.forEach(function (k) { try { store.removeItem(k); } catch (e) {} });
+        out.textContent = 'Erledigt – alle Einträge dieser Website wurden aus Ihrem Browser gelöscht.';
+      });
+    })();
+    </script>
 
-      <h2>6. Schriften und Karte</h2>
+    <h2>6. Keine Cookies, kein Tracking</h2>
+      <p>Wir setzen keine Cookies und keine Analyse- oder Werbedienste ein. Ihre Ansichtseinstellungen (Schriftgröße, hoher Kontrast, Bewegung) speichern wir ausschließlich lokal in Ihrem Browser („Local Storage“, Einzelheiten in <a href="#local-storage">Abschnitt 5</a>), damit sie beim nächsten Besuch erhalten bleiben. Diese Daten verlassen Ihr Gerät nicht; Sie können sie jederzeit über die Browsereinstellungen löschen.</p>
+
+      <h2>7. Schriften und Karte</h2>
       <p>Die Schriften Atkinson Hyperlegible Next und Caveat (für handschriftliche Notizen) sind auf unserem Server gespeichert. Es werden keine Verbindungen zu Google Fonts oder anderen Drittanbietern aufgebaut. Die Karte des Einsatzgebiets ist eine eigene Grafik und lädt keine Inhalte von Kartendiensten.</p>
 
-      <h2>7. Ihre Rechte</h2>
+      <h2>8. Ihre Rechte</h2>
       <ul>
         <li>Auskunft über Ihre gespeicherten Daten (Art.&nbsp;15 DSGVO)</li>
         <li>Berichtigung (Art.&nbsp;16) und Löschung (Art.&nbsp;17)</li>
@@ -69,7 +116,7 @@
         <li>Widerruf einer Einwilligung mit Wirkung für die Zukunft (Art.&nbsp;7 Abs.&nbsp;3)</li>
       </ul>
 
-      <h2>8. Beschwerderecht</h2>
+      <h2>9. Beschwerderecht</h2>
       <p>Sie können sich bei einer Datenschutz-Aufsichtsbehörde beschweren, zum Beispiel beim Thüringer Landesbeauftragten für den Datenschutz und die Informationsfreiheit (TLfDI) in Erfurt.</p>
 
       <p style="margin-top:2.5rem"><a class="demo-pill" href="/arena/">Demo · Modell „Nähe“ · fiktiver Betrieb</a></p>

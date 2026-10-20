@@ -11,6 +11,21 @@
   <link rel="icon" href="/arena/galabau-gruenform/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="/arena/galabau-gruenform/assets/fonts/literata-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/arena/galabau-gruenform/style.css">
+<style>
+  .ls-box{margin:1.2em 0 2em;max-width:62rem}
+  .ls-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .ls-table{width:100%;border-collapse:collapse;font-size:.92em;line-height:1.45;margin:.6em 0 1.1em}
+  .ls-table caption{text-align:left;font-weight:600;padding:0 0 .5em}
+  .ls-table th,.ls-table td{text-align:left;vertical-align:top;padding:.65em 1em .65em 0;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent)}
+  .ls-table thead th{font-weight:600;border-bottom-color:color-mix(in srgb,currentColor 40%,transparent)}
+  .ls-table code{font-size:.92em;word-break:break-all}
+  .ls-clear{font:inherit;font-size:.95em;min-height:44px;padding:.55em 1.1em;border:1px solid currentColor;border-radius:6px;background:transparent;color:inherit;cursor:pointer;transition:transform 140ms cubic-bezier(.23,1,.32,1),background-color 200ms cubic-bezier(.23,1,.32,1)}
+  .ls-clear:active{transform:scale(.97)}
+  .ls-clear:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+  @media (hover:hover) and (pointer:fine){.ls-clear:hover{background:color-mix(in srgb,currentColor 8%,transparent)}}
+  .ls-status{margin-top:.6em;min-height:1.4em}
+  @media (max-width:640px){.ls-table thead{display:none}.ls-table tr{display:block;padding:.6em 0;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent)}.ls-table th,.ls-table td{display:block;border:0;padding:.15em 0}.ls-table td::before{content:attr(data-label) ": ";font-weight:600}}
+</style>
 </head>
 <body class="legal-page">
   <svg class="sprite" aria-hidden="true" focusable="false">
@@ -48,18 +63,52 @@
     <section>
       <h2>4. Anfrageformular, Gartenplaner und E-Mail</h2>
       <p>Wenn Sie uns über das Formular, per E-Mail oder telefonisch kontaktieren, verarbeiten wir Ihre Angaben (z. B. Name, Ort, Kontaktdaten, Angaben zum Garten und gegebenenfalls Ihre Skizze aus dem Gartenplaner) zur Bearbeitung Ihrer Anfrage und für mögliche Anschlussfragen (Art. 6 Abs. 1 lit. b DSGVO). Die Daten löschen wir, sobald die Anfrage erledigt ist und keine gesetzlichen Aufbewahrungspflichten bestehen.</p>
-      <p>In dieser Demo werden keine Formulardaten übertragen. Der Gartenplaner speichert Ihre Skizze und die gewählte Jahreszeit nur lokal in Ihrem Browser (Local Storage), damit sie beim nächsten Besuch noch da sind; diese Einträge können Sie jederzeit über die Browsereinstellungen löschen.</p>
+      <p>In dieser Demo werden keine Formulardaten übertragen. Der Gartenplaner speichert Ihre Skizze und die gewählte Jahreszeit nur lokal in Ihrem Browser (Local Storage) – Einzelheiten siehe <a href="#local-storage">Speicherung in Ihrem Browser</a>, damit sie beim nächsten Besuch noch da sind; diese Einträge können Sie jederzeit über die Browsereinstellungen löschen.</p>
     </section>
     <section>
-      <h2>5. Keine Cookies, kein Tracking</h2>
+      <h2>5. Speicherung in Ihrem Browser (Local Storage)</h2>
+    <div class="ls-box" id="local-storage">
+    <p>Einige Funktionen dieser Website merken sich Ihre Eingaben im lokalen Speicher Ihres Browsers („Local Storage“), damit sie beim nächsten Besuch noch da sind. Das ist <strong>kein Cookie</strong>: Die Einträge bleiben auf Ihrem Gerät, werden nicht an unseren Server oder an Dritte übertragen, wir können sie nicht auslesen, und sie dienen weder der Analyse noch der Werbung. Gespeichert wird erst, wenn Sie die jeweilige Funktion benutzen.</p>
+    <div class="ls-scroll">
+      <table class="ls-table">
+        <caption>Diese Einträge kann die Website in Ihrem Browser anlegen</caption>
+        <thead><tr><th scope="col">Eintrag</th><th scope="col">Zweck</th><th scope="col">Inhalt</th><th scope="col">Speicherdauer</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>gruenform-season</code></th><td data-label="Zweck">Die von Ihnen gewählte Jahreszeit der Seite</td><td data-label="Inhalt">Ein Wert wie „Frühling“ oder „Winter“</td><td data-label="Speicherdauer">Bis Sie den Eintrag löschen (kein automatisches Ablaufdatum)</td></tr>
+          <tr><th scope="row"><code>gruenform-plan</code></th><td data-label="Zweck">Ihre Skizze im Gartenplaner</td><td data-label="Inhalt">Belegung der Planfelder (z.&nbsp;B. Rasen, Beet, Terrasse), keine persönlichen Angaben</td><td data-label="Speicherdauer">Bis Sie den Eintrag löschen (kein automatisches Ablaufdatum)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Rechtsgrundlage:</strong> § 25 Abs. 2 Nr. 2 TDDDG – die Speicherung ist unbedingt erforderlich, damit wir die von Ihnen ausdrücklich genutzte Funktion bereitstellen können; eine Einwilligung ist dafür nicht nötig. Soweit dabei personenbezogene Daten entstehen, ist Art. 6 Abs. 1 lit. f DSGVO die Grundlage (unser berechtigtes Interesse an einer bequemen Bedienung ohne erneute Eingabe).</p>
+    <p><strong>Löschen:</strong> jederzeit über „Leeren“ im Gartenplaner, über die Schaltfläche unten oder in den Einstellungen Ihres Browsers („Websitedaten löschen“). In einem privaten Fenster löscht der Browser die Einträge beim Schließen automatisch.</p>
+    <p class="ls-actions" hidden><button type="button" class="ls-clear" data-ls-clear>Gespeicherte Einträge dieser Website löschen</button></p>
+    <p class="ls-status" role="status" aria-live="polite" data-ls-status></p>
+    </div>
+    <script>
+    (function () {
+      var keys = ['gruenform-season','gruenform-plan'], btn = document.querySelector('[data-ls-clear]'), out = document.querySelector('[data-ls-status]');
+      var store; try { store = window.localStorage; store.getItem('x'); } catch (e) { return; }
+      btn.parentNode.hidden = false;
+      var count = function () { return keys.filter(function (k) { return store.getItem(k) !== null; }).length; };
+      var n = count();
+      out.textContent = n ? 'Auf diesem Gerät sind derzeit ' + n + ' Eintrag' + (n === 1 ? '' : 'e') + ' gespeichert.' : 'Auf diesem Gerät sind derzeit keine Einträge gespeichert.';
+      btn.addEventListener('click', function () {
+        keys.forEach(function (k) { try { store.removeItem(k); } catch (e) {} });
+        out.textContent = 'Erledigt – alle Einträge dieser Website wurden aus Ihrem Browser gelöscht.';
+      });
+    })();
+    </script>
+    </section>
+    <section>
+      <h2>6. Keine Cookies, kein Tracking</h2>
       <p>Wir setzen keine Cookies, keine Analyse- oder Marketingdienste und keine Social-Media-Plugins ein. Karten werden als eigene Grafik dargestellt, es werden keine externen Kartendienste geladen.</p>
     </section>
     <section>
-      <h2>6. Schriftarten</h2>
+      <h2>7. Schriftarten</h2>
       <p>Die verwendeten Schriften (Literata, Hanken Grotesk) sind lokal auf unserem Server eingebunden. Beim Seitenaufruf wird keine Verbindung zu Servern Dritter, etwa von Google, aufgebaut.</p>
     </section>
     <section>
-      <h2>7. Ihre Rechte</h2>
+      <h2>8. Ihre Rechte</h2>
       <p>Sie haben jederzeit das Recht auf:</p>
       <ul>
         <li>Auskunft über die bei uns gespeicherten Daten (Art. 15 DSGVO)</li>
@@ -71,7 +120,7 @@
       <p>Eine kurze Nachricht an <a href="mailto:garten@gruenform.de">garten@gruenform.de</a> genügt.</p>
     </section>
     <section>
-      <h2>8. Beschwerderecht</h2>
+      <h2>9. Beschwerderecht</h2>
       <p>Sie können sich bei einer Datenschutz-Aufsichtsbehörde beschweren, zum Beispiel beim Hessischen Beauftragten für Datenschutz und Informationsfreiheit in Wiesbaden.</p>
     </section>
     <p class="legal-back"><a class="btn btn--ghost" href="/arena/galabau-gruenform/">Zurück zur Startseite</a></p>
