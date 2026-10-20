@@ -107,8 +107,7 @@
     };
 
     /* ---------- 2. Projekte ---------- */
-    const projekte = (isDesktop, ctx) => {
-      const sec = $('#projekte');
+    const projekteSec = (sec, isDesktop, ctx) => {
       const track = sec && $('[data-ventures-track]', sec);
       if (!track) return;
       const cards = $$('.card', track);
@@ -175,6 +174,8 @@
         onToggle: (self) => { if (!self.isActive) setSkew(0); },
       });
     };
+
+    const projekte = (isDesktop, ctx) => $$('[data-ventures]').forEach((sec) => projekteSec(sec, isDesktop, ctx));
 
     /* ---------- 3. Werte ---------- */
     const werte = (isDesktop) => {

@@ -1594,7 +1594,7 @@
   /* ---------- 7. Scroll-Module (nur mit Motion) ---------- */
   if (motion) {
     const mm = gsap.matchMedia();
-    let ventFocus = null; // Fokus-Handler der Projekte-Fahrt (je Breakpoint neu)
+    const ventFocus = new Map(); // Fokus-Handler je Projekte-Fahrt (bei jedem Breakpoint neu)
 
     mm.add({ isDesktop: '(min-width: 900px)', isMobile: '(max-width: 899px)' }, (ctx) => {
       const { isDesktop } = ctx.conditions;
@@ -1737,10 +1737,15 @@
         });
       }
 
-      /* 7f. Projekte: horizontales Pinned-Scrolling (Desktop) */
-      const ventures = $('[data-ventures]');
-      const vTrack = $('[data-ventures-track]');
-      if (ventures && vTrack && isDesktop) {
+      /* 7f. Projekte: horizontales Pinned-Scrolling (Desktop), je Abschnitt mit data-ventures */
+      ventFocus.forEach((fn, sec) => sec.removeEventListener('focusin', fn)); ventFocus.clear();
+      $$('[data-ventures]').forEach((ventures) => {
+        const vTrack = $('[data-ventures-track]', ventures);
+        if (!vTrack) return;
+        if (!isDesktop) {
+          gsap.from($$('[data-ventures-card]', vTrack), { y: 40, opacity: 0, duration: 1, stagger: 0.1, ease: 'power3.out', scrollTrigger: { trigger: vTrack, start: 'top 85%', once: true } });
+          return;
+        }
         const dist = () => Math.max(0, vTrack.scrollWidth - window.innerWidth);
         // Karten sind so gross, dass die Seitwaertsfahrt etwa einen Viewport lang ist (style.css).
         // Kein eigenes Einblenden je Karte: das Bild-Reveal kommt aus assets/fx/enthuellung.js.
@@ -1753,9 +1758,8 @@
         });
         // Tastatur: fokussierte Karte ueber die Scrollposition in den Blick holen,
         // statt den Browser die Sektion seitwaerts verschieben zu lassen.
-        if (ventFocus) ventures.removeEventListener('focusin', ventFocus);
-        ventFocus = (e) => {
-          const card = e.target.closest('[data-ventures-card]');
+        const onFocus = (e) => {
+          const card = e.target.closest('.card'); // auch die Schlusskarte
           const st = vTween.scrollTrigger;
           if (!card || !st) return;
           ventures.scrollLeft = 0;
@@ -1763,11 +1767,9 @@
           const x = Math.min(dist(), Math.max(0, off - (window.innerWidth - card.offsetWidth) / 2));
           if (lenis) lenis.scrollTo(st.start + x, { immediate: true }); else window.scrollTo(0, st.start + x);
         };
-        ventures.addEventListener('focusin', ventFocus);
-      } else if (vTrack) {
-        if (ventFocus) { ventures?.removeEventListener('focusin', ventFocus); ventFocus = null; }
-        gsap.from($$('[data-ventures-card]', vTrack), { y: 40, opacity: 0, duration: 1, stagger: 0.1, ease: 'power3.out', scrollTrigger: { trigger: vTrack, start: 'top 85%', once: true } });
-      }
+        ventures.addEventListener('focusin', onFocus);
+        ventFocus.set(ventures, onFocus);
+      });
 
       /* 7g. Parallax + Galerie */
       if (isDesktop) {

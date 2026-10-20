@@ -19,6 +19,7 @@ Stand dieser Liste: **164 Stellen** – 141 in `index.html`, 9 in `impressum.htm
 |---|---|---|---|
 | – | Menü (Socials) | `.menu` | 2 |
 | 1 | Hero | `#hero` | 3 |
+| – | Case Studies | `#projekte` | 0 (sechs Karten direkt nach dem Hero) |
 | 2 | Über mich | `#intro` | 12 |
 | 3 | Die Rechnung | `#wert` | 0 |
 | 4 | Rechner | `#rechner` | 0 (Standardwerte prüfen, siehe unten) |
@@ -27,7 +28,7 @@ Stand dieser Liste: **164 Stellen** – 141 in `index.html`, 9 in `impressum.htm
 | – | Laufband | `.marquee` | 0 |
 | 7 | Fokus (Wort-Tausch) | `#fokus` | 8 |
 | 8 | Der Weg | `#weg` | 14 |
-| 9 | Case Studies | `#projekte` | 0 (sechs Karten aus `projekte/projekte.json`, Übersicht `projekte.html`) |
+| 9 | Mehr Case Studies | `#mehr-projekte` | 0 (sechs weitere Karten aus `projekte/projekte.json`, Übersicht `projekte.html`) |
 | 10 | Zahlen | `#zahlen` | 25 |
 | 11 | Haltung | `#statement` | 3 |
 | 12 | Stimmen | `#stimmen` | 12 |
